@@ -1,6 +1,7 @@
 # isd-2026-OCR-LLM-QNA
 OCR, LLM, Database / RAG
 
-67070168
-67070185
-67070195
+# Members
+* 67070168 - film_synthesis
+* 67070185 - 17decc
+* 67070195 - zvacia
