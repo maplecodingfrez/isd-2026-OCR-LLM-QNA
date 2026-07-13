@@ -1,7 +1,7 @@
 # isd-2026-OCR-LLM-QNA
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
 
-## Lab - Assignment
+## Lab - Assignment (Seperate - Branches)
 > Lab-3---OCR-(Ensemble,-PaddleOCR,-Trocr,-Tesseract)
 
 ## Members
