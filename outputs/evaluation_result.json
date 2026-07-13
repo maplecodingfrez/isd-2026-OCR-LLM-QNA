@@ -1,0 +1,8 @@
+{
+  "file": "quote2.jpg",
+  "cer": 0.14432989690721648,
+  "wer": 0.7,
+  "exact_match": false,
+  "reference_chars": 106,
+  "prediction_chars": 122
+}
