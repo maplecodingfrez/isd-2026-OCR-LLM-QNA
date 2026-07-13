@@ -1,5 +1,7 @@
 # isd-2026-OCR-LLM-QNA
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
+
+## Lab - Assignment
 > Lab 3 อยู่ใน branch นะครับ
 
 ## Members
