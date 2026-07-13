@@ -2,7 +2,7 @@
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
 
 ## Lab - Assignment
-> Lab 3 อยู่ใน branch นะครับ
+> Lab-3---OCR-(Ensemble,-PaddleOCR,-Trocr,-Tesseract)
 
 ## Members
 * 67070168 - film_synthesis
