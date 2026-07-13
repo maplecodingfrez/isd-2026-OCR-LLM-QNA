@@ -1,5 +1,6 @@
 # isd-2026-OCR-LLM-QNA
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
+> Lab 3 อยู่ใน branch นะครับ
 
 ## Members
 * 67070168 - film_synthesis
