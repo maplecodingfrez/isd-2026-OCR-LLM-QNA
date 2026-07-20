@@ -474,3 +474,8 @@ src/ocr_system/curriculum_extraction.py      ดึง course records จาก 
 src/ocr_system/evaluate_curriculum.py        วัดผล recall + field-level agreement เทียบ GT
 src/ocr_system/cli.py                        subcommand `curriculum` รวม extraction + evaluation
 ```
+
+### หมายเหตุเกี่ยวกับ `outputs/`
+
+โฟลเดอร์ `outputs/` ใน branch นี้เก็บเฉพาะไฟล์ที่เกี่ยวข้องกับ curriculum extraction เท่านั้น
+ตัวอย่าง output ของระบบ OCR พื้นฐาน (quote.jpg, pdf_sample.pdf ฯลฯ) อยู่ใน branch `Lab-3`
