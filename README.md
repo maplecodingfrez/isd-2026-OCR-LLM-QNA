@@ -479,3 +479,74 @@ src/ocr_system/cli.py                        subcommand `curriculum` รวม e
 
 โฟลเดอร์ `outputs/` ใน branch นี้เก็บเฉพาะไฟล์ที่เกี่ยวข้องกับ curriculum extraction เท่านั้น
 ตัวอย่าง output ของระบบ OCR พื้นฐาน (quote.jpg, pdf_sample.pdf ฯลฯ) อยู่ใน branch `Lab-3`
+
+---
+
+## Ground Truth Page Mapping (Lab 5)
+
+ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth (`DSBA_academic_plan_coop.json`) เข้ากับหน้าจริงของเล่มหลักสูตร (`data/input/dsba_curriculum.pdf`) ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ)
+
+### Pipeline
+
+```text
+outputs/dsba_curriculum_ocr.json (มีอยู่แล้วจาก Lab 4)
+    → curriculum_extraction.py (extract_curriculum, เก็บ page number ต่อ occurrence)
+    → gt_page_mapping.py (group_by_code → classify_pages → เทียบกับ GT)
+    → outputs/course_page_mapping.csv
+```
+
+### วิธีรัน
+
+```bash
+python scripts/build_page_mapping.py
+python scripts/build_qa_pairs.py
+```
+
+ผลลัพธ์ที่ได้:
+```text
+outputs/course_page_mapping.csv    80 วิชา พร้อมหน้าอ้างอิง (primary/other)
+outputs/qa_pairs.csv               15 คำถาม-คำตอบ อ้างอิงหน้า
+```
+
+### สิ่งที่แก้ใน `curriculum_extraction.py` (Lab 4) และทำไม
+
+Lab 5 ต้องรู้ว่าแต่ละ course record มาจากหน้าไหน แต่ Lab 4 ไม่เคยเก็บเลขหน้าไว้ในผลลัพธ์เลย (ทั้งที่ `_extract_page_courses` มีเลขหน้าอยู่ในมืออยู่แล้วตอน loop) จึงแก้ 2 จุด:
+
+1. เติม parameter `page_no` ให้ `_course_from_text()` และใส่ค่าเป็น key `"page"` ในผลลัพธ์ — เป็นการเติม field ใหม่แบบ additive ไม่กระทบ field เดิมที่ `evaluate_curriculum.py` ใช้เทียบ (name_en, credits) เลย
+2. แก้บั๊กใน `_trim_block_text()` — footer token `"มคอ"` (มาจากแบบฟอร์ม มคอ.3) ไปแมตช์ substring กลางคำ **"คอมพิวเตอร์"** โดยบังเอิญ (…โปรแกร**มคอ**มพิวเตอร์…) ทำให้ block ถูกตัดก่อนถึงหน่วยกิตของทุกวิชาที่ชื่อมีคำว่า "คอมพิวเตอร์" อยู่ก่อนหน่วยกิต (กระทบ `06066303`, `06026203`) แก้โดยให้เริ่มค้นหา footer token **หลัง**ตำแหน่งที่เจอ credits pattern แล้วเท่านั้น
+
+หมายเหตุ: การแก้บั๊กข้อ 2 ทำให้ตัวเลข evaluation ของ Lab 4 ดีขึ้นเล็กน้อยจากที่เคยรายงานไว้ — แก้ไว้ตรงนี้อย่างโปร่งใส ไม่ใช่แก้แบบเงียบๆ
+
+### เกณฑ์การจัดหน้า primary vs other
+
+`gt_page_mapping.classify_pages()` เทียบทุก occurrence ของรหัสวิชานั้นกับ GT แบบ OR: ถ้า `name_en` **หรือ** `name_th` **หรือ** `credits` (normalize แล้ว) ตรงกับ GT ข้อใดข้อหนึ่ง ถือว่าเป็น **primary page** (แหล่งข้อมูลจริง) ที่เหลือเป็น **other page** (โผล่รหัสเฉยๆ เช่น หน้าดัชนี/ภาระงานสอน)
+
+เลือกใช้เกณฑ์ OR (ไม่ใช่ AND ต้องตรงทุก field) เพราะ OCR มี noise พอสมควร — เจอเคสจริงที่หน้า 30: วิชา `06026200` (CALCULUS 1) มี credits ตรงกับ GT แต่ `name_en` ถูกปนเปื้อนข้อความของวิชาถัดไปเพราะรหัสวิชาถัดไป (`06026202`) หายไปจาก OCR — ถ้าใช้เกณฑ์ AND หน้านี้จะถูกตัดทิ้งทั้งที่เป็นหน้าจริง
+
+ถ้าหารหัสไม่เจอเลยในเอกสาร (เช่น `06016401`) จะ fallback ไปค้นหาด้วยชื่อวิชาแทน (`status: found_by_name_only`) เพื่อให้ยังมีหน้าอ้างอิงบางส่วน ไม่ทิ้งเป็นค่าว่างเปล่า
+
+### ผลลัพธ์
+
+| Metric | ผลลัพธ์ |
+|---|---|
+| GT courses ทั้งหมด | 80 |
+| เจอด้วยรหัสวิชา + มี primary page | 79 (98.75%) |
+| เจอด้วยชื่อวิชาเท่านั้น (fallback) | 1 |
+| หาไม่เจอเลย | 0 |
+
+### Known Limitations
+
+- **`06016401`** — เหมือนที่ระบุไว้ใน Lab 4: รหัสวิชานี้ไม่ปรากฏในเอกสาร OCR เลย พบเพียงชื่อวิชาในหน้าภาระงานสอนอาจารย์ (หน้า 49) จึงนับเป็น name-only match ไม่ใช่ primary page
+- **หน้า 30** — วิชา `06026200` มี `name_en` ปนเปื้อนจากวิชาถัดไป เพราะรหัส `06026202` หายไปจาก OCR บนหน้านี้ (ทำให้ `06026202` ไม่ได้เครดิตหน้า 30 ทั้งที่ควรจะมี) เป็นข้อจำกัดจากคุณภาพ OCR ต้นทาง ไม่ใช่บั๊กของ mapping script
+- **ข้อบังคับสถาบันฯ (หน้า 89-108)** — OCR คุณภาพต่ำกว่าส่วนอื่นมาก (เลขไทยอ่านผิดบ่อย มีตัวอักษรละตินมั่วปน) คำถามข้อบังคับที่เขียนไว้เลือกเฉพาะข้อความที่อ่านได้ชัดเจนเท่านั้น
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/curriculum_extraction.py   แก้เพิ่ม page number + แก้บั๊ก "มคอ" (ไฟล์ Lab 4, แก้ต่อใน Lab 5)
+src/ocr_system/gt_page_mapping.py         group_by_code / classify_pages / write_csv (ใหม่, Lab 5)
+scripts/build_page_mapping.py             รัน pipeline สร้าง course_page_mapping.csv
+scripts/build_qa_pairs.py                 ชุดคำถาม-คำตอบ 15 ข้อ พร้อมเลขหน้าอ้างอิง
+outputs/course_page_mapping.csv           80 วิชา พร้อม primary/other pages
+outputs/qa_pairs.csv                      15 คำถาม-คำตอบ (10 รายวิชา + 5 ข้อบังคับ)
+```

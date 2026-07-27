@@ -136,20 +136,23 @@ def _extract_page_courses(page: dict[str, Any], year: int | None, semester: int 
         block_text = _trim_block_text(block_text)
         if not block_text.strip():
             continue
-        courses.append(_course_from_text(code, block_text, year=year, semester=semester))
+        courses.append(_course_from_text(code, block_text, year=year, semester=semester, page_no=page["page"]))
 
     return courses
 
 
 def _trim_block_text(block_text: str) -> str:
+    credit_match = CREDITS_RE.search(block_text)
+    search_start = credit_match.end() if credit_match else 0
+
     cut_positions = []
 
-    total_match = TOTAL_RE.search(block_text)
+    total_match = TOTAL_RE.search(block_text, search_start)
     if total_match:
         cut_positions.append(total_match.start())
 
     for token in FOOTER_TOKENS:
-        idx = block_text.find(token)
+        idx = block_text.find(token, search_start)
         if idx != -1:
             cut_positions.append(idx)
 
@@ -159,7 +162,7 @@ def _trim_block_text(block_text: str) -> str:
     return block_text
 
 
-def _course_from_text(code: str, block_text: str, year: int | None, semester: int | None) -> dict[str, Any]:
+def _course_from_text(code: str, block_text: str, year: int | None, semester: int | None, page_no: int | None) -> dict[str, Any]:
     credit_match = CREDITS_RE.search(block_text)
 
     if credit_match:
@@ -175,6 +178,7 @@ def _course_from_text(code: str, block_text: str, year: int | None, semester: in
     name_en = _join_english_name(after.split())
 
     return {
+        "page": page_no,
         "code": code,
         "name_th": name_th,
         "name_en": name_en,

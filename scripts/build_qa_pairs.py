@@ -1,0 +1,186 @@
+"""
+Lab 5 - Q&A pairs answerable from the DSBA (coop) ground truth
+(data/ground_truth/DSBA_academic_plan_coop.json), each answer citing the PDF
+page(s) in data/input/dsba_curriculum.pdf that the fact came from.
+
+Two buckets:
+  - "course": answerable directly from the ground truth / outputs/course_page_mapping.csv
+    (built by scripts/build_page_mapping.py).
+  - "regulation": answerable from the institute-wide "ข้อบังคับสถาบันฯ ว่าด้วยการศึกษา
+    ระดับปริญญาตรี" appendix, which is bound into the same curriculum book
+    (found by grepping the OCR text for "ข้อบังคับ" -- see README Lab 5 section).
+    OCR quality on these appendix pages is noticeably worse than the course
+    tables (garbled Thai numerals, stray Latin letters), so only facts that
+    were clearly legible in the raw text were kept.
+
+Page numbers = physical page order in data/input/dsba_curriculum.pdf
+(1-indexed), same convention as outputs/dsba_curriculum_ocr.json and
+outputs/course_page_mapping.csv -- NOT the printed page number shown in the
+document body (which runs about 1 page behind the PDF index).
+
+Run: python scripts/build_qa_pairs.py
+"""
+
+import csv
+from pathlib import Path
+
+OUTPUT_PATH = Path(__file__).resolve().parent.parent / "outputs" / "qa_pairs.csv"
+
+QA_PAIRS = [
+    # ---------- course-level (from data/ground_truth/DSBA_academic_plan_coop.json) ----------
+    {
+        "type": "course",
+        "question": "รหัสวิชา 06026211 ชื่อวิชาอะไร และมีหน่วยกิตเท่าไหร่?",
+        "answer": "การเรียนรู้ของเครื่องเชิงประยุกต์ (APPLIED MACHINE LEARNING) 3(2-2-5) หน่วยกิต",
+        "cited_pages": "18;323",
+        "note": "ground truth: code 06026211",
+    },
+    {
+        "type": "course",
+        "question": "วิชา 90641001 CHARM SCHOOL มีกี่หน่วยกิต และพบข้อมูลอยู่กี่หน้าในเล่มหลักสูตร?",
+        "answer": (
+            "2(1-2-3) หน่วยกิต พบใน 4 หน้า (16, 123, 125, 234) เพราะเป็นวิชาศึกษาทั่วไปที่ปรากฏซ้ำ"
+            "ในตารางหลักสูตรของหลายสาขา ไม่ใช่แค่ DSBA"
+        ),
+        "cited_pages": "16;123;125;234",
+        "note": "ground truth: code 90641001",
+    },
+    {
+        "type": "course",
+        "question": "วิชา 06026225 ชื่อเต็มภาษาอังกฤษคืออะไร และโครงสร้างหน่วยกิต 3(2-2-5) แปลว่าอะไร?",
+        "answer": (
+            "DEEP LEARNING IN MEDICAL IMAGE AND VIDEO ANALYSIS -- 3 หน่วยกิต คือ บรรยาย 2 ชม. / "
+            "ปฏิบัติ 2 ชม. / ศึกษาด้วยตนเอง 5 ชม. ต่อสัปดาห์"
+        ),
+        "cited_pages": "19;329",
+        "note": "ground truth: code 06026225",
+    },
+    {
+        "type": "course",
+        "question": "วิชา 06026209 คือวิชาอะไร และต้องลงทะเบียนเรียนปีไหน เทอมไหน?",
+        "answer": "การแสดงข้อมูลด้วยแผนภาพ (DATA VISUALIZATION) เรียนปี 2 เทอม 2",
+        "cited_pages": "18;26;322",
+        "note": "ground truth: code 06026209",
+    },
+    {
+        "type": "course",
+        "question": "รหัสวิชา 06026212 ต้องผ่านวิชาอะไรมาก่อนถึงจะลงทะเบียนได้?",
+        "answer": "ต้องผ่านวิชา 06066300 มาก่อน (prerequisite) -- 06026212 คือ การสร้างคลังข้อมูล (DATA WAREHOUSING)",
+        "cited_pages": "18;323",
+        "note": "ground truth: code 06026212, field 'prerequisite'",
+    },
+    {
+        "type": "course",
+        "question": "การจะเรียนวิชารหัส 06026201 ได้ ต้องเรียนวิชาใดมาก่อน?",
+        "answer": "ต้องผ่านวิชา 06026200 (แคลคูลัส 1 / CALCULUS 1) มาก่อน -- 06026201 คือ แคลคูลัส 2 (CALCULUS 2)",
+        "cited_pages": "17;31;314",
+        "note": "ground truth: code 06026201, field 'prerequisite'",
+    },
+    {
+        "type": "course",
+        "question": "วิชาใดบ้างที่ต้องเรียนในปี 1 เทอม 1?",
+        "answer": (
+            "8 วิชา: 06016401 (คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ), 06026200 (แคลคูลัส 1), "
+            "06026202 (พีชคณิตเชิงเส้น), 06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ), "
+            "06066303 (การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์), 90641001 (CHARM SCHOOL), "
+            "90641003 (กีฬาและนันทนาการ), 90644007 (ภาษาอังกฤษพื้นฐาน 1) -- ทุกวิชายกเว้น 06016401 "
+            "มีหน้าอ้างอิงในตารางหลักสูตรโดยตรง ส่วน 06016401 ไม่พบรหัสในตารางเลย พบเพียงชื่อวิชาในหน้า"
+            "ภาระงานสอนอาจารย์ (หน้า 49, ไม่ใช่หลักฐานยืนยันด้วยรหัส)"
+        ),
+        "cited_pages": "16;17;18;23;30;123;125;136;151;234;273;314;315;317;319;49(name-only)",
+        "note": "ground truth: filtered by year=1, semester=1",
+    },
+    {
+        "type": "course",
+        "question": "ในแต่ละปี มีวิชาหมวดวิชาเฉพาะกับหมวดวิชาศึกษาทั่วไปอย่างละกี่วิชา?",
+        "answer": (
+            "ปี 1: เฉพาะ 9 / ทั่วไป 6 | ปี 2: เฉพาะ 12 / ทั่วไป 0 | ปี 3: เฉพาะ 5 / ทั่วไป 2 | "
+            "ปี 4: เฉพาะ 1 / ทั่วไป 0 -- นอกจากนี้มีวิชาเลือก 45 วิชา (หมวดวิชาเฉพาะทั้งหมด) ที่ไม่ผูกกับ"
+            "ปีตายตัว เลือกลงได้ตามเงื่อนไข flexible_year_semester ของแต่ละวิชา"
+        ),
+        "cited_pages": "15",
+        "note": "ground truth: aggregated by year + category; หน้า 15 มีตารางโครงสร้างหลักสูตรโดยรวม",
+    },
+    {
+        "type": "course",
+        "question": "หลักสูตร DSBA มีวิชาบังคับกับวิชาเลือกอย่างละกี่วิชา?",
+        "answer": "วิชาบังคับ 35 วิชา, วิชาเลือก 45 วิชา (รวม 80 วิชาตาม ground truth)",
+        "cited_pages": "15",
+        "note": "ground truth: aggregated by field 'type'",
+    },
+    {
+        "type": "course",
+        "question": "มีวิชาที่เกี่ยวกับ Machine Learning หรือ AI โดยตรงกี่วิชา อะไรบ้าง?",
+        "answer": (
+            "6 วิชา: Applied Machine Learning (06026211), Artificial Intelligence (06026216), "
+            "Machine Learning (06026217), Deep Learning (06026218), "
+            "Deep Learning in Medical Image and Video Analysis (06026225), "
+            "Machine Learning Operations (06026241)"
+        ),
+        "cited_pages": "18;19;21;323;325;326;329;334",
+        "note": "ground truth: filtered by keyword in name_en",
+    },
+    # ---------- regulation-level (ข้อบังคับสถาบันฯ ว่าด้วยการศึกษาระดับปริญญาตรี, ภาคผนวกในเล่มเดียวกัน) ----------
+    {
+        "type": "regulation",
+        "question": "หลักสูตร DSBA มีจำนวนหน่วยกิตรวมตลอดหลักสูตรเท่าไหร่?",
+        "answer": "132 หน่วยกิต (ข้อ 3.1.1 -- ใช้ร่วมกันทั้งแผนที่เข้าและไม่เข้าร่วมโครงการสหกิจศึกษา)",
+        "cited_pages": "15",
+        "note": "หัวข้อ 3. หลักสูตรและอาจารย์ผู้สอน / 3.1.1 จำนวนหน่วยกิตรวมตลอดหลักสูตร",
+    },
+    {
+        "type": "regulation",
+        "question": "นักศึกษาที่มีค่าระดับคะแนนเฉลี่ยสะสม (GPA) ต่ำกว่าเท่าไหร่ ต้องถูกภาคทัณฑ์?",
+        "answer": "ต่ำกว่า 2.00 ต้องถูกภาคทัณฑ์ (ข้อ 22) และจะพ้นภาคทัณฑ์เมื่อ GPA สะสมไม่ต่ำกว่า 2.00 อีกครั้ง",
+        "cited_pages": "94",
+        "note": "ข้อบังคับสถาบันฯ ว่าด้วยการศึกษาระดับปริญญาตรี พ.ศ. 2564 (ภาคผนวก ก)",
+    },
+    {
+        "type": "regulation",
+        "question": "นักศึกษาที่ต้องการลาพักการศึกษา ต้องดำเนินการอย่างไร?",
+        "answer": (
+            "ต้องได้รับความเห็นชอบจากคณะกรรมการประจำส่วนงานวิชาการ และแจ้งสำนักทะเบียนฯ ระยะเวลาที่ลาพัก"
+            "นับรวมในระยะเวลาการศึกษาตามหลักสูตรด้วย และต้องชำระค่าธรรมเนียมรักษาสถานภาพนักศึกษาทุก"
+            "ภาคการศึกษาปกติ (ข้อ 31)"
+        ),
+        "cited_pages": "96",
+        "note": "ข้อบังคับสถาบันฯ ข้อ 31 การลาพักการศึกษา",
+    },
+    {
+        "type": "regulation",
+        "question": "นักศึกษาที่พ้นสภาพการเป็นนักศึกษา จะขอกลับเข้าศึกษาใหม่ได้ในเงื่อนไขแบบไหน?",
+        "answer": (
+            "ยื่นคำร้องขอกลับเข้าศึกษาได้ในบางกรณี โดยอธิการบดีเป็นผู้อนุมัติ (ผ่านความเห็นชอบหัวหน้าส่วนงาน"
+            "วิชาการ) ต้องไม่เกิน 1 ปีนับจากวันที่พ้นสภาพ และไม่ขัดกับระยะเวลาการศึกษาสูงสุดของหลักสูตร (ข้อ 32)"
+        ),
+        "cited_pages": "97",
+        "note": "ข้อบังคับสถาบันฯ ข้อ 32 -- OCR หน้านี้คุณภาพต่ำ (เลขไทยอ่านยาก) ใช้เฉพาะส่วนที่ชัดเจน",
+    },
+    {
+        "type": "regulation",
+        "question": "รายวิชาสหกิจศึกษาของแผน coop สาขา DSBA มีรหัสอะไรบ้าง และมีกี่หน่วยกิต?",
+        "answer": (
+            "06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ (ในประเทศ) หรือ 06026260 "
+            "สหกิจศึกษาต่างประเทศฯ -- เลือกลงทะเบียนวิชาใดวิชาหนึ่ง รวม 6 หน่วยกิต ทั้งสองวิชาเป็น "
+            "6(0-35-0) คือไม่มีชั่วโมงบรรยาย ฝึกปฏิบัติ 35 ชม./สัปดาห์"
+        ),
+        "cited_pages": "22",
+        "note": "ตารางหลักสูตร แผนสหกิจศึกษา (ไม่ใช่ข้อบังคับสถาบันฯ โดยตรง แต่เป็นเกณฑ์เฉพาะหลักสูตร)",
+    },
+]
+
+
+def write_qa_csv(rows: list[dict], output_path: Path = OUTPUT_PATH) -> None:
+    fields = ["type", "question", "answer", "cited_pages", "note"]
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+if __name__ == "__main__":
+    write_qa_csv(QA_PAIRS)
+    n_course = sum(1 for r in QA_PAIRS if r["type"] == "course")
+    n_reg = sum(1 for r in QA_PAIRS if r["type"] == "regulation")
+    print(f"Saved {len(QA_PAIRS)} Q&A pairs ({n_course} course, {n_reg} regulation) -> {OUTPUT_PATH}")
