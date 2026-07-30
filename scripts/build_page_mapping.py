@@ -1,3 +1,5 @@
+# python scripts/build_page_mapping.py
+
 import csv
 import json
 
@@ -18,7 +20,7 @@ ocr = json.load(open("outputs/dsba_curriculum_ocr.json", encoding="utf-8"))
 pages = {p["page"]: p["text"] for p in ocr["pages"]}
 
 # 4) classify each GT course's occurrences into primary / other pages
-rows = classify_pages(gt_courses, grouped, pages)
+rows = classify_pages(gt_courses, grouped, pages, gt.get("program"), gt.get("plan"))
 
 # 5) summary
 print("total:", len(rows))

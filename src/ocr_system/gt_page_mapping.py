@@ -18,6 +18,8 @@ def classify_pages(
     gt_courses: list[dict],
     grouped: dict[str, list[dict]],
     pages_text: dict[int, str],
+    program: str,
+    plan: str,
 ) -> list[dict]:
     rows = []
     for gt in gt_courses:
@@ -55,6 +57,8 @@ def classify_pages(
                     note = "ไม่พบรหัสวิชาใน OCR เลย พบเฉพาะชื่อวิชา (ไม่ยืนยันด้วยรหัส)"
 
         rows.append({
+            "program": program,
+            "plan": plan,
             "code": code,
             "name_th": gt.get("name_th"),
             "name_en": gt.get("name_en"),
@@ -75,7 +79,7 @@ def classify_pages(
     return rows
 
 def write_csv(rows: list[dict], output_path: str) -> None:
-    fields = ["code", "name_th", "name_en", "credits", "year", "semester", "category", "type", "prerequisite", "flexible_year_semester", "primary_pages", "other_pages", "occurrences", "status", "note"]
+    fields = ["program", "plan", "code", "name_th", "name_en", "credits", "year", "semester", "category", "type", "prerequisite", "flexible_year_semester", "primary_pages", "other_pages", "occurrences", "status", "note"]
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8-sig", newline="") as f:
