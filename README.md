@@ -2,7 +2,9 @@
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
 
 ## Lab - Assignment (Seperate - Branches)
-> Lab-3---OCR-(Ensemble,-PaddleOCR,-Trocr,-Tesseract)
+* [Lab-3 - OCR (Ensemble, PaddleOCR, TrOCR, Tesseract)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-3)
+* [Lab-4 - Curriculum Extraction & Evaluation](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-4)
+* [Lab-5 - Ground Truth Page Mapping & Q&A](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-5)
 
 ## Members
 * 67070168 - film_synthesis
