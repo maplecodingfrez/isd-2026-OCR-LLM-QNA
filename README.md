@@ -486,6 +486,17 @@ src/ocr_system/cli.py                        subcommand `curriculum` รวม e
 
 ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth (`DSBA_academic_plan_coop.json`) เข้ากับหน้าจริงของเล่มหลักสูตร (`data/input/dsba_curriculum.pdf`) ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ)
 
+### Ground Truth ที่ใช้
+
+| Field | ค่า |
+|---|---|
+| ไฟล์ | `data/ground_truth/DSBA_academic_plan_coop.json` |
+| source | GT_Template-2.xlsx / Academic Plan GT — DSBA coop |
+| program | DSBA |
+| plan | coop |
+
+ไม่ได้ใส่ `source` เป็นคอลัมน์ใน `course_page_mapping.csv` เพราะรันจาก GT ไฟล์เดียว ทุกแถวจะมีค่าเดียวกันหมด (ต่างจาก `program`/`plan` ที่ตอบโจทย์ "หลักสูตรไหน" ตรงๆ) เลยเก็บ provenance ระดับไฟล์ไว้ที่นี่แทน — ถ้าในอนาคตรวมหลาย GT เป็น CSV เดียวค่อยพิจารณาเพิ่มคอลัมน์นี้
+
 ### Pipeline
 
 ```text
@@ -559,4 +570,65 @@ scripts/build_page_mapping.py             รัน pipeline สร้าง cou
 scripts/build_qa_pairs.py                 ชุดคำถาม-คำตอบ 15 ข้อ พร้อมเลขหน้าอ้างอิง
 outputs/course_page_mapping.csv           80 วิชา พร้อม primary/other pages
 outputs/qa_pairs.csv                      15 คำถาม-คำตอบ (10 รายวิชา + 5 ข้อบังคับ)
+```
+
+---
+
+## Combined Evaluation — Field / Page / Category Level (Lab 6)
+
+Lab 6 ไม่ได้ใช้ dataset ใหม่ — รัน dataset เดิมจาก Lab 4/5 ทั้งชุด (OCR output +
+ground truth + page mapping ของ Lab 5) ผ่าน evaluation เดียวกัน แล้วรายงาน 3
+ระดับ:
+
+- **Field Level** — accuracy รายฟิลด์ (`name_en`, `credits`) ของวิชาที่ match ได้
+  + recall โดยรวม (แนวคิดเดียวกับ `evaluate_curriculum.py` ของ Lab 4)
+- **Page Level** — สัดส่วนวิชาที่ระบุ primary page ได้ (page mapping ของ Lab 5)
+  บวก sanity check ว่า `cited_pages` ใน `outputs/qa_pairs.csv` ตรงกับหน้าที่
+  mapping หาได้จริงหรือไม่
+- **Category Level** — เอา metric ของ Field/Page Level ข้างต้นมาแยกตาม field
+  `category` ของ ground truth (หมวดวิชาเฉพาะ / หมวดวิชาศึกษาทั่วไป)
+
+(หมายเหตุ: ตอนแรกมีมุมมองรองแยกตาม field `type` (บังคับ / เลือก) ด้วย แต่ตัดออก
+แล้ว เพราะ `type` เป็นคนละ field กับ `category` — ทำให้ dataclass/summary
+เรียบง่ายขึ้น เหลือมิติเดียวตามที่โจทย์ระบุ)
+
+extraction ถูกรันใหม่จาก `outputs/dsba_curriculum_ocr.json` ทุกครั้ง (ไม่ได้อ่าน
+ผลลัพธ์เก่าที่ค้างไว้) จึงได้ตัวเลขล่าสุดที่รวมการแก้บั๊ก "มคอ" ของ Lab 5 แล้ว —
+`name_en agreement` และ `credits agreement` จึงสูงกว่าที่เคยรายงานไว้ใน Lab 4
+(`outputs/dsba_curriculum_curriculum_evaluation.json` เป็นค่าก่อนแก้บั๊ก)
+
+### วิธีรัน
+
+```bash
+python scripts/lab6_evaluate.py
+```
+
+ผลลัพธ์ล่าสุด (รันจริงกับ dataset นี้):
+
+| Level | Metric | ผลลัพธ์ |
+|---|---|---|
+| Field | recall / name_en / credits | 98.8% / 98.7% / 100.0% |
+| Page | with primary page | 79/80 (98.8%) |
+| Page | QA citation consistency | 6/6 |
+| Category (หมวดวิชาเฉพาะ, n=72) | recall / page_localized | 98.6% / 98.6% |
+| Category (หมวดวิชาศึกษาทั่วไป, n=8) | recall / page_localized | 100% / 100% |
+
+### Known Limitations
+
+- **`หมวดวิชาเลือกเสรี` หายไปจาก Category Level** — ground truth มี category ที่ 3
+  คือ `หมวดวิชาเลือกเสรี` (free elective, 2 รายการ) แต่ทั้งสองรายการใช้ code เป็น
+  placeholder `"xxxxxxxx"` (ยังไม่ระบุว่านักศึกษาจะเลือกวิชาอะไรจริง) ซึ่งไม่ผ่าน
+  `_is_valid_code()` (ต้องเป็นตัวเลขล้วน) เลยถูกกรองทิ้งตั้งแต่ตอนสร้าง
+  `gt_courses` ก่อนจะถึงขั้น group by category ผลคือ Category Level เห็นแค่ 2
+  กลุ่ม (เฉพาะ/ทั่วไป) ไม่ใช่ 3 กลุ่มตาม ground truth จริง — เป็น filter เดิมที่
+  สืบทอดมาจาก Lab 4 (`evaluate_curriculum.py` กรองแบบเดียวกัน) จึงกระทบ
+  Field Level และ Page Level ด้วยเช่นกัน (ทั้งคู่นับจากฐาน 80 วิชา ไม่ใช่ 91 วิชา
+  เต็มในไฟล์ ground truth)
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/evaluate_lab6.py   evaluate_field_level / evaluate_page_level / evaluate_category_level
+scripts/lab6_evaluate.py          รัน pipeline รวมทั้ง 3 ระดับ ในคำสั่งเดียว
+lab6_reference/                   ตัวอย่างเวอร์ชันแรก (มี type_level ด้วย) เก็บไว้เทียบเฉยๆ ไม่ใช่โค้ดที่ใช้จริง
 ```
