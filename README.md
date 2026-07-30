@@ -486,6 +486,17 @@ src/ocr_system/cli.py                        subcommand `curriculum` รวม e
 
 ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth (`DSBA_academic_plan_coop.json`) เข้ากับหน้าจริงของเล่มหลักสูตร (`data/input/dsba_curriculum.pdf`) ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ)
 
+### Ground Truth ที่ใช้
+
+| Field | ค่า |
+|---|---|
+| ไฟล์ | `data/ground_truth/DSBA_academic_plan_coop.json` |
+| source | GT_Template-2.xlsx / Academic Plan GT — DSBA coop |
+| program | DSBA |
+| plan | coop |
+
+ไม่ได้ใส่ `source` เป็นคอลัมน์ใน `course_page_mapping.csv` เพราะรันจาก GT ไฟล์เดียว ทุกแถวจะมีค่าเดียวกันหมด (ต่างจาก `program`/`plan` ที่ตอบโจทย์ "หลักสูตรไหน" ตรงๆ) เลยเก็บ provenance ระดับไฟล์ไว้ที่นี่แทน — ถ้าในอนาคตรวมหลาย GT เป็น CSV เดียวค่อยพิจารณาเพิ่มคอลัมน์นี้
+
 ### Pipeline
 
 ```text
