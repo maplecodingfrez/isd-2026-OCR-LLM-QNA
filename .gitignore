@@ -1,7 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
-outputs/
+outputs/pages/
 *.egg-info/
 lab5_reference/
 lab6_reference/
