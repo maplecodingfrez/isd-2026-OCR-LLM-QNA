@@ -228,7 +228,13 @@ def _join_english_name(parts: list[str]) -> str | None:
         if TOTAL_RE.match(text) or _is_footer(text):
             break
         if CREDITS_RE.search(_compact_credit_text(text)):
-            continue
+            # `after` already starts *past* this course's own credits match
+            # (see _course_from_text). A credits-pattern token found while
+            # still walking `after` therefore belongs to a *different*
+            # entry that bled into this block (usually because an
+            # intermediate course code failed OCR detection) -- stop here
+            # instead of skipping past it and continuing to collect words.
+            break
         if _looks_english(text):
             english_parts.append(text.strip())
         elif english_parts and re.fullmatch(r"\d{1,2}", text.strip()):
@@ -246,6 +252,13 @@ def _join_english_name(parts: list[str]) -> str | None:
 
 def _looks_english(text: str) -> bool:
     letters = re.findall(r"[A-Za-z]", text)
+    digits = re.findall(r"[0-9]", text)
+    if len(digits) >= 4:
+        # A token with 4+ digits is almost certainly a stray/garbled course
+        # code (e.g. "060464xx", a malformed elective-slot placeholder that
+        # CODE_FIND_RE didn't match), not an English word -- never treat it
+        # as part of a course name.
+        return False
     return bool(letters) and len(letters) >= max(2, len(text.strip()) // 3)
 
 

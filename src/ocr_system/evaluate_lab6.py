@@ -23,6 +23,8 @@ from .evaluate_curriculum import (
 )
 from .gt_page_mapping import classify_pages, group_by_code
 
+from statistics import mean
+from .evaluation import evaluate_text
 
 # ---------------------------------------------------------------------------
 # Field level
@@ -36,6 +38,10 @@ class FieldLevelResult:
     recall: float
     name_en_agreement: float
     credits_agreement: float
+    name_en_cer: float
+    name_en_wer: float
+    name_th_cer: float
+    name_th_wer: float
 
 
 def evaluate_field_level(
@@ -50,6 +56,15 @@ def evaluate_field_level(
         1 for gt, ex in matched if _normalize_credits(gt.get("credits")) == _normalize_credits(ex.get("credits"))
     )
 
+    name_en_cers, name_en_wers, name_th_cers, name_th_wers = [], [], [], []
+    for gt, ex in matched:
+        en_eval = evaluate_text(_normalize_name(gt.get("name_en")), _normalize_name(ex.get("name_en")), file_name=gt["code"])
+        name_en_cers.append(en_eval.cer)
+        name_en_wers.append(en_eval.wer)
+        th_eval = evaluate_text(_normalize_name(gt.get("name_th")), _normalize_name(ex.get("name_th")), file_name=gt["code"])
+        name_th_cers.append(th_eval.cer)
+        name_th_wers.append(th_eval.wer)
+
     gt_total = len(gt_courses)
     n_matched = len(matched)
     return FieldLevelResult(
@@ -58,8 +73,11 @@ def evaluate_field_level(
         recall=round(n_matched / gt_total, 4) if gt_total else 0.0,
         name_en_agreement=round(name_en_ok / n_matched, 4) if n_matched else 0.0,
         credits_agreement=round(credits_ok / n_matched, 4) if n_matched else 0.0,
+        name_en_cer=round(mean(name_en_cers), 4) if name_en_cers else 0.0,
+        name_en_wer=round(mean(name_en_wers), 4) if name_en_wers else 0.0,
+        name_th_cer=round(mean(name_th_cers), 4) if name_th_cers else 0.0,
+        name_th_wer=round(mean(name_th_wers), 4) if name_th_wers else 0.0,
     )
-
 
 # ---------------------------------------------------------------------------
 # Page level
@@ -82,7 +100,7 @@ class PageLevelResult:
 _NOTE_CODE_RE = re.compile(r"code (\d{8})")
 
 
-def evaluate_page_level(mapping_rows: list[dict[str, Any]], qa_pairs_path: Path | None) -> PageLevelResult:
+def evaluate_page_level(mapping_rows: list[dict[str, Any]], qa_pairs_path: Path | None, program: str | None = None) -> PageLevelResult:
     gt_total = len(mapping_rows)
     with_primary = sum(1 for r in mapping_rows if r["primary_pages"])
     found = sum(1 for r in mapping_rows if r["status"] == "found")
@@ -99,6 +117,8 @@ def evaluate_page_level(mapping_rows: list[dict[str, Any]], qa_pairs_path: Path 
         with qa_pairs_path.open("r", encoding="utf-8-sig", newline="") as f:
             for row in csv.DictReader(f):
                 if row.get("type") != "course":
+                    continue
+                if program and row.get("program") and row["program"] != program:
                     continue
                 match = _NOTE_CODE_RE.search(row.get("note") or "")
                 if not match:
@@ -165,6 +185,8 @@ def evaluate_category_level(
             "recall": field.recall,
             "name_en_agreement": field.name_en_agreement,
             "credits_agreement": field.credits_agreement,
+            "name_en_cer": field.name_en_cer,
+            "name_en_wer": field.name_en_wer,
             "page_localization_rate": round(with_primary / field.gt_total, 4) if field.gt_total else 0.0,
         }
     return result
@@ -196,7 +218,7 @@ def run_lab6_evaluation(
     mapping_rows = classify_pages(gt_courses, grouped, pages_text, gt.get("program"), gt.get("plan"))
 
     field_level = evaluate_field_level(gt_courses, extracted_by_code)
-    page_level = evaluate_page_level(mapping_rows, Path(qa_pairs_path) if qa_pairs_path else None)
+    page_level = evaluate_page_level(mapping_rows, Path(qa_pairs_path) if qa_pairs_path else None, gt.get("program"))
     category_level = evaluate_category_level(gt_courses, extracted_by_code, mapping_rows, "category")
 
     return {
@@ -217,6 +239,8 @@ def _print_summary(result: dict[str, Any]) -> None:
     print(f"Matched (recall):    {fl['matched']} ({fl['recall'] * 100:.1f}%)")
     print(f"name_en agreement:   {fl['name_en_agreement'] * 100:.1f}% (of matched)")
     print(f"credits agreement:   {fl['credits_agreement'] * 100:.1f}% (of matched)")
+    print(f"name_en CER / WER:   {fl['name_en_cer'] * 100:.1f}% / {fl['name_en_wer'] * 100:.1f}% (avg over matched)")
+    print(f"name_th CER / WER:   {fl['name_th_cer'] * 100:.1f}% / {fl['name_th_wer'] * 100:.1f}% (avg over matched)")
 
     print()
     print("=" * 64)

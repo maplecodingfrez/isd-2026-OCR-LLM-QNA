@@ -1,0 +1,46 @@
+{
+  "field_level": {
+    "gt_total": 99,
+    "matched": 99,
+    "recall": 1.0,
+    "name_en_agreement": 0.9697,
+    "credits_agreement": 0.9899,
+    "name_en_cer": 0.0105,
+    "name_en_wer": 0.016,
+    "name_th_cer": 0.1263,
+    "name_th_wer": 0.4697
+  },
+  "page_level": {
+    "gt_total": 99,
+    "with_primary_page": 99,
+    "page_localization_rate": 1.0,
+    "found_by_code": 99,
+    "found_by_name_only": 0,
+    "not_found": 0,
+    "qa_pairs_checked": 2,
+    "qa_pairs_citation_ok": 2,
+    "qa_pairs_citation_mismatches": []
+  },
+  "category_level": {
+    "หมวดวิชาเฉพาะ": {
+      "gt_total": 91,
+      "matched": 91,
+      "recall": 1.0,
+      "name_en_agreement": 0.989,
+      "credits_agreement": 0.989,
+      "name_en_cer": 0.0005,
+      "name_en_wer": 0.0037,
+      "page_localization_rate": 1.0
+    },
+    "หมวดวิชาศึกษาทั่วไป": {
+      "gt_total": 8,
+      "matched": 8,
+      "recall": 1.0,
+      "name_en_agreement": 0.75,
+      "credits_agreement": 1.0,
+      "name_en_cer": 0.1241,
+      "name_en_wer": 0.1562,
+      "page_localization_rate": 1.0
+    }
+  }
+}

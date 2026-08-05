@@ -1,0 +1,1356 @@
+{
+  "gt_total": 266,
+  "matched": 218,
+  "missing": 48,
+  "recall": 0.8195,
+  "name_en_agreement": 0.3119,
+  "credits_agreement": 0.7798,
+  "name_en_cer": 0.3839,
+  "name_en_wer": 0.5631,
+  "name_th_cer": 4.5872,
+  "name_th_wer": 10.1927,
+  "missing_codes": [
+    "90642011",
+    "90642024",
+    "90642027",
+    "90642030",
+    "90642039",
+    "90642043",
+    "90642044",
+    "90642061",
+    "90642064",
+    "90642081",
+    "90642085",
+    "90642088",
+    "90642101",
+    "90642104",
+    "90642105",
+    "90642108",
+    "90642119",
+    "90642123",
+    "90642127",
+    "90642137",
+    "90642141",
+    "90642145",
+    "90642146",
+    "90642154",
+    "90643003",
+    "90643004",
+    "90643017",
+    "90643018",
+    "90643024",
+    "90643033",
+    "90644002",
+    "90644012",
+    "90644013",
+    "90644014",
+    "90644017",
+    "90644018",
+    "90644020",
+    "90644022",
+    "90644033",
+    "90644036",
+    "90644039",
+    "90644040",
+    "90644041",
+    "90644052",
+    "90644056",
+    "90644057",
+    "90644060",
+    "90644061"
+  ],
+  "mismatched_name_en": [
+    {
+      "code": "90641003",
+      "expected": "SPORTS AND RECREATIONAL ACTIVITIES",
+      "got": "MA",
+      "cer": 0.967741935483871,
+      "wer": 1.0
+    },
+    {
+      "code": "90642001",
+      "expected": "PRACTICE UNDER PERSONAL AND PROFESSIONAL SKILLS 1",
+      "got": "PRACTICE UNDER PERSGCNAL AMI PROFESSIONAL SKILLS 1",
+      "cer": 0.09302325581395349,
+      "wer": 0.2857142857142857
+    },
+    {
+      "code": "90642002",
+      "expected": "PRACTICE UNDER PERSONAL AND PROFESSIONAL SKILLS 2",
+      "got": "BRAC CK UNDER PERSONAL AND PROFESSIONAL SRILLS 2",
+      "cer": 0.11627906976744186,
+      "wer": 0.42857142857142855
+    },
+    {
+      "code": "90642003",
+      "expected": "PRACTICE UNDER PERSONAL AND PROFESSIONAL SKILLS 3",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642004",
+      "expected": "ANALYTICAL THINKING",
+      "got": "ANAIY ICAL” HINKING",
+      "cer": 0.16666666666666666,
+      "wer": 1.5
+    },
+    {
+      "code": "90642005",
+      "expected": "CREATIVE THINKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642006",
+      "expected": "INNOVATIVE THINKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642007",
+      "expected": "POSITIVE THINKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642008",
+      "expected": "PROBLEM SOLVING",
+      "got": "POSTIVE THINKING",
+      "cer": 0.7142857142857143,
+      "wer": 1.0
+    },
+    {
+      "code": "90642009",
+      "expected": "STRATEGIC THINKING",
+      "got": "SELF-DISCOVERY",
+      "cer": 0.8823529411764706,
+      "wer": 1.0
+    },
+    {
+      "code": "90642010",
+      "expected": "SYSTEM THINKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642012",
+      "expected": "DESIGN THINKING",
+      "got": "DESIGN\" HINKING",
+      "cer": 0.07142857142857142,
+      "wer": 1.0
+    },
+    {
+      "code": "90642013",
+      "expected": "INTEGRATED THINKING",
+      "got": "THINKING",
+      "cer": 0.5555555555555556,
+      "wer": 0.5
+    },
+    {
+      "code": "90642014",
+      "expected": "INNOVATIVE AND SYSTEM THINKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642018",
+      "expected": "CREATIVE PRODUCTION TECHNOLOGY",
+      "got": "CREATIVE",
+      "cer": 0.7142857142857143,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90642019",
+      "expected": "BASIC CREATIVE STEM DESIGN",
+      "got": "BASIC CREATIVE STFM DESIGN",
+      "cer": 0.043478260869565216,
+      "wer": 0.25
+    },
+    {
+      "code": "90642020",
+      "expected": "ADVANCE CREATIVE STEM DESIGN",
+      "got": "ADVANCE CREATIVE",
+      "cer": 0.4,
+      "wer": 0.5
+    },
+    {
+      "code": "90642021",
+      "expected": "JUNK DESIGN",
+      "got": "JUNK DFSIGN",
+      "cer": 0.1,
+      "wer": 0.5
+    },
+    {
+      "code": "90642022",
+      "expected": "PHILOSOPHY OF SCIENCE",
+      "got": "SCIENCE",
+      "cer": 0.631578947368421,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90642023",
+      "expected": "EMERGING TRENDS IN ENGINEERING",
+      "got": "FMERGING KFNDS IN FNGINFERING",
+      "cer": 0.2222222222222222,
+      "wer": 0.75
+    },
+    {
+      "code": "90642025",
+      "expected": "FATCS BEHIND NUMBERS",
+      "got": "FACTS BEHIND NUMBERS",
+      "cer": 0.1111111111111111,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642026",
+      "expected": "RESEARCH SKILL DEVELOPMENT",
+      "got": "RESEARCH",
+      "cer": 0.6666666666666666,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90642028",
+      "expected": "GAMBLING LITERACY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642029",
+      "expected": "MEDICAL ETHICS, LAWS AND PROFESSIONALOSM",
+      "got": "MEDICAL",
+      "cer": 0.8055555555555556,
+      "wer": 0.8
+    },
+    {
+      "code": "90642031",
+      "expected": "PROFESSIONAL ETHICS AND LAWS",
+      "got": "PROLESSIONAL ETHICS AND LAWS",
+      "cer": 0.04,
+      "wer": 0.25
+    },
+    {
+      "code": "90642032",
+      "expected": "LAW FOR ENTREPRENEURS",
+      "got": "LAW FOR ENTPFFELLEURS",
+      "cer": 0.3157894736842105,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642037",
+      "expected": "PROFESSIONAL SKILLS AND ISSUES",
+      "got": "PROFESSIONAL",
+      "cer": 0.5555555555555556,
+      "wer": 0.75
+    },
+    {
+      "code": "90642040",
+      "expected": "COFFEE MANIA",
+      "got": "COFFFK MANIA",
+      "cer": 0.18181818181818182,
+      "wer": 0.5
+    },
+    {
+      "code": "90642041",
+      "expected": "DORM CHEF",
+      "got": "DGRM CHEF",
+      "cer": 0.125,
+      "wer": 0.5
+    },
+    {
+      "code": "90642045",
+      "expected": "BE MY BEV.",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642046",
+      "expected": "RICE-SARA",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642048",
+      "expected": "FUN WITH DRUGS AND HERBS",
+      "got": "FUN WOH DRUGS AND HERBS",
+      "cer": 0.1,
+      "wer": 0.2
+    },
+    {
+      "code": "90642049",
+      "expected": "MICROBIAL UTILIZATION FOR DAILY LIFE",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642050",
+      "expected": "MEDICINAL PLANTS",
+      "got": "MEGICINAL PLANTS",
+      "cer": 0.06666666666666667,
+      "wer": 0.5
+    },
+    {
+      "code": "90642051",
+      "expected": "BIOTECHNOLOGY FOR BETTER LIVING",
+      "got": "BICTECHNOLOGY FOR BET. ER LIVING",
+      "cer": 0.07142857142857142,
+      "wer": 0.75
+    },
+    {
+      "code": "90642052",
+      "expected": "GENES & GENETICS : FROM HELIX TO HEREDITARY",
+      "got": "GENES",
+      "cer": 0.8611111111111112,
+      "wer": 0.875
+    },
+    {
+      "code": "90642056",
+      "expected": "EPIDEMICS IN THE 21st CENTURY",
+      "got": "EPIDEMICS IM THE 22 CEN GURY",
+      "cer": 0.2,
+      "wer": 0.8
+    },
+    {
+      "code": "90642057",
+      "expected": "IMMUNITY THROUGH MEDIA",
+      "got": "IMMUNITY THROUGH MFDIA",
+      "cer": 0.05,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642058",
+      "expected": "UNDERSTANDING HEALTH POLICY AND PUBLIC WELFARE",
+      "got": "URDFRSTANDING FEAI TK FOUCY AND PUBLIC WEI FARE",
+      "cer": 0.21951219512195122,
+      "wer": 1.0
+    },
+    {
+      "code": "90642059",
+      "expected": "MEDICINE AND LITERATURE",
+      "got": "MFDICINE AND",
+      "cer": 0.5238095238095238,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90642060",
+      "expected": "SELF-DISCOVERY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642063",
+      "expected": "HOLISTIC HEALTH DEVELOPMENT",
+      "got": "PREREQUISITE",
+      "cer": 0.88,
+      "wer": 1.0
+    },
+    {
+      "code": "90642065",
+      "expected": "RUGBY FOOTBALL",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642066",
+      "expected": "SOCCER",
+      "got": "SGCCER",
+      "cer": 0.16666666666666666,
+      "wer": 1.0
+    },
+    {
+      "code": "90642067",
+      "expected": "SOFTBALL & BASEBALL",
+      "got": "SOFTBALI",
+      "cer": 0.5882352941176471,
+      "wer": 1.0
+    },
+    {
+      "code": "90642068",
+      "expected": "TENNIS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642069",
+      "expected": "VOLLEYBALL",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642070",
+      "expected": "GOLF",
+      "got": "GOU",
+      "cer": 0.5,
+      "wer": 1.0
+    },
+    {
+      "code": "90642071",
+      "expected": "BADMINTON",
+      "got": "BADMINTON 15",
+      "cer": 0.2222222222222222,
+      "wer": 1.0
+    },
+    {
+      "code": "90642077",
+      "expected": "TABLE TENNIS",
+      "got": "IABLE ENNIS",
+      "cer": 0.18181818181818182,
+      "wer": 1.0
+    },
+    {
+      "code": "90642078",
+      "expected": "TAEKWONDO",
+      "got": "TAFKWONDG",
+      "cer": 0.2222222222222222,
+      "wer": 1.0
+    },
+    {
+      "code": "90642079",
+      "expected": "JUDO",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642080",
+      "expected": "INTRODUCTION TO MUSIC COMPOSITION",
+      "got": "TO MUSIC COMPOSIIGN",
+      "cer": 0.4666666666666667,
+      "wer": 0.5
+    },
+    {
+      "code": "90642082",
+      "expected": "MUSIC APPRECIATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642083",
+      "expected": "FILM APPRECIATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642084",
+      "expected": "PHOTOGRAPHY APPRECIATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642086",
+      "expected": "INTRODUCTION TO DESIGN CULTURE",
+      "got": "IGM TO DESIGN CULTURE",
+      "cer": 0.4074074074074074,
+      "wer": 0.25
+    },
+    {
+      "code": "90642087",
+      "expected": "WORLD CULTURE",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642089",
+      "expected": "CHINESE SOCIETY, ECONOMY AND POLITICS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642090",
+      "expected": "GLOBAL INSIDE",
+      "got": "GLOBAL INSIDE 16",
+      "cer": 0.16666666666666666,
+      "wer": 0.5
+    },
+    {
+      "code": "90642092",
+      "expected": "CIVIC EDUCATION",
+      "got": "EDUCATION",
+      "cer": 0.35714285714285715,
+      "wer": 0.5
+    },
+    {
+      "code": "90642094",
+      "expected": "PRINCIPLES OF COMMUNITY DEVELOPMENT",
+      "got": "PRINCIPLES CF",
+      "cer": 0.65625,
+      "wer": 0.75
+    },
+    {
+      "code": "90642095",
+      "expected": "NATIONAL SECURITY DEVELOPMENT",
+      "got": "NATIONAL SECURITY DEVFLOPMENT",
+      "cer": 0.037037037037037035,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642097",
+      "expected": "APPLIED THAI WISDOMS",
+      "got": "APPLIED THA! WISDOMS",
+      "cer": 0.05555555555555555,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642098",
+      "expected": "DYNAMICS OF THAI SOCIETY",
+      "got": "DYNAMICS GB",
+      "cer": 0.6190476190476191,
+      "wer": 0.75
+    },
+    {
+      "code": "90642100",
+      "expected": "FIGHTING FAKE NEWS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642102",
+      "expected": "YOUTUBER",
+      "got": "LIVING IN DIGI",
+      "cer": 1.5,
+      "wer": 3.0
+    },
+    {
+      "code": "90642103",
+      "expected": "LIVING IN DIGITAL SOCIETY",
+      "got": "UVING IN DIGITAL SOCIETY",
+      "cer": 0.09090909090909091,
+      "wer": 0.25
+    },
+    {
+      "code": "90642106",
+      "expected": "DIGITAL STORYTELLING IN JOURNEY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642107",
+      "expected": "DIGITAL MEDIA PRODUCTION",
+      "got": "AL MEDIA PRODUCTION",
+      "cer": 0.22727272727272727,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642109",
+      "expected": "INFOGRAPHIC DESIGN",
+      "got": "INFOGRAPHIC DESIGN 17",
+      "cer": 0.11764705882352941,
+      "wer": 0.5
+    },
+    {
+      "code": "90642112",
+      "expected": "FUN WITH AI",
+      "got": "FUN WITH AL",
+      "cer": 0.1111111111111111,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642113",
+      "expected": "ROBOTICS AND AI",
+      "got": "ROBOTICS AND AL",
+      "cer": 0.07692307692307693,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642115",
+      "expected": "GREEN TECHNOLOGY AND ALTERNATIVE ENERGY",
+      "got": "GREEN",
+      "cer": 0.8571428571428571,
+      "wer": 0.8
+    },
+    {
+      "code": "90642116",
+      "expected": "SMART CITY AND INNOVATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642117",
+      "expected": "INFORMATION LITERACY SKILLS FOR THE 21st CENTURY",
+      "got": "INFORMATEGN LITERACY SKILLS FOR THE",
+      "cer": 0.30952380952380953,
+      "wer": 0.42857142857142855
+    },
+    {
+      "code": "90642120",
+      "expected": "FROM EXCEL TO EXCELLENT",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642121",
+      "expected": "DATA ANALYSIS AND MANAGEMENT WITH COMPUTATIONAL PROGRAM",
+      "got": "DATA ANALYSIS ANTS",
+      "cer": 0.6938775510204082,
+      "wer": 0.7142857142857143
+    },
+    {
+      "code": "90642122",
+      "expected": "INTRODUCTION TO MICROCOMPUTER APPLICATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642124",
+      "expected": "SCIENCE TECHNOLOGY AND SCIENCE INNOVATION FOR SDGS",
+      "got": "SURVIVORS",
+      "cer": 0.8636363636363636,
+      "wer": 1.0
+    },
+    {
+      "code": "90642125",
+      "expected": "LIVING IN FUTURE DISASTER AND CRISIS",
+      "got": "ALTERNATIVE “GUAIEM.",
+      "cer": 0.8387096774193549,
+      "wer": 1.0
+    },
+    {
+      "code": "90642128",
+      "expected": "ECOLOGY, CONSERVATION AND ENVIRONMENTALISM",
+      "got": "ECOLOGY,",
+      "cer": 0.7948717948717948,
+      "wer": 0.75
+    },
+    {
+      "code": "90642131",
+      "expected": "THAI CULTURE AND TOURISM",
+      "got": "THA! CULTURE AND TOURISM",
+      "cer": 0.047619047619047616,
+      "wer": 0.25
+    },
+    {
+      "code": "90642132",
+      "expected": "CHUMPHON STUDY FOR TOURISM",
+      "got": "CHUMPHON",
+      "cer": 0.6521739130434783,
+      "wer": 0.75
+    },
+    {
+      "code": "90642134",
+      "expected": "KING MONGKUT'S REIGN STUDY",
+      "got": "KING MONGKUTS REIGN",
+      "cer": 0.2608695652173913,
+      "wer": 0.5
+    },
+    {
+      "code": "90642136",
+      "expected": "ETHICS AND AESTHETICS",
+      "got": "ETHICS AND APSTHRIICS",
+      "cer": 0.15789473684210525,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90642138",
+      "expected": "MEDITATION FOR LIFE DEVELOPMENT",
+      "got": "MEDHAVICT FOR FIFE DEVELOPER 7",
+      "cer": 0.32142857142857145,
+      "wer": 1.0
+    },
+    {
+      "code": "90642139",
+      "expected": "RESILIENCE QUOTIENT",
+      "got": "IMMUB EY OF",
+      "cer": 0.8333333333333334,
+      "wer": 1.5
+    },
+    {
+      "code": "90642140",
+      "expected": "IMMUNITY OF MIND",
+      "got": "OF MINIT",
+      "cer": 0.7142857142857143,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90642142",
+      "expected": "PSYCHOLOGY IN COMMUNICATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642144",
+      "expected": "MAGIC MIRROR",
+      "got": "MAGIC MIRROE,",
+      "cer": 0.18181818181818182,
+      "wer": 0.5
+    },
+    {
+      "code": "90642147",
+      "expected": "HAPPINESS SKILLS",
+      "got": "HAPPINESS SKILLS 19",
+      "cer": 0.13333333333333333,
+      "wer": 0.5
+    },
+    {
+      "code": "90642153",
+      "expected": "UNDERSTANDING HUMAN BEHAVIOR",
+      "got": "KING MCHGRUS",
+      "cer": 0.8076923076923077,
+      "wer": 1.0
+    },
+    {
+      "code": "90642155",
+      "expected": "HUMAN RELATIONSHIP AND COMMUNICATION",
+      "got": "HUMAN RELA IONSHIP ARNO COMMURICA ION",
+      "cer": 0.15151515151515152,
+      "wer": 1.25
+    },
+    {
+      "code": "90642156",
+      "expected": "FENG SHUI",
+      "got": "FENG SHLI",
+      "cer": 0.125,
+      "wer": 0.5
+    },
+    {
+      "code": "90642157",
+      "expected": "THAI ASTROLOGY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642158",
+      "expected": "COMTEMPORARY SCIENCE AND TECHNOLOGY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90642159",
+      "expected": "INTRODUCTION TO PSYCHOLOGY",
+      "got": "PSYCHOLOGY",
+      "cer": 0.5833333333333334,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90643001",
+      "expected": "PRACTICE UNDER MANAGEMENT SKILL 1",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643002",
+      "expected": "PRACTICE UNDER MANAGEMENT SKILL 2",
+      "got": "MANAGEAAFET SKILLS",
+      "cer": 0.6206896551724138,
+      "wer": 1.0
+    },
+    {
+      "code": "90643005",
+      "expected": "THE DISRUPTOR",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643006",
+      "expected": "MODERN MANAGEMENT AND LEADERSHIP",
+      "got": "MODERN MANAGEWENT AND LEADERSHIP 20",
+      "cer": 0.10344827586206896,
+      "wer": 0.5
+    },
+    {
+      "code": "90643010",
+      "expected": "CONTEMPORARY MARKETING",
+      "got": "CONTEMPORARY",
+      "cer": 0.42857142857142855,
+      "wer": 0.5
+    },
+    {
+      "code": "90643011",
+      "expected": "ART OF COMMUNICATION MANAGEMENT",
+      "got": "ART OF",
+      "cer": 0.8214285714285714,
+      "wer": 0.5
+    },
+    {
+      "code": "90643012",
+      "expected": "TEAMWORK",
+      "got": "TEA WORK",
+      "cer": 0.125,
+      "wer": 2.0
+    },
+    {
+      "code": "90643013",
+      "expected": "INDUSTRIAL MANAGEMENT",
+      "got": "INDUSTRIAL MANAGEMEL",
+      "cer": 0.1,
+      "wer": 0.5
+    },
+    {
+      "code": "90643014",
+      "expected": "GENERAL BUSINESS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643015",
+      "expected": "BUSINESS ACCOUNTING FOR NEW GEN",
+      "got": "BUSINESS ACCEMIN ING FOR NEW GEN",
+      "cer": 0.14814814814814814,
+      "wer": 0.4
+    },
+    {
+      "code": "90643016",
+      "expected": "FUN WITH ONLINE BUSINESS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643019",
+      "expected": "ECONOMICS AND ENTREPRENEURSHIP",
+      "got": "ECONOMICS ANN EM TREPREMEGRSEIP",
+      "cer": 0.17857142857142858,
+      "wer": 1.0
+    },
+    {
+      "code": "90643020",
+      "expected": "INNOVATIVE ENTREPRENEURS",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643022",
+      "expected": "SOCIAL ENTREPRENEURS",
+      "got": "SOCIAL FNTREPRENEURS",
+      "cer": 0.05263157894736842,
+      "wer": 0.5
+    },
+    {
+      "code": "90643025",
+      "expected": "ROAD TO IPO",
+      "got": "ROAD TO IPO 21",
+      "cer": 0.2222222222222222,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90643029",
+      "expected": "DIGITAL ECONOMY",
+      "got": "DIGITAL",
+      "cer": 0.5,
+      "wer": 0.5
+    },
+    {
+      "code": "90643030",
+      "expected": "GENERAL ECONOMICS AND PROJECT FEASIBILITY STUDY",
+      "got": "GENERAL ECONOMICS AND PROJECT FEASIBILITY S*UDY",
+      "cer": 0.023809523809523808,
+      "wer": 0.16666666666666666
+    },
+    {
+      "code": "90643031",
+      "expected": "CIRCULAR ECONOMIC LIFESTYLE FOR 21st CENTURY",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643032",
+      "expected": "BCG ECONOMY IN ACTION",
+      "got": "BCG",
+      "cer": 0.8333333333333334,
+      "wer": 0.75
+    },
+    {
+      "code": "90643034",
+      "expected": "MANAGEMENT AND CREATIVITY",
+      "got": "MANAGEWIEM 7 AND CREA IVITY",
+      "cer": 0.21739130434782608,
+      "wer": 1.3333333333333333
+    },
+    {
+      "code": "90643036",
+      "expected": "KNOWLEDGE MANAGEMENT FOR PROJECT MANAGEMENT",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90643037",
+      "expected": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
+      "got": "PUBLIC ADMINIS RAMON",
+      "cer": 0.6666666666666666,
+      "wer": 0.8888888888888888
+    },
+    {
+      "code": "90643038",
+      "expected": "REBRANDING",
+      "got": "PRAC ICE UNDEF ANGUAGR AND COMMULILATION SKILLS 2",
+      "cer": 3.4,
+      "wer": 8.0
+    },
+    {
+      "code": "90644001",
+      "expected": "PRACTICE UNDER LANGUAGE AND COMMUNICATION SKILLS 1",
+      "got": "PRACTICE UNDER LANGLIAGF AND COLMIUNICATIGN SKILLS 2",
+      "cer": 0.1590909090909091,
+      "wer": 0.42857142857142855
+    },
+    {
+      "code": "90644003",
+      "expected": "PRACTICE UNDER LANGUAGE AND COMMUNICATION SKILLS 3",
+      "got": "SPORTS AND RECREATIONAL ACTIVI “IES",
+      "cer": 0.7272727272727273,
+      "wer": 0.8571428571428571
+    },
+    {
+      "code": "90644005",
+      "expected": "ACADEMIC READING AND WRITING",
+      "got": "ACADEMIC READING AND WRITING 22",
+      "cer": 0.08,
+      "wer": 0.25
+    },
+    {
+      "code": "90644009",
+      "expected": "BASIC ENGLISH PRONUNCIATION",
+      "got": "BASIC ENGLISH FRONUNCIANGN",
+      "cer": 0.16,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90644011",
+      "expected": "ENGLISH FOR ACADEMIC PURPOSES",
+      "got": "ENGLISH FOR ACADEMIC PLIRPOSES",
+      "cer": 0.07692307692307693,
+      "wer": 0.25
+    },
+    {
+      "code": "90644015",
+      "expected": "ENGLISH FOR FURTHER STUDIES",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90644019",
+      "expected": "ENGLISH FOR MANAGEMENT",
+      "got": "ENGLISH FOR MANAGFMPN 1",
+      "cer": 0.15,
+      "wer": 0.6666666666666666
+    },
+    {
+      "code": "90644021",
+      "expected": "ENGLISH FOR INTERCURAL COMMUNICATION",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90644023",
+      "expected": "ENGLISH FOR WORK PREPATION",
+      "got": "ENGLISH FOR WORK PREPARATION",
+      "cer": 0.08695652173913043,
+      "wer": 0.25
+    },
+    {
+      "code": "90644024",
+      "expected": "ENGLISH FOR TOURISM AND TRAVELLING",
+      "got": "ENGLISH FOR TOURISM AND",
+      "cer": 0.3333333333333333,
+      "wer": 0.2
+    },
+    {
+      "code": "90644025",
+      "expected": "ENGLISH FOR ARCHITECTURAL ARTS & DESIGN COMMUNICATION",
+      "got": "ENGLISH FOR ARCHITECTURAL ARTS",
+      "cer": 0.425531914893617,
+      "wer": 0.42857142857142855
+    },
+    {
+      "code": "90644026",
+      "expected": "ENGLISH FOR ARCHITECTURAL ARTS & DESIGN PRESENTATION",
+      "got": "ENGLISH FOR ARCHITECTURAL ARTS",
+      "cer": 0.41304347826086957,
+      "wer": 0.42857142857142855
+    },
+    {
+      "code": "90644028",
+      "expected": "ENGLISH FOR DESIGN",
+      "got": "ENGLISH FOR DESIGIN",
+      "cer": 0.0625,
+      "wer": 0.3333333333333333
+    },
+    {
+      "code": "90644030",
+      "expected": "ENGLISH FOR PUBLIC RELATIONS",
+      "got": "ENGLISH FOR PUBLIC RE AJONS",
+      "cer": 0.12,
+      "wer": 0.5
+    },
+    {
+      "code": "90644032",
+      "expected": "ENGLISH FOR AVIATION",
+      "got": "ENGI ISH FOR AVIA ION",
+      "cer": 0.1111111111111111,
+      "wer": 1.3333333333333333
+    },
+    {
+      "code": "90644034",
+      "expected": "TECHNICAL WRITING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90644037",
+      "expected": "CROSS CULTURAL COMMUNICATION",
+      "got": "COMMUMICATION SKILLS “FROUGH REBATE",
+      "cer": 1.0769230769230769,
+      "wer": 1.3333333333333333
+    },
+    {
+      "code": "90644042",
+      "expected": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
+      "got": "PROFESSIONAL COMMUNICATION AND PRESENTATION 0",
+      "cer": 0.025,
+      "wer": 0.25
+    },
+    {
+      "code": "90644043",
+      "expected": "PUBLIC SPEAKING",
+      "got": "PUBLIC SPEAKING 24 SE",
+      "cer": 0.2857142857142857,
+      "wer": 1.0
+    },
+    {
+      "code": "90644047",
+      "expected": "DEVELOPMENT OF THAI CREATIVE WRITING SKILLS",
+      "got": "DEVELOPMENT,",
+      "cer": 0.7105263157894737,
+      "wer": 1.0
+    },
+    {
+      "code": "90644048",
+      "expected": "LANGUAGE IN THAI SOCIETY",
+      "got": "LANGUAGE IN THA! SQCIE7Y",
+      "cer": 0.14285714285714285,
+      "wer": 0.5
+    },
+    {
+      "code": "90644049",
+      "expected": "THAI LANGUAGE FOR CREATIVITY",
+      "got": "THA",
+      "cer": 0.88,
+      "wer": 1.0
+    },
+    {
+      "code": "90644050",
+      "expected": "THAI WRITING IN WORKPLACE",
+      "got": "THAI VWYRITING IN VYORKPLACE",
+      "cer": 0.18181818181818182,
+      "wer": 0.5
+    },
+    {
+      "code": "90644051",
+      "expected": "THAI FOR DENTAL PROFESSIONS",
+      "got": "\"HAL FOR DEM FAL PROFESSIONS",
+      "cer": 0.16666666666666666,
+      "wer": 0.75
+    },
+    {
+      "code": "90644053",
+      "expected": "FUNDAMENTAL CHINESE FOR LISTENING AND SPEAKING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90644054",
+      "expected": "FUNDAMENTAL CHINESE READING AND WRITING",
+      "got": null,
+      "cer": 1.0,
+      "wer": 1.0
+    },
+    {
+      "code": "90644055",
+      "expected": "BASIC CHINESE GRAMMAR AND CHINESE IDIOMS AND PROVERBS",
+      "got": "BASIC CHINESF",
+      "cer": 0.7608695652173914,
+      "wer": 0.875
+    },
+    {
+      "code": "90644062",
+      "expected": "JAPANESE FOR COMMUNICATION",
+      "got": "JAPANESE FOR COMMUNICA LION 25",
+      "cer": 0.125,
+      "wer": 1.0
+    },
+    {
+      "code": "90644066",
+      "expected": "MALAY FOR TRAVEL",
+      "got": "MALAY FOR",
+      "cer": 0.42857142857142855,
+      "wer": 0.3333333333333333
+    }
+  ],
+  "mismatched_credits": [
+    {
+      "code": "90642003",
+      "expected": "3(0-6-3)",
+      "got": null
+    },
+    {
+      "code": "90642005",
+      "expected": "1(1-0-2)",
+      "got": null
+    },
+    {
+      "code": "90642006",
+      "expected": "1(1-0-2)",
+      "got": null
+    },
+    {
+      "code": "90642007",
+      "expected": "1(1-0-2)",
+      "got": null
+    },
+    {
+      "code": "90642009",
+      "expected": "1(1-0-2)",
+      "got": "3(3-0-6)"
+    },
+    {
+      "code": "90642010",
+      "expected": "1(1-0-2)",
+      "got": null
+    },
+    {
+      "code": "90642014",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642023",
+      "expected": "1(1-0-2)",
+      "got": "4(4-0-2)"
+    },
+    {
+      "code": "90642028",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642045",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642046",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642049",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642060",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642063",
+      "expected": "3(3-0-6)",
+      "got": "2(4-2-3)"
+    },
+    {
+      "code": "90642065",
+      "expected": "2(1-2-3)",
+      "got": null
+    },
+    {
+      "code": "90642068",
+      "expected": "2(1-2-3)",
+      "got": null
+    },
+    {
+      "code": "90642069",
+      "expected": "2(1-2-3)",
+      "got": null
+    },
+    {
+      "code": "90642082",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642083",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642084",
+      "expected": "3(2-2-5)",
+      "got": null
+    },
+    {
+      "code": "90642087",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642089",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642100",
+      "expected": "1(1-0-2)",
+      "got": null
+    },
+    {
+      "code": "90642102",
+      "expected": "3(3-0-6)",
+      "got": "3(3-6-6)"
+    },
+    {
+      "code": "90642106",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642116",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642120",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642122",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642139",
+      "expected": "1(1-0-2)",
+      "got": "3(3-0-6)"
+    },
+    {
+      "code": "90642142",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642157",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90642158",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643001",
+      "expected": "1(0-2-1)",
+      "got": null
+    },
+    {
+      "code": "90643002",
+      "expected": "2(0-4-2)",
+      "got": "3(0-6-3)"
+    },
+    {
+      "code": "90643005",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643016",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643020",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643031",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643036",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90643038",
+      "expected": "3(3-0-6)",
+      "got": "2(0-4-2)"
+    },
+    {
+      "code": "90644001",
+      "expected": "1(0-2-1)",
+      "got": "2(0-4-2)"
+    },
+    {
+      "code": "90644003",
+      "expected": "3(0-6-3)",
+      "got": "1(0-3-2)"
+    },
+    {
+      "code": "90644015",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90644019",
+      "expected": "3(3-0-6)",
+      "got": "3(2-0-6)"
+    },
+    {
+      "code": "90644021",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90644034",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90644053",
+      "expected": "3(3-0-6)",
+      "got": null
+    },
+    {
+      "code": "90644054",
+      "expected": "3(3-0-6)",
+      "got": null
+    }
+  ]
+}

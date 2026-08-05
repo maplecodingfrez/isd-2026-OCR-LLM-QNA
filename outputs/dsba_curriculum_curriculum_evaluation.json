@@ -3,38 +3,23 @@
   "matched": 79,
   "missing": 1,
   "recall": 0.9875,
-  "name_en_agreement": 0.962,
-  "credits_agreement": 0.9747,
+  "name_en_agreement": 0.9873,
+  "credits_agreement": 1.0,
+  "name_en_cer": 0.0116,
+  "name_en_wer": 0.0127,
+  "name_th_cer": 0.0444,
+  "name_th_wer": 0.443,
   "missing_codes": [
     "06016401"
   ],
   "mismatched_name_en": [
     {
-      "code": "06066303",
-      "expected": "PROBLEM SOLVING AND COMPUTER\nPROGRAMMING",
-      "got": null
-    },
-    {
-      "code": "06026203",
-      "expected": "COMPUTER PROGRAMMING",
-      "got": null
-    },
-    {
       "code": "06066302",
       "expected": "FUNDAMENTAL WEB PROGRAMMING",
-      "got": "EEE"
+      "got": "EEE",
+      "cer": 0.92,
+      "wer": 1.0
     }
   ],
-  "mismatched_credits": [
-    {
-      "code": "06066303",
-      "expected": "3(2-2-5)",
-      "got": null
-    },
-    {
-      "code": "06026203",
-      "expected": "3(2-2-5)",
-      "got": null
-    }
-  ]
+  "mismatched_credits": []
 }
