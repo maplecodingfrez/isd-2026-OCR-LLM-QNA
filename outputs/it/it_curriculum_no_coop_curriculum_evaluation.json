@@ -1,0 +1,43 @@
+{
+  "gt_total": 99,
+  "matched": 99,
+  "missing": 0,
+  "recall": 1.0,
+  "name_en_agreement": 0.9697,
+  "credits_agreement": 0.9899,
+  "name_en_cer": 0.0105,
+  "name_en_wer": 0.016,
+  "name_th_cer": 0.1263,
+  "name_th_wer": 0.4697,
+  "missing_codes": [],
+  "mismatched_name_en": [
+    {
+      "code": "90641003",
+      "expected": "SPORTS AND RECREATIONAL ACTIVITIES",
+      "got": "MA",
+      "cer": 0.967741935483871,
+      "wer": 1.0
+    },
+    {
+      "code": "90644042",
+      "expected": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
+      "got": "PROFESSIONAL COMMUNICATION AND PRESENTATION 0",
+      "cer": 0.025,
+      "wer": 0.25
+    },
+    {
+      "code": "06016431",
+      "expected": "MOBILE DEVICE PROGRAMMING",
+      "got": "MOBILE DEVICE PROGRAMMING\"",
+      "cer": 0.043478260869565216,
+      "wer": 0.3333333333333333
+    }
+  ],
+  "mismatched_credits": [
+    {
+      "code": "06016425",
+      "expected": "3(3-0-6)",
+      "got": "3(2-2-5)"
+    }
+  ]
+}

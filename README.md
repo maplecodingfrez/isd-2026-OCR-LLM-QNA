@@ -478,12 +478,86 @@ outputs/dsba/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เ�
 - **รหัสวิชาซ้ำในเอกสาร**: เอกสารเป็น course catalog ระดับสถาบัน รหัสวิชาเดียวกันอาจปรากฏหลายจุด (ตารางหลักสูตร, หน้าภาระงานสอน, ดัชนี) บาง occurrence ไม่มีข้อมูลชื่อ/หน่วยกิตกำกับ — `evaluate_curriculum.py` แก้ปัญหานี้ด้วยการ merge ทุก occurrence ของรหัสเดียวกัน โดยเลือกค่าที่ไม่ว่างเปล่ามาใช้ แทนที่จะให้ occurrence สุดท้ายทับของเดิมเฉยๆ
 - **2-3 วิชามี field ไม่ครบ**: บาง table row มี format แตกต่างจากส่วนใหญ่ในเล่ม ทำให้ credit pattern regex จับไม่ได้ (`name_en`/`credits` เป็น `null`)
 
+### ฟิลด์เพิ่มเติม: category, prerequisite, year/semester
+
+Ground truth มีทั้งหมด 11 field ต่อวิชา (`code`, `name_th`, `name_en`, `credits`,
+`year`, `semester`, `category`, `type`, `prerequisite`, `flexible_year_semester`,
+`note`) แต่เดิม extraction ดึงได้จริงแค่ 4 field แรกจากตาราง "รายวิชา" เดียว
+ส่วนที่เหลือ hardcode เป็น `None` ทั้งหมด เพราะไม่มีข้อมูลนั้นอยู่ใน block ข้อความ
+เดียวกับ code/name/credits
+
+พบว่าเอกสารมีอีก 2 ส่วนที่ให้ข้อมูล 3 field เพิ่มได้โดยไม่ต้องแตะ logic เดิมเลย —
+สร้างเป็น lookup อิสระ (code → value) แล้ว merge เข้ากับ course ที่ extract ได้แล้ว
+ทีหลัง:
+
+- **`category`** — ตาราง "รายวิชา" เดิมมี header คั่นเป็นช่วงๆ อยู่แล้ว
+  ("ก. หมวดวิชาศึกษาทั่วไป" / "ข. หมวดวิชาเฉพาะ" / "ค. หมวดวิชาเลือกเสรี") แค่ track
+  ว่า header ล่าสุดที่เจอคืออะไรระหว่างเดินอ่านข้อความไปเรื่อยๆ
+- **`prerequisite`** — มีส่วน "คำอธิบายรายวิชา" แยกต่างหาก (มักอยู่ท้ายเล่ม) เขียนกำกับ
+  ทุกวิชาว่า `"วิชาบังคับก่อน : <รหัส> <ชื่อ>"` หรือ `"... : ไม่มี"` ตรงๆ อยู่แล้ว
+- **`year` / `semester`** — มีตาราง "แผนการศึกษา" แยกต่างหาก แสดงรหัสวิชาอีกครั้งจัด
+  กลุ่มด้วย header "ปีที่ N ภาคการศึกษาที่ M" โปรแกรมที่มีทั้ง coop/no_coop
+  (DSBA/IT/BIT) จะมีตารางนี้ซ้ำ 2 รอบ (คนละแผน) ต้องแยกอ่านให้ตรงกับ `plan` ที่ขอ
+  หลายแถวในตารางนี้ OCR ไม่เหลือรหัสวิชากำกับเลย (เหลือแต่ชื่อวิชาเปล่าๆ เช่น
+  "CALCULUS 1" ไม่มี "06026200" นำหน้า) จึงมี fallback เพิ่ม: จับคู่ชื่อวิชานั้นกับ
+  ชื่อที่ extract ได้แล้วจากตารางหลัก (`_build_name_to_code_map`) เพื่อย้อนหารหัส
+  กลับมา — ใช้เฉพาะชื่อที่ยาวพอ (≥8 ตัวอักษร) และ map กับรหัสเดียวแบบไม่กำกวมเท่านั้น
+  ถ้าชื่อเดียวกันไป match ได้เกิน 4 ช่วงปี/เทอม (ผิดปกติ ไม่ใช่ flexible จริง) จะทิ้งไปเป็น
+  `None` แทนที่จะเดา flexible ผิดๆ
+
+ผลลัพธ์จริงเมื่อรันกับทั้ง 7 ชุด (เทียบเป็น field-by-field accuracy กับ ground truth
+ตรงๆ ไม่ผ่าน `evaluate_curriculum.py`):
+
+| Program | Plan | category | prerequisite | year/semester |
+|---|---|---|---|---|
+| DSBA | coop | 100% | 100% | 39.2% |
+| DSBA | no_coop | 100% | 100% | 41.8% |
+| AIT | (ไม่มี coop) | 100% | 95.8% | 4.2% |
+| IT | coop | 100% | 97.0% | 43.4% |
+| IT | no_coop | 100% | 97.0% | 43.4% |
+| BIT | coop | 90.9% | 98.2% | 60.0% |
+| BIT | no_coop | 90.9% | 98.2% | 63.6% |
+
+`category`/`prerequisite` ใช้ได้จริงแทบทุกกรณี (BIT เหลือ 90.9% เพราะ 5 วิชาใน
+กลุ่ม 9664xxxx ถูก tag ผิดเป็น "หมวดวิชาเลือกเสรี" — โค้ดเดิมยึด occurrence แรกสุดที่
+เจอในเอกสาร แต่ของ BIT ไปเจอ mention ในโซนเลือกเสรีก่อนโซนศึกษาทั่วไป)
+
+`year`/`semester` ได้ต่ำกว่ามาก (4-64% แล้วแต่เล่ม) เพราะตาราง "แผนการศึกษา" เป็นตาราง
+คนละหน้ากับตารางหลัก และ OCR ของตารางนี้ garbled กว่าตารางอื่นๆ ในเล่มเดียวกันมาก —
+การเพิ่ม name-matching fallback ช่วย DSBA (13.9%→39.2%, 20.3%→41.8%) และ IT
+(25.3%→43.4%) ได้เกือบ 2 เท่า แต่ทำให้ AIT/BIT ลดลงเล็กน้อย (AIT 6.2%→4.2%, BIT
+61.8%→60.0% และ 65.5%→63.6%) เพราะ AIT ใช้ระบบ "กลุ่มทักษะ" ที่ชื่อวิชาเดียวกันถูก
+อ้างซ้ำเป็นตัวเลือกในหลายภาคเรียน (ไม่ใช่ fixed schedule) ทำให้ชื่อไป match กับ header
+ที่ไม่ตรงกับค่าคงที่ที่ GT ระบุ — ตัดสินใจเก็บ fallback ไว้เหมือนกันทุกโปรแกรม (ไม่ special-case
+AIT/BIT) เพราะภาพรวมได้มากกว่าเสีย และ field นี้ไม่ถูก score ใน `evaluate_curriculum.py`/
+`evaluate_lab6.py` อยู่แล้ว (ไม่กระทบเกรด Lab 4/5/6) ถ้าจะย้อนกลับทีหลังทำง่าย: ส่ง
+`name_to_code=None` เข้า `_build_year_semester_lookup()` เฉพาะตอน program เป็น AIT/BIT
+ก็พอ ไม่ต้องแก้ logic การ match เลย
+
+`flexible_year_semester` ยังคงเป็น `None` เกือบทุกกรณี — ที่ตั้งใจจะ derive จากการที่
+รหัสวิชาเดียวกันโผล่ซ้ำใน "แผนการศึกษา" มากกว่า 1 ช่วงปี/เทอม (ตรงกับที่ ground truth
+ใช้ค่าเช่น `"3/1, 3/2, 4/1"`) แต่พบว่าวิชากลุ่มเลือกที่ ground truth ระบุเป็น flexible
+จริงๆ ไม่เคยถูกระบุรหัสในตาราง "แผนการศึกษา" เลย (ตารางระบุแค่ชื่อกลุ่มวิชาเลือกที่
+ให้เลือก ไม่ใช่รหัสวิชาที่เจาะจง) จึงไม่มีสัญญาณให้ดึงจริงๆ
+
+`type` (บังคับ/เลือก) และ `note` ยังคง hardcode เป็น `None` เหมือนเดิม — ไม่พบ label
+ที่ระบุชัดเจนติดกับแต่ละวิชาในเอกสาร ต้องเดาจากชื่อกลุ่มย่อยซึ่งเสี่ยงผิดสูง จึงยังไม่ทำ
+
+**หมายเหตุ**: `evaluate_curriculum.py` และ `evaluate_lab6.py` ยังคงวัดผลแค่ 4 field
+เดิม (`code`/`name_en`/`name_th`/`credits`) เหมือนเดิม ไม่ได้แก้ให้ไปเช็ค 3 field ใหม่นี้
+ด้วย — ตัวเลขข้างต้นมาจากการเทียบ JSON ตรงๆ กับ ground truth เท่านั้น (ตรงกับที่ใช้ใน
+การเช็คงานจริง)
+
 ### ไฟล์ที่เกี่ยวข้อง
 
 ```text
 src/ocr_system/engines/tesseract_engine.py   ใช้ image_to_string() สำหรับภาษาไทย
 src/ocr_system/pipeline.py                   join ข้อความแต่ละหน้าด้วย "\n"
 src/ocr_system/curriculum_extraction.py      ดึง course records จาก OCR text (regex-based)
+                                              + _build_category_lookup / _build_prerequisite_lookup
+                                              / _build_year_semester_lookup (code -> value, merge เข้า course หลัง extract)
+                                              / _build_name_to_code_map (fallback ย้อนหารหัสจากชื่อวิชา
+                                              เมื่อ OCR ไม่เหลือรหัสในตาราง "แผนการศึกษา")
 src/ocr_system/evaluate_curriculum.py        วัดผล recall + field-level agreement เทียบ GT
 src/ocr_system/cli.py                        subcommand `curriculum` รวม extraction + evaluation
 ```

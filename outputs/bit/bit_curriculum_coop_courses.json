@@ -1,8 +1,8 @@
 {
   "source": "OCR curriculum extraction",
-  "description": "Extracted academic plan from OCR for BIT (no_coop)",
+  "description": "Extracted academic plan from OCR for BIT (coop)",
   "program": "BIT",
-  "plan": "no_coop",
+  "plan": "coop",
   "courses": [
     {
       "page": 20,
