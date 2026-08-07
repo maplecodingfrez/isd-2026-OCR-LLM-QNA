@@ -19,12 +19,17 @@ ocr_system/
 ├── requirements.txt
 ├── pyproject.toml
 ├── data/
-│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf
+│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
 │   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
-├── outputs/                   # ผลลัพธ์ OCR, extraction, evaluation, page mapping (ต่อหลักสูตร)
+├── outputs/
+│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
+│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
+│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
 ├── scripts/
-│   ├── build_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT)
-│   ├── build_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (17 ข้อ)
+│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
+│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
+│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
+│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
 │   └── lab6_evaluate.py       # Lab 6: รวม Field/Page/Category level evaluation
 └── src/
     └── ocr_system/
@@ -35,7 +40,7 @@ ocr_system/
         ├── pipeline.py        # OCR pipeline หลัก
         ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
         ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT)
+        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
         ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
         ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
         ├── evaluate_lab6.py         # รวม Field/Page/Category level evaluation (Lab 6)
@@ -412,7 +417,7 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --no-prepr
 
 ## Curriculum Extraction (Lab 4)
 
-ทีมเลือกหัวข้อ **Curriculum Extraction** — ดึงข้อมูลรายวิชา (รหัสวิชา, ชื่อไทย, ชื่ออังกฤษ, หน่วยกิต) จากเอกสารเล่มหลักสูตร ด้วย OCR แล้ววัดผลเทียบกับ Ground Truth ครอบคลุมทั้ง 3 หลักสูตร: **DSBA** (PDF สแกน 403 หน้า, GT `DSBA_academic_plan_coop.json`), **AIT** (346 หน้า, GT `AIT_academic_plan.json`), และ **IT** (429 หน้า, GT `IT_academic_plan_coop.json`) — ตัวอย่าง pipeline/คำสั่งด้านล่างใช้ DSBA เป็นหลัก ส่วนผลลัพธ์ทั้ง 3 หลักสูตรดูที่หัวข้อ "AIT / IT Curriculum" ท้ายส่วนนี้
+ทีมเลือกหัวข้อ **Curriculum Extraction** — ดึงข้อมูลรายวิชา (รหัสวิชา, ชื่อไทย, ชื่ออังกฤษ, หน่วยกิต) จากเอกสารเล่มหลักสูตร ด้วย OCR แล้ววัดผลเทียบกับ Ground Truth ครอบคลุมทั้ง 4 หลักสูตร: **DSBA** (PDF สแกน 403 หน้า, GT `DSBA_academic_plan_coop.json`), **AIT** (346 หน้า, GT `AIT_academic_plan.json`), **IT** (429 หน้า, GT `IT_academic_plan_coop.json`) และ **BIT** (GT `BIT_academic_plan_coop.json`) — ตัวอย่าง pipeline/คำสั่งด้านล่างใช้ DSBA เป็นหลัก ส่วนผลลัพธ์ทั้ง 4 หลักสูตรดูที่หัวข้อ "AIT / IT / BIT Curriculum" ท้ายส่วนนี้
 
 ### Pipeline
 
@@ -427,18 +432,20 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --no-prepr
 
 ```bash
 # 1. OCR เล่มหลักสูตร
-python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --output-dir outputs
+python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --output-dir outputs/dsba
 
 # 2. Extract + Evaluate ในคำสั่งเดียว
-python -m ocr_system.cli curriculum outputs/dsba_curriculum_ocr.json \
-    --ground-truth data/ground_truth/DSBA_academic_plan_coop.json
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json \
+    --ground-truth data/ground_truth/DSBA_academic_plan_coop.json --output-dir outputs/dsba
 ```
 
 ผลลัพธ์ที่ได้:
 ```text
-outputs/dsba_curriculum_courses.json                 รายวิชาที่ดึงได้ทั้งหมด
-outputs/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เทียบกับ GT
+outputs/dsba/dsba_curriculum_courses.json                 รายวิชาที่ดึงได้ทั้งหมด
+outputs/dsba/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เทียบกับ GT
 ```
+
+หมายเหตุ: `outputs/` จัดเรียงเป็นโฟลเดอร์ย่อยตามหลักสูตร (`outputs/dsba/`, `outputs/ait/`, `outputs/it/`, `outputs/bit/`) — ไฟล์ที่ใช้ร่วมกันข้ามหลักสูตร (`qa_pairs.csv`, `pages/`) ยังอยู่ที่ระดับบนสุดของ `outputs/` เหมือนเดิม
 
 ### ทำไมต้องใช้ Tesseract แทน PaddleOCR
 
@@ -486,17 +493,23 @@ src/ocr_system/cli.py                        subcommand `curriculum` รวม e
 โฟลเดอร์ `outputs/` ใน branch นี้เก็บเฉพาะไฟล์ที่เกี่ยวข้องกับ curriculum extraction เท่านั้น
 ตัวอย่าง output ของระบบ OCR พื้นฐาน (quote.jpg, pdf_sample.pdf ฯลฯ) อยู่ใน branch `Lab-3`
 
+ไฟล์ต่อหลักสูตรทั้งหมด (OCR, extraction, evaluation, page mapping, Lab 6, general_education)
+แยกเก็บในโฟลเดอร์ย่อยตามหลักสูตร `outputs/{dsba,ait,it,bit}/` ส่วนไฟล์ที่ใช้ร่วมกันข้ามหลักสูตร
+(`qa_pairs.csv`, `pages/`) อยู่ที่ระดับบนสุดของ `outputs/`
+
 ---
 
-## AIT / IT Curriculum (Lab 4 ต่อ)
+## AIT / IT / BIT Curriculum (Lab 4 ต่อ)
 
-Lab 4 ครอบคลุมทั้ง 3 หลักสูตร (DSBA/AIT/IT) — ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์และรายละเอียดเฉพาะของ AIT/IT ใช้ pipeline เดียวกันทุกขั้นตอน (OCR → `curriculum_extraction.py` → `evaluate_curriculum.py`) กับเอกสารหลักสูตร AIT (`ait_curriculum.pdf`, 346 หน้า) และ IT (`it_curriculum.pdf`, 429 หน้า)
+Lab 4 ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) — ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์และรายละเอียดเฉพาะของ AIT/IT/BIT ใช้ pipeline เดียวกันทุกขั้นตอน (OCR → `curriculum_extraction.py` → `evaluate_curriculum.py`) กับเอกสารหลักสูตร AIT (`ait_curriculum.pdf`, 346 หน้า), IT (`it_curriculum.pdf`, 429 หน้า) และ BIT (`bit_curriculum.pdf`)
 
 ### ปัญหาที่เจอและวิธีแก้
 
 1. **ลายน้ำ (watermark)** — เอกสาร AIT/IT มีตราประทับสถาบันสีส้ม/ชมพูจางๆ พิมพ์ทับทุกหน้า (คลุม 50-76% ของพิกเซลที่ไม่ใช่พื้นขาว) ทำให้ Tesseract อ่านข้อความปนกับลายน้ำผิดเพี้ยนหนัก แก้ด้วย `suppress_warm_watermark()` ใน `preprocessing.py` — ตรวจ pixel ที่ warm/light (ช่อง R สูงกว่า B ชัดเจน) แล้วฟอกเป็นสีขาวก่อนแปลง grayscale ตรวจสอบแล้วว่าไม่กระทบ DSBA เลย (0% ของพิกเซลที่ไม่ใช่พื้นขาวเข้าเงื่อนไขนี้ในหน้า DSBA) ผลลัพธ์: name_en agreement ของ AIT จาก 52.1% → 97.9%
 2. **Token ตัวเลขปนในชื่อวิชา** — แก้ `_looks_english()` ให้ token ที่มีตัวเลข 4 หลักขึ้นไปไม่ถูกนับเป็นภาษาอังกฤษ (เดิมรหัสวิชาที่หลุด regex หลักมาปนในชื่อวิชา)
 3. **Block-bleed ใน `_join_english_name()`** — เจอ credits pattern ที่สองระหว่างเดินอ่านชื่อวิชา ให้ `break` แทน `continue` เพราะเป็นสัญญาณว่าอ่านเลยเข้าบล็อกของวิชาถัดไปแล้ว
+
+**BIT ไม่ต้องแก้อะไรเพิ่ม** — OCR เอกสาร BIT ผ่าน pipeline เดียวกัน (รวม `suppress_warm_watermark()` ที่ทำงานอัตโนมัติทุกหน้าอยู่แล้ว ไม่ต้องเปิดแยกต่อโปรแกรม) ได้ผลลัพธ์ recall 100% ทันทีโดยไม่ต้องหา fix ใหม่ — ดีกว่า AIT/IT ด้วยซ้ำ
 
 ### CER/WER (ตามคำแนะนำอาจารย์)
 
@@ -509,18 +522,27 @@ Lab 4 ครอบคลุมทั้ง 3 หลักสูตร (DSBA/AIT/
 | DSBA | coop | 98.8% (79/80) | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3% |
 | AIT | none | 98.0% (48/49) | 97.9% | 100.0% | 0.5% / 0.4% | 3.6% / 36.5% |
 | IT | coop | 100% (99/99) | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% |
+| BIT | coop | 100% (55/55) | 85.5% | 98.2% | 0.2% / 8.8% | 4.2% / 49.1% |
 
 หมายเหตุ: ground truth ของ AIT (`AIT_academic_plan.json`) มี `"plan": null` ไม่มีการแบ่งแผน coop/no_coop เหมือน DSBA/IT/BIT — ใช้ `--plan none` เพื่อสื่อความหมายตรงกับข้อมูลจริง (ไม่กระทบผล evaluation เพราะ `plan` เป็นแค่ metadata ไม่ถูกใช้ในการ match/ประเมินผล)
 
 สำหรับ DSBA และ IT ตรวจสอบแล้วว่าไฟล์ coop/no_coop ให้ผล evaluation เหมือนกันทุกประการ (DSBA: record เหมือนกัน 100%; IT: ต่างกันแค่ field `year`/`semester`/`note` ที่ `evaluate_curriculum.py` ไม่ได้ใช้เทียบ) จึงรันแค่ไฟล์เดียวก็ครอบคลุม
 
+**BIT ต่างออกไปเล็กน้อย** — ตรวจสอบละเอียดแล้วพบว่า `BIT_academic_plan_coop.json`/`_no_coop.json` มี `name_en` สะกดต่างกันจริง 4 วิชา (ไม่ใช่แค่ field ที่ไม่ถูกใช้เทียบแบบ IT) เช่น coop เขียน `"...FORBUSINESS"` ติดกัน ส่วน no_coop เขียนแยก `"...FOR BUSINESS"` (หรือกลับกัน) รันแล้วผลจริงคือ **name_en agreement เท่ากันทั้งคู่ (85.5%)** แต่เป็นเพราะวิชาที่ mismatch สลับคู่กันพอดี (วิชาหนึ่ง match เฉพาะกับ coop, อีกวิชา match เฉพาะกับ no_coop) จำนวนสุทธิเลยเท่ากันโดยบังเอิญ ไม่ใช่เพราะข้อมูลเหมือนกันทุกประการแบบ DSBA — `name_en_wer` ต่างกันเล็กน้อย (coop 8.8% / no_coop 6.8%) ยืนยันว่าไม่ใช่ไฟล์เดียวกันจริงๆ ยังคงรันทั้งคู่ไว้เพื่อความสม่ำเสมอ
+
 ### วิธีรัน
 
 ```bash
-python -m ocr_system.cli curriculum outputs/ait_curriculum_ocr.json --ground-truth data/ground_truth/AIT_academic_plan.json --program AIT --plan none
+python -m ocr_system.cli curriculum outputs/ait/ait_curriculum_ocr.json --ground-truth data/ground_truth/AIT_academic_plan.json --program AIT --plan none --output-dir outputs/ait
 
-python -m ocr_system.cli curriculum outputs/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_coop.json --program IT --plan coop
+python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_coop.json --program IT --plan coop --output-dir outputs/it
+
+python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_coop.json --program BIT --plan coop --output-dir outputs/bit
+
+python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_no_coop.json --program BIT --plan no_coop --output-dir outputs/bit
 ```
+
+หมายเหตุ: คำสั่ง `curriculum` เขียนผลลัพธ์เป็น `outputs/bit/bit_curriculum_courses.json`/`outputs/bit/bit_curriculum_curriculum_evaluation.json` เสมอ (ไม่แยกชื่อไฟล์ตาม plan เหมือน `lab6_evaluate.py`) รันสองรอบแล้วต้อง copy ผลของรอบแรกไปเก็บชื่ออื่นก่อนรันรอบสอง ไม่งั้นไฟล์จะถูกเขียนทับ — ผลที่เก็บไว้จริงในโปรเจกต์คือ `outputs/bit/bit_coop_curriculum_courses.json`/`outputs/bit/bit_coop_curriculum_evaluation.json` (สำรองจากรอบ coop) และ `outputs/bit/bit_curriculum_courses.json`/`outputs/bit/bit_curriculum_curriculum_evaluation.json` (ผลรอบ no_coop ล่าสุด)
 
 ### ไฟล์ที่เกี่ยวข้อง
 
@@ -528,15 +550,17 @@ python -m ocr_system.cli curriculum outputs/it_curriculum_ocr.json --ground-trut
 src/ocr_system/preprocessing.py         suppress_warm_watermark() (ใหม่)
 src/ocr_system/curriculum_extraction.py แก้ _looks_english() + _join_english_name()
 src/ocr_system/evaluate_curriculum.py   เพิ่ม CER/WER ต่อ field (name_en, name_th)
-outputs/ait_curriculum_courses.json, ait_curriculum_curriculum_evaluation.json
-outputs/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json
+outputs/ait/ait_curriculum_courses.json, ait_curriculum_curriculum_evaluation.json
+outputs/it/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json
+outputs/bit/bit_curriculum_courses.json, bit_curriculum_curriculum_evaluation.json (no_coop)
+outputs/bit/bit_coop_curriculum_courses.json, bit_coop_curriculum_evaluation.json (coop, สำรองแยกไว้)
 ```
 
 ---
 
 ## Ground Truth Page Mapping (Lab 5)
 
-ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth เข้ากับหน้าจริงของเล่มหลักสูตร ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ) — ครอบคลุมทั้ง 3 หลักสูตร (DSBA/AIT/IT) เช่นเดียวกับ Lab 4 รายละเอียดด้านล่างใช้ DSBA (`DSBA_academic_plan_coop.json`, `data/input/dsba_curriculum.pdf`) เป็นตัวอย่างหลัก ส่วนผลลัพธ์ AIT/IT ดูที่หัวข้อ "AIT / IT Page Mapping" ท้ายส่วนนี้
+ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth เข้ากับหน้าจริงของเล่มหลักสูตร ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ) — ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4 รายละเอียดด้านล่างใช้ DSBA (`DSBA_academic_plan_coop.json`, `data/input/dsba_curriculum.pdf`) เป็นตัวอย่างหลัก ส่วนผลลัพธ์ AIT/IT/BIT ดูที่หัวข้อ "AIT / IT / BIT Page Mapping" ท้ายส่วนนี้
 
 ### Ground Truth ที่ใช้
 
@@ -552,25 +576,25 @@ outputs/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json
 ### Pipeline
 
 ```text
-outputs/dsba_curriculum_ocr.json (มีอยู่แล้วจาก Lab 4)
+outputs/dsba/dsba_curriculum_ocr.json (มีอยู่แล้วจาก Lab 4)
     → curriculum_extraction.py (extract_curriculum, เก็บ page number ต่อ occurrence)
     → gt_page_mapping.py (group_by_code → classify_pages → เทียบกับ GT)
-    → outputs/dsba_coop_course_page_mapping.csv
+    → outputs/dsba/dsba_coop_course_page_mapping.csv
 ```
 
 ### วิธีรัน
 
 ```bash
-python scripts/build_page_mapping.py DSBA_coop
-python scripts/build_qa_pairs.py
+python scripts/lab5_page_mapping.py DSBA_coop
+python scripts/lab5_qa_pairs.py
 ```
 
-(`build_page_mapping.py` แก้ให้รับ program+plan เป็น argument แล้วแทนการ hardcode DSBA ตัวเดียว — ดูหัวข้อ "AIT / IT Page Mapping (Lab 5 ต่อ)" ท้าย Lab 5 สำหรับ AIT/IT/no_coop)
+(`lab5_page_mapping.py` แก้ให้รับ program+plan เป็น argument แล้วแทนการ hardcode DSBA ตัวเดียว — ดูหัวข้อ "AIT / IT Page Mapping (Lab 5 ต่อ)" ท้าย Lab 5 สำหรับ AIT/IT/no_coop)
 
 ผลลัพธ์ที่ได้:
 ```text
-outputs/dsba_coop_course_page_mapping.csv    80 วิชา พร้อมหน้าอ้างอิง (primary/other)
-outputs/qa_pairs.csv                          17 คำถาม-คำตอบ อ้างอิงหน้า
+outputs/dsba/dsba_coop_course_page_mapping.csv    80 วิชา พร้อมหน้าอ้างอิง (primary/other)
+outputs/qa_pairs.csv                              32 คำถาม-คำตอบ อ้างอิงหน้า (ครอบคลุม DSBA/AIT/IT/BIT)
 ```
 
 ### สิ่งที่แก้ใน `curriculum_extraction.py` (Lab 4) และทำไม
@@ -620,42 +644,46 @@ Lab 5 ต้องรู้ว่าแต่ละ course record มาจา�
 ```text
 src/ocr_system/curriculum_extraction.py   แก้เพิ่ม page number + แก้บั๊ก "มคอ" (ไฟล์ Lab 4, แก้ต่อใน Lab 5)
 src/ocr_system/gt_page_mapping.py         group_by_code / classify_pages / write_csv (ใหม่, Lab 5)
-scripts/build_page_mapping.py             รัน pipeline สร้าง course_page_mapping.csv ต่อ program+plan
-scripts/build_qa_pairs.py                 ชุดคำถาม-คำตอบ 17 ข้อ พร้อมเลขหน้าอ้างอิง
-outputs/dsba_coop_course_page_mapping.csv 80 วิชา พร้อม primary/other pages
-outputs/qa_pairs.csv                      17 คำถาม-คำตอบ (10 รายวิชา + 7 ข้อบังคับ)
+scripts/lab5_page_mapping.py             รัน pipeline สร้าง course_page_mapping.csv ต่อ program+plan
+scripts/lab5_qa_pairs.py                 ชุดคำถาม-คำตอบ (ปัจจุบัน 32 ข้อ ครอบคลุม DSBA/AIT/IT/BIT) พร้อมเลขหน้าอ้างอิง
+outputs/dsba/dsba_coop_course_page_mapping.csv 80 วิชา พร้อม primary/other pages
+outputs/qa_pairs.csv                           32 คำถาม-คำตอบ (16 รายวิชา + 16 ข้อบังคับ) -- ดูจำนวน ณ ตอนเขียน Lab 5 นี้คือ 17 ข้อ (DSBA ล้วน) ก่อนขยายไป AIT/IT/BIT ทีหลัง (ดูหัวข้อ Lab 6 Known Limitations)
 ```
 
 ---
 
-## AIT / IT Page Mapping (Lab 5 ต่อ)
+## AIT / IT / BIT Page Mapping (Lab 5 ต่อ)
 
-เช่นเดียวกับ Lab 4 — Lab 5 ครอบคลุมทั้ง 3 หลักสูตร (DSBA/AIT/IT) ไม่ใช่แค่ DSBA ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA (coop) เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์เฉพาะของ AIT/IT ใช้ `gt_page_mapping.py` เดิมทั้งหมดโดยไม่แก้โค้ดเลย (`group_by_code()` / `classify_pages()` / `write_csv()` รับ program, plan, output path เป็นพารามิเตอร์อยู่แล้ว) เพียงแก้ `scripts/build_page_mapping.py` ให้รับ program+plan จาก command line แทนการ hardcode เป็น DSBA ตัวเดียว
+เช่นเดียวกับ Lab 4 — Lab 5 ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) ไม่ใช่แค่ DSBA ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA (coop) เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์เฉพาะของ AIT/IT/BIT ใช้ `gt_page_mapping.py` เดิมทั้งหมดโดยไม่แก้โค้ดเลย (`group_by_code()` / `classify_pages()` / `write_csv()` รับ program, plan, output path เป็นพารามิเตอร์อยู่แล้ว) เพียงแก้ `scripts/lab5_page_mapping.py` ให้รับ program+plan จาก command line แทนการ hardcode เป็น DSBA ตัวเดียว
 
 ### ทำไมต้องรันแยกทั้ง coop และ no_coop (ไม่ใช่แค่แยก program)
 
-`evaluate_curriculum.py` (Lab 4) เช็คแค่ `name_en` / `name_th` / `credits` ซึ่งเหมือนกันทุกประการระหว่างไฟล์ coop/no_coop ของทั้ง DSBA และ IT — แต่ `classify_pages()` (Lab 5) เขียน `year` / `semester` / `flexible_year_semester` / `note` ลง CSV ตรงจาก GT โดยตรง ตรวจสอบแล้วว่า **IT** มี 57/99 วิชาที่ field เหล่านี้ต่างกันจริงระหว่าง coop/no_coop (เช่นวิชาเดียวกันเรียนปี 4 เทอม 2 ในแผน coop แต่ปี 3 เทอม 2 ในแผน no_coop) ถ้ารันแค่ไฟล์เดียวจะโชว์ปี/เทอมผิดให้นักศึกษาอีกแผน จึงต้องรันแยกทั้งคู่สำหรับ IT ส่วน DSBA เหมือนกัน 100% ทุก field แต่รันแยกไว้ด้วยเพื่อความสม่ำเสมอ ไม่ต้องให้คนอ่านต้องรู้ก่อนว่าไฟล์เหมือนกัน
+`evaluate_curriculum.py` (Lab 4) เช็คแค่ `name_en` / `name_th` / `credits` ซึ่งเหมือนกันทุกประการระหว่างไฟล์ coop/no_coop ของทั้ง DSBA และ IT — แต่ `classify_pages()` (Lab 5) เขียน `year` / `semester` / `flexible_year_semester` / `note` ลง CSV ตรงจาก GT โดยตรง ตรวจสอบแล้วว่า **IT** มี 57/99 วิชาที่ field เหล่านี้ต่างกันจริงระหว่าง coop/no_coop (เช่นวิชาเดียวกันเรียนปี 4 เทอม 2 ในแผน coop แต่ปี 3 เทอม 2 ในแผน no_coop) ถ้ารันแค่ไฟล์เดียวจะโชว์ปี/เทอมผิดให้นักศึกษาอีกแผน จึงต้องรันแยกทั้งคู่สำหรับ IT ส่วน DSBA เหมือนกัน 100% ทุก field แต่รันแยกไว้ด้วยเพื่อความสม่ำเสมอ ไม่ต้องให้คนอ่านต้องรู้ก่อนว่าไฟล์เหมือนกัน **BIT** อยู่ตรงกลาง — 5/60 วิชามี `year`/`semester`/`note` ต่างกันจริงระหว่าง coop/no_coop (น้อยกว่า IT มาก แต่ไม่ใช่ศูนย์) จึงยังต้องรันแยกทั้งคู่เหมือนกัน
 
 ### ผลลัพธ์
 
 | Program | Plan | ไฟล์ | GT courses | with primary page |
 |---|---|---|---|---|
-| DSBA | coop | `outputs/dsba_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
-| DSBA | no_coop | `outputs/dsba_no_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
-| AIT | none | `outputs/ait_course_page_mapping.csv` | 49 | 48 (97.96%) |
-| IT | coop | `outputs/it_coop_course_page_mapping.csv` | 99 | 99 (100%) |
-| IT | no_coop | `outputs/it_no_coop_course_page_mapping.csv` | 99 | 99 (100%) |
+| DSBA | coop | `outputs/dsba/dsba_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
+| DSBA | no_coop | `outputs/dsba/dsba_no_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
+| AIT | none | `outputs/ait/ait_course_page_mapping.csv` | 49 | 48 (97.96%) |
+| IT | coop | `outputs/it/it_coop_course_page_mapping.csv` | 99 | 99 (100%) |
+| IT | no_coop | `outputs/it/it_no_coop_course_page_mapping.csv` | 99 | 99 (100%) |
+| BIT | coop | `outputs/bit/bit_coop_course_page_mapping.csv` | 55 | 55 (100%) |
+| BIT | no_coop | `outputs/bit/bit_no_coop_course_page_mapping.csv` | 55 | 55 (100%) |
 
-(DSBA coop และ no_coop ให้ตัวเลขเดียวกันเป๊ะตามที่คาด เพราะ GT เหมือนกัน 100% ทุก field ที่ใช้ matching)
+(DSBA coop และ no_coop ให้ตัวเลขเดียวกันเป๊ะตามที่คาด เพราะ GT เหมือนกัน 100% ทุก field ที่ใช้ matching — BIT ให้ตัวเลขรวมเท่ากันด้วย แม้ GT จะไม่ได้เหมือนกันทุกประการเหมือน DSBA ก็ตาม เพราะทุกวิชาหารหัสเจอครบทั้งสองแผนอยู่แล้ว)
 
 ### วิธีรัน
 
 ```bash
-python scripts/build_page_mapping.py DSBA_coop
-python scripts/build_page_mapping.py DSBA_no_coop
-python scripts/build_page_mapping.py AIT
-python scripts/build_page_mapping.py IT_coop
-python scripts/build_page_mapping.py IT_no_coop
+python scripts/lab5_page_mapping.py DSBA_coop
+python scripts/lab5_page_mapping.py DSBA_no_coop
+python scripts/lab5_page_mapping.py AIT
+python scripts/lab5_page_mapping.py IT_coop
+python scripts/lab5_page_mapping.py IT_no_coop
+python scripts/lab5_page_mapping.py BIT_coop
+python scripts/lab5_page_mapping.py BIT_no_coop
 ```
 
 ### คำถามเพิ่มจาก ground truth ใหม่ (`rules_ground_truth.json`)
@@ -669,18 +697,20 @@ python scripts/build_page_mapping.py IT_no_coop
 
 ทั้งสองข้อเป็น `type: regulation` เหมือนกลุ่มเดิม — ไม่กระทบ "QA citation consistency" ของ Lab 6 เลย เพราะ `evaluate_page_level()` เช็คเฉพาะแถวที่ `type == "course"` เท่านั้น (ตัวเลข 6/6 ในหัวข้อ Lab 6 ด้านล่างยังถูกต้องอยู่)
 
-ยังไม่ได้ทำ: คำถามเฉพาะของ AIT/IT (ยังเป็น DSBA ล้วนเหมือนเดิม) และยังไม่ได้ใช้ `general_education_ground_truth.json` สร้างคำถามใหม่ (เช็คแล้วว่าใช้ยืนยันข้อเท็จจริงเดิมที่มีอยู่แล้วได้ เช่น CHARM SCHOOL แต่ยังไม่ได้แต่งคำถามใหม่จากมัน)
+อัปเดต: คำถามเฉพาะของ AIT/IT/BIT ถูกเพิ่มเข้ามาแล้วในภายหลัง (คนละรอบกับตอนเขียน Lab 5 นี้) รวมทั้งหมดเป็น 32 ข้อ — รายละเอียดอยู่ที่หัวข้อ Lab 6 Known Limitations ด้านล่าง ส่วน `general_education_ground_truth.json` ยังคงใช้แค่ยืนยันข้อเท็จจริงเดิม (เช่น CHARM SCHOOL) ยังไม่ได้แต่งเป็นคำถามใหม่
 
 ### ไฟล์ที่เกี่ยวข้อง
 
 ```text
-scripts/build_page_mapping.py   parameterize รับ program+plan (PROGRAMS dict) แทน hardcode DSBA
-scripts/build_qa_pairs.py       เพิ่ม 2 entry จาก rules_ground_truth.json
-outputs/ait_course_page_mapping.csv
-outputs/dsba_no_coop_course_page_mapping.csv
-outputs/it_coop_course_page_mapping.csv
-outputs/it_no_coop_course_page_mapping.csv
-outputs/qa_pairs.csv            17 คำถาม-คำตอบ (10 รายวิชา + 7 ข้อบังคับ)
+scripts/lab5_page_mapping.py   parameterize รับ program+plan (PROGRAMS dict) แทน hardcode DSBA
+scripts/lab5_qa_pairs.py       เพิ่ม 2 entry จาก rules_ground_truth.json (ตอนเขียน Lab 5 นี้ -- ภายหลังขยายเป็น 32 ข้อรวม AIT/IT/BIT)
+outputs/ait/ait_course_page_mapping.csv
+outputs/dsba/dsba_no_coop_course_page_mapping.csv
+outputs/it/it_coop_course_page_mapping.csv
+outputs/it/it_no_coop_course_page_mapping.csv
+outputs/bit/bit_coop_course_page_mapping.csv
+outputs/bit/bit_no_coop_course_page_mapping.csv
+outputs/qa_pairs.csv                          32 คำถาม-คำตอบ (16 รายวิชา + 16 ข้อบังคับ, ครอบคลุม DSBA/AIT/IT/BIT)
 ```
 
 ---
@@ -689,7 +719,7 @@ outputs/qa_pairs.csv            17 คำถาม-คำตอบ (10 ราย
 
 Lab 6 ไม่ได้ใช้ dataset ใหม่ — รัน dataset เดิมจาก Lab 4/5 ทั้งชุด (OCR output +
 ground truth + page mapping ของ Lab 5) ผ่าน evaluation เดียวกัน แล้วรายงาน 3
-ระดับ ครอบคลุมทั้ง 3 หลักสูตร (DSBA/AIT/IT) เช่นเดียวกับ Lab 4/5:
+ระดับ ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4/5:
 
 - **Field Level** — accuracy รายฟิลด์ (`name_en`, `credits`) ของวิชาที่ match ได้
   + recall โดยรวม + **CER/WER** ของ `name_en`/`name_th` (แนวคิดเดียวกับ
@@ -716,9 +746,11 @@ python scripts/lab6_evaluate.py DSBA_no_coop
 python scripts/lab6_evaluate.py AIT
 python scripts/lab6_evaluate.py IT_coop
 python scripts/lab6_evaluate.py IT_no_coop
+python scripts/lab6_evaluate.py BIT_coop
+python scripts/lab6_evaluate.py BIT_no_coop
 ```
 
-### ผลลัพธ์ล่าสุด (รันจริงกับ dataset นี้ ทั้ง 5 ชุด)
+### ผลลัพธ์ล่าสุด (รันจริงกับ dataset นี้ ทั้ง 7 ชุด)
 
 | Program | Plan | recall | name_en | credits | name_en CER/WER | name_th CER/WER | page primary | QA citation |
 |---|---|---|---|---|---|---|---|---|
@@ -727,6 +759,8 @@ python scripts/lab6_evaluate.py IT_no_coop
 | AIT | (ไม่มี coop) | 98.0% | 97.9% | 100.0% | 0.5% / 0.4% | 3.6% / 36.5% | 48/49 | 2/2 |
 | IT | coop | 100.0% | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% | 99/99 | 2/2 |
 | IT | no_coop | 100.0% | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% | 99/99 | 2/2 |
+| BIT | coop | 100.0% | 85.5% | 98.2% | 0.2% / 8.8% | 4.2% / 49.1% | 55/55 | 2/2 |
+| BIT | no_coop | 100.0% | 85.5% | 98.2% | 0.2% / 6.8% | 4.2% / 49.1% | 55/55 | 2/2 |
 
 Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 กลุ่ม — ดูสาเหตุใน Known Limitations):
 
@@ -738,6 +772,8 @@ Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 �
 | AIT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 100% | 100% |
 | IT | หมวดวิชาเฉพาะ | 91 | 100% | 98.9% | 100% |
 | IT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 75.0% | 100% |
+| BIT | หมวดวิชาเฉพาะ | 47 | 100% | 85.1% | 100% |
+| BIT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 87.5% | 100% |
 
 ### Known Limitations
 
@@ -748,11 +784,18 @@ Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 �
   `gt_courses` ก่อนจะถึงขั้น group by category ผลคือ Category Level เห็นแค่ 2
   กลุ่ม (เฉพาะ/ทั่วไป) ไม่ใช่ 3 กลุ่มตาม ground truth จริง — เป็น filter เดิมที่
   สืบทอดมาจาก Lab 4 (`evaluate_curriculum.py` กรองแบบเดียวกัน) จึงกระทบ
-  Field Level และ Page Level ด้วยเช่นกัน
+  Field Level และ Page Level ด้วยเช่นกัน (BIT ก็มี `หมวดวิชาเลือกเสรี` แบบเดียวกัน
+  2 รายการ โดน filter ทิ้งเหมือนกัน)
 - **หมวดวิชาศึกษาทั่วไปของ IT, name_en 75%** — ต่ำกว่า DSBA/AIT (100%) เพราะ n=8
   เล็ก แค่ 2 วิชาผิดก็กระทบเปอร์เซ็นต์แรง ไม่ใช่ปัญหาเชิงระบบ (ดูหัวข้อ
   `general_education_ground_truth.json` แยกต่างหากสำหรับปัญหา OCR ที่ใหญ่กว่านี้
   ในโซนวิชาศึกษาทั่วไปของเล่ม IT)
+- **หมวดวิชาเฉพาะของ BIT, name_en 85.1%** — ต่ำกว่าโปรแกรมอื่น แต่ตรวจสอบทุก
+  mismatch แล้วพบว่า 7 ใน 8 รายการมี CER ≈ 0 (ตัวอักษรถูกหมด ต่างแค่ช่องว่างที่
+  หายไปฝั่ง ground truth เอง เช่น GT เขียน `"SPECIALTOPICS..."` ติดกัน แต่สิ่งที่
+  extract ได้ถูกต้องเป็น `"SPECIAL TOPICS..."`) มีแค่ `CHARM SCHOOL` ตัวเดียวที่
+  OCR ผิดจริง (คอมม่าเกิน) — recall และ page localization ยังคง 100% ทั้งคู่ ไม่ใช่
+  ปัญหาเชิงระบบ
 - **CHARM SCHOOL (90641001) เช็ค cross-program ผิดพลาด (แก้แล้ว)** — คำถาม QA
   เดิมของ DSBA อ้างอิงเลขหน้าตามเล่ม DSBA แต่ 90641001 เป็นวิชาศึกษาทั่วไปที่
   ปรากฏในเล่ม IT ด้วย (คนละเลขหน้า) ตอนรัน Lab 6 กับ IT ระบบเลยเอาเลขหน้าของ
@@ -761,14 +804,16 @@ Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 �
   แถวที่ `program` ไม่ตรงกับโปรแกรมที่กำลังประเมิน — พร้อมเพิ่มคำถาม course-level
   ใหม่ให้ AIT/IT อย่างละ 2 ข้อ (ใช้ `cited_pages` จาก `{program}_course_page_mapping.csv`
   โดยตรง การันตี consistency) รวม `qa_pairs.csv` เป็น 27 ข้อ (14 course + 13 regulation)
+  ณ ตอนนั้น — ต่อมาเพิ่ม BIT อีก 5 ข้อ (2 course + 3 regulation จาก
+  `rules_ground_truth.json`) รวมปัจจุบันเป็น 32 ข้อ (16 course + 16 regulation)
 
 ### ไฟล์ที่เกี่ยวข้อง
 
 ```text
 src/ocr_system/evaluate_lab6.py   evaluate_field_level (+ CER/WER) / evaluate_page_level (+ program filter) / evaluate_category_level
 scripts/lab6_evaluate.py          รัน pipeline รวมทั้ง 3 ระดับ ต่อ program+plan
-scripts/build_qa_pairs.py         QA_PAIRS 27 ข้อ พร้อมคอลัมน์ program
-outputs/{key}_lab6_evaluation.json   ผลลัพธ์ต่อ program+plan (5 ไฟล์)
+scripts/lab5_qa_pairs.py         QA_PAIRS 32 ข้อ พร้อมคอลัมน์ program
+outputs/{program}/{key}_lab6_evaluation.json   ผลลัพธ์ต่อ program+plan (7 ไฟล์ ในโฟลเดอร์ย่อยของแต่ละหลักสูตร)
 ```
 
 ---
@@ -783,7 +828,7 @@ outputs/{key}_lab6_evaluation.json   ผลลัพธ์ต่อ program+plan
 ### วิธีรัน
 
 ```bash
-python scripts/eval_general_education.py
+python scripts/supplement_general_education.py
 ```
 
 ### ผลลัพธ์
@@ -818,12 +863,24 @@ python scripts/eval_general_education.py
 - **AIT/IT recall ต่ำกว่า DSBA (82% vs 100%)** — ยังไม่ได้ลงลึกสาเหตุเพิ่มเติมว่า
   ทำไม DSBA หาเจอครบทุกวิชา ขณะที่ AIT/IT หาไม่เจอ ~18% (น่าจะเกี่ยวข้องกับ
   ปัญหาเดียวกันข้างต้น คือรหัสวิชาอ่านผิดจนหาไม่เจอเลย ไม่ใช่แค่ชื่อเพี้ยน)
+- **BIT ไม่รวมอยู่ในตารางผลลัพธ์ข้างบน — ตั้งใจ ไม่ใช่ตกหล่น** — ตรวจสอบแล้วว่า
+  รหัสวิชาหมวดวิชาศึกษาทั่วไปของ BIT เอง (ใน `BIT_academic_plan_coop.json`,
+  category `หมวดวิชาศึกษาทั่วไป`) ใช้ช่วงรหัส `9664xxxx` ทั้งหมด ไม่ทับซ้อนกับ
+  `general_education_ground_truth.json` เลยแม้แต่รหัสเดียว (ไฟล์นั้นใช้ช่วง
+  `9064xxxx` ซึ่งเป็นชุดที่ DSBA/AIT/IT ใช้ร่วมกัน) พบ overlap เล็กน้อยแค่ 6 รหัส
+  ระหว่างรหัสวิชาที่ OCR เจอทั้งหมดในเล่ม BIT (580 รหัสไม่ซ้ำ ทั้งเล่ม) กับ
+  `9064xxxx` แต่เป็นแค่การกล่าวถึงในภาคผนวก catalog ของสถาบัน ไม่ใช่ตัวข้อกำหนด
+  หมวดวิชาศึกษาทั่วไปของ BIT เอง — รันเทียบกับไฟล์นี้จะได้ recall ใกล้ 0% ซึ่ง
+  ไม่มีความหมาย เพราะเทียบกับข้อกำหนดที่ BIT ไม่ได้ใช้จริง ข้อกำหนดหมวดวิชา
+  ศึกษาทั่วไปของ BIT ถูกประเมินไปแล้วผ่าน Lab 6 Category Level (ดูหัวข้อ Lab 6
+  ด้านบน — recall 100%, name_en agreement 87.5%) ซึ่งเทียบกับ ground truth ของ
+  BIT เองโดยตรง ถูกต้องกว่า
 
 ### ไฟล์ที่เกี่ยวข้อง
 
 ```text
-scripts/eval_general_education.py                รัน evaluate_curriculum() เทียบกับ general_education_ground_truth.json ทั้ง 3 หลักสูตร
-outputs/general_education_dsba_evaluation.json
-outputs/general_education_ait_evaluation.json
-outputs/general_education_it_evaluation.json
+scripts/supplement_general_education.py                รัน evaluate_curriculum() เทียบกับ general_education_ground_truth.json ทั้ง 3 หลักสูตร
+outputs/dsba/general_education_dsba_evaluation.json
+outputs/ait/general_education_ait_evaluation.json
+outputs/it/general_education_it_evaluation.json
 ```

@@ -4,8 +4,8 @@ Lab 5 - Q&A pairs answerable from the DSBA (coop) ground truth
 page(s) in data/input/dsba_curriculum.pdf that the fact came from.
 
 Two buckets:
-  - "course": answerable directly from the ground truth / outputs/course_page_mapping.csv
-    (built by scripts/build_page_mapping.py).
+  - "course": answerable directly from the ground truth / outputs/{program}/{key}_course_page_mapping.csv
+    (built by scripts/lab5_page_mapping.py).
   - "regulation": answerable from the institute-wide "ข้อบังคับสถาบันฯ ว่าด้วยการศึกษา
     ระดับปริญญาตรี" appendix, which is bound into the same curriculum book
     (found by grepping the OCR text for "ข้อบังคับ" -- see README Lab 5 section).
@@ -14,11 +14,11 @@ Two buckets:
     were clearly legible in the raw text were kept.
 
 Page numbers = physical page order in data/input/dsba_curriculum.pdf
-(1-indexed), same convention as outputs/dsba_curriculum_ocr.json and
-outputs/course_page_mapping.csv -- NOT the printed page number shown in the
-document body (which runs about 1 page behind the PDF index).
+(1-indexed), same convention as outputs/dsba/dsba_curriculum_ocr.json and
+outputs/dsba/dsba_coop_course_page_mapping.csv -- NOT the printed page number
+shown in the document body (which runs about 1 page behind the PDF index).
 
-Run: python scripts/build_qa_pairs.py
+Run: python scripts/lab5_qa_pairs.py
 """
 
 import csv
@@ -286,6 +286,50 @@ QA_PAIRS = [
         "answer": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ 3(2-2-5) หน่วยกิต พบใน 3 หน้า",
         "cited_pages": "24;38;359",
         "note": "ground truth: code 06066303",
+    },
+
+    # ---------- BIT (rules_ground_truth.json) ----------
+    {
+        "type": "regulation",
+        "program": "BIT",
+        "question": "นักศึกษา BIT ต้องเรียนจบด้วยหน่วยกิตขั้นต่ำเท่าไหร่ และ GPA สะสมต้องไม่ต่ำกว่าเท่าไหร่?",
+        "answer": "126 หน่วยกิต และ GPA สะสมต้องไม่ต่ำกว่า 2.00",
+        "cited_pages": "",
+        "note": "ground truth: rules_ground_truth.json, program BIT, category 'เกณฑ์การสำเร็จการศึกษา'",
+    },
+    {
+        "type": "regulation",
+        "program": "BIT",
+        "question": "นักศึกษา BIT ต้องมี GPA เท่าไหร่ถึงจะได้เกียรตินิยม?",
+        "answer": "เหรียญทอง: ตั้งแต่ 3.75 ขึ้นไป | อันดับ 1: ตั้งแต่ 3.50 ขึ้นไป | อันดับ 2: ไม่มีค่าระบุในไฟล์ต้นทาง",
+        "cited_pages": "",
+        "note": "ground truth: rules_ground_truth.json, program BIT, category 'เกณฑ์เกียรตินิยม' -- GPA อันดับ 2 เป็น null",
+    },
+    {
+        "type": "regulation",
+        "program": "BIT",
+        "question": "นักศึกษา BIT ลงทะเบียนได้กี่หน่วยกิตในภาคการศึกษาปกติ?",
+        "answer": "ขั้นต่ำ 9 หน่วยกิต สูงสุด 22 หน่วยกิต (กรณีพิเศษไม่มีค่าระบุในไฟล์ต้นทาง)",
+        "cited_pages": "",
+        "note": "ground truth: rules_ground_truth.json, program BIT, category 'เกณฑ์การลงทะเบียน' -- เพดานกรณีพิเศษเป็น null",
+    },
+
+    {
+        "type": "course",
+        "program": "BIT",
+        "question": "รหัสวิชา 06036100 ของ BIT ชื่อวิชาอะไร และมีหน่วยกิตเท่าไหร่?",
+        "answer": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ (INFORMATION TECHNOLOGY FUNDAMENTALS) 3(2-2-5) หน่วยกิต",
+        "cited_pages": "21;26;31;238",
+        "note": "ground truth: code 06036100",
+    },
+
+    {
+        "type": "course",
+        "program": "BIT",
+        "question": "วิชา 06036101 MATHEMATICS FOR BUSINESS ของ BIT มีหน่วยกิตเท่าไหร่ และพบข้อมูลอยู่หน้าไหนบ้าง?",
+        "answer": "คณิตศาสตร์สำหรับธุรกิจ 3(3-0-6) หน่วยกิต พบเป็นหน้าหลัก 4 หน้า (21, 26, 31, 238)",
+        "cited_pages": "21;26;31;238",
+        "note": "ground truth: code 06036101",
     },
 ]
 

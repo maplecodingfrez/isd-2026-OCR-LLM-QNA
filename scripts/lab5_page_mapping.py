@@ -1,4 +1,4 @@
-# python scripts/build_page_mapping.py "ชื่อโปรแกรม" (DSBA_coop, DSBA_no_coop, AIT, IT_coop, IT_no_coop)
+# python scripts/lab5_page_mapping.py "ชื่อโปรแกรม" (DSBA_coop, DSBA_no_coop, AIT, IT_coop, IT_no_coop, BIT_coop, BIT_no_coop)
 
 import csv
 import json
@@ -9,11 +9,13 @@ from ocr_system.gt_page_mapping import group_by_code, classify_pages
 import sys
 
 PROGRAMS = {
-    "DSBA_coop":    {"ocr": "outputs/dsba_curriculum_ocr.json", "gt": "data/ground_truth/DSBA_academic_plan_coop.json",    "program": "DSBA", "plan": "coop"},
-    "DSBA_no_coop": {"ocr": "outputs/dsba_curriculum_ocr.json", "gt": "data/ground_truth/DSBA_academic_plan_no_coop.json", "program": "DSBA", "plan": "no_coop"},
-    "AIT":          {"ocr": "outputs/ait_curriculum_ocr.json",  "gt": "data/ground_truth/AIT_academic_plan.json",          "program": "AIT",  "plan": "none"},
-    "IT_coop":      {"ocr": "outputs/it_curriculum_ocr.json",   "gt": "data/ground_truth/IT_academic_plan_coop.json",      "program": "IT",   "plan": "coop"},
-    "IT_no_coop":   {"ocr": "outputs/it_curriculum_ocr.json",   "gt": "data/ground_truth/IT_academic_plan_no_coop.json",   "program": "IT",   "plan": "no_coop"},
+    "DSBA_coop":    {"ocr": "outputs/dsba/dsba_curriculum_ocr.json", "gt": "data/ground_truth/DSBA_academic_plan_coop.json",    "program": "DSBA", "plan": "coop"},
+    "DSBA_no_coop": {"ocr": "outputs/dsba/dsba_curriculum_ocr.json", "gt": "data/ground_truth/DSBA_academic_plan_no_coop.json", "program": "DSBA", "plan": "no_coop"},
+    "AIT":          {"ocr": "outputs/ait/ait_curriculum_ocr.json",  "gt": "data/ground_truth/AIT_academic_plan.json",          "program": "AIT",  "plan": "none"},
+    "IT_coop":      {"ocr": "outputs/it/it_curriculum_ocr.json",   "gt": "data/ground_truth/IT_academic_plan_coop.json",      "program": "IT",   "plan": "coop"},
+    "IT_no_coop":   {"ocr": "outputs/it/it_curriculum_ocr.json",   "gt": "data/ground_truth/IT_academic_plan_no_coop.json",   "program": "IT",   "plan": "no_coop"},
+    "BIT_coop":     {"ocr": "outputs/bit/bit_curriculum_ocr.json",  "gt": "data/ground_truth/BIT_academic_plan_coop.json",     "program": "BIT",  "plan": "coop"},
+    "BIT_no_coop":  {"ocr": "outputs/bit/bit_curriculum_ocr.json",  "gt": "data/ground_truth/BIT_academic_plan_no_coop.json",  "program": "BIT",  "plan": "no_coop"},
 }
 
 program = sys.argv[1] if len(sys.argv) > 1 else "DSBA"
@@ -45,14 +47,6 @@ print("not found at all:", [r["code"] for r in rows if r["status"] == "not_found
 
 # 6) write results to CSV
 from ocr_system.gt_page_mapping import write_csv  # ไปรวมกับ import อื่นด้านบนก็ได้
-write_csv(rows, f"outputs/{program.lower()}_course_page_mapping.csv")
-print("saved ->", f"outputs/{program.lower()}_course_page_mapping.csv")
-
-# rows = {r["code"]: r for r in csv.DictReader(open("outputs/course_page_mapping.csv", encoding="utf-8-sig"))}
-# for code in ["06026209", "06026212"]:
-#     r = rows[code]
-#     print(code, "| year:", r.get("year"), "| semester:", r.get("semester"), "| prerequisite:", r.get("prerequisite"))
-
-# rows = {r["code"]: r for r in csv.DictReader(open("outputs/course_page_mapping.csv", encoding="utf-8-sig"))}
-# r = rows["06026216"]
-# print(r["code"], "| flexible_year_semester:", r.get("flexible_year_semester"), "| year:", r.get("year"))
+out_path = f"outputs/{cfg['program'].lower()}/{program.lower()}_course_page_mapping.csv"
+write_csv(rows, out_path)
+print("saved ->", out_path)

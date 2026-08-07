@@ -1,4 +1,4 @@
-# python scripts/eval_general_education.py
+# python scripts/supplement_general_education.py
 
 import json
 from dataclasses import asdict
@@ -8,14 +8,14 @@ from ocr_system.curriculum_extraction import extract_curriculum_from_file
 
 GT = "data/ground_truth/general_education_ground_truth.json"
 RUNS = [
-    ("outputs/dsba_curriculum_courses.json", "DSBA"),
-    ("outputs/ait_curriculum_courses.json", "AIT"),
-    ("outputs/it_curriculum_courses.json", "IT"),
+    ("outputs/dsba/dsba_curriculum_courses.json", "DSBA"),
+    ("outputs/ait/ait_curriculum_courses.json", "AIT"),
+    ("outputs/it/it_curriculum_courses.json", "IT"),
 ]
 
 # 1) run evaluation against general_education GT for all 3 programs
 for courses_path, program in RUNS:
-    out_path = f"outputs/general_education_{program.lower()}_evaluation.json"
+    out_path = f"outputs/{program.lower()}/general_education_{program.lower()}_evaluation.json"
     result = evaluate_curriculum_from_files(courses_path, GT, out_path)
     r = asdict(result)
     print(f"=== {program} ===")
@@ -24,14 +24,14 @@ for courses_path, program in RUNS:
 
 # 2) dump full IT mismatch list (worst offender)
 print("\n--- IT mismatches ---")
-it_eval = json.load(open("outputs/general_education_it_evaluation.json", encoding="utf-8"))
+it_eval = json.load(open("outputs/it/general_education_it_evaluation.json", encoding="utf-8"))
 for m in it_eval["mismatched_name_en"]:
     print(m["code"], "|", repr(m["expected"]), "->", repr(m["got"]), "| cer:", round(m["cer"], 2))
 
 # 3) find the real PDF page number for the worst-garbled IT courses
 print("\n--- page lookup for worst IT mismatches ---")
 bad_codes = [m["code"] for m in it_eval["mismatched_name_en"] if m["cer"] > 0.5]
-extracted = extract_curriculum_from_file("outputs/it_curriculum_ocr.json", plan="coop")
+extracted = extract_curriculum_from_file("outputs/it/it_curriculum_ocr.json", plan="coop")
 for c in extracted["courses"]:
     if c["code"] in bad_codes:
         print(c["code"], "| page:", c["page"], "| name_en:", repr(c["name_en"]))
