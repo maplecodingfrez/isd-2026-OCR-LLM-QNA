@@ -1,8 +1,8 @@
 {
   "source": "OCR curriculum extraction",
-  "description": "Extracted academic plan from OCR for IT (no_coop)",
+  "description": "Extracted academic plan from OCR for IT (coop)",
   "program": "IT",
-  "plan": "no_coop",
+  "plan": "coop",
   "courses": [
     {
       "page": 21,

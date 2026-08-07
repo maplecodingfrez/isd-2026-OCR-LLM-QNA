@@ -1,0 +1,25 @@
+{
+  "gt_total": 49,
+  "matched": 48,
+  "missing": 1,
+  "recall": 0.9796,
+  "name_en_agreement": 0.9792,
+  "credits_agreement": 1.0,
+  "name_en_cer": 0.0049,
+  "name_en_wer": 0.0035,
+  "name_th_cer": 0.0358,
+  "name_th_wer": 0.3646,
+  "missing_codes": [
+    "06016401"
+  ],
+  "mismatched_name_en": [
+    {
+      "code": "06066303",
+      "expected": "PROBLEM SOLVING AND COMPUTER PROGRAMMING\nPROGRAMMING",
+      "got": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
+      "cer": 0.23404255319148937,
+      "wer": 0.16666666666666666
+    }
+  ],
+  "mismatched_credits": []
+}
