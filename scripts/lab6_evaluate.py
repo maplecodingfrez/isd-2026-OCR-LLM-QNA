@@ -1,13 +1,13 @@
 # Lab 6 — run the dataset from all previous labs (Lab 4 OCR output + Lab 5
-# ground truth / page mapping / QA pairs) through one combined evaluation at
-# Field Level, Page Level, and Category Level.
+# ground truth / page mapping / QA pairs) and evaluate it at Field Level,
+# Page Level, and Category Level. Each level is saved as its own file:
+#   {key}_field_level.json, {key}_page_level.json, {key}_category_level.csv
 #
 # python scripts/lab6_evaluate.py [DSBA_coop|DSBA_no_coop|AIT|IT_coop|IT_no_coop|BIT_coop|BIT_no_coop]
 
-import json
 from pathlib import Path
 
-from ocr_system.evaluate_lab6 import _print_summary, run_lab6_evaluation
+from ocr_system.evaluate_lab6 import _print_summary, run_lab6_evaluation, write_lab6_outputs
 
 import sys
 
@@ -25,12 +25,12 @@ key = sys.argv[1] if len(sys.argv) > 1 else "DSBA_coop"
 cfg = PROGRAMS[key]
 
 QA_PAIRS = "outputs/qa_pairs.csv"
-OUTPUT_PATH = Path(f"outputs/{cfg['program'].lower()}/{key.lower()}_lab6_evaluation.json")
+OUTPUT_DIR = Path(f"outputs/{cfg['program'].lower()}")
 
 result = run_lab6_evaluation(cfg["ocr"], cfg["gt"], QA_PAIRS, plan=cfg["plan"])
 _print_summary(result)
 
-OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-with OUTPUT_PATH.open("w", encoding="utf-8") as f:
-    json.dump(result, f, ensure_ascii=False, indent=2)
-print(f"\nSaved -> {OUTPUT_PATH}")
+saved_paths = write_lab6_outputs(result, OUTPUT_DIR, key)
+print()
+for level, path in saved_paths.items():
+    print(f"Saved {level} -> {path}")

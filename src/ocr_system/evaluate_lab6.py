@@ -1,7 +1,14 @@
 """
-Lab 6 — run the dataset from all previous labs through one combined
-evaluation, reported at three levels of granularity: Field Level, Page
-Level, Category Level.
+Lab 6 — run the dataset from all previous labs and evaluate it at three
+levels of granularity: Field Level, Page Level, Category Level.
+
+run_lab6_evaluation() computes all three levels in a single pass (they
+share the same extraction/GT loading and Category Level reuses the Field
+Level calculation internally), but write_lab6_outputs() saves each level
+as its own file:
+  - field_level.json     (one summary record -> JSON)
+  - page_level.json      (one summary record + a list of QA mismatches -> JSON)
+  - category_level.csv   (one row per category, same columns -> CSV)
 """
 
 from __future__ import annotations
@@ -228,6 +235,51 @@ def run_lab6_evaluation(
     }
 
 
+_CATEGORY_CSV_FIELDS = [
+    "category",
+    "gt_total",
+    "matched",
+    "recall",
+    "name_en_agreement",
+    "credits_agreement",
+    "name_en_cer",
+    "name_en_wer",
+    "page_localization_rate",
+]
+
+
+def write_lab6_outputs(result: dict[str, Any], output_dir: str | Path, key: str) -> dict[str, Path]:
+    """Save field/page/category level results as three separate files.
+
+    field_level and page_level are each a single summary record, so JSON
+    is the natural fit. category_level is one row per category with the
+    same columns every time, so it's written as a CSV instead.
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    prefix = key.lower()
+
+    paths = {
+        "field_level": output_dir / f"{prefix}_field_level.json",
+        "page_level": output_dir / f"{prefix}_page_level.json",
+        "category_level": output_dir / f"{prefix}_category_level.csv",
+    }
+
+    with paths["field_level"].open("w", encoding="utf-8") as f:
+        json.dump(result["field_level"], f, ensure_ascii=False, indent=2)
+
+    with paths["page_level"].open("w", encoding="utf-8") as f:
+        json.dump(result["page_level"], f, ensure_ascii=False, indent=2)
+
+    with paths["category_level"].open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=_CATEGORY_CSV_FIELDS)
+        writer.writeheader()
+        for category, metrics in result["category_level"].items():
+            writer.writerow({"category": category, **metrics})
+
+    return paths
+
+
 def _print_summary(result: dict[str, Any]) -> None:
     fl = result["field_level"]
     pl = result["page_level"]
@@ -273,18 +325,17 @@ def _print_summary(result: dict[str, Any]) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Lab 6 - combined Field/Page/Category level evaluation")
-    parser.add_argument("--ocr-json", default="outputs/dsba_curriculum_ocr.json")
+    parser = argparse.ArgumentParser(description="Lab 6 - Field/Page/Category level evaluation")
+    parser.add_argument("--ocr-json", default="outputs/dsba/dsba_curriculum_ocr.json")
     parser.add_argument("--ground-truth", default="data/ground_truth/DSBA_academic_plan_coop.json")
     parser.add_argument("--qa-pairs", default="outputs/qa_pairs.csv")
-    parser.add_argument("--output", default="outputs/lab6_evaluation.json")
+    parser.add_argument("--output-dir", default="outputs/dsba")
+    parser.add_argument("--key", default="DSBA_coop")
     args = parser.parse_args()
 
     lab6_result = run_lab6_evaluation(args.ocr_json, args.ground_truth, args.qa_pairs)
     _print_summary(lab6_result)
 
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as f:
-        json.dump(lab6_result, f, ensure_ascii=False, indent=2)
-    print(f"\nSaved -> {output_path}")
+    saved_paths = write_lab6_outputs(lab6_result, args.output_dir, args.key)
+    for level, path in saved_paths.items():
+        print(f"Saved {level} -> {path}")

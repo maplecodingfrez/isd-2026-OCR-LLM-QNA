@@ -1,0 +1,11 @@
+{
+  "gt_total": 49,
+  "matched": 48,
+  "recall": 0.9796,
+  "name_en_agreement": 0.9792,
+  "credits_agreement": 1.0,
+  "name_en_cer": 0.0049,
+  "name_en_wer": 0.0035,
+  "name_th_cer": 0.0358,
+  "name_th_wer": 0.3646
+}

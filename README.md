@@ -30,7 +30,7 @@ ocr_system/
 │   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
 │   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
 │   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
-│   └── lab6_evaluate.py       # Lab 6: รวม Field/Page/Category level evaluation
+│   └── lab6_evaluate.py       # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
 └── src/
     └── ocr_system/
         ├── cli.py             # command line interface
@@ -43,7 +43,7 @@ ocr_system/
         ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
         ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
         ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
-        ├── evaluate_lab6.py         # รวม Field/Page/Category level evaluation (Lab 6)
+        ├── evaluate_lab6.py         # evaluate_field_level / evaluate_page_level / evaluate_category_level / write_lab6_outputs (Lab 6)
         ├── schemas.py         # dataclass ของผลลัพธ์
         ├── engine_factory.py  # เลือก OCR engine
         ├── engines/
@@ -715,11 +715,13 @@ outputs/qa_pairs.csv                          32 คำถาม-คำตอบ
 
 ---
 
-## Combined Evaluation — Field / Page / Category Level (Lab 6)
+## Field / Page / Category Level Evaluation (Lab 6)
 
 Lab 6 ไม่ได้ใช้ dataset ใหม่ — รัน dataset เดิมจาก Lab 4/5 ทั้งชุด (OCR output +
-ground truth + page mapping ของ Lab 5) ผ่าน evaluation เดียวกัน แล้วรายงาน 3
-ระดับ ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4/5:
+ground truth + page mapping ของ Lab 5) ผ่านการคำนวณเดียวกัน (ใช้ extraction/GT
+ร่วมกัน และ Category Level เรียกใช้ฟังก์ชันของ Field Level ซ้ำภายใน) แต่บันทึกผล
+เป็น **3 ไฟล์แยกกัน** ต่อ program+plan ตามที่โจทย์ระบุ 3 ระดับไว้แยกข้อกัน
+ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4/5:
 
 - **Field Level** — accuracy รายฟิลด์ (`name_en`, `credits`) ของวิชาที่ match ได้
   + recall โดยรวม + **CER/WER** ของ `name_en`/`name_th` (แนวคิดเดียวกับ
@@ -811,10 +813,17 @@ Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 �
 
 ```text
 src/ocr_system/evaluate_lab6.py   evaluate_field_level (+ CER/WER) / evaluate_page_level (+ program filter) / evaluate_category_level
-scripts/lab6_evaluate.py          รัน pipeline รวมทั้ง 3 ระดับ ต่อ program+plan
+                                   / write_lab6_outputs (เขียน field/page/category เป็นไฟล์แยก)
+scripts/lab6_evaluate.py          รัน pipeline ครบ 3 ระดับ แล้วเซฟแยกไฟล์ ต่อ program+plan
 scripts/lab5_qa_pairs.py         QA_PAIRS 32 ข้อ พร้อมคอลัมน์ program
-outputs/{program}/{key}_lab6_evaluation.json   ผลลัพธ์ต่อ program+plan (7 ไฟล์ ในโฟลเดอร์ย่อยของแต่ละหลักสูตร)
+outputs/{program}/{key}_field_level.json      summary เดียว (recall, name_en/credits agreement, CER/WER) -> JSON
+outputs/{program}/{key}_page_level.json       summary เดียว + รายการ QA citation mismatch (ถ้ามี) -> JSON
+outputs/{program}/{key}_category_level.csv    1 แถวต่อ category, คอลัมน์เดียวกันทุกแถว -> CSV
 ```
+
+รวม 7 program+plan × 3 ไฟล์ = 21 ไฟล์ ในโฟลเดอร์ย่อยของแต่ละหลักสูตร (ไฟล์รวม
+เดิมแบบ 1 JSON/program+plan ถูกเก็บสำรองไว้ที่ `outputs/lab6_combined_backup/`
+เผื่ออ้างอิงย้อนหลัง ไม่ได้ใช้งานต่อ)
 
 ---
 

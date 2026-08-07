@@ -1,0 +1,3 @@
+category,gt_total,matched,recall,name_en_agreement,credits_agreement,name_en_cer,name_en_wer,page_localization_rate
+หมวดวิชาเฉพาะ,91,91,1.0,0.989,0.989,0.0005,0.0037,1.0
+หมวดวิชาศึกษาทั่วไป,8,8,1.0,0.75,1.0,0.1241,0.1562,1.0
