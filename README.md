@@ -315,6 +315,13 @@ python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract -
 
 หมายเหตุ: `--engine tesseract` เท่านั้นที่ verify แล้วว่าปลอดภัยกับ `--workers > 1` เพราะ Tesseract spawn subprocess แยกทุกครั้งที่เรียก `recognize()` — engine `paddle`/`ensemble`/`trocr` ใช้โมเดลตัวเดียวที่แชร์กันข้าม thread ซึ่งยังไม่ verify ว่า thread-safe เวลาถูกเรียกพร้อมกันหลาย thread
 
+**วัดความเร็วจริง** (BIT, 317 หน้า, เครื่อง 16 core): `--workers 1` ใช้ 1h 19m 51s
+(15.1 วิ/หน้า) เทียบกับ `--workers 12` ใช้ 23m 28.6s (4.44 วิ/หน้า) — **speedup ≈ 3.4
+เท่า** (เวลาลดลง ~70.6%) ไม่ใกล้เคียง 12 เท่าตามจำนวน worker เพราะขั้น render PDF และ
+preprocessing (deskew/denoise ด้วย cv2/numpy) ไม่ขนานเต็มที่เท่าขั้น OCR เอง (บาง
+operation ไม่ปล่อย GIL, มี I/O contention ร่วมด้วย) — ยังไงก็ตาม 3.4 เท่าคือกำไรจริง
+โดยไม่มีต้นทุนด้านคุณภาพเลย
+
 ---
 ## Evaluation
 Evaluation คือการวัดว่า OCR อ่านถูกแค่ไหน โดยเทียบกับข้อความจริง หรือ Ground Truth
