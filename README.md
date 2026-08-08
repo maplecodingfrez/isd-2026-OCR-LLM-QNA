@@ -305,6 +305,16 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine trocr --device cuda
 ```
 หมายเหตุ: TrOCR ในโปรเจกต์นี้ยังไม่เหมาะกับเอกสารยาวทั้งหน้า แนะนำใช้ PaddleOCR หรือ Tesseract เป็นหลัก
 
+## 5. รันเร็วขึ้นด้วย `--workers` (เอกสารหลายหน้า)
+
+สำหรับ PDF หลายร้อยหน้า (เอกสารหลักสูตร) เพิ่ม flag `--workers N` เพื่อประมวลผลหลายหน้าพร้อมกัน (parallel):
+```bash
+python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --workers 12 --output-dir outputs/dsba
+```
+ใช้ `ThreadPoolExecutor` ประมวลผลแต่ละหน้าคู่ขนาน + จำกัด `OMP_THREAD_LIMIT=1` ให้ Tesseract แต่ละ process ใช้แค่ 1 thread ภายใน (กัน CPU oversubscription เวลารันหลาย process พร้อมกัน) — ไม่เปลี่ยน dpi/preprocessing เลย พิสูจน์แล้วว่าผลลัพธ์ OCR เหมือนกันทุกตัวอักษรไม่ว่าจะตั้ง `--workers` เท่าไหร่ (test เทียบ `workers=1` vs `workers=12` แบบ byte-identical, และรัน evaluation จริงกับ dataset นี้ยืนยันตัวเลข recall/name_en/credits agreement เท่าเดิมทุก field) มีผลแค่เรื่องความเร็ว ไม่กระทบคุณภาพ
+
+หมายเหตุ: `--engine tesseract` เท่านั้นที่ verify แล้วว่าปลอดภัยกับ `--workers > 1` เพราะ Tesseract spawn subprocess แยกทุกครั้งที่เรียก `recognize()` — engine `paddle`/`ensemble`/`trocr` ใช้โมเดลตัวเดียวที่แชร์กันข้าม thread ซึ่งยังไม่ verify ว่า thread-safe เวลาถูกเรียกพร้อมกันหลาย thread
+
 ---
 ## Evaluation
 Evaluation คือการวัดว่า OCR อ่านถูกแค่ไหน โดยเทียบกับข้อความจริง หรือ Ground Truth
@@ -477,6 +487,18 @@ outputs/dsba/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เ�
 - **1 วิชาหาไม่เจอ**: `06016401` (Mathematics for Information Technology) ไม่ถูกดึงจากตารางหลักสูตรหลัก แม้ชื่อวิชาจะปรากฏซ้ำในหน้าประวัติอาจารย์ผู้สอน (หน้า 49) คาดว่าหน้าตารางรายวิชาจริงของวิชานี้มีปัญหา OCR หรือ layout ตารางต่างจากส่วนอื่น
 - **รหัสวิชาซ้ำในเอกสาร**: เอกสารเป็น course catalog ระดับสถาบัน รหัสวิชาเดียวกันอาจปรากฏหลายจุด (ตารางหลักสูตร, หน้าภาระงานสอน, ดัชนี) บาง occurrence ไม่มีข้อมูลชื่อ/หน่วยกิตกำกับ — `evaluate_curriculum.py` แก้ปัญหานี้ด้วยการ merge ทุก occurrence ของรหัสเดียวกัน โดยเลือกค่าที่ไม่ว่างเปล่ามาใช้ แทนที่จะให้ occurrence สุดท้ายทับของเดิมเฉยๆ
 - **2-3 วิชามี field ไม่ครบ**: บาง table row มี format แตกต่างจากส่วนใหญ่ในเล่ม ทำให้ credit pattern regex จับไม่ได้ (`name_en`/`credits` เป็น `null`)
+
+### วิชาแบบ "หรือ" (เลือกได้ 2 ทาง) ใน ground truth
+
+บาง GT row ระบุ 2 รหัสวิชาในช่อง `code` เดียว คั่นด้วย "หรือ"/"OR" (เช่น
+`"06016481 หรือ 06016482"` = สหกิจศึกษา/สหกิจศึกษาต่างประเทศ เลือกได้ทางใดทางหนึ่ง)
+เดิม `_is_valid_code()` กรองแถวแบบนี้ทิ้งไปทั้งแถวเพราะไม่ใช่ digit string เดี่ยวๆ
+ทำให้วิชาที่ extraction ดึงถูกต้อง 100% ไม่ได้รับเครดิตในการประเมินเลย
+
+เพิ่มฟังก์ชัน `expand_multicode_courses()` ใน `evaluate_curriculum.py` แยกแถวแบบนี้
+เป็น record เดี่ยวต่อรหัสก่อนกรอง มี guard กันนับซ้ำสำหรับกรณีที่บางโปรแกรม (เช่น
+DSBA) มีวิชาแต่ละตัวเลือกเป็น record เดี่ยวอยู่แล้วในไฟล์ GT (จะไม่สร้างซ้ำ) ใช้ร่วมกัน
+ทั้ง `evaluate_curriculum.py` และ `evaluate_lab6.py`/`scripts/lab5_page_mapping.py`
 
 ### ฟิลด์เพิ่มเติม: category, prerequisite, year/semester
 
