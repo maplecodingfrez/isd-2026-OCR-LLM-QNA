@@ -306,6 +306,34 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine trocr --device cuda
 หมายเหตุ: TrOCR ในโปรเจกต์นี้ยังไม่เหมาะกับเอกสารยาวทั้งหน้า แนะนำใช้ PaddleOCR หรือ Tesseract เป็นหลัก
 
 ---
+
+## 5. รันเร็วขึ้นด้วย `--workers` (เอกสารหลายหน้า)
+
+Pipeline เดิม render PDF เป็นภาพ + OCR ทีละหน้าเสมอ (sequential) ทั้งที่แต่ละหน้า
+ไม่ขึ้นต่อกันเลย `--workers N` ให้ประมวลผลหลายหน้าพร้อมกัน (ทั้งขั้น render PDF ผ่าน
+poppler's `thread_count` และขั้น OCR ผ่าน `ThreadPoolExecutor`) — **ไม่เปลี่ยน dpi,
+preprocessing, หรือ engine settings ใดๆ ทั้งสิ้น ผลลัพธ์ OCR จึงเหมือนเดิมทุกตัวอักษร**
+ต่างกันแค่เวลาที่ใช้รัน (ยืนยันด้วย test: สลับลำดับหน้าที่ทำเสร็จแบบสุ่ม แล้วเทียบ
+output กับตอน `workers=1` — เหมือนกัน 100%)
+
+```bash
+python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --workers 4
+```
+
+ค่า default คือ `workers=1` (พฤติกรรมเดิมทุกประการ ไม่ต้องเปลี่ยนอะไรถ้าไม่ระบุ flag นี้)
+
+**ข้อควรรู้**: Tesseract แต่ละครั้งที่เรียก (`image_to_string`) เป็น process แยก
+และใช้ทุก core ของเครื่องเป็น default สำหรับ OpenMP thread ภายในตัวเอง ถ้ารันหลาย
+หน้าพร้อมกันโดยไม่ลด thread ต่อ process จะเกิด oversubscription (แย่งกัน) ทำให้
+**ช้าลง** ไม่ใช่เร็วขึ้น — โค้ดจึงตั้ง `OMP_THREAD_LIMIT=1` ให้อัตโนมัติเมื่อ
+`workers > 1` เท่านั้น (ไม่กระทบตอน `workers=1`) แนะนำตั้ง `--workers` ใกล้เคียง
+จำนวน CPU core ที่มี ไม่ใช่ยิ่งเยอะยิ่งดี
+
+ทดสอบใช้ได้ดีกับ `--engine tesseract` เป็นหลัก (ตรงกับ engine ที่โปรเจกต์นี้ใช้จริง
+กับเอกสารหลักสูตร) — engine อื่น (`paddle`/`trocr`) ยังไม่ได้ยืนยันว่า thread-safe
+สำหรับเรียก `recognize()` พร้อมกันหลาย thread
+
+---
 ## Evaluation
 Evaluation คือการวัดว่า OCR อ่านถูกแค่ไหน โดยเทียบกับข้อความจริง หรือ Ground Truth
 สร้างไฟล์ ground truth เช่น:
@@ -469,8 +497,11 @@ outputs/dsba/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เ�
 | Metric | ผลลัพธ์ |
 |---|---|
 | Recall (จำนวนวิชาที่เจอ) | 98.8% (79 / 80 valid courses) |
-| name_en agreement | 96.2% |
-| credits agreement | 97.5% |
+| name_en agreement | 98.7% |
+| credits agreement | 100.0% |
+
+(ตัวเลขนี้คือ DSBA แผน coop — ตารางเต็มทั้ง 4 หลักสูตร × coop/no_coop อยู่ในหัวข้อ
+"AIT / IT / BIT Curriculum (Lab 4 ต่อ)" ด้านล่าง)
 
 ### Known Limitations
 
@@ -593,30 +624,87 @@ Lab 4 ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/
 
 | Program | Plan | Recall | name_en agreement | credits agreement | name_en CER / WER | name_th CER / WER |
 |---|---|---|---|---|---|---|
-| DSBA | coop | 98.8% (79/80) | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3% |
-| AIT | none | 98.0% (48/49) | 97.9% | 100.0% | 0.5% / 0.4% | 3.6% / 36.5% |
-| IT | coop | 100% (99/99) | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% |
-| BIT | coop | 100% (55/55) | 85.5% | 98.2% | 0.2% / 8.8% | 4.2% / 49.1% |
+| AIT  | none    | 98.0% (50/51)  | 98.0% | 100.0% | 0.5% / 0.3% | 3.4% / 35.0%  |
+| DSBA | coop    | 98.8% (79/80)  | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3%  |
+| DSBA | no_coop | 98.8% (79/80)  | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3%  |
+| IT   | coop    | 100% (101/101) | 97.0% | 99.0%  | 1.0% / 1.6% | 12.4% / 46.0% |
+| IT   | no_coop | 100% (101/101) | 97.0% | 99.0%  | 1.0% / 1.6% | 12.4% / 46.0% |
+| BIT  | coop    | 100% (57/57)   | 86.0% | 98.2%  | 0.2% / 8.5% | 4.1% / 47.4%  |
+| BIT  | no_coop | 100% (57/57)   | 86.0% | 98.2%  | 0.2% / 6.6% | 4.1% / 47.4%  |
 
-หมายเหตุ: ground truth ของ AIT (`AIT_academic_plan.json`) มี `"plan": null` ไม่มีการแบ่งแผน coop/no_coop เหมือน DSBA/IT/BIT — ใช้ `--plan none` เพื่อสื่อความหมายตรงกับข้อมูลจริง (ไม่กระทบผล evaluation เพราะ `plan` เป็นแค่ metadata ไม่ถูกใช้ในการ match/ประเมินผล)
+หมายเหตุ: ground truth ของ AIT (`AIT_academic_plan.json`) มี `"plan": null` ไม่มีการแบ่งแผน coop/no_coop เหมือน DSBA/IT/BIT — ใช้ `--plan none` เพื่อสื่อความหมายตรงกับข้อมูลจริง (ไม่กระทบผล evaluation เพราะ `plan` เป็นแค่ metadata ไม่ถูกใช้ในการ match/ประเมินผล) จึงมีแค่ไฟล์เดียว ไม่แยก coop/no_coop
 
-สำหรับ DSBA และ IT ตรวจสอบแล้วว่าไฟล์ coop/no_coop ให้ผล evaluation เหมือนกันทุกประการ (DSBA: record เหมือนกัน 100%; IT: ต่างกันแค่ field `year`/`semester`/`note` ที่ `evaluate_curriculum.py` ไม่ได้ใช้เทียบ) จึงรันแค่ไฟล์เดียวก็ครอบคลุม
+DSBA/IT/BIT รัน `curriculum` ทั้งสองแผนแยกกันจริง (ไม่ใช่แค่รันตัวแทนตัวเดียว) เพื่อให้มีไฟล์ผลลัพธ์คู่กับ ground truth ทั้งสองไฟล์ตรงๆ ให้ตรวจสอบได้ ผลที่ได้:
 
-**BIT ต่างออกไปเล็กน้อย** — ตรวจสอบละเอียดแล้วพบว่า `BIT_academic_plan_coop.json`/`_no_coop.json` มี `name_en` สะกดต่างกันจริง 4 วิชา (ไม่ใช่แค่ field ที่ไม่ถูกใช้เทียบแบบ IT) เช่น coop เขียน `"...FORBUSINESS"` ติดกัน ส่วน no_coop เขียนแยก `"...FOR BUSINESS"` (หรือกลับกัน) รันแล้วผลจริงคือ **name_en agreement เท่ากันทั้งคู่ (85.5%)** แต่เป็นเพราะวิชาที่ mismatch สลับคู่กันพอดี (วิชาหนึ่ง match เฉพาะกับ coop, อีกวิชา match เฉพาะกับ no_coop) จำนวนสุทธิเลยเท่ากันโดยบังเอิญ ไม่ใช่เพราะข้อมูลเหมือนกันทุกประการแบบ DSBA — `name_en_wer` ต่างกันเล็กน้อย (coop 8.8% / no_coop 6.8%) ยืนยันว่าไม่ใช่ไฟล์เดียวกันจริงๆ ยังคงรันทั้งคู่ไว้เพื่อความสม่ำเสมอ
+- **DSBA / IT**: coop กับ no_coop ให้ผล recall/name_en/credits/CER/WER **เหมือนกันทุกประการ** — ตรวจสอบแล้วว่า field ที่ต่างกันจริงระหว่างสองแผนคือ `year`/`semester`/`note` ซึ่ง `evaluate_curriculum.py` ไม่ได้เอามาเทียบ (เก็บไฟล์แยกไว้ทั้งคู่เพื่อความครบถ้วน แม้ตัวเลขจะซ้ำกัน)
+- **BIT ต่างออกไปเล็กน้อย**: `BIT_academic_plan_coop.json`/`_no_coop.json` มี `name_en` สะกดต่างกันจริง 4 วิชา (เช่น coop เขียน `"...FORBUSINESS"` ติดกัน ส่วน no_coop เขียนแยก `"...FOR BUSINESS"`) recall/name_en agreement บังเอิญออกมาเท่ากันทั้งคู่ (86.0%) เพราะวิชาที่ mismatch สลับคู่กันพอดี แต่ `name_en_wer` ต่างกันจริง (coop 8.5% / no_coop 6.6%) ยืนยันว่าไม่ใช่ข้อมูลชุดเดียวกัน
+
+### Ground Truth: raw vs valid — กรองอะไรออกบ้าง และทำไม
+
+ไฟล์ ground truth แต่ละไฟล์มีจำนวนแถวใน `courses` มากกว่าที่ `evaluate_curriculum.py` เอามาคำนวณ recall จริง เพราะบางแถวไม่ใช่ "1 วิชา = 1 รหัสที่จับต้องได้" ตั้งแต่ต้น — `_is_valid_code()` (เช็ค `code.isdigit()`) กรองแถวเหล่านี้ออกจากตัวหาร ไม่งั้นจะนับ recall ผิด (ไม่มีทางที่ extraction จะ "เจอ" รหัสที่ไม่ใช่รหัสจริงได้อยู่แล้ว)
+
+| combo | raw (`courses` ทั้งหมดในไฟล์) | หลังขยาย "หรือ" (`expand_multicode_courses`) | valid (ตัวหารจริงที่ใช้คำนวณ recall) | ยังกรองออก |
+|---|---|---|---|---|
+| AIT | 58 | 60 | 51 | 9 |
+| DSBA coop | 91 | 91 | 80 | 11 |
+| DSBA no_coop | 92 | 92 | 80 | 12 |
+| IT coop | 107 | 109 | 101 | 8 |
+| IT no_coop | 109 | 111 | 101 | 10 |
+| BIT coop | 63 | 65 | 57 | 8 |
+| BIT no_coop | 63 | 65 | 57 | 8 |
+
+ที่ยังกรองออกอยู่ (หลังขยาย "หรือ" แล้ว) แบ่งเป็น 3 แบบ ไม่เกี่ยวกับ OCR/extraction เลยสักแบบ — เป็นลักษณะของข้อมูลใน GT เอง:
+
+**1. รหัสแบบ placeholder/wildcard** (เช่น `xxxxxxxx`, `9064xxxx`, `060464xx`, `90644xxx`, `06026xxx`, `9664xxxx`, `96644XXX`, `060164xx`) — เป็นส่วนใหญ่ของที่กรองออก คือช่อง "วิชาเลือกเสรี" หรือ "วิชาเลือกหมวดศึกษาทั่วไป/ภาษา" ที่นักศึกษาเลือกวิชาอะไรก็ได้ในกลุ่มนั้นตามเงื่อนไข ไม่มีรหัสวิชาตายตัวให้ระบบไป match เลย — ไม่มีทางให้คะแนน recall ได้ไม่ว่า extraction จะทำงานดีแค่ไหนก็ตาม
+
+**2. รหัสแบบ "หรือ" ที่ยังไม่มีคู่รหัสเดี่ยวอยู่แล้วในไฟล์เดียวกัน** — ส่วนใหญ่ถูกดึงกลับมานับแล้วด้วย `expand_multicode_courses()` (รายละเอียดในหัวข้อถัดไป) เหลือเป็นข้อยกเว้นแค่กรณี DSBA (`06026259 หรือ 06026260`) ที่ทั้งสองรหัสมีแถวเดี่ยวของตัวเองอยู่แล้วในไฟล์อยู่ก่อน ถ้าขยายซ้ำจะกลายเป็นนับวิชาเดียวกัน 3 รอบ (ดู guard ในหัวข้อถัดไป)
+
+**3. Record ที่ไม่ใช่วิชาเลย** (พบใน AIT, DSBA ทั้ง 2 แผน, IT ทั้ง 2 แผน — ไม่มีใน BIT) — มี 1 แถวที่ `code` เป็นข้อความหมายเหตุ ("หมายเหตุ: คอลัมน์ 'ตัวเลือกปี/เทอม (flexible)' กรอกเฉพาะแถวที่ ปี=0 และ เทอม=0 เท่านั้น...") เป็นโน้ตอธิบายวิธีกรอกสเปรดชีตที่หลุดเข้ามาปนใน array `courses` ของไฟล์ GT เอง (ความผิดพลาดตอนเตรียมไฟล์ GT ไม่เกี่ยวกับฝั่ง OCR/extraction)
+
+**หมายเหตุ**: "รหัสวิชาซ้ำในเอกสาร" ที่พูดถึงใน Known Limitations ด้านบนเป็นคนละเรื่องกับที่นี่ — อันนั้นคือรหัสเดียวกันโผล่ซ้ำหลายจุดใน**เอกสาร PDF ต้นฉบับ** (จัดการด้วย `_merge_duplicate_courses()`) ส่วนที่นี่คือแถวใน**ไฟล์ ground truth เอง**ที่ไม่ใช่วิชาที่ match ด้วยรหัสเดี่ยวได้ตั้งแต่ต้น
+
+### วิชาแบบ "หรือ" (เลือกได้ 2 ทาง) — นับเป็น GT ด้วย
+
+GT บางแถวระบุ 2 รหัสวิชาในช่อง `code` เดียว (เช่น IT `"06016481\nหรือ\n06016482"` = สหกิจศึกษา/สหกิจศึกษาต่างประเทศ ให้เลือกอย่างใดอย่างหนึ่ง) เดิม `_is_valid_code()` (เช็ค `code.isdigit()`) กรองแถวแบบนี้ทิ้งไปเลยทั้งแถว ทำให้วิชาที่ extraction ดึงถูกต้อง 100% (ทั้งชื่อ/หน่วยกิต) ไม่ได้รับเครดิตอะไรเลย
+
+เพิ่มฟังก์ชัน `expand_multicode_courses()` ใน `evaluate_curriculum.py` (ใช้ร่วมกันทั้ง Lab 4/5/6 — `evaluate_lab6.py`, `gt_page_mapping.py`/`lab5_page_mapping.py` เรียกใช้ตัวเดียวกัน) แยกแถว "หรือ" เป็น record เดี่ยวต่อรหัส ก่อนกรองด้วย `_is_valid_code()` ตามเดิม มี guard กันนับซ้ำ: ถ้ารหัสนั้นมี record เดี่ยวของตัวเองอยู่แล้วใน GT (กรณี DSBA — `06026259`/`06026260` มีทั้งแถวรวมและแถวเดี่ยวแยกอยู่แล้ว) จะไม่สร้างซ้ำ ฟังก์ชันเดียวจึงให้ผลถูกต้องอัตโนมัติตามข้อมูลจริงของแต่ละหลักสูตร ไม่ต้อง special-case:
+
+- **DSBA**: ไม่เปลี่ยน (guard กันซ้ำทำงาน) — 80 valid courses เท่าเดิม
+- **AIT**: +2 (`06046443`/`06046444`, 49→51)
+- **IT**: +2 (`06016481`/`06016482`, 99→101)
+- **BIT**: +2 (`06036147`/`06036148`, 55→57)
+
+ผลกระทบต่อคะแนนน้อยมาก (recall ยังคง 100%/98% เท่าเดิมเพราะวิชาที่เพิ่มมาก็ match ถูก แค่ตัวหารโตขึ้น, name_en agreement ขยับขึ้นเล็กน้อยเพราะ record ใหม่ match พอดี) ยืนยันว่าเป็นการแก้ให้ตัวเลขถูกต้อง/ครบถ้วนขึ้น ไม่ใช่การปรับเกณฑ์เพื่อดันคะแนน
 
 ### วิธีรัน
 
 ```bash
+# AIT — ไม่มี coop/no_coop แยก รันครั้งเดียว
 python -m ocr_system.cli curriculum outputs/ait/ait_curriculum_ocr.json --ground-truth data/ground_truth/AIT_academic_plan.json --program AIT --plan none --output-dir outputs/ait
 
-python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_coop.json --program IT --plan coop --output-dir outputs/it
+# DSBA — coop ก่อน แล้ว backup ไฟล์ผลลัพธ์ก่อนรัน no_coop ทับ
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json --ground-truth data/ground_truth/DSBA_academic_plan_coop.json --program DSBA --plan coop --output-dir outputs/dsba
+mv outputs/dsba/dsba_curriculum_courses.json outputs/dsba/dsba_coop_curriculum_courses.json
+mv outputs/dsba/dsba_curriculum_curriculum_evaluation.json outputs/dsba/dsba_coop_curriculum_evaluation.json
 
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json --ground-truth data/ground_truth/DSBA_academic_plan_no_coop.json --program DSBA --plan no_coop --output-dir outputs/dsba
+
+# IT — เหมือนกัน
+python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_coop.json --program IT --plan coop --output-dir outputs/it
+mv outputs/it/it_curriculum_courses.json outputs/it/it_coop_curriculum_courses.json
+mv outputs/it/it_curriculum_curriculum_evaluation.json outputs/it/it_coop_curriculum_evaluation.json
+
+python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_no_coop.json --program IT --plan no_coop --output-dir outputs/it
+
+# BIT — เหมือนกัน
 python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_coop.json --program BIT --plan coop --output-dir outputs/bit
+mv outputs/bit/bit_curriculum_courses.json outputs/bit/bit_coop_curriculum_courses.json
+mv outputs/bit/bit_curriculum_curriculum_evaluation.json outputs/bit/bit_coop_curriculum_evaluation.json
 
 python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_no_coop.json --program BIT --plan no_coop --output-dir outputs/bit
 ```
 
-หมายเหตุ: คำสั่ง `curriculum` เขียนผลลัพธ์เป็น `outputs/bit/bit_curriculum_courses.json`/`outputs/bit/bit_curriculum_curriculum_evaluation.json` เสมอ (ไม่แยกชื่อไฟล์ตาม plan เหมือน `lab6_evaluate.py`) รันสองรอบแล้วต้อง copy ผลของรอบแรกไปเก็บชื่ออื่นก่อนรันรอบสอง ไม่งั้นไฟล์จะถูกเขียนทับ — ผลที่เก็บไว้จริงในโปรเจกต์คือ `outputs/bit/bit_coop_curriculum_courses.json`/`outputs/bit/bit_coop_curriculum_evaluation.json` (สำรองจากรอบ coop) และ `outputs/bit/bit_curriculum_courses.json`/`outputs/bit/bit_curriculum_curriculum_evaluation.json` (ผลรอบ no_coop ล่าสุด)
+หมายเหตุ: คำสั่ง `curriculum` เขียนผลลัพธ์เป็นชื่อเดิมเสมอ (`{program}_curriculum_courses.json` / `{program}_curriculum_curriculum_evaluation.json`) ไม่แยกชื่อไฟล์ตาม plan เหมือน `lab6_evaluate.py` — รันสองรอบ (coop แล้ว no_coop) ต้อง `mv` ผลของรอบแรก (coop) ไปเก็บชื่ออื่นก่อนรันรอบสอง ไม่งั้นไฟล์จะถูกเขียนทับ ผลลัพธ์สุดท้ายที่เก็บไว้ในโปรเจกต์: `{program}_coop_curriculum_courses.json` (coop, สำรองแยกไว้) และ `{program}_curriculum_courses.json` (no_coop, ผลรอบล่าสุด)
 
 ### ไฟล์ที่เกี่ยวข้อง
 
@@ -624,10 +712,13 @@ python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground
 src/ocr_system/preprocessing.py         suppress_warm_watermark() (ใหม่)
 src/ocr_system/curriculum_extraction.py แก้ _looks_english() + _join_english_name()
 src/ocr_system/evaluate_curriculum.py   เพิ่ม CER/WER ต่อ field (name_en, name_th)
-outputs/ait/ait_curriculum_courses.json, ait_curriculum_curriculum_evaluation.json
-outputs/it/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json
+outputs/ait/ait_curriculum_courses.json, ait_curriculum_curriculum_evaluation.json (ไม่แยก plan)
+outputs/dsba/dsba_curriculum_courses.json, dsba_curriculum_curriculum_evaluation.json (no_coop)
+outputs/dsba/dsba_coop_curriculum_courses.json, dsba_coop_curriculum_evaluation.json (coop)
+outputs/it/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json (no_coop)
+outputs/it/it_coop_curriculum_courses.json, it_coop_curriculum_evaluation.json (coop)
 outputs/bit/bit_curriculum_courses.json, bit_curriculum_curriculum_evaluation.json (no_coop)
-outputs/bit/bit_coop_curriculum_courses.json, bit_coop_curriculum_evaluation.json (coop, สำรองแยกไว้)
+outputs/bit/bit_coop_curriculum_courses.json, bit_coop_curriculum_evaluation.json (coop)
 ```
 
 ---
@@ -943,9 +1034,13 @@ python scripts/supplement_general_education.py
   - ผลกระทบจำกัดอยู่แค่การเทียบกับ `general_education_ground_truth.json` เท่านั้น
     — ไม่กระทบ Lab 4/5/6 หลักที่ใช้ ground truth เฉพาะของแต่ละหลักสูตรเอง (ตาราง
     หลักสูตรบังคับ ไม่ใช่ภาคผนวกวิชาเลือกเสรี)
-- **AIT/IT recall ต่ำกว่า DSBA (82% vs 100%)** — ยังไม่ได้ลงลึกสาเหตุเพิ่มเติมว่า
-  ทำไม DSBA หาเจอครบทุกวิชา ขณะที่ AIT/IT หาไม่เจอ ~18% (น่าจะเกี่ยวข้องกับ
-  ปัญหาเดียวกันข้างต้น คือรหัสวิชาอ่านผิดจนหาไม่เจอเลย ไม่ใช่แค่ชื่อเพี้ยน)
+- **AIT/IT recall ต่ำกว่า DSBA (82% vs 100%)** — ยืนยันแล้วว่าเกี่ยวข้องกับปัญหา
+  เดียวกันข้างต้นจริง คือรหัสวิชาอ่านผิดจนหาไม่เจอเลย ไม่ใช่แค่ชื่อเพี้ยน
+- **`name_en = None` โดยเฉพาะ (แยกจากชื่อเพี้ยน) — กระจุกอยู่ที่ IT เกือบทั้งหมด** —
+  ในบรรดาวิชาที่ match ได้แต่ `name_en` มาเป็น `None` เป๊ะๆ (ไม่ใช่แค่สะกดผิด):
+  DSBA 2/266, AIT 1/220, **IT 40/218 (~18%)** ต้นเหตุคือหน้าภาคผนวกนี้พิมพ์แน่น
+  หลายคอลัมน์/ฟอนต์เล็กมาก จน regex หาขอบเขต "ชื่อวิชานี้จบตรงไหน" ไม่เจอเลย —
+  ไม่ได้พยายามแก้ ด้วยเหตุผลเดียวกับข้อด้านบน (fuzzy-match เสี่ยงสูง/ผลไม่แน่นอน)
 - **BIT ไม่รวมอยู่ในตารางผลลัพธ์ข้างบน — ตั้งใจ ไม่ใช่ตกหล่น** — ตรวจสอบแล้วว่า
   รหัสวิชาหมวดวิชาศึกษาทั่วไปของ BIT เอง (ใน `BIT_academic_plan_coop.json`,
   category `หมวดวิชาศึกษาทั่วไป`) ใช้ช่วงรหัส `9664xxxx` ทั้งหมด ไม่ทับซ้อนกับ

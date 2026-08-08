@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 outputs/pages/
+outputs/*/pages/
 *.egg-info/
 lab5_reference/
 lab6_reference/
