@@ -1,14 +1,14 @@
 {
-  "gt_total": 49,
-  "matched": 48,
+  "gt_total": 51,
+  "matched": 50,
   "missing": 1,
-  "recall": 0.9796,
-  "name_en_agreement": 0.9792,
+  "recall": 0.9804,
+  "name_en_agreement": 0.98,
   "credits_agreement": 1.0,
-  "name_en_cer": 0.0049,
-  "name_en_wer": 0.0035,
-  "name_th_cer": 0.0358,
-  "name_th_wer": 0.3646,
+  "name_en_cer": 0.0047,
+  "name_en_wer": 0.0033,
+  "name_th_cer": 0.0343,
+  "name_th_wer": 0.35,
   "missing_codes": [
     "06016401"
   ],

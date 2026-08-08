@@ -20,6 +20,7 @@ from .evaluate_curriculum import (
     _merge_duplicate_courses,
     _normalize_credits,
     _normalize_name,
+    expand_multicode_courses,
 )
 from .gt_page_mapping import classify_pages, group_by_code
 
@@ -208,7 +209,7 @@ def run_lab6_evaluation(
 
     with Path(ground_truth_path).open("r", encoding="utf-8") as f:
         gt = json.load(f)
-    gt_courses = [c for c in gt.get("courses", []) if _is_valid_code(c.get("code"))]
+    gt_courses = [c for c in expand_multicode_courses(gt.get("courses", [])) if _is_valid_code(c.get("code"))]
 
     with Path(ocr_json_path).open("r", encoding="utf-8") as f:
         ocr_payload = json.load(f)

@@ -50,7 +50,7 @@ class CurriculumEvaluationResult:
 
 
 def evaluate_curriculum(extracted: dict[str, Any], ground_truth: dict[str, Any]) -> CurriculumEvaluationResult:
-    gt_courses = [c for c in ground_truth.get("courses", []) if _is_valid_code(c.get("code"))]
+    gt_courses = [c for c in _expand_multicode_courses(ground_truth.get("courses", [])) if _is_valid_code(c.get("code"))]
     extracted_by_code = _merge_duplicate_courses(extracted.get("courses", []))
 
     matched_courses = []
@@ -184,6 +184,78 @@ def _merge_duplicate_courses(courses: list[dict[str, Any]]) -> dict[str, dict[st
 
 def _is_valid_code(code: Any) -> bool:
     return isinstance(code, str) and code.isdigit()
+
+
+_OR_SPLIT_RE = re.compile(r"\s*(?:หรือ|OR)\s*", re.IGNORECASE)
+_OR_MARKER_LINE_RE = re.compile(r"^(?:หรือ|OR)$", re.IGNORECASE)
+
+
+def _split_option_lines(text: str | None) -> list[str]:
+    """Split a name_th/name_en field listing options one per line into the
+    individual option strings, in order. Handles both GT formatting styles
+    seen in this project: a lone "หรือ"/"OR" marker line between options
+    (IT, BIT -- e.g. "COOPERATIVE EDUCATION\nOR\nOVERSEA COOPERATIVE
+    EDUCATION"), and options newline-joined with no marker at all (AIT --
+    e.g. "COOPERATIVE EDUCATION IN ...\nOVERSEA COOPERATIVE EDUCATION IN
+    ..."). Splitting on a literal "หรือ"/"OR" word only handles the first
+    style; this also strips a marker *line* if present, but otherwise just
+    treats each newline as an option boundary."""
+    if not text:
+        return []
+    lines = [line.strip() for line in text.split("\n")]
+    return [line for line in lines if line and not _OR_MARKER_LINE_RE.match(line)]
+
+
+def expand_multicode_courses(courses: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Split GT rows whose `code` lists 2+ codes joined by "หรือ"/"OR" (an
+    either/or requirement -- e.g. "coop OR overseas coop", one slot that can
+    legitimately be satisfied by either course) into one synthetic row per
+    individual code, so each option can be matched/scored on its own.
+
+    A code like this fails `_is_valid_code()` as-is (not a plain digit
+    string) and previously got silently filtered out of the GT entirely --
+    correctly-extracted courses behind these rows got zero credit even when
+    the OCR pipeline found them with the right name/credits (verified for
+    IT's 06016481/06016482 and BIT's 06036147/06036148: both individually
+    present in extraction output with correct name_en/credits).
+
+    Guard: some programs (DSBA) already list each option as its *own*
+    separate GT row in addition to the combined "หรือ" row (same course,
+    described twice). Adding a synthetic copy there would double-count that
+    course, so any code that already has its own individual row elsewhere
+    in the same GT file is skipped here -- this one check is what makes a
+    single, non-program-specific function produce the right behavior for
+    every program's GT file as-is (DSBA: no-op, IT/BIT: expands).
+    """
+    existing_codes = {c["code"] for c in courses if _is_valid_code(c.get("code"))}
+    expanded = list(courses)
+
+    for course in courses:
+        code = course.get("code")
+        if not isinstance(code, str) or not re.search(r"หรือ|OR", code, re.IGNORECASE):
+            continue
+
+        codes = [x.strip() for x in _OR_SPLIT_RE.split(code) if x.strip()]
+        if len(codes) < 2 or not all(_is_valid_code(c) for c in codes):
+            continue  # not a clean multi-code split; leave as-is (filtered out downstream, same as before)
+
+        names_th = _split_option_lines(course.get("name_th"))
+        names_en = _split_option_lines(course.get("name_en"))
+
+        for i, single_code in enumerate(codes):
+            if single_code in existing_codes:
+                continue  # already has its own dedicated GT row -- don't double count
+            synthetic = dict(course)
+            synthetic["code"] = single_code
+            synthetic["name_th"] = names_th[i] if i < len(names_th) else None
+            synthetic["name_en"] = names_en[i] if i < len(names_en) else None
+            expanded.append(synthetic)
+
+    return expanded
+
+
+# Backwards-compat private alias (evaluate_curriculum() above uses the public name).
+_expand_multicode_courses = expand_multicode_courses
 
 
 def _normalize_name(name: str | None) -> str:

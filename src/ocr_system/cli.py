@@ -28,6 +28,16 @@ def parse_args():
     ocr.add_argument("--save-debug-images", action="store_true")
     ocr.add_argument("--min-confidence", type=float, default=0.0)
     ocr.add_argument("--device", default="cpu")
+    ocr.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Process this many pages concurrently (PDF render + OCR). "
+        "1 = old sequential behavior. Doesn't change dpi/preprocessing, so "
+        "OCR output is identical either way -- only wall-clock time changes. "
+        "Best with --engine tesseract; paddle/trocr models aren't verified "
+        "thread-safe for concurrent recognize() calls.",
+    )
 
     ev = sub.add_parser("evaluate", help="Evaluate OCR JSON against ground truth JSON (CER/WER)")
     ev.add_argument("ground_truth_json")
@@ -65,6 +75,7 @@ def main():
             save_debug_images=args.save_debug_images,
             min_confidence=args.min_confidence,
             device=args.device,
+            workers=args.workers,
         )
         result = run_ocr(config)
         fields = extract_common_fields(result.text)

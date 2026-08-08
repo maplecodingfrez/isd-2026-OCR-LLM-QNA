@@ -21,3 +21,4 @@ class OCRConfig:
     min_confidence: float = 0.0
     device: str = "cpu"
     page_image_dir: Path = field(default_factory=lambda: Path("outputs/pages"))
+    workers: int = 1  # pages processed concurrently (PDF render + OCR); 1 = old sequential behavior

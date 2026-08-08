@@ -4,7 +4,7 @@ import csv
 import json
 
 from ocr_system.curriculum_extraction import extract_curriculum_from_file
-from ocr_system.evaluate_curriculum import _is_valid_code
+from ocr_system.evaluate_curriculum import _is_valid_code, expand_multicode_courses
 from ocr_system.gt_page_mapping import group_by_code, classify_pages
 import sys
 
@@ -27,7 +27,7 @@ grouped = group_by_code(result["courses"])
 
 # 2) load ground truth
 gt = json.load(open(cfg["gt"], encoding="utf-8"))
-gt_courses = [c for c in gt["courses"] if _is_valid_code(c.get("code"))]
+gt_courses = [c for c in expand_multicode_courses(gt["courses"]) if _is_valid_code(c.get("code"))]
 
 # 3) page-number -> raw OCR text, needed for the name-only fallback
 ocr = json.load(open(cfg["ocr"], encoding="utf-8"))
