@@ -1,0 +1,90 @@
+{
+  "program": "BIT",
+  "source": "../outputs/bit/bit_curriculum_ocr.txt หน้า 24-25",
+  "plan_slot": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1/2 (ปี 4/2, รหัส placeholder 06036xxx)",
+  "credits_required": 6,
+  "groups": [
+    {
+      "group_no": 1,
+      "name_th": "การวิเคราะห์เชิงธุรกิจ",
+      "name_en": "Business Analysis",
+      "courses": [
+        {
+          "code": "06036136",
+          "name_th": "กระบวนการอัตโนมัติด้วยโรบอตสําหรับธุรกิจ",
+          "name_en": "ROBOTIC PROCESS AUTOMATION FOR BUSINESS",
+          "credits": "3(3-0-6)"
+        },
+        {
+          "code": "06036137",
+          "name_th": "การวิเคราะห์ธุรกิจและการพัฒนาข้อกําหนด",
+          "name_en": "BUSINESS ANALYSIS AND DEVELOPING REQUIREMENTS",
+          "credits": "3(3-0-6)"
+        }
+      ]
+    },
+    {
+      "group_no": 2,
+      "name_th": "ระบบระดับองค์กร",
+      "name_en": "Enterprise System, Business Process Improvement",
+      "courses": [
+        {
+          "code": "06036138",
+          "name_th": "การจัดการความรู้ระดับองค์กร",
+          "name_en": "ORGANIZATIONAL KNOWLEDGE MANAGEMENT",
+          "credits": "3(3-0-6)"
+        },
+        {
+          "code": "06036139",
+          "name_th": "การบริหารระบบลูกค้าสัมพันธ์",
+          "name_en": "CUSTOMER RELATIONSHIP MANAGEMENT",
+          "credits": "3(3-0-6)"
+        },
+        {
+          "code": "06036140",
+          "name_th": "การจัดการโซ่อุปทานและโลจิสติกส์",
+          "name_en": "SUPPLY CHAIN MANAGEMENT AND LOGISTICS",
+          "credits": "3(3-0-6)"
+        }
+      ]
+    },
+    {
+      "group_no": 3,
+      "name_th": "การตลาดเชิงดิจิทัล",
+      "name_en": "Digital Marketing",
+      "courses": [
+        {
+          "code": "06036141",
+          "name_th": "เครื่องมือและเทคนิคสําหรับการตลาดเชิงดิจิทัล",
+          "name_en": "DIGITAL MARKETING TOOLS AND TECHNIQUES",
+          "credits": "3(3-0-6)"
+        },
+        {
+          "code": "06036142",
+          "name_th": "การตลาดเซิงดิจิทัลขั้นสูง",
+          "name_en": "ADVANCED DIGITAL MARKETING",
+          "credits": "3(3-0-6)"
+        }
+      ]
+    },
+    {
+      "group_no": 4,
+      "name_th": "การออกแบบและพัฒนาส่วนติดต่อกับผู้ใช้งาน",
+      "name_en": "UX/U",
+      "courses": [
+        {
+          "code": "06036143",
+          "name_th": "การเก็บความต้องการและสร้างต้นแบบในด้านยูเอ็กซ์ยูไอ",
+          "name_en": "UX/UI REQUIREMENT AND PROTOTYPING",
+          "credits": "3(3-0-6)"
+        },
+        {
+          "code": "06036144",
+          "name_th": "การประเมินส่วนต่อประสานผู้ใช้",
+          "name_en": "EVALUATING USER INTERFACE",
+          "credits": "3(3-0-6)"
+        }
+      ]
+    }
+  ]
+}

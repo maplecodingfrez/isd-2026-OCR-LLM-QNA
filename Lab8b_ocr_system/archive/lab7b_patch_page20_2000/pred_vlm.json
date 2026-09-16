@@ -1,0 +1,43 @@
+{
+  "program": null,
+  "plan": null,
+  "courses": [
+    {
+      "code": "06066300",
+      "name_th": "แนวคิดระบบฐานข้อมูล",
+      "credits": "3 (2-2-5)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ"
+    },
+    {
+      "code": "06046405",
+      "name_th": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น",
+      "credits": "3 (3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ"
+    },
+    {
+      "code": "06046406",
+      "name_th": "พื้นฐานการเรียนรู้เชิงลึก",
+      "credits": "3 (3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ"
+    }
+  ],
+  "_meta": {
+    "pipeline": "vlm",
+    "elapsed_sec": 160.2,
+    "models": {
+      "ocr": "scb10x/typhoon-ocr1.5-3b",
+      "text": "qwen3:4b"
+    },
+    "dpi": 150,
+    "pages_per_chunk": 1
+  }
+}

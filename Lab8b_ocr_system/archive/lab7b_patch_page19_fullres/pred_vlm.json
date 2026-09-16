@@ -1,0 +1,46 @@
+{
+  "program": null,
+  "plan": null,
+  "courses": [
+    {
+      "code": "06026xxx",
+      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1",
+      "credits": "3(3-0-6)",
+      "year": null,
+      "semester": null,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "เลือก",
+      "flexible_year_semester": null
+    },
+    {
+      "code": "9064xxxx",
+      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2",
+      "credits": "3(3-0-6)",
+      "year": null,
+      "semester": null,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "เลือก",
+      "flexible_year_semester": null
+    },
+    {
+      "code": "xxxxxxx",
+      "name_th": "วิชาเลือกเสรี",
+      "credits": "3(3-0-6)",
+      "year": null,
+      "semester": null,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก",
+      "flexible_year_semester": null
+    }
+  ],
+  "_meta": {
+    "pipeline": "vlm",
+    "elapsed_sec": 64.8,
+    "models": {
+      "ocr": "scb10x/typhoon-ocr1.5-3b",
+      "text": "qwen3:4b"
+    },
+    "dpi": 150,
+    "pages_per_chunk": 1
+  }
+}
