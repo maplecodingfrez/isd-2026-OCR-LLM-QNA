@@ -33,6 +33,10 @@ OCR engines ที่มีให้:
 
 ---
 
+> **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
+> **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
+> ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab8b_ocr_system/`, `Lab9_evaluation/`
+
 ## Project Structure
 
 ```text
