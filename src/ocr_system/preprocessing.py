@@ -49,8 +49,29 @@ def rotate_bound(image: np.ndarray, angle: float) -> np.ndarray:
     return cv2.warpAffine(image, matrix, (new_w, new_h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 
+def suppress_warm_watermark(image: np.ndarray) -> np.ndarray:
+    """Flatten a light orange/pink ink watermark (seen as an institute
+    seal stamped across every page of some scanned curriculum books, e.g.
+    AIT and IT) to white before grayscale/thresholding.
+
+    Real body text in these scans is near-black across all 3 channels.
+    The seal ink is much lighter and noticeably warmer (red channel well
+    above blue), so a simple per-pixel color check separates the two
+    reliably. Verified safe on documents that don't have this watermark at
+    all (0% of non-white pixels matched across a spread of DSBA pages,
+    vs. 50-73% on every sampled AIT/IT page) -- this is a no-op there, not
+    a risk.
+    """
+    b, g, r = (image[:, :, i].astype(np.int16) for i in range(3))
+    warm_light_mask = ((r - b) > 15) & (r > 150)
+    cleaned = image.copy()
+    cleaned[warm_light_mask] = (255, 255, 255)
+    return cleaned
+
+
 def preprocess_image(image: np.ndarray, deskew: bool = True) -> np.ndarray:
     image = resize_if_small(image)
+    image = suppress_warm_watermark(image)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.fastNlMeansDenoising(gray, h=10)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))

@@ -2,23 +2,34 @@
 Evaluation for curriculum extraction results against ground truth.
 
 Unlike evaluation.py (which measures CER/WER on plain OCR text), this module
-evaluates *structured* extraction quality: given a list of extracted courses
-(code, name_th, name_en, credits, ...) and a ground truth course list, it
-reports:
+mainly evaluates *structured* extraction quality: given a list of extracted
+courses (code, name_th, name_en, credits, ...) and a ground truth course
+list, it reports:
 
   - recall: how many GT courses were found at all (matched by course code)
   - field accuracy: for matched courses, how often name_en / credits agree
+    exactly
 
-This is necessary because the curriculum ground truth
-(data/ground_truth/DSBA_academic_plan_coop.json) is a list of course records,
-not a single block of text, so CER/WER does not apply directly.
+Whole-document CER/WER doesn't apply directly here, since the ground truth
+is a list of course records, not one block of text -- there's no single
+"reference text" to diff a "hypothesis text" against. But exact-match alone
+is a blunt instrument: a name_en of "RUCTURES AND ALGORITHMS" (truncated,
+missing "DATA ST") is *much* closer to the ground truth "DATA STRUCTURES AND
+ALGORITHMS" than "NADA" is to "CALCULUS 1", yet both count as a plain 0
+under exact-match. So per field (name_en, name_th) we *also* compute CER and
+WER per matched course, the same way evaluation.py does for a full document,
+just scoped to one field's value instead of a whole page/file. This reuses
+`evaluate_text()` from evaluation.py rather than re-implementing CER/WER.
 """
 
 import json
 import re
 from dataclasses import dataclass, asdict
 from pathlib import Path
+from statistics import mean
 from typing import Any
+
+from .evaluation import evaluate_text
 
 
 @dataclass
@@ -29,13 +40,17 @@ class CurriculumEvaluationResult:
     recall: float
     name_en_agreement: float
     credits_agreement: float
+    name_en_cer: float
+    name_en_wer: float
+    name_th_cer: float
+    name_th_wer: float
     missing_codes: list[str]
     mismatched_name_en: list[dict[str, Any]]
     mismatched_credits: list[dict[str, Any]]
 
 
 def evaluate_curriculum(extracted: dict[str, Any], ground_truth: dict[str, Any]) -> CurriculumEvaluationResult:
-    gt_courses = [c for c in ground_truth.get("courses", []) if _is_valid_code(c.get("code"))]
+    gt_courses = [c for c in _expand_multicode_courses(ground_truth.get("courses", [])) if _is_valid_code(c.get("code"))]
     extracted_by_code = _merge_duplicate_courses(extracted.get("courses", []))
 
     matched_courses = []
@@ -52,16 +67,34 @@ def evaluate_curriculum(extracted: dict[str, Any], ground_truth: dict[str, Any])
     credits_matches = 0
     mismatched_name_en = []
     mismatched_credits = []
+    name_en_cers = []
+    name_en_wers = []
+    name_th_cers = []
+    name_th_wers = []
 
     for gt_course, extracted_course in matched_courses:
-        if _normalize_name(gt_course.get("name_en")) == _normalize_name(extracted_course.get("name_en")):
+        gt_name_en = _normalize_name(gt_course.get("name_en"))
+        got_name_en = _normalize_name(extracted_course.get("name_en"))
+        name_en_eval = evaluate_text(gt_name_en, got_name_en, file_name=gt_course["code"])
+        name_en_cers.append(name_en_eval.cer)
+        name_en_wers.append(name_en_eval.wer)
+
+        if name_en_eval.exact_match:
             name_en_matches += 1
         else:
             mismatched_name_en.append({
                 "code": gt_course["code"],
                 "expected": gt_course.get("name_en"),
                 "got": extracted_course.get("name_en"),
+                "cer": name_en_eval.cer,
+                "wer": name_en_eval.wer,
             })
+
+        gt_name_th = _normalize_name(gt_course.get("name_th"))
+        got_name_th = _normalize_name(extracted_course.get("name_th"))
+        name_th_eval = evaluate_text(gt_name_th, got_name_th, file_name=gt_course["code"])
+        name_th_cers.append(name_th_eval.cer)
+        name_th_wers.append(name_th_eval.wer)
 
         if _normalize_credits(gt_course.get("credits")) == _normalize_credits(extracted_course.get("credits")):
             credits_matches += 1
@@ -82,6 +115,10 @@ def evaluate_curriculum(extracted: dict[str, Any], ground_truth: dict[str, Any])
         recall=round(matched / gt_total, 4) if gt_total else 0.0,
         name_en_agreement=round(name_en_matches / matched, 4) if matched else 0.0,
         credits_agreement=round(credits_matches / matched, 4) if matched else 0.0,
+        name_en_cer=round(mean(name_en_cers), 4) if name_en_cers else 0.0,
+        name_en_wer=round(mean(name_en_wers), 4) if name_en_wers else 0.0,
+        name_th_cer=round(mean(name_th_cers), 4) if name_th_cers else 0.0,
+        name_th_wer=round(mean(name_th_wers), 4) if name_th_wers else 0.0,
         missing_codes=missing_codes,
         mismatched_name_en=mismatched_name_en,
         mismatched_credits=mismatched_credits,
@@ -118,6 +155,14 @@ def _merge_duplicate_courses(courses: list[dict[str, Any]]) -> dict[str, dict[st
     can silently overwrite a good record with an empty one. Instead, for
     each field we keep the first non-empty value we encounter across all
     occurrences of that code.
+
+    (Tried a "pick the best-scoring name_en across all occurrences" variant
+    to fix a garbled-name issue seen on the AIT catalog -- reverted, it
+    regressed the DSBA baseline from 98.7% to ~85-90% name_en agreement.
+    See conversation / commit history for why: any word-count-based quality
+    heuristic risks preferring a *wrong* but clean-looking name pulled in
+    from a neighboring course block over the correct one. Not safe to ship
+    without a fundamentally different approach.)
     """
     merged: dict[str, dict[str, Any]] = {}
     fields = ("name_th", "name_en", "credits", "year", "semester", "category", "type", "prerequisite")
@@ -141,6 +186,78 @@ def _is_valid_code(code: Any) -> bool:
     return isinstance(code, str) and code.isdigit()
 
 
+_OR_SPLIT_RE = re.compile(r"\s*(?:หรือ|OR)\s*", re.IGNORECASE)
+_OR_MARKER_LINE_RE = re.compile(r"^(?:หรือ|OR)$", re.IGNORECASE)
+
+
+def _split_option_lines(text: str | None) -> list[str]:
+    """Split a name_th/name_en field listing options one per line into the
+    individual option strings, in order. Handles both GT formatting styles
+    seen in this project: a lone "หรือ"/"OR" marker line between options
+    (IT, BIT -- e.g. "COOPERATIVE EDUCATION\nOR\nOVERSEA COOPERATIVE
+    EDUCATION"), and options newline-joined with no marker at all (AIT --
+    e.g. "COOPERATIVE EDUCATION IN ...\nOVERSEA COOPERATIVE EDUCATION IN
+    ..."). Splitting on a literal "หรือ"/"OR" word only handles the first
+    style; this also strips a marker *line* if present, but otherwise just
+    treats each newline as an option boundary."""
+    if not text:
+        return []
+    lines = [line.strip() for line in text.split("\n")]
+    return [line for line in lines if line and not _OR_MARKER_LINE_RE.match(line)]
+
+
+def expand_multicode_courses(courses: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Split GT rows whose `code` lists 2+ codes joined by "หรือ"/"OR" (an
+    either/or requirement -- e.g. "coop OR overseas coop", one slot that can
+    legitimately be satisfied by either course) into one synthetic row per
+    individual code, so each option can be matched/scored on its own.
+
+    A code like this fails `_is_valid_code()` as-is (not a plain digit
+    string) and previously got silently filtered out of the GT entirely --
+    correctly-extracted courses behind these rows got zero credit even when
+    the OCR pipeline found them with the right name/credits (verified for
+    IT's 06016481/06016482 and BIT's 06036147/06036148: both individually
+    present in extraction output with correct name_en/credits).
+
+    Guard: some programs (DSBA) already list each option as its *own*
+    separate GT row in addition to the combined "หรือ" row (same course,
+    described twice). Adding a synthetic copy there would double-count that
+    course, so any code that already has its own individual row elsewhere
+    in the same GT file is skipped here -- this one check is what makes a
+    single, non-program-specific function produce the right behavior for
+    every program's GT file as-is (DSBA: no-op, IT/BIT: expands).
+    """
+    existing_codes = {c["code"] for c in courses if _is_valid_code(c.get("code"))}
+    expanded = list(courses)
+
+    for course in courses:
+        code = course.get("code")
+        if not isinstance(code, str) or not re.search(r"หรือ|OR", code, re.IGNORECASE):
+            continue
+
+        codes = [x.strip() for x in _OR_SPLIT_RE.split(code) if x.strip()]
+        if len(codes) < 2 or not all(_is_valid_code(c) for c in codes):
+            continue  # not a clean multi-code split; leave as-is (filtered out downstream, same as before)
+
+        names_th = _split_option_lines(course.get("name_th"))
+        names_en = _split_option_lines(course.get("name_en"))
+
+        for i, single_code in enumerate(codes):
+            if single_code in existing_codes:
+                continue  # already has its own dedicated GT row -- don't double count
+            synthetic = dict(course)
+            synthetic["code"] = single_code
+            synthetic["name_th"] = names_th[i] if i < len(names_th) else None
+            synthetic["name_en"] = names_en[i] if i < len(names_en) else None
+            expanded.append(synthetic)
+
+    return expanded
+
+
+# Backwards-compat private alias (evaluate_curriculum() above uses the public name).
+_expand_multicode_courses = expand_multicode_courses
+
+
 def _normalize_name(name: str | None) -> str:
     if not name:
         return ""
@@ -157,14 +274,16 @@ def _print_summary(result: CurriculumEvaluationResult) -> None:
     print(f"GT courses (valid):     {result.gt_total}")
     print(f"Matched (found):        {result.matched} ({result.recall * 100:.1f}%)")
     print(f"Missing:                {result.missing}")
-    print(f"name_en agreement:      {result.name_en_agreement * 100:.1f}% (of matched)")
+    print(f"name_en agreement:      {result.name_en_agreement * 100:.1f}% (of matched, exact match)")
+    print(f"name_en CER / WER:      {result.name_en_cer * 100:.1f}% / {result.name_en_wer * 100:.1f}% (avg over matched, lower=better)")
+    print(f"name_th CER / WER:      {result.name_th_cer * 100:.1f}% / {result.name_th_wer * 100:.1f}% (avg over matched, lower=better)")
     print(f"credits agreement:      {result.credits_agreement * 100:.1f}% (of matched)")
     if result.missing_codes:
         print(f"Missing codes:          {result.missing_codes}")
     if result.mismatched_name_en:
         print(f"\nSample name_en mismatches:")
         for item in result.mismatched_name_en[:5]:
-            print(f"  {item['code']}: expected={item['expected']!r} got={item['got']!r}")
+            print(f"  {item['code']}: expected={item['expected']!r} got={item['got']!r} (cer={item['cer']:.2f}, wer={item['wer']:.2f})")
     if result.mismatched_credits:
         print(f"\nSample credits mismatches:")
         for item in result.mismatched_credits[:5]:
