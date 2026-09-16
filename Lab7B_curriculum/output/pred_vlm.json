@@ -1,0 +1,149 @@
+{
+  "program": null,
+  "plan": null,
+  "courses": [
+    {
+      "code": "06026200",
+      "name_th": "แคลคูลัส 1",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "06026202",
+      "name_th": "พีชคณิตเชิงเส้น",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "06066101",
+      "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "06066303",
+      "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "90641001",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "credits": "2 (1-2-3)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "90641003",
+      "name_th": "กีฬาและนันทนาการ",
+      "credits": "1 (0-3-2)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "90644007",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "note": "บังคับ"
+    },
+    {
+      "code": "06026204",
+      "name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
+      "credits": "3 (3-0-6)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026207",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
+      "credits": "3 (2-2-5)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026208",
+      "name_th": "พื้นฐานวิทยาการข้อมูล",
+      "credits": "3 (3-0-6)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026209",
+      "name_th": "การแสดงข้อมูลด้วยแผนภาพ",
+      "credits": "3 (2-2-5)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026210",
+      "name_th": "การหาค่าที่เหมาะที่สุด",
+      "credits": "3 (3-0-6)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06066102",
+      "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
+      "credits": "3 (3-0-6)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06066301",
+      "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
+      "credits": "3 (2-2-5)",
+      "year": null,
+      "semester": null,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    }
+  ],
+  "_meta": {
+    "pipeline": "vlm",
+    "elapsed_sec": 3854.8,
+    "models": {
+      "ocr": "scb10x/typhoon-ocr1.5-3b",
+      "text": "qwen3:4b"
+    },
+    "dpi": 150,
+    "pages_per_chunk": 1
+  }
+}
