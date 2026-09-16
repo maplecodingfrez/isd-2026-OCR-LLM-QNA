@@ -1,0 +1,111 @@
+{
+  "program": "AIT",
+  "source": "../outputs/ait/ait_curriculum_ocr.txt หน้า 21-21",
+  "plan_slot": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง (รหัส placeholder 060464x/060464xx)",
+  "credits_required": 12,
+  "groups": [
+    {
+      "group_no": 1,
+      "name_th": "กลุ่มวิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
+      "name_en": null,
+      "courses": [
+        {
+          "code": "06046416",
+          "name_th": "การเรียนรู้เชิงลึกสําหรับคอมพิวเตอร์วิทัศน์",
+          "name_en": "DEEP LEARNING FOR COMPUTER VISION",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046417",
+          "name_th": "การประมวลผลภาพ",
+          "name_en": "IMAGE PROCESSING",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046418",
+          "name_th": "การระบุตําแหน่งและการสร้างแผนที่ของหุ่นยนต์",
+          "name_en": "ROBOT LOCALIZATION AND MAPPING",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046419",
+          "name_th": "การเรียนรู้แบบเสริมกําลัง",
+          "name_en": "REINFORCEMENT LEARNING",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046420",
+          "name_th": "ระบบให้คําแนะนําอัจฉริยะ",
+          "name_en": "INTELLIGENT RECOMMENDATION SYSTEMS",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046421",
+          "name_th": "การประมวลผลภาษาธรรมชาติขั้นสูง",
+          "name_en": "ADVANCED NATURAL LANGUAGE PROCESSING",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046422",
+          "name_th": "จริยธรรมด้านปัญญาประดิษฐ์",
+          "name_en": "ARTIFICIAL INTELLIGIENCE ETHICS",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046423",
+          "name_th": "การออกแบบบริการด้านปัญญาประดิษฐ์",
+          "name_en": "ARTIFICIAL INTELLIGIENCE SERVICE DESIGN",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046424",
+          "name_th": "ตรรกะและการแทนความรู้",
+          "name_en": "LOGIC AND KNOWLEDGE REPRESENTATION",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046425",
+          "name_th": "โฆมเดลแบบกําเนิต",
+          "name_en": "GENERATIVE MODEL",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046430",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 1",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 1",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046431",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 2",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 2",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046432",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 3",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 3",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046433",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 4",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 4",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046434",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 5",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 5",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "06046435",
+          "name_th": "หัวข้อคัดสรรด้านปัญญาประดิษฐ์ 6",
+          "name_en": "SELECTED TOPICS IN ARTIFICIAL INTELLIGENCE 6",
+          "credits": "3 (3-0-6)"
+        }
+      ]
+    }
+  ]
+}

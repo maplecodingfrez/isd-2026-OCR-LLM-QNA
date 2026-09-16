@@ -1,0 +1,306 @@
+{
+  "program": "วท.บ. (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+  "plan": "แผนการศึกษาที่ไม่เข้าร่วมโครงการสหกิจศึกษา",
+  "courses": [
+    {
+      "code": "06026243",
+      "name_th": "ระบบฐานข้อมูลชั้นสูง",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026244",
+      "name_th": "การดูแลและบำรุงรักษาระบบฐานข้อมูล",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026245",
+      "name_th": "ระบบฐานข้อมูลแบบกระจาย",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026246",
+      "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 1",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026247",
+      "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 2",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026248",
+      "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026249",
+      "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026250",
+      "name_th": "วิทยาการข้อมูลสำหรับธุรกิจ",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026251",
+      "name_th": "บัญชีการเงิน",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026252",
+      "name_th": "การวิเคราะห์ด้านการเงิน",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026253",
+      "name_th": "การวิเคราะห์ด้านการตลาด",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026254",
+      "name_th": "เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026255",
+      "name_th": "การได้มาและการจัดการข้อมูลทางด้านคลินิก",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026256",
+      "name_th": "การจัดการการปฏิบัติการ",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026200",
+      "name_th": "CALCULUS 1",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026202",
+      "name_th": "พีชคณิตเชิงเส้น",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06066101",
+      "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06066303",
+      "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
+      "credits": "3 (2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "90641001",
+      "name_th": "โรงเรียนสร้างเสริมทักษะ",
+      "credits": "2 (1-2-3)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "90641003",
+      "name_th": "กีฬาและนันทนาการ",
+      "credits": "1 (0-3-2)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "90644007",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026215",
+      "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
+      "credits": "3 (0-9-0)",
+      "year": 4,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "06026xxxx",
+      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1",
+      "credits": "3 (3-0-6) หรือ 3 (2-2-5)",
+      "year": 0,
+      "semester": 0,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": "3/1, 3/2, 4/1",
+      "note": null
+    },
+    {
+      "code": "06026xxxx",
+      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
+      "credits": "3 (3-0-6) หรือ 3 (2-2-5)",
+      "year": 0,
+      "semester": 0,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": "3/1, 3/2, 4/1",
+      "note": null
+    },
+    {
+      "code": "9064xxxx",
+      "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป",
+      "credits": "3 (3-0-6) หรือ 3 (2-2-5)",
+      "year": 0,
+      "semester": 0,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": "4/1",
+      "note": null
+    },
+    {
+      "code": "xxxxxx xxxx",
+      "name_th": "วิชาเลือกเสรี 1",
+      "credits": "3 (3-0-6) หรือ 3 (2-2-5)",
+      "year": 0,
+      "semester": 0,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": "4/1",
+      "note": null
+    },
+    {
+      "code": "xxxxxx xxxx",
+      "name_th": "วิชาเลือกเสรี 2",
+      "credits": "3 (3-0-6) หรือ 3 (2-2-5)",
+      "year": 0,
+      "semester": 0,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": "4/1",
+      "note": null
+    },
+    {
+      "code": "06026200",
+      "name_th": "แคลคูลัส 1",
+      "credits": "3 (3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    },
+    {
+      "code": "90641001",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "credits": "2 (1-2-3)",
+      "year": 1,
+      "semester": 1,
+      "prerequisite": "ไม่มี",
+      "flexible_year_semester": null,
+      "note": null
+    }
+  ],
+  "_meta": {
+    "pipeline": "vlm",
+    "elapsed_sec": 738.6,
+    "models": {
+      "ocr": "scb10x/typhoon-ocr1.5-3b",
+      "text": "qwen3:4b"
+    },
+    "dpi": 150,
+    "pages_per_chunk": 1
+  }
+}
