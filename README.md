@@ -1,5 +1,8 @@
 # Thai-English OCR System
 
+> **Branch นี้ (`Lab-4`) เก็บเฉพาะงานของ Lab 4 (Curriculum Extraction)** ระบบเต็มที่รวมทุก Lab
+> พร้อมวิธีติดตั้ง/ใช้งานล่าสุด ดูที่ branch `main`
+
 โปรเจกต์นี้เป็น OCR pipeline สำหรับเอกสารภาพเดี่ยวและหลายหน้า เช่น `.jpg`, `.png`, `.tif`, `.pdf` โดยรองรับเอกสารภาษาไทยและอังกฤษปนกัน
 
 OCR engines ที่มีให้:
