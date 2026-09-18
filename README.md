@@ -44,6 +44,11 @@ ocr_system/
 ├── README.md
 ├── requirements.txt
 ├── pyproject.toml
+├── Lab7B_curriculum/           # Lab 7B (เวอร์ชันต้นแบบ) — แทนที่ด้วย Lab8b_ocr_system/ ด้านล่าง
+├── Lab8b_ocr_system/           # Lab 7B→8B: OCR ด้วย local VLM → JSON → SQLite → NL2SQL Q&A
+│                                 # (ดูภาพรวมที่ Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md)
+├── Lab9_evaluation/            # Lab 9: Evaluation & Overfitting — อ่านผล Lab 8B มาคำนวณ metric
+│                                 # (ดู Lab9_evaluation/README.md)
 ├── data/
 │   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
 │   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
@@ -1117,3 +1122,108 @@ outputs/dsba/general_education_dsba_evaluation.json
 outputs/ait/general_education_ait_evaluation.json
 outputs/it/general_education_it_evaluation.json
 ```
+
+---
+
+## Curriculum OCR Extraction ด้วย Local VLM (Lab 7B)
+
+ต่อยอดจาก Lab 4-6 — เปลี่ยนจาก Tesseract (regex-based) มาใช้ **local VLM สองตัวต่อกัน** เพื่อดึง
+ตาราง "แผนการศึกษา" ของเล่มหลักสูตรทั้ง 4 คณะ (AIT/BIT/DSBA/IT) ให้ครอบคลุมมากขึ้น: รหัสวิชา,
+ชื่อไทย/อังกฤษ, หน่วยกิต, ปี/ภาค, หมวดวิชา, บังคับ/เลือก, วิชาบังคับก่อน ฯลฯ
+
+### Pipeline
+
+```text
+รูปหน้าเล่มหลักสูตร (crop เฉพาะตาราง "แผนการศึกษา")
+    → Typhoon-OCR (scb10x/typhoon-ocr1.5-3b) — รูป → Markdown
+    → qwen3:4b + EXTRACT_PROMPT — Markdown → JSON ตาม COURSE_SCHEMA
+    → เทียบกับ ground truth: P/R/F1 (จับคู่วิชา) + CER/WER (รายฟิลด์)
+      + confusion matrix/MCC (ฟิลด์ categorical เช่น บังคับ/เลือก)
+```
+
+รันออฟไลน์ 100% ผ่าน Ollama บนเครื่องตัวเอง ไม่มีค่าใช้จ่าย ไม่มี API ภายนอก
+
+### วิธีรัน
+
+```bash
+cd Lab8b_ocr_system
+python src/ocr_system/lab7b_curriculum.py -i data/DSBA.pdf -g gt/x.json --pipeline all --out output/
+```
+
+รายละเอียดคำสั่งทั้งหมด (รวม `--eval-only` สำหรับคำนวณ metric ใหม่โดยไม่เรียก VLM ซ้ำ) ดูใน
+docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอง
+
+### Known Limitations
+
+- OCR typo จุดเดียวที่โดนตราประทับ/วอเตอร์มาร์กทับพอดี (บางหลักสูตร) — ลองหลายวิธีแล้วแก้ไม่ได้
+  แบบ deterministic ไม่ patch มือเพราะนโยบายไม่แต่งข้อมูล
+- Confusion matrix ของฟิลด์ `ctype` (บังคับ/เลือก) เผยว่าโมเดลเอนเอียงทาย "บังคับ" เป็นระบบทุก
+  หลักสูตร (precision(บังคับ)=1.000 ทุก run แต่ recall(เลือก) ต่ำมาก) — accuracy paradox ที่
+  `exact_match_acc` เดิมมองไม่เห็น บันทึกไว้เป็นข้อสังเกต ยังไม่ได้แก้
+
+รายละเอียดประวัติแก้บั๊กทั้งหมด (session-by-session) อยู่ที่
+`Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md` และ `Lab8b_ocr_system/PROGRESS.md`
+
+---
+
+## Curriculum DB + NL2SQL Q&A (Lab 8B)
+
+รับ JSON จาก Lab 7B มาทำงานต่อแบบ deterministic ล้วนๆ (ไม่เรียก LLM ซ้ำ ยกเว้นขั้นตอบคำถาม):
+แปลงเป็น SQLite (`curriculum.db`), ตรวจความสอดคล้องภายใน 7 ข้อ (CHK1-CHK7 เช่น หน่วยกิตรวม,
+รหัสวิชาซ้ำ, ลำดับ prerequisite), แล้วตอบคำถามภาษาธรรมชาติด้วย NL→SQL จริง
+
+### Pipeline
+
+```text
+pred_vlm.json (จาก Lab 7B)
+    → import-lab7b (convert_lab7b) — แปล schema เป็น curriculum.json
+    → schema + load — สร้าง curriculum.db (SQLite)
+    → verify — เช็ค CHK1-CHK7 (ไม่พึ่งเฉลย)
+    → eval — ถาม-ตอบ NL→SQL เทียบ gold_questions.json (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
+```
+
+รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ผ่าน
+`run_lab8b_<curriculum>.py` แต่ละไฟล์ (มีคอมเมนต์ "วิธีรัน" พร้อมคำสั่งจริงในตัว):
+
+```bash
+cd Lab8b_ocr_system
+python run_lab8b_ait.py                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
+python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ
+```
+
+### Known Limitations
+
+- **CHK1/CHK7 มักไม่ผ่านทุกหลักสูตร** — แถว "วิชาเลือก" ที่เขียนเป็นรหัส wildcard (เช่น
+  `06036xxx`) ในเอกสารต้นฉบับเองก็ไม่ได้ระบุว่านักศึกษาจะเลือกวิชาไหน จึงไม่ถูกใส่ใน `plan_item`
+  ที่ CHK1/CHK7 นับ (ไม่เดารหัสปลอม/ไม่แต่งข้อมูล) — ลองแก้โดยบวกหน่วยกิตจากตาราง catalog
+  (`elective_group`) กลับเข้าไปแล้วพบว่าจะทำให้ตัวเลขเฟ้อผิดทิศทางแทน (รายละเอียดเต็มใน
+  `Lab8b_ocr_system/PROGRESS.md`) — สรุปว่าปล่อยเป็น known limitation
+- IT มีเทอมที่ "เลือก 1 ใน 3 กลุ่มเฉพาะด้าน" ถูกสกัดเป็นวิชาบังคับทั้ง 3 กลุ่ม ทำให้หน่วยกิตต่อเทอม
+  เกินเพดาน — ซับซ้อนกว่ากลไก `alt_group` ที่มี ยังไม่ได้ออกแบบ fix
+
+รายละเอียดเต็มอยู่ที่ `Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
+
+---
+
+## Evaluation & Overfitting (Lab 9)
+
+อ่านผลลัพธ์ที่ Lab 8B รันไว้แล้วเท่านั้น (ไม่รันโมเดลใหม่) มาคำนวณ metric ตามสไลด์บทที่ 9 ครบทั้ง
+5 ข้อของ checklist: เลือก metric ให้ตรงงาน, อ่านค่าออกว่าสูง/ต่ำแปลว่าอะไร, ตรวจสัญญาณ overfitting,
+รู้จัก metric ที่ไม่ได้ใช้ (+ เหตุผล), และรันสคริปต์ประเมินผลได้จริง
+
+### วิธีรัน
+
+```bash
+cd Lab9_evaluation
+python evaluate_lab9.py
+```
+
+### ผลลัพธ์
+
+- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม,
+  execution_accuracy, answer_text_accuracy, ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
+  matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
+- `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
+
+รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
+matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
