@@ -1,0 +1,24 @@
+=== run_lab8b_it_no_coop_dewm.py --control 20:19:16
+  SQL รันผ่าน   29/30  (97%)
+  ตอบถูก        25/30  (83%)
+    SQL รันผ่านแต่ตอบผิด = โมเดลเข้าใจคำถามผิด (แก้ที่ prompt/ตัวอย่าง)
+เสร็จแล้ว: D:\DSBA 3rd Year\Works\ocr_system (all)\ocr_system\Lab8b_ocr_system\runs\IT\no_coop_ctrl\lab8b_output
+=== run_lab8b_it_no_coop_dewm.py --tag 2 20:27:41
+      ตัดตราน้ำ it_curriculum_page_031.jpg: พบพิกเซลตราน้ำ 8.8%
+      ตัดตราน้ำ it_curriculum_page_032.jpg: พบพิกเซลตราน้ำ 8.8%
+      ตัดตราน้ำ it_curriculum_page_033.jpg: พบพิกเซลตราน้ำ 9.0%
+      ตัดตราน้ำ it_curriculum_page_034.jpg: พบพิกเซลตราน้ำ 8.4%
+      ตัดตราน้ำ it_curriculum_page_035.jpg: พบพิกเซลตราน้ำ 8.5%
+      ตัดตราน้ำ it_curriculum_page_036.jpg: พบพิกเซลตราน้ำ 9.1%
+      ตัดตราน้ำ it_curriculum_page_037.jpg: พบพิกเซลตราน้ำ 8.8%
+      ⚠ หน้า 5 ยอดรวมไม่ลงตัว [(3, 2, 'ไม่พบแถว รวม')] — อ่านซ้ำ
+      ⚠ หน้า 5 ยอดรวมไม่ลงตัว [(3, 2, 'ไม่พบแถว รวม')] — อ่านซ้ำ
+      ⚠ หน้า 5 ยอดรวมไม่ลงตัว [(3, 2, 'ไม่พบแถว รวม')] — หมดรอบอ่านซ้ำ ใช้รอบที่ดีที่สุด
+      ⚠ หน้า 7 ยอดรวมไม่ลงตัว [(4, 1, 3)] — อ่านซ้ำ
+      ⚠ หน้า 7 ยอดรวมไม่ลงตัว [(4, 1, 3)] — อ่านซ้ำ
+      ⚠ หน้า 7 ยอดรวมไม่ลงตัว [(4, 1, 3)] — หมดรอบอ่านซ้ำ ใช้รอบที่ดีที่สุด
+  SQL รันผ่าน   29/30  (97%)
+  ตอบถูก        23/30  (77%)
+    SQL รันผ่านแต่ตอบผิด = โมเดลเข้าใจคำถามผิด (แก้ที่ prompt/ตัวอย่าง)
+เสร็จแล้ว: D:\DSBA 3rd Year\Works\ocr_system (all)\ocr_system\Lab8b_ocr_system\runs\IT\no_coop_dewm2\lab8b_output
+=== run_lab8b_it_no_coop_dewm.py --tag 3 21:14:18

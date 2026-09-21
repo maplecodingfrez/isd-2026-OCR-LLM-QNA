@@ -23,7 +23,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 LAB7 = ROOT / "src" / "ocr_system" / "lab7b_curriculum.py"
 LAB8 = ROOT / "src" / "ocr_system" / "lab8b_curriculum_db.py"
-RUN_DIR = ROOT / "runs" / "IT" / "no_coop_dewm"
+# --tag N  -> runs/IT/no_coop_dewmN (รอบซ้ำ ไม่ทับรอบแรก); --control -> runs/IT/no_coop_ctrl (รอบควบคุม: โค้ดปัจจุบันเดียวกัน
+# แต่ปิดตัดตราน้ำและปิดอ่านซ้ำ — ไว้แยกผลของ dewm ออกจากผลของโค้ดที่แก้ไปแล้ว)
+_TAG = sys.argv[sys.argv.index("--tag") + 1] if "--tag" in sys.argv[:-1] else ""
+_CONTROL = "--control" in sys.argv
+RUN_DIR = ROOT / "runs" / "IT" / ("no_coop_ctrl" if _CONTROL else f"no_coop_dewm{_TAG}")
 SRC_INPUT = ROOT / "runs" / "IT" / "no_coop" / "data_input"   # ภาพชุดเดิม (สำเนาไปใช้ ไม่แก้ต้นฉบับ)
 LAB7_OUT = RUN_DIR / "lab7b_output"
 LAB8_OUT = RUN_DIR / "lab8b_output"
@@ -38,6 +42,8 @@ def run(*args: object) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-lab7", action="store_true")
+    parser.add_argument("--tag", default="", help="รอบซ้ำ เช่น --tag 2 -> runs/IT/no_coop_dewm2")
+    parser.add_argument("--control", action="store_true", help="รอบควบคุม: ปิดตัดตราน้ำและอ่านซ้ำ -> runs/IT/no_coop_ctrl")
     args = parser.parse_args()
 
     os.environ.update({
@@ -48,8 +54,8 @@ def main() -> None:
         "LAB7B_REQUEST_TIMEOUT": "7200",
         "LAB7B_OCR_NUM_CTX": "4096",
         "LAB7B_OCR_NUM_PREDICT": "1200",
-        "LAB7B_DEWATERMARK": "1",      # ตัดตราน้ำสีส้มก่อน OCR (ช่อง R) เฉพาะหน้าที่พบตราน้ำ
-        "LAB7B_OCR_RETRIES": "2",      # อ่านหน้าซ้ำได้ไม่เกิน 2 ครั้งเมื่อยอดรวมไม่ลงตัว
+        "LAB7B_DEWATERMARK": "0" if _CONTROL else "1",      # ตัดตราน้ำสีส้มก่อน OCR (ช่อง R) เฉพาะหน้าที่พบตราน้ำ
+        "LAB7B_OCR_RETRIES": "0" if _CONTROL else "2",      # อ่านหน้าซ้ำได้ไม่เกิน 2 ครั้งเมื่อยอดรวมไม่ลงตัว
     })
     if not (RUN_DIR / "data_input").exists():
         if not SRC_INPUT.exists():

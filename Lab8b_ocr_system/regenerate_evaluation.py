@@ -45,6 +45,10 @@ RUNS = {
     "bit_no_coop_dewm": (ROOT / "runs" / "BIT" / "no_coop_dewm" / "lab7b_output", GT_DIR / "bit_no_coop_scoped.json"),
     "bit_coop_dewm":    (ROOT / "runs" / "BIT" / "coop_dewm" / "lab7b_output",    GT_DIR / "bit_coop_scoped.json"),
     "it_no_coop_dewm":  (ROOT / "runs" / "IT" / "no_coop_dewm" / "lab7b_output",  GT_DIR / "it_no_coop_scoped.json"),
+    # รอบควบคุม/รอบซ้ำของ IT no-coop (run_lab8b_it_no_coop_dewm.py --control / --tag N)
+    "it_no_coop_ctrl":  (ROOT / "runs" / "IT" / "no_coop_ctrl" / "lab7b_output",  GT_DIR / "it_no_coop_scoped.json"),
+    "it_no_coop_dewm2": (ROOT / "runs" / "IT" / "no_coop_dewm2" / "lab7b_output", GT_DIR / "it_no_coop_scoped.json"),
+    "it_no_coop_dewm3": (ROOT / "runs" / "IT" / "no_coop_dewm3" / "lab7b_output", GT_DIR / "it_no_coop_scoped.json"),
     "it_coop_dewm":     (ROOT / "runs" / "IT" / "coop_dewm" / "lab7b_output",     GT_DIR / "it_coop_scoped.json"),
 }
 DEFAULT_RUNS = ["ait", "bit_no_coop", "bit_coop", "dsba_no_coop", "dsba_coop", "it_no_coop", "it_coop"]
