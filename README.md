@@ -483,6 +483,18 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --no-prepr
 5 ข้อของ checklist: เลือก metric ให้ตรงงาน, อ่านค่าออกว่าสูง/ต่ำแปลว่าอะไร, ตรวจสัญญาณ overfitting,
 รู้จัก metric ที่ไม่ได้ใช้ (+ เหตุผล), และรันสคริปต์ประเมินผลได้จริง
 
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+- ต้องมี `.venv` ที่ติดตั้ง `pythainlp` (`pip install -r requirements.txt` แล้วเพิ่ม `pip install pythainlp`) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
+- **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
+- ข้อมูลที่ใช้อยู่ใน branch นี้ครบ: `Lab8b_ocr_system/runs/` (7 แผน + รันซ้ำ 8 รันสำหรับวัดความเสถียร — ซิงก์กับ `Lab-8`),
+  `Lab9_evaluation/ground_truth_scoped/`, `Lab9_evaluation/gold_questions/`
+- ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab8b_ocr_system/archive/`, `work/`
+- ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
+  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+- สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
+- คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab8b_ocr_system/regenerate_evaluation.py`
+
 ### วิธีรัน
 
 ```bash
