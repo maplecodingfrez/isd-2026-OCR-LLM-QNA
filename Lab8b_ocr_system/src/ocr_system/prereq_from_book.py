@@ -177,3 +177,30 @@ def to_gt_string(res: dict) -> str | None:
         return None
     sep = " หรือ " if res["op"] == "or" else ", "
     return sep.join(res["requires"])
+
+
+def fill_prerequisite_field(courses: list[dict], lines: list[str]) -> dict:
+    """เติมฟิลด์ `prerequisite` ให้แต่ละวิชา (รหัส 8 หลัก) ใน `courses` ตามรูปแบบเฉลย — แก้ `courses` ในที่เดิม
+
+    ใช้หลัง Lab 7B สกัดแผนแล้ว (ใบงาน Lab 7B §3.4: prerequisite ที่ไม่มี = "ไม่มี") — อ่านจากข้อความ OCR ของภาคผนวกเท่านั้น
+    ไม่เรียก LLM ไม่ใช้เฉลย และ **ไม่เดา**: found → "A" / "A, B" / "A หรือ B"; none → "ไม่มี";
+    not_found / unreadable / รหัส wildcard → **ไม่ใส่ฟิลด์** (ไม่ทราบ ห้ามแทนด้วย "ไม่มี") และลบค่าเดิมที่ค้างอยู่ออก
+    รหัสที่อ้างถึงต้องอยู่ในรายการวิชาของแผนเดียวกันเท่านั้น (referential integrity — รหัสนอกแผนถูกทิ้ง)
+    คืนจำนวนต่อสถานะ: {"found", "none", "not_found", "unreadable", "skipped_non_code"}"""
+    codes = sorted({c["code"] for c in courses if re.fullmatch(r"\d{8}", str(c.get("code") or ""))})
+    res = extract_prerequisites(lines, codes, known_codes=codes)
+    counts = {"found": 0, "none": 0, "not_found": 0, "unreadable": 0, "skipped_non_code": 0}
+    for c in courses:
+        code = str(c.get("code") or "")
+        if code not in res:
+            c.pop("prerequisite", None)
+            counts["skipped_non_code"] += 1
+            continue
+        value = to_gt_string(res[code])
+        counts[res[code]["status"]] += 1
+        if value is None:
+            c.pop("prerequisite", None)
+        else:
+            c["prerequisite"] = value
+    return counts
+

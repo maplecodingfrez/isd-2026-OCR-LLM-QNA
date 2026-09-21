@@ -2,7 +2,7 @@
   "source_courses": 37,
   "converted_courses": 32,
   "plan_items": 32,
-  "prerequisites": 0,
+  "prerequisites": 5,
   "skipped_wildcards": 5,
   "skipped_flexible_plan_items": 0,
   "terms_recovered_from_markdown": [],

@@ -9,7 +9,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036101",
@@ -18,7 +19,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036118",
@@ -27,7 +29,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "96641001",
@@ -36,7 +39,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "96641003",
@@ -72,7 +76,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036109",
@@ -81,7 +86,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036119",
@@ -90,7 +96,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036125",
@@ -99,7 +106,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "96641002",
@@ -126,7 +134,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036104",
@@ -135,7 +144,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036105",
@@ -144,7 +154,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036117",
@@ -153,7 +164,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036120",
@@ -162,7 +174,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036122",
@@ -171,7 +184,8 @@
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036108",
@@ -180,7 +194,8 @@
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036111",
@@ -189,7 +204,8 @@
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036112",
@@ -198,7 +214,8 @@
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036113",
@@ -207,7 +224,8 @@
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036124",
@@ -216,7 +234,8 @@
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "9664xxxx",
@@ -234,7 +253,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036110",
@@ -243,7 +263,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036114",
@@ -252,7 +273,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "06036119 หรือ 06036122"
     },
     {
       "code": "06036121",
@@ -261,7 +283,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036123",
@@ -270,7 +293,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "9664xxxx",
@@ -288,7 +312,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036116",
@@ -297,7 +322,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036145",
@@ -306,7 +332,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "96643021",
@@ -324,7 +351,8 @@
       "year": 4,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06036146 96642033",
@@ -393,6 +421,14 @@
       "text": "qwen3:4b"
     },
     "dpi": 150,
-    "pages_per_chunk": 1
+    "pages_per_chunk": 1,
+    "prerequisite_from_book": {
+      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\bit\\bit_curriculum_ocr.txt",
+      "found": 1,
+      "none": 27,
+      "not_found": 5,
+      "unreadable": 1,
+      "skipped_non_code": 8
+    }
   }
 }

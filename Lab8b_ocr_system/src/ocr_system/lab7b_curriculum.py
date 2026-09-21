@@ -341,6 +341,10 @@ def extract_pdf_text(path: str, page_spec: str | None = None) -> str:
 #      ต้องเรียนก่อนกัน) ทั้งที่ prompt สอนไว้แล้วว่าห้าม จึงตัดฟิลด์นี้ออกจาก schema ไปเลย
 #      ดีกว่าพึ่งให้โมเดลเลือกไม่กรอกเอง — `convert_lab7b()` ฝั่ง Lab 8B อ่านฟิลด์นี้ด้วย .get()
 #      อยู่แล้ว จึงไม่พังเมื่อไม่มีฟิลด์นี้ (แค่ไม่เคย insert แถวเข้าตาราง prerequisite เลย)
+#      (อัปเดต 2026-09-21) ใบงาน §3.4 ให้ผลของ Lab 7B มีฟิลด์ prerequisite ("ไม่มี" ถ้าไม่มี) — จึงเติมฟิลด์นี้ **หลังโมเดล**
+#      ด้วยกฎเชิงกำหนดจากข้อความ OCR ของภาคผนวก (`--book-ocr` / `--fill-prerequisites`, apply_book_prerequisites +
+#      prereq_from_book.py; ไม่ใช้ LLM/เฉลย) โมเดลยังไม่เคยกรอกเอง (ยังทิ้งคีย์นี้ที่หลุดมาเหมือนเดิม) และ **ไม่เดา**:
+#      อ่านไม่เจอ/อ่านไม่ออก/รหัส wildcard = ไม่ใส่ฟิลด์ (ไม่ทราบ) ไม่ใช่ "ไม่มี"
 #
 #   3. `credits` เป็น string รูปแบบ "3(3-0-6)"
 #      แปลว่า 3 หน่วยกิต = บรรยาย 3 ชม. - ปฏิบัติ 0 ชม. - ศึกษาเอง 6 ชม.
@@ -1615,6 +1619,26 @@ def evaluate(pred: dict, gt: dict) -> tuple[dict, dict]:
 # ==============================================================================
 
 
+def apply_book_prerequisites(data: dict, book_ocr: str) -> dict | None:
+    """เติมฟิลด์ prerequisite จากข้อความ OCR ทั้งเล่ม (ภาคผนวก "คำอธิบายรายวิชา") ตามใบงาน §3.4 / §7.1 กฎ 5
+
+    โมเดลไม่เคยเป็นคนกรอกฟิลด์นี้ (ถูกทิ้งใน pipeline_vlm ตามหมายเหตุส่วนที่ 3) — ขั้นนี้เป็นกฎเชิงกำหนดล้วน
+    (prereq_from_book.py) ไม่เรียก LLM ไม่ใช้เฉลย ไม่เดา: อ่านไม่เจอ/อ่านไม่ออก = ไม่ใส่ฟิลด์ ไม่ใช่ "ไม่มี"
+    คืนจำนวนต่อสถานะ (หรือ None ถ้าไม่มีไฟล์)"""
+    path = Path(book_ocr)
+    if not path.exists():
+        print(f"  ⚠ ไม่พบข้อความ OCR ทั้งเล่ม {path} — ข้ามขั้นเติม prerequisite")
+        return None
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from prereq_from_book import fill_prerequisite_field
+    lines = path.read_text(encoding="utf-8").splitlines()
+    counts = fill_prerequisite_field(data.get("courses") or [], lines)
+    print(f"    เติม prerequisite จาก {path.name}: พบ {counts['found']} · ไม่มี {counts['none']} · "
+          f"หาไม่เจอ {counts['not_found']} · อ่านไม่ออก {counts['unreadable']} "
+          f"(ไม่ใส่ฟิลด์ = ไม่ทราบ ไม่ใช่ 'ไม่มี')")
+    return counts
+
+
 def run_pipeline(name: str, pages: list[bytes], outdir: Path,
                  pdf_path: str | None, page_spec: str | None) -> dict | None:
     print(f"\n{'─' * 70}")
@@ -1645,12 +1669,18 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
         print(f"  ⚠ {name} ไม่ได้ผลลัพธ์")
         return None
 
+    book_ocr = os.environ.get("LAB7_BOOK_OCR")
+    prereq_counts = (apply_book_prerequisites(data, book_ocr)
+                     if book_ocr and name in ("vlm", "markdown") else None)
+
     data["_meta"] = {
         "pipeline": name,
         "elapsed_sec": round(time.time() - t0, 1),
         "models": {"ocr": MODEL_OCR, "text": MODEL_TEXT},
         "dpi": DPI, "pages_per_chunk": PAGES_PER_CHUNK,
     }
+    if prereq_counts is not None:
+        data["_meta"]["prerequisite_from_book"] = {"source": book_ocr, **prereq_counts}
     path = outdir / f"pred_{name}.json"
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ บันทึก {path}  ({len(data['courses'])} วิชา, "
@@ -1669,10 +1699,35 @@ def main() -> None:
     ap.add_argument("--pages", help='เลือกเฉพาะบางหน้า เช่น "42-58" หรือ "3,7,10-12"')
     ap.add_argument("--check", action="store_true")
     ap.add_argument("--eval-only", metavar="PRED_JSON")
+    ap.add_argument("--book-ocr", metavar="TXT",
+                    help="ข้อความ OCR ทั้งเล่ม (outputs/<หลักสูตร>/*_curriculum_ocr.txt) — เติมฟิลด์ prerequisite "
+                         "ด้วยกฎเชิงกำหนด (ไม่ใช้ LLM/เฉลย ไม่เดา) หลังสกัด pipeline vlm/markdown")
+    ap.add_argument("--fill-prerequisites", metavar="PRED_JSON",
+                    help="เติม prerequisite ให้ไฟล์ผล (pred_*.json) ที่มีอยู่แล้ว โดยไม่ OCR ใหม่ (ต้องมี --book-ocr); "
+                         "เก็บสำเนาก่อนแก้เป็น <ไฟล์>.before_prereq.json")
     args = ap.parse_args()
 
     if args.check:
         sys.exit(0 if check_environment() else 1)
+
+    if args.book_ocr:
+        os.environ["LAB7_BOOK_OCR"] = args.book_ocr
+
+    if args.fill_prerequisites:
+        if not args.book_ocr:
+            raise SystemExit("❌ --fill-prerequisites ต้องระบุ --book-ocr ด้วย")
+        target = Path(args.fill_prerequisites)
+        pred = json.loads(target.read_text(encoding="utf-8"))
+        backup = target.with_name(target.stem + ".before_prereq.json")
+        if not backup.exists():           # ไม่ทับสำเนาต้นฉบับถ้ารันซ้ำ
+            backup.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
+        counts = apply_book_prerequisites(pred, args.book_ocr)
+        if counts is None:
+            raise SystemExit(1)
+        pred.setdefault("_meta", {})["prerequisite_from_book"] = {"source": args.book_ocr, **counts}
+        target.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"  ✓ เขียน {target} (สำเนาก่อนแก้: {backup.name})")
+        return
 
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)

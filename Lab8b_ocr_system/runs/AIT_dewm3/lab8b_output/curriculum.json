@@ -639,5 +639,36 @@
       "note": "หมวดวิชาเลือกเสรี | เลือก"
     }
   ],
-  "prerequisites": []
+  "prerequisites": [
+    {
+      "code": "06046401",
+      "requires": "06046400",
+      "kind": "pre"
+    },
+    {
+      "code": "06046405",
+      "requires": "06066001",
+      "kind": "pre"
+    },
+    {
+      "code": "06046406",
+      "requires": "06046401",
+      "kind": "pre"
+    },
+    {
+      "code": "06046406",
+      "requires": "06046402",
+      "kind": "pre"
+    },
+    {
+      "code": "90641005",
+      "requires": "90641004",
+      "kind": "pre"
+    },
+    {
+      "code": "90641006",
+      "requires": "90641005",
+      "kind": "pre"
+    }
+  ]
 }

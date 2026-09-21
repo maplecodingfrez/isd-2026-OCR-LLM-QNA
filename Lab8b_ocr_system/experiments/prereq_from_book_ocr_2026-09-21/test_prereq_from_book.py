@@ -83,5 +83,19 @@ PREREQUISITE : 06036113 A
 x = run(X, ["06036120"], KNOWN)["06036120"]
 check("ตัวอย่างส่วนที่ตรงกันทั้งสองภาษา + ติดธง th_en_partial", x["requires"] == ["06036113"] and x["note"] == "th_en_partial")
 
+print("fill_prerequisite_field (ฟิลด์ prerequisite ของ Lab 7B ตามใบงาน §3.4 — ห้ามเดา)")
+courses = [{"code": c} for c in ("06036114", "06036113", "06036115", "06036116", "06036119", "06036122", "06036xxx")]
+courses[3]["prerequisite"] = "ไม่มี"        # ค่าที่หลุดมา/เดามา ต้องถูกลบเมื่อไม่ทราบ
+counts = P.fill_prerequisite_field(courses, BOOK.strip("\n").split("\n"))
+by = {c["code"]: c.get("prerequisite", "<ไม่ใส่>") for c in courses}
+check("A หรือ B → \"A หรือ B\"", by["06036114"] == "06036119 หรือ 06036122")
+check("ไม่มีวิชาบังคับก่อน → \"ไม่มี\"", by["06036113"] == "ไม่มี")
+check("มีวิชาบังคับก่อน → รหัส", by["06036115"] == "06036113")
+check("ไม่มีช่องในเล่ม (not_found) → ไม่ใส่ฟิลด์ และลบค่าที่ค้างมา (ห้ามแทนด้วย \"ไม่มี\")", by["06036116"] == "<ไม่ใส่>")
+check("เล่มเขียน \"ไม่มี\" (06036119) → \"ไม่มี\"", by["06036119"] == "ไม่มี")
+check("รหัสที่อ่านมาเพี้ยน (06036122 → 06036999) → ไม่ใส่ฟิลด์ ไม่ใช่ \"ไม่มี\"", by["06036122"] == "<ไม่ใส่>")
+check("รหัส wildcard → ไม่ใส่ฟิลด์ (ไม่ใช่ \"ไม่มี\")", by["06036xxx"] == "<ไม่ใส่>")
+check("นับสถานะถูก", counts == {"found": 2, "none": 2, "not_found": 1, "unreadable": 1, "skipped_non_code": 1})
+
 print(f"\n{'ผ่านทั้งหมด' if not fails else 'ไม่ผ่าน ' + str(fails) + ' ข้อ'}")
 sys.exit(1 if fails else 0)

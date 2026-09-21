@@ -35,7 +35,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.6667,
     "answer_text_accuracy": 0.6667,
-    "avg_seconds": 2.05,
+    "avg_seconds": 2.04,
     "sql_ok_text_wrong": []
   },
   "bit_no_coop": {
@@ -73,7 +73,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.8667,
     "answer_text_accuracy": 0.8667,
-    "avg_seconds": 1.89,
+    "avg_seconds": 1.81,
     "sql_ok_text_wrong": []
   },
   "bit_coop": {
@@ -112,7 +112,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.8667,
     "answer_text_accuracy": 0.8667,
-    "avg_seconds": 1.7,
+    "avg_seconds": 1.41,
     "sql_ok_text_wrong": []
   },
   "dsba_no_coop": {
@@ -151,7 +151,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.8667,
-    "avg_seconds": 1.73,
+    "avg_seconds": 1.62,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
     ]
@@ -192,7 +192,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.83,
+    "avg_seconds": 1.73,
     "sql_ok_text_wrong": []
   },
   "it_no_coop": {
@@ -231,7 +231,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.8,
     "answer_text_accuracy": 0.8,
-    "avg_seconds": 1.63,
+    "avg_seconds": 1.5,
     "sql_ok_text_wrong": []
   },
   "it_coop": {
@@ -270,7 +270,7 @@
     "valid_sql_rate": 0.9667,
     "execution_accuracy": 0.7333,
     "answer_text_accuracy": 0.7333,
-    "avg_seconds": 1.39,
+    "avg_seconds": 1.3,
     "sql_ok_text_wrong": []
   },
   "dsba_coop_retry": {

@@ -230,38 +230,38 @@
       "prereq": {
         "label": "วิชาบังคับก่อน",
         "n_items": 38,
-        "cer": 1.0,
+        "cer": 0.21028,
         "wer": null,
-        "exact_match_acc": 0.0,
+        "exact_match_acc": 0.763158,
         "n_sub": 0,
-        "n_del": 208,
+        "n_del": 45,
         "n_ins": 0,
-        "n_missing": 38,
+        "n_missing": 9,
         "n_hallucinated": 0,
-        "n_ref_chars": 208,
+        "n_ref_chars": 214,
         "error_samples": [
           {
-            "key": "06046400",
+            "key": "90641004",
             "gt": "ไม่มี",
             "pred": "None"
           },
           {
-            "key": "06046402",
+            "key": "90641009",
             "gt": "ไม่มี",
             "pred": "None"
           },
           {
-            "key": "06066000",
+            "key": "90641010",
             "gt": "ไม่มี",
             "pred": "None"
           },
           {
-            "key": "06066001",
+            "key": "060464xx",
             "gt": "ไม่มี",
             "pred": "None"
           },
           {
-            "key": "06066303",
+            "key": "06046443 หรือ 06046444",
             "gt": "ไม่มี",
             "pred": "None"
           }
@@ -288,7 +288,7 @@
         ]
       }
     },
-    "overall_micro_cer": 0.424752,
+    "overall_micro_cer": 0.383836,
     "alignment": {
       "matched": 38,
       "missed": 2,

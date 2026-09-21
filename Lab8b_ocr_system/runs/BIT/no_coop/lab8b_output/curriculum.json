@@ -659,5 +659,16 @@
       "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
     }
   ],
-  "prerequisites": []
+  "prerequisites": [
+    {
+      "code": "06036114",
+      "requires": "06036119",
+      "kind": "pre"
+    },
+    {
+      "code": "06036114",
+      "requires": "06036122",
+      "kind": "pre"
+    }
+  ]
 }

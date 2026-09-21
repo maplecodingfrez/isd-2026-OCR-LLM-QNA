@@ -10,7 +10,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "CALCULUS 1"
+      "name_en": "CALCULUS 1",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046402",
@@ -20,7 +21,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "LINEAR ALGEBRA"
+      "name_en": "LINEAR ALGEBRA",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06066000",
@@ -30,7 +32,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "DISCRETE MATHEMATICS"
+      "name_en": "DISCRETE MATHEMATICS",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06066001",
@@ -40,7 +43,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "PROBABILITY AND STATISTICS"
+      "name_en": "PROBABILITY AND STATISTICS",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06066303",
@@ -50,7 +54,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"
+      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641008",
@@ -60,7 +65,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS"
+      "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046401",
@@ -70,7 +76,8 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "CALCULUS 2"
+      "name_en": "CALCULUS 2",
+      "prerequisite": "06046400"
     },
     {
       "code": "06046403",
@@ -80,7 +87,8 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "COMPUTER PROGRAMMING"
+      "name_en": "COMPUTER PROGRAMMING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06066301",
@@ -90,7 +98,8 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "DATA STRUCTURES AND ALGORITHMS"
+      "name_en": "DATA STRUCTURES AND ALGORITHMS",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046404",
@@ -100,7 +109,8 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "FUNDAMENTAL OF EMBEDDED SYSTEM"
+      "name_en": "FUNDAMENTAL OF EMBEDDED SYSTEM",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641007",
@@ -110,7 +120,8 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "DIGITAL CITIZEN"
+      "name_en": "DIGITAL CITIZEN",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641004 9064xxxx",
@@ -138,7 +149,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "DATABASE SYSTEM CONCEPTS"
+      "name_en": "DATABASE SYSTEM CONCEPTS",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046405",
@@ -148,7 +160,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "PROBABILISTIC MACHINE LEARNING"
+      "name_en": "PROBABILISTIC MACHINE LEARNING",
+      "prerequisite": "06066001"
     },
     {
       "code": "06046406",
@@ -158,7 +171,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "FUNDAMENTALS OF DEEP LEARNING"
+      "name_en": "FUNDAMENTALS OF DEEP LEARNING",
+      "prerequisite": "06046401, 06046402"
     },
     {
       "code": "06046409",
@@ -168,7 +182,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "INTRODUCTION TO COMPUTER VISION"
+      "name_en": "INTRODUCTION TO COMPUTER VISION",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046413",
@@ -178,7 +193,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"
+      "name_en": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641009",
@@ -198,7 +214,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "FUNDAMENTALS OF DATA SCIENCE"
+      "name_en": "FUNDAMENTALS OF DATA SCIENCE",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046408",
@@ -208,7 +225,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "DATA VISUALIZATION"
+      "name_en": "DATA VISUALIZATION",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046410",
@@ -218,7 +236,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
+      "name_en": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046412",
@@ -228,7 +247,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "NEURAL NETWORK OPTIMIZATION"
+      "name_en": "NEURAL NETWORK OPTIMIZATION",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046411",
@@ -238,7 +258,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "NETWORK ANALYSIS AND OPTIMIZATION"
+      "name_en": "NETWORK ANALYSIS AND OPTIMIZATION",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641010",
@@ -268,7 +289,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SIGNAL PROCESSING"
+      "name_en": "SIGNAL PROCESSING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "06046414",
@@ -278,7 +300,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING"
+      "name_en": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90642012",
@@ -288,7 +311,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "DESIGN THINKING"
+      "name_en": "DESIGN THINKING",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "060464xx",
@@ -308,7 +332,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE"
+      "name_en": "SEMINAR IN ARTIFICIAL INTELLIGENCE",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "060464xx",
@@ -330,7 +355,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1"
+      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "90641006",
@@ -341,7 +367,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "name_en": "TEAM-PROJECT 3"
+      "name_en": "TEAM-PROJECT 3",
+      "prerequisite": "90641005"
     },
     {
       "code": "xxxxxxxxxxx",
@@ -361,7 +388,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2"
+      "name_en": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2",
+      "prerequisite": "ไม่มี"
     },
     {
       "code": "9064xxxx",
@@ -421,6 +449,14 @@
       "text": "qwen3:4b"
     },
     "dpi": 150,
-    "pages_per_chunk": 1
+    "pages_per_chunk": 1,
+    "prerequisite_from_book": {
+      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\ait\\ait_curriculum_ocr.txt",
+      "found": 4,
+      "none": 24,
+      "not_found": 0,
+      "unreadable": 3,
+      "skipped_non_code": 10
+    }
   }
 }

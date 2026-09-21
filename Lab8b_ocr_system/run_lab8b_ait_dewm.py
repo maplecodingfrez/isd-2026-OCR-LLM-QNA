@@ -78,6 +78,12 @@ def main() -> None:
     if prediction is None:
         raise SystemExit(f"ไม่พบ pred_vlm.json หรือ pred_markdown.json ใน {LAB7_OUT}")
 
+    # ใบงาน Lab 7B §3.4: ฟิลด์ prerequisite ต้องอยู่ในผลของ Lab 7B — เติมจากข้อความ OCR ทั้งเล่มด้วยกฎเชิงกำหนด
+    # (ไม่ใช้ LLM/เฉลย ไม่เดา: อ่านไม่เจอ = ไม่ใส่ฟิลด์) ทำซ้ำได้ผลเท่าเดิม เก็บสำเนาต้นฉบับ *.before_prereq.json ครั้งแรก
+    book_ocr_txt = ROOT.parent / "outputs" / "ait" / "ait_curriculum_ocr.txt"
+    if book_ocr_txt.exists():
+        run(LAB7, "--fill-prerequisites", prediction, "--book-ocr", book_ocr_txt)
+
     run(LAB8, "schema", "-o", LAB8_OUT / "schema")
     run(LAB8, "import-lab7b", "-i", prediction,
         "-o", LAB8_OUT / "curriculum.json",

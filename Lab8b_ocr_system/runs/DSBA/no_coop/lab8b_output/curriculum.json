@@ -623,5 +623,31 @@
       "note": "หมวดวิชาเฉพาะ | บังคับ"
     }
   ],
-  "prerequisites": []
+  "prerequisites": [
+    {
+      "code": "06026201",
+      "requires": "06026200",
+      "kind": "pre"
+    },
+    {
+      "code": "06066102",
+      "requires": "06066101",
+      "kind": "pre"
+    },
+    {
+      "code": "06026212",
+      "requires": "06066300",
+      "kind": "pre"
+    },
+    {
+      "code": "06026213",
+      "requires": "06066300",
+      "kind": "pre"
+    },
+    {
+      "code": "06026215",
+      "requires": "06026214",
+      "kind": "pre"
+    }
+  ]
 }
