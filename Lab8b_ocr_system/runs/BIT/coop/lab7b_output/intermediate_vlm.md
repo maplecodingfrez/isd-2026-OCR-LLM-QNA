@@ -5,13 +5,13 @@
 
 ปีที่ 1 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036100</td><td>พื้นฐานทางด้านเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY FUNDAMENTALS</td><td>3(2-2-5)</td></tr><tr><td>06036101</td><td>คณิตศาสตร์สำหรับธุรกิจ<br/>MATHEMATICS FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036118</td><td>การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ<br/>PROBLEM SOLVING IN INFORMATION TECHNOLOGY</td><td>3(2-2-5)</td></tr><tr><td>96641001</td><td>โรงเรียนสร้างเสน่ห์<br/>CHARM SCHOOL</td><td>2(1-2-3)</td></tr><tr><td>96641003</td><td>กีฬาและนันทนาการ<br/>SPORTS AND RECREATIONAL ACTIVITIES</td><td>1(0-3-2)</td></tr><tr><td>96644007</td><td>ภาษาอังกฤษพื้นฐาน 1<br/>FOUNDATION ENGLISH 1</td><td>3(3-0-6)</td></tr><tr><td>96644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>การสื่อสารและการนำเสนออย่างมืออาชีพ<br/>PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036100</td><td>พื้นฐานทางด้านเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY FUNDAMENTALS</td><td>3(2-2-5)</td></tr><tr><td>06036101</td><td>คณิตศาสตร์สำหรับธุรกิจ<br/>MATHEMATICS FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036118</td><td>การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ<br/>PROBLEM SOLVING IN INFORMATION TECHNOLOGY</td><td>3(2-2-5)</td></tr><tr><td>96641001</td><td>โรงเรียนสร้างเสน่ห์<br/>CHARM SCHOOL</td><td>2(1-2-3)</td></tr><tr><td>96641003</td><td>กีฬาและนันทนาการ<br/>SPORTS AND RECREATIONAL ACTIVITIES</td><td>1(0-3-2)</td></tr><tr><td>96644007</td><td>ภาษาอังกฤษพื้นฐาน 1<br/>FOUNDATION ENGLISH 1</td><td>3(3-0-6)</td></tr><tr><td>96644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>การสื่อสารและการนำเสนอออยางมืออาชีพ<br/>PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
 
 <figure>
-ตราประทับวงกลมสีแดง มีรูปครุฑอยู่ตรงกลาง ด้านบนของวงกลมมีข้อความภาษาไทยว่า "มหาวิทยาลัยราชภัฏนครปฐม" และด้านล่างมีข้อความภาษาอังกฤษว่า "KING MONGKOL UNIVERSITY"
+ตราประทับวงกลมสีแดง มีรูปครุฑอยู่ตรงกลาง และมีข้อความภาษาไทย "วท.บ." ปรากฏอยู่ด้านบนของวงกลม
 </figure>
 
 ---
@@ -25,7 +25,7 @@
 
 ปีที่ 2 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036103</td><td>บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036104</td><td>องค์กรและการจัดการ MANAGEMENT AND ORGANIZATIONS</td><td>3(3-0-6)</td></tr><tr><td>06036105</td><td>บัญชีการเงินสำหรับผู้มิใช่นักบัญชี FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS</td><td>3(3-0-6)</td></tr><tr><td>06036117</td><td>อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ BUSINESS INTELLIGENCE AND BIG DATA</td><td>3(3-0-6)</td></tr><tr><td>06036120</td><td>หลักการโครงสร้างข้อมูลและอัลกอริทึม DATA STRUCTURES AND ALGORITHMS PRINCIPLES</td><td>3(3-0-6)</td></tr><tr><td>06036122</td><td>การสื่อสารด้วยภาพสำหรับธุรกิจ VISUAL COMMUNICATION FOR BUSINESS</td><td>3(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036103</td><td>บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036104</td><td>องค์กรและการจัดการ MANAGEMENT AND ORGANIZATIONS</td><td>3(3-0-6)</td></tr><tr><td>06036105</td><td>บัญชีการเงินสำหรับผู้มิใช่นักบัญชี FINANCIAL ACCOUNTING FOR NON-AccountANTS</td><td>3(3-0-6)</td></tr><tr><td>06036117</td><td>อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ BUSINESS INTELLIGENCE AND BIG DATA</td><td>3(3-0-6)</td></tr><tr><td>06036120</td><td>หลักการโครงสร้างข้อมูลและอัลกอริทึม DATA STRUCTURES AND ALGORITHMS PRINCIPLES</td><td>3(3-0-6)</td></tr><tr><td>06036122</td><td>การสื่อสารด้วยภาพสำหรับธุรกิจ VISUAL COMMUNICATION FOR BUSINESS</td><td>3(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -53,7 +53,7 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 2
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036106</td><td>การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES</td><td>3(3-0-6)</td></tr><tr><td>06036116</td><td>การตลาดเชิงดิจิทัล DIGITAL MARKETING</td><td>3(2-2-5)</td></tr><tr><td rowspan="4">96643021<br/>06036xxx</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">3(2-2-5)<br/>หรือ</td></tr><tr><td></td></tr><tr><td>xXXXXXXXXxx</td><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>15</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036106</td><td>การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES</td><td>3(3-0-6)</td></tr><tr><td>06036116</td><td>การตลาดเชิงดิจิทัล DIGITAL MARKETING</td><td>3(2-2-5)</td></tr><tr><td rowspan="4">96643021<br/>06036xxx</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">3(2-2-5)<br/>หรือ</td></tr><tr><td></td></tr><tr><td>xXXXXxx</td><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>15</td></tr></table>
 
 มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
 
@@ -78,3 +78,7 @@
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
+
+<figure>
+ภาพตราประทับวงกลมสีแดง มีข้อความภาษาไทย "สถาบันเทคโนโลยีราชมงคล" และภาษาอังกฤษ "KING MONGKOL UNIVERSITY OF TECHNOLOGY" ล้อมรอบรูปพระเกี้ยวอยู่ตรงกลาง
+</figure>

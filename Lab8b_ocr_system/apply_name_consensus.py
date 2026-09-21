@@ -32,6 +32,15 @@ for ch in res["changes"]:
 for u in res["unresolved"]:
     print(f"  ตัดสินไม่ได้ {u['code']}: {u['reason']} {u['candidates']}")
 
+# --only-main: ใช้ทุกรันเป็น "ผู้โหวต" เหมือนเดิม แต่ เขียนแก้เฉพาะ 7 แผนหลัก (งานส่ง) — รอบทดลอง (retry / dewm / ctrl)
+# เป็นหลักฐานของการทดลอง ไม่ควรถูกแก้ชื่อย้อนหลัง (ไม่งั้นเทียบผลรอบทดลองกับรอบหลักไม่ได้)
+MAIN_RUNS = {"AIT", "BIT/no_coop", "BIT/coop", "DSBA/no_coop", "DSBA/coop", "IT/no_coop", "IT/coop"}
+ONLY_MAIN = "--only-main" in sys.argv
+if ONLY_MAIN:
+    kept = [ch for ch in res["changes"] if ch["run"] in MAIN_RUNS]
+    print(f"--only-main: เขียนแก้เฉพาะ {len(kept)} จุดใน 7 แผนหลัก (ข้าม {len(res['changes']) - len(kept)} จุดในรอบทดลอง)")
+    res = {**res, "changes": kept}
+
 if APPLY and res["changes"]:
     per_run = defaultdict(dict)
     for ch in res["changes"]:

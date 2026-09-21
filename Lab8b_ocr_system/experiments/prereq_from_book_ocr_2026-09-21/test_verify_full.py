@@ -67,6 +67,20 @@ check("CHK1F (นับช่อง = 30) ผ่าน", full["CHK1F"] is True)
 check("CHK7F ผ่าน (15 และ 15 หน่วยกิตอยู่ระหว่าง 9-22)", full["CHK7F"] is True)
 check("verify_db ยังคืน 7 ข้อเดิม ไม่มี CHK1F/CHK7F ปนเข้ามา", not any(r["id"].endswith("F") for r in D.verify_db(c)))
 
+print("แยกสาเหตุ (ก)/(ข) ของ CHK1F/CHK7F")
+cause = {r["id"]: r["cause"] for r in D.verify_full_db(c)}
+check("CHK1F: ผลรวมตรงเล่ม → (ก)=0, (ข)=30-33=-3 (plan_item นับเกินเพราะสมาชิกกลุ่ม/ขาด wildcard), gap=-3",
+      cause["CHK1F"] == {"gap_vs_declared": -3, "b_book_as_written": -3, "a_extraction": 0})
+c_gap = scenario(36)                     # ประกาศ 36 แต่นับตามเล่ม 30 → ขาด 6 หน่วยกิตที่อธิบายด้วยช่องไม่ได้ = (ก)
+cg = {r["id"]: r["cause"] for r in D.verify_full_db(c_gap)}
+check("CHK1F: ประกาศ 36 นับได้ 30 → (ก)=+6 (ขาดจากการสกัด)", cg["CHK1F"]["a_extraction"] == 6 and cg["CHK1F"]["b_book_as_written"] == -3)
+c_low = make(30)                          # ภาค 1/1 มีวิชาปกติ 2 วิชา (6) ไม่ใช่บล็อก → ต่ำกว่า 9; มี wildcard 3 นับแล้วเป็น 9 → ผ่านเมื่อนับช่อง
+add_course(c_low, "70000001"); add_course(c_low, "70000002")
+add_slot(c_low, "wildcard", 3, code="0000xxxx")
+cl = {r["id"]: r for r in D.verify_full_db(c_low)}
+check("CHK7F: ตกตอนนับ plan_item (6) แต่ผ่านเมื่อนับช่อง (9) → เป็นสาเหตุ (ข) ไม่ใช่ (ก)",
+      cl["CHK7F"]["ok"] is True and len(cl["CHK7F"]["cause"]["b_book_as_written"]) == 1 and cl["CHK7F"]["cause"]["a_extraction"] == [])
+
 print("ผลรวมไม่ตรงเล่ม (ประกาศ 33 แต่นับตามเล่มได้ 30)")
 full2 = {r["id"]: r for r in D.verify_full_db(scenario(33))}
 check("CHK1F ไม่ผ่านเมื่อ 30 != 33 และ detail บอกทั้งสองตัวเลข", full2["CHK1F"]["ok"] is False and "30" in full2["CHK1F"]["detail"] and "33" in full2["CHK1F"]["detail"])

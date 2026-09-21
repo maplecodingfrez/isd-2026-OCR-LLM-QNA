@@ -9,8 +9,8 @@
         "wer": null,
         "exact_match_acc": 0.85,
         "n_sub": 0,
-        "n_del": 53,
-        "n_ins": 0,
+        "n_del": 52,
+        "n_ins": 1,
         "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 332,
@@ -18,7 +18,7 @@
           {
             "key": "xxxxxxxx",
             "gt": "xxxxxxxx",
-            "pred": "xxxxxxx"
+            "pred": "xxxxxxxxx"
           },
           {
             "key": "90641008 [ตกแถว]",
@@ -85,40 +85,40 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 40,
-        "cer": 1.0,
-        "wer": 1.0,
-        "exact_match_acc": 0.0,
+        "cer": 0.185056,
+        "wer": 0.179487,
+        "exact_match_acc": 0.85,
         "n_sub": 0,
-        "n_del": 1151,
+        "n_del": 213,
         "n_ins": 0,
-        "n_missing": 40,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 1151,
         "error_samples": [
           {
-            "key": "06046400",
-            "gt": "CALCULUS 1",
-            "pred": "None"
+            "key": "06046413",
+            "gt": "ARTIFICIAL INTELLIGIENCE AND INTERNET OF THING",
+            "pred": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"
           },
           {
-            "key": "06046402",
-            "gt": "LINEAR ALGEBRA",
-            "pred": "None"
+            "key": "90641008 [ตกแถว]",
+            "gt": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+            "pred": ""
           },
           {
-            "key": "06066000",
-            "gt": "DISCRETE MATHEMATICS",
-            "pred": "None"
+            "key": "90641004 [ตกแถว]",
+            "gt": "TEAM-PROJECT 1",
+            "pred": ""
           },
           {
-            "key": "06066001",
-            "gt": "PROBABILITY AND STATISTICS",
-            "pred": "None"
+            "key": "xxxxxxxx [ตกแถว]",
+            "gt": "FREE ELECTIVE COURSE 1",
+            "pred": ""
           },
           {
-            "key": "06066303",
-            "gt": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
-            "pred": "None"
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "GENERAL EDUCATION COURSES",
+            "pred": ""
           }
         ]
       },
@@ -205,12 +205,12 @@
       "category": {
         "label": "หมวดวิชา",
         "n_items": 40,
-        "cer": 0.539384,
+        "cer": 0.488014,
         "wer": null,
-        "exact_match_acc": 0.275,
-        "n_sub": 92,
-        "n_del": 94,
-        "n_ins": 129,
+        "exact_match_acc": 0.35,
+        "n_sub": 80,
+        "n_del": 106,
+        "n_ins": 99,
         "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 584,
@@ -327,17 +327,23 @@
         "n_items": 31,
         "cer": 0.0,
         "wer": null,
-        "exact_match_acc": 1.0,
+        "exact_match_acc": 0.967742,
         "n_sub": 0,
         "n_del": 0,
-        "n_ins": 0,
+        "n_ins": 11,
         "n_missing": 0,
-        "n_hallucinated": 0,
+        "n_hallucinated": 1,
         "n_ref_chars": 0,
-        "error_samples": []
+        "error_samples": [
+          {
+            "key": "060464xx",
+            "gt": "None",
+            "pred": "3/1, 3/2, 4/1"
+          }
+        ]
       }
     },
-    "overall_micro_cer": 0.450757,
+    "overall_micro_cer": 0.213347,
     "alignment": {
       "matched": 35,
       "missed": 5,
@@ -422,13 +428,13 @@
           "confusion_matrix": {
             "<ไม่ได้ทำนาย>": {},
             "หมวดวิชาศึกษาทั่วไป": {
-              "หมวดวิชาศึกษาทั่วไป": 6,
-              "หมวดวิชาเฉพาะ": 2,
+              "หมวดวิชาศึกษาทั่วไป": 4,
+              "หมวดวิชาเฉพาะ": 4,
               "<ไม่ได้ทำนาย>": 3
             },
             "หมวดวิชาเฉพาะ": {
-              "หมวดวิชาศึกษาทั่วไป": 20,
-              "หมวดวิชาเฉพาะ": 5,
+              "หมวดวิชาศึกษาทั่วไป": 15,
+              "หมวดวิชาเฉพาะ": 10,
               "หมวดวิชาเลือกเสรี": 1,
               "<ไม่ได้ทำนาย>": 1
             },
@@ -450,21 +456,21 @@
             },
             "หมวดวิชาศึกษาทั่วไป": {
               "support": 11,
-              "tp": 6,
-              "fp": 20,
-              "fn": 5,
-              "precision": 0.2308,
-              "recall": 0.5455,
-              "f1": 0.3243
+              "tp": 4,
+              "fp": 15,
+              "fn": 7,
+              "precision": 0.2105,
+              "recall": 0.3636,
+              "f1": 0.2667
             },
             "หมวดวิชาเฉพาะ": {
               "support": 27,
-              "tp": 5,
-              "fp": 2,
-              "fn": 22,
+              "tp": 10,
+              "fp": 4,
+              "fn": 17,
               "precision": 0.7143,
-              "recall": 0.1852,
-              "f1": 0.2941
+              "recall": 0.3704,
+              "f1": 0.4878
             },
             "หมวดวิชาเลือกเสรี": {
               "support": 0,
@@ -485,8 +491,8 @@
               "f1": 0.0
             }
           },
-          "accuracy": 0.275,
-          "macro_f1": 0.2061,
+          "accuracy": 0.35,
+          "macro_f1": 0.2515,
           "n": 40
         }
       },
@@ -510,11 +516,12 @@
         "หน่วยกิตผิดรูปแบบ: 9064xxxx -> '3 (x-x-x)'",
         "9064xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "060464xx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "060464xx: ระบุปีชัดเจนแล้ว ไม่ควรมี flexible_year_semester",
         "หน่วยกิตผิดรูปแบบ: 90644xxx -> '3 (x-x-x)'",
         "90644xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
-        "รหัสวิชาผิดรูปแบบ: 'xxxxxxx'",
-        "หน่วยกิตผิดรูปแบบ: xxxxxxx -> '3 (x-x-x)'",
-        "xxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester"
+        "รหัสวิชาผิดรูปแบบ: 'xxxxxxxxx'",
+        "หน่วยกิตผิดรูปแบบ: xxxxxxxxx -> '3 (x-x-x)'",
+        "xxxxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester"
       ]
     }
   }

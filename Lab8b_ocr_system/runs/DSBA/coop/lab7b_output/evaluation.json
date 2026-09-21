@@ -5,12 +5,12 @@
       "code": {
         "label": "รหัสวิชา",
         "n_items": 44,
-        "cer": 0.016484,
+        "cer": 0.008242,
         "wer": null,
         "exact_match_acc": 0.931818,
         "n_sub": 0,
-        "n_del": 1,
-        "n_ins": 5,
+        "n_del": 3,
+        "n_ins": 0,
         "n_missing": 0,
         "n_hallucinated": 0,
         "n_ref_chars": 364,
@@ -23,12 +23,12 @@
           {
             "key": "xxxxxxxx",
             "gt": "xxxxxxxx",
-            "pred": "xxxxxxxxxxx"
+            "pred": "xxxxxxx"
           },
           {
             "key": "xxxxxxxx",
             "gt": "xxxxxxxx",
-            "pred": "xxxxxxxxxx"
+            "pred": "xxxxxxx"
           }
         ]
       },
@@ -75,51 +75,51 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 44,
-        "cer": 1.0,
-        "wer": 1.0,
-        "exact_match_acc": 0.0,
-        "n_sub": 0,
-        "n_del": 1376,
+        "cer": 0.28343,
+        "wer": 0.338028,
+        "exact_match_acc": 0.818182,
+        "n_sub": 4,
+        "n_del": 386,
         "n_ins": 0,
-        "n_missing": 44,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 1376,
         "error_samples": [
           {
-            "key": "06026200",
-            "gt": "CALCULUS 1",
+            "key": "06026259 หรือ 06026260",
+            "gt": "COOPERATIVE EDUCATION IN DATA\nSCIENCE AND BUSINESS ANALYTICS\nOVERSEA COOPERATIVE EDUCATION IN DATA\nSCIENCE AND BUSINESS ANALYTICS",
+            "pred": "OVERSEA COOPERERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+          },
+          {
+            "key": "06026xxx",
+            "gt": "ELECTIVE IN DATA SCIENCE\nELECTIVE IN STATISTICAL ANALYSIS 1\nELECTIVE IN DATA ENGINEERING 1",
+            "pred": "ELECTIVE IN DATA SCIENCE"
+          },
+          {
+            "key": "06026xxx",
+            "gt": "ELECTIVE IN DATA SCIENCE 2\nELECTIVE IN STATISTICAL ANALYTICS 2\nELECTIVE IN DATA ENGINEERING 2",
             "pred": "None"
           },
           {
-            "key": "06026202",
-            "gt": "LINEAR ALGEBRA",
+            "key": "9064xxxx",
+            "gt": "ELECTIVE IN GENERAL EDUCATION",
             "pred": "None"
           },
           {
-            "key": "06066101",
-            "gt": "BUSINESS FUNDAMENTALS FOR INFORMATION\nTECHNOLOGY",
-            "pred": "None"
-          },
-          {
-            "key": "06066303",
-            "gt": "PROBLEM SOLVING AND COMPUTER\nPROGRAMMING",
-            "pred": "None"
-          },
-          {
-            "key": "90641001",
-            "gt": "CHARM SCHOOL",
-            "pred": "None"
+            "key": "06026xxx",
+            "gt": "ELECTIVE IN DATA SCIENCE 3\nELECTIVE IN STATISTICAL ANALYTICS 3\nELECTIVE IN DATA ENGINEERING 3",
+            "pred": "ELECTIVE IN DATA SCIENCE 4"
           }
         ]
       },
       "credits": {
         "label": "หน่วยกิต",
         "n_items": 44,
-        "cer": 0.097614,
+        "cer": 0.045553,
         "wer": null,
-        "exact_match_acc": 0.863636,
+        "exact_match_acc": 0.931818,
         "n_sub": 0,
-        "n_del": 44,
+        "n_del": 20,
         "n_ins": 1,
         "n_missing": 0,
         "n_hallucinated": 0,
@@ -133,22 +133,12 @@
           {
             "key": "06026xxx",
             "gt": "3(3-0-6) หรือ 3(2-2-5)",
-            "pred": "3 (3-0-6) หรือ"
-          },
-          {
-            "key": "9064xxxx",
-            "gt": "3(3-0-6) หรือ 3(2-2-5)",
-            "pred": "3 (3-0-6) หรือ"
-          },
-          {
-            "key": "06026xxx",
-            "gt": "3(3-0-6) หรือ 3(2-2-5)",
-            "pred": "3 (3-0-6) หรือ"
-          },
-          {
-            "key": "06026xxx",
-            "gt": "3(3-0-6) หรือ 3(2-2-5)",
             "pred": "3 (2-2-5)"
+          },
+          {
+            "key": "xxxxxxxx",
+            "gt": "3(3-0-6) หรือ 3(2-2-5)",
+            "pred": "3 (3-0-6) หรือ 3 (2-2-5))"
           }
         ]
       },
@@ -169,11 +159,11 @@
       "category": {
         "label": "หมวดวิชา",
         "n_items": 44,
-        "cer": 0.239938,
+        "cer": 0.241486,
         "wer": null,
         "exact_match_acc": 0.636364,
-        "n_sub": 69,
-        "n_del": 20,
+        "n_sub": 74,
+        "n_del": 16,
         "n_ins": 66,
         "n_missing": 0,
         "n_hallucinated": 0,
@@ -209,31 +199,16 @@
       "ctype": {
         "label": "บังคับ/เลือก",
         "n_items": 44,
-        "cer": 0.188235,
+        "cer": 0.117647,
         "wer": null,
-        "exact_match_acc": 0.818182,
-        "n_sub": 40,
-        "n_del": 8,
+        "exact_match_acc": 0.886364,
+        "n_sub": 25,
+        "n_del": 5,
         "n_ins": 0,
         "n_missing": 0,
         "n_hallucinated": 0,
         "n_ref_chars": 255,
         "error_samples": [
-          {
-            "key": "06026211",
-            "gt": "บังคับ",
-            "pred": "เลือก"
-          },
-          {
-            "key": "06026212",
-            "gt": "บังคับ",
-            "pred": "เลือก"
-          },
-          {
-            "key": "90644042",
-            "gt": "บังคับ",
-            "pred": "เลือก"
-          },
           {
             "key": "06026213",
             "gt": "บังคับ",
@@ -241,6 +216,21 @@
           },
           {
             "key": "06026214",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "06066100",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "90643021",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "06026259 หรือ 06026260",
             "gt": "บังคับ",
             "pred": "เลือก"
           }
@@ -301,16 +291,16 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.41428,
+    "overall_micro_cer": 0.20356,
     "alignment": {
       "matched": 44,
       "missed": 0,
-      "spurious": 21,
-      "precision": 0.6769,
+      "spurious": 18,
+      "precision": 0.7097,
       "recall": 1.0,
-      "f1": 0.8073,
+      "f1": 0.8302,
       "gt_total": 44,
-      "pred_total": 65,
+      "pred_total": 62,
       "missed_codes": [],
       "spurious_codes": [
         "06026243",
@@ -330,8 +320,6 @@
         "06026xxx",
         "06026xxx",
         "06026xxx",
-        "06026xxx",
-        "06026xxx",
         "06026xxx"
       ],
       "classification": {
@@ -342,8 +330,8 @@
           ],
           "confusion_matrix": {
             "บังคับ": {
-              "บังคับ": 27,
-              "เลือก": 8
+              "บังคับ": 30,
+              "เลือก": 5
             },
             "เลือก": {
               "เลือก": 9
@@ -352,27 +340,27 @@
           "per_class": {
             "บังคับ": {
               "support": 35,
-              "tp": 27,
+              "tp": 30,
               "fp": 0,
-              "fn": 8,
+              "fn": 5,
               "precision": 1.0,
-              "recall": 0.7714,
-              "f1": 0.871
+              "recall": 0.8571,
+              "f1": 0.9231
             },
             "เลือก": {
               "support": 9,
               "tp": 9,
-              "fp": 8,
+              "fp": 5,
               "fn": 0,
-              "precision": 0.5294,
+              "precision": 0.6429,
               "recall": 1.0,
-              "f1": 0.6923
+              "f1": 0.7826
             }
           },
-          "accuracy": 0.8182,
-          "macro_f1": 0.7816,
+          "accuracy": 0.8864,
+          "macro_f1": 0.8528,
           "n": 44,
-          "mcc": 0.6391,
+          "mcc": 0.7423,
           "positive_class": "บังคับ"
         },
         "category": {
@@ -384,8 +372,8 @@
           "confusion_matrix": {
             "หมวดวิชาศึกษาทั่วไป": {
               "หมวดวิชาศึกษาทั่วไป": 7,
-              "หมวดวิชาเฉพาะ": 3,
-              "หมวดวิชาเลือกเสรี": 1
+              "หมวดวิชาเฉพาะ": 2,
+              "หมวดวิชาเลือกเสรี": 2
             },
             "หมวดวิชาเฉพาะ": {
               "หมวดวิชาศึกษาทั่วไป": 9,
@@ -409,68 +397,74 @@
             "หมวดวิชาเฉพาะ": {
               "support": 31,
               "tp": 19,
-              "fp": 3,
+              "fp": 2,
               "fn": 12,
-              "precision": 0.8636,
+              "precision": 0.9048,
               "recall": 0.6129,
-              "f1": 0.717
+              "f1": 0.7308
             },
             "หมวดวิชาเลือกเสรี": {
               "support": 2,
               "tp": 2,
-              "fp": 4,
+              "fp": 5,
               "fn": 0,
-              "precision": 0.3333,
+              "precision": 0.2857,
               "recall": 1.0,
-              "f1": 0.5
+              "f1": 0.4444
             }
           },
           "accuracy": 0.6364,
-          "macro_f1": 0.5785,
+          "macro_f1": 0.5646,
           "n": 44
         }
       },
       "strict": {
         "matched": 35,
         "missed": 9,
-        "spurious": 30,
-        "precision": 0.5385,
+        "spurious": 27,
+        "precision": 0.5645,
         "recall": 0.7955,
-        "f1": 0.6422
+        "f1": 0.6604
       },
       "wildcard_pass_matched": 9
     },
     "internal_check": {
       "ok": false,
-      "n_courses": 65,
+      "n_courses": 62,
       "n_duplicate_keys": 0,
       "credits_by_term": {},
       "total_credits_fixed_terms": 0,
       "issues": [
-        "หน่วยกิตผิดรูปแบบ: 06026244 -> '(2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026245 -> '(3-0-6)'",
-        "หน่วยกิตผิดรูปแบบ: 06026246 -> '(3-0-6)'",
-        "หน่วยกิตผิดรูปแบบ: 06026247 -> '(3-0-6)'",
-        "หน่วยกิตผิดรูปแบบ: 06026248 -> '(2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026249 -> '(2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026250 -> '(3-2-2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026243 -> '3(0-6)'",
+        "หน่วยกิตผิดรูปแบบ: 06026244 -> '3(0-6)'",
+        "หน่วยกิตผิดรูปแบบ: 06026245 -> '3(0-6)'",
+        "หน่วยกิตผิดรูปแบบ: 06026246 -> '3(0-6)'",
+        "หน่วยกิตผิดรูปแบบ: 06026247 -> '3(0-6)'",
+        "หน่วยกิตผิดรูปแบบ: 06026248 -> '3(2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026249 -> '3(2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026250 -> '(3-2-5)'",
         "หน่วยกิตผิดรูปแบบ: 06026251 -> '(3-0-6)'",
-        "หน่วยกิตผิดรูปแบบ: 06026252 -> '(3-2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026253 -> '(3-2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026254 -> '(3-2-2-5)'",
-        "หน่วยกิตผิดรูปแบบ: 06026255 -> '(3-2-2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026252 -> '(3-2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026253 -> '(3-2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026254 -> '(3-2-5)'",
+        "หน่วยกิตผิดรูปแบบ: 06026255 -> '(3-2-5)'",
         "หน่วยกิตผิดรูปแบบ: 06026256 -> '(3-0-6)'",
         "90644xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
-        "รหัสวิชาผิดรูปแบบ: '9064xxx'",
         "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "รหัสวิชาผิดรูปแบบ: '9064xxx'",
+        "9064xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "9064xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
-        "รหัสวิชาผิดรูปแบบ: 'xxxxxxxxxxx'",
-        "xxxxxxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
-        "รหัสวิชาผิดรูปแบบ: 'xxxxxxxxxx'",
-        "xxxxxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester"
+        "รหัสวิชาผิดรูปแบบ: 'xxxxxxx'",
+        "xxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "รหัสวิชาผิดรูปแบบ: 'xxxxxxx'",
+        "xxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester"
       ]
     }
   }

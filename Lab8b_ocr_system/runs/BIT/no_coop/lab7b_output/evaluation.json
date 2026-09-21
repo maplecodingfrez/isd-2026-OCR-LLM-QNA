@@ -5,12 +5,12 @@
       "code": {
         "label": "รหัสวิชา",
         "n_items": 43,
-        "cer": 0.063953,
+        "cer": 0.06686,
         "wer": null,
-        "exact_match_acc": 0.906977,
+        "exact_match_acc": 0.883721,
         "n_sub": 6,
         "n_del": 16,
-        "n_ins": 0,
+        "n_ins": 1,
         "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 344,
@@ -19,6 +19,11 @@
             "key": "96644XXX",
             "gt": "96644XXX",
             "pred": "9664xxxx"
+          },
+          {
+            "key": "9664xxxx",
+            "gt": "9664xxxx",
+            "pred": "9664xxxxx"
           },
           {
             "key": "xxxxxxxx",
@@ -65,40 +70,35 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 43,
-        "cer": 1.0,
-        "wer": 1.0,
-        "exact_match_acc": 0.0,
+        "cer": 0.104276,
+        "wer": 0.163934,
+        "exact_match_acc": 0.906977,
         "n_sub": 0,
-        "n_del": 1333,
+        "n_del": 139,
         "n_ins": 0,
-        "n_missing": 43,
+        "n_missing": 4,
         "n_hallucinated": 0,
         "n_ref_chars": 1333,
         "error_samples": [
           {
-            "key": "06036100",
-            "gt": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+            "key": "06036xxx",
+            "gt": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2\nOR\nCOURSE GROUP1-4",
             "pred": "None"
           },
           {
-            "key": "06036101",
-            "gt": "MATHEMATICS FOR BUSINESS",
+            "key": "xxxxxxxx",
+            "gt": "FREE ELECTIVE COURSE 1",
             "pred": "None"
           },
           {
-            "key": "06036118",
-            "gt": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
-            "pred": "None"
+            "key": "06036146 [ตกแถว]",
+            "gt": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
+            "pred": ""
           },
           {
-            "key": "96641001",
-            "gt": "CHARM SCHOOL",
-            "pred": "None"
-          },
-          {
-            "key": "96641003",
-            "gt": "SPORTS AND RECREATIONAL ACTIVITIES",
-            "pred": "None"
+            "key": "96642033 [ตกแถว]",
+            "gt": "LAW FOR NEW GENERATION",
+            "pred": ""
           }
         ]
       },
@@ -129,16 +129,16 @@
       },
       "year_sem": {
         "label": "ปี/ภาค",
-        "n_items": 40,
-        "cer": 0.05,
+        "n_items": 39,
+        "cer": 0.051282,
         "wer": null,
-        "exact_match_acc": 0.95,
+        "exact_match_acc": 0.948718,
         "n_sub": 0,
         "n_del": 6,
         "n_ins": 0,
         "n_missing": 2,
         "n_hallucinated": 0,
-        "n_ref_chars": 120,
+        "n_ref_chars": 117,
         "error_samples": [
           {
             "key": "06036146 [ตกแถว]",
@@ -264,10 +264,10 @@
       },
       "flexible": {
         "label": "ปี/ภาคยืดหยุ่น",
-        "n_items": 38,
+        "n_items": 37,
         "cer": 0.0,
         "wer": null,
-        "exact_match_acc": 0.921053,
+        "exact_match_acc": 0.918919,
         "n_sub": 0,
         "n_del": 0,
         "n_ins": 9,
@@ -293,7 +293,7 @@
         ]
       }
     },
-    "overall_micro_cer": 0.379025,
+    "overall_micro_cer": 0.11953,
     "alignment": {
       "matched": 41,
       "missed": 2,
@@ -432,14 +432,14 @@
         }
       },
       "strict": {
-        "matched": 38,
-        "missed": 5,
-        "spurious": 4,
-        "precision": 0.9048,
-        "recall": 0.8837,
-        "f1": 0.8941
+        "matched": 37,
+        "missed": 6,
+        "spurious": 5,
+        "precision": 0.881,
+        "recall": 0.8605,
+        "f1": 0.8706
       },
-      "wildcard_pass_matched": 3
+      "wildcard_pass_matched": 4
     },
     "internal_check": {
       "ok": false,
@@ -460,6 +460,7 @@
         "9664xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "9664xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "รหัสวิชาผิดรูปแบบ: '06036146 96642033'",
+        "รหัสวิชาผิดรูปแบบ: '9664xxxxx'",
         "06036xxx: ระบุปีชัดเจนแล้ว ไม่ควรมี flexible_year_semester",
         "06036xxx: ระบุปีชัดเจนแล้ว ไม่ควรมี flexible_year_semester",
         "06036xxx: ระบุปีชัดเจนแล้ว ไม่ควรมี flexible_year_semester",

@@ -4,40 +4,27 @@ ADVANCED DATABASE SYSTEMS
 
 06026244 การดูแลและบำรุงรักษาระบบฐานข้อมูล
 DATBASE SYSTEM MAINTENANCE AND ADMINISTRATION
-(2-2-5)
 
 06026245 ระบบฐานข้อมูลแบบกระจาย
-DISTRIBUTED DATABASE SYSTEMS
-(3-0-6)
+DISTRIBUTED DATBASE SYSTEMS
 
-06026246 หัวข้อพิเศษทางวิศวกรรมข้อมูล 1
+06026246 หัวข้อพิเศษทางวิศวกรรมข้อมูล 1 (3-0-6)
 SPECIAL TOPICS IN DATA ENGINEERING 1
-(3-0-6)
 
 06026247 หัวข้อพิเศษทางวิศวกรรมข้อมูล 2
 SPECIAL TOPICS IN DATA ENGINEERING 2
-(3-0-6)
 
-06026248 ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1
+06026248 ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1 (3-2-5)
 SPECIAL WORKSHOP IN DATA ENGINEERING 1
-(2-2-5)
 
 06026249 ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2
 SPECIAL WORKSHOP IN DATA ENGINEERING 2
-(2-2-5)
 
 # 4) กลุ่มวิชาการศึกษาทางเลือก
 
-6 หน่วยกิต
+<table><tr><td></td><td>6</td><td>หน่วยกิต</td></tr><tr><th colspan="3">สำหรับแผนการศึกษาที่ไม่เข้าร่วมโครงการสหกิจศึกษา<td></td></th></tr><tr><td>- กลุ่มวิชาเลือก</td><td>6</td><td>หน่วยกิต</td></tr><tr><td colspan="4">รหัสวิชา<br/>ชื่อวิชา หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026250</td><td>วิทยาการข้อมูลสำหรับธุรกิจ<br/>DATA SCIENCE FOR BUSINESS</td><td>(3-2-5)</td></tr><tr><td>06026251</td><td>บัญชีการเงิน<br/>FINANCIAL ACCOUNTING</td><td>(3-0-6)</td></tr><tr><td>06026252</td><td>การวิเคราะห์ด้านการเงิน<br/>FINANCIAL ANALYTICS</td><td>(3-2-5)</td></tr><tr><td>06026253</td><td>การวิเคราะห์ด้านการตลาด<br/>MARKETING ANALYTICS</td><td>(3-2-5)</td></tr><tr><td>06026254</td><td>เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น<br/>INTRODUCTION TO HEALTH ANALYTICS</td><td>(3-2-5)</td></tr><tr><td>06026255</td><td>การได้มาและการจัดการข้อมูลทางด้านคลินิก<br/>CLINICAL DATA ACQUISITION AND MANAGEMENT</td><td>(3-2-5)</td></tr><tr><td>06026256</td><td>การจัดการการปฏิบัติการ<br/>OPERATIONS MANAGEMENT</td><td>(3-0-6)</td></tr></table>
 
-สำหรับแผนการศึกษาที่ไม่เข้าร่วมโครงการสหกิจศึกษา
-
-## - กลุ่มวิชาเลือก
-6 หน่วยกิต
-
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026250</td><td>วิทยาการข้อมูลสำหรับธุรกิจ</td><td>(3-2-2-5)</td></tr><tr><td colspan="3">DATA SCIENCE FOR BUSINESS</td></tr><tr><td>06026251</td><td>บัญชีการเงิน</td><td>(3-0-6)</td></tr><tr><td colspan="3">FINANCIAL ACCOUNTING</td></tr><tr><td>06026252</td><td>การวิเคราะห์ด้านการเงิน</td><td>(3-2-2-5)</td></tr><tr><td colspan="3">FINANCIAL ANALYTICS</td></tr><tr><td>06026253</td><td>การวิเคราะห์ด้านการตลาด</td><td>(3-2-2-5)</td></tr><tr><td colspan="3">MARKETING ANALYTICS</td></tr><tr><td>06026254</td><td>เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น</td><td>(3-2-2-5)</td></tr><tr><td colspan="3">INTRODUCTION TO HEALTH ANALYTICS</td></tr><tr><td>06026255</td><td>การได้มาและการจัดการข้อมูลทางด้านคลินิก</td><td>(3-2-2-5)</td></tr><tr><td colspan="3">CLINICAL DATA ACQUISITION AND MANAGEMENT</td></tr><tr><td>06026256</td><td>การจัดการการปฏิบัติการ</td><td>(3-0-6)</td></tr><tr><td colspan="3">OPERATIONS MANAGEMENT</td></tr></table>
-
-วท.บ. (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.
 
 ---
@@ -72,7 +59,7 @@ SPECIAL WORKSHOP IN DATA ENGINEERING 2
 
 ปีที่ 2 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026206</td><td>การวิเคราะห์ข้อมูลและการโปรแกรม DATA ANALYTICS AND PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td>06066000</td><td>คณิตศาสตร์ไม่ต่อเนื่อง DISCRETE MATHEMATICS</td><td>3 (3-0-6)</td></tr><tr><td>06066300</td><td>แนวคิดระบบฐานข้อมูล DATABASE SYSTEM CONCEPTS</td><td>3 (2-2-5)</td></tr><tr><td>06066302</td><td>การเขียนโปรแกรมเว็บพื้นฐาน FUNDAMENTAL WEB PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td>06066304</td><td>การวิเคราะห์และออกแบบระบบสารสนเทศ INFORMATION SYSTEM ANALYSIS AND DESIGN</td><td>3 (3-0-6)</td></tr><tr><td>90644xxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร ELECTIVE IN LANGUAGE AND COMMUNICATION</td><td>3 (3-0-6) หรือ<br/>3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ=ศึกษาด้วยตนเอง)</td></tr><tr><td>06026206</td><td>การวิเคราะห์ข้อมูลและการโปรแกรม DATA ANALYTICS AND PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td>06066000</td><td>คณิตศาสตร์ไม่ต่อเนื่อง DISCRETE MATHEMATICS</td><td>3 (3-0-6)</td></tr><tr><td>06066300</td><td>แนวคิดระบบฐานข้อมูล DATABASE SYSTEM CONCEPTS</td><td>3 (2-2-5)</td></tr><tr><td>06066302</td><td>การเขียนโปรแกรมเว็บพื้นฐาน FUNDAMENTAL WEB PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td>06066304</td><td>การวิเคราะห์และออกแบบระบบสารสนเทศ INFORMATION SYSTEM ANALYSIS AND DESIGN</td><td>3 (3-0-6)</td></tr><tr><td>90644xxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร ELECTIVE IN LANGUAGE AND COMMUNICATION</td><td>3 (3-0-6) หรือ<br/>3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -96,7 +83,7 @@ SPECIAL WORKSHOP IN DATA ENGINEERING 2
 
 ปีที่ 3 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษอด้วยตนเอง)</td></tr><tr><td>06026211</td><td>การเรียนรู้ของเครื่องเชิงประยุกต์ APPLIED MACHINE LEARNING</td><td>3 (2-2-5)</td></tr><tr><td>06026212</td><td>การสร้างคลังข้อมูล DATA WAREHOUSING</td><td>3 (2-2-5)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 1 ELECTIVE IN DATA SCIENCE</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 ELECTIVE IN STATISTICAL ANALYSIS 1</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1 ELECTIVE IN DATA ENGINEERING 1</td><td></td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 2 ELECTIVE IN DATA SCIENCE 2</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 ELECTIVE IN STATISTICAL ANALYTICS 2</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2 ELECTIVE IN DATA ENGINEERING 2</td><td></td></tr><tr><td rowspan="4">9064xxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td>วิชาเลือกหมวดวิชาสังคมศาสตร์และมนุษยชน 2<br/>SOCIAL STUDIES 2</td><td>3 (2-2-5)</td></tr><tr><td rowspan="4">90644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* การสื่อสารและการนำเสนอด้วยมืออาชีพ PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3 (3-0-6)</td></tr><tr><td rowspan="2">การนำเสนอผลงานทางวิชาการ รายงานและเอกสารทางธุรกิจ ทักษะสื่อสารและการสื่อสารในบริบททางธุรกิจ</td><td>18 (3-0-6)</td></tr><tr><td>(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษอด้วยตนเอง)</td></tr><tr><td>06026211</td><td>การเรียนรู้ของเครื่องเชิงประยุกต์ APPLIED MACHINE LEARNING</td><td>3 (2-2-5)</td></tr><tr><td>06026212</td><td>การสร้างคลังข้อมูล DATA WAREHOUSING</td><td>3 (2-2-5)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 1 ELECTIVE IN DATA SCIENCE</td><td>3 (3-0-6)<br/>หรือ<br/>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 ELECTIVE IN STATISTICAL ANALYSIS 1</td><td rowspan="3"></td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1<br/>ELECTIVE IN DATA ENGINEERING 1</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 2 ELECTIVE IN DATA SCIENCE 2</td><td rowspan="2">3 (3-0-6)<br/>หรือ<br/>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 ELECTIVE IN STATISTICAL ANALYTICS 2</td><td rowspan="2"></td></tr><tr><td>9064xxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6)<br/>หรือ<br/>3 (2-2-5)</td></tr><tr><td rowspan="2">90644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* การสื่อสารและการนำเสนอย่างมืออาชีพ PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3 (3-0-6)</td></tr><tr><td colspan="2"></td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -108,7 +95,7 @@ SPECIAL WORKSHOP IN DATA ENGINEERING 2
 
 ปีที่ 3 ภาคการศึกษาที่ 2
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026213</td><td>ระบบข้อมูลมหัต<br/>BIG DATA SYSTEMS</td><td>3 (2-2-5)</td></tr><tr><td>06026214</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1<br/>PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1</td><td>3 (0-9-0)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล<br/>ELECTIVE IN DATA SCIENCE 3</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ<br/>ELECTIVE IN STATISTICAL ANALYTICS 3</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล<br/>ELECTIVE IN DATA ENGINEERING 3</td><td></td></tr><tr><td>06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 4<br/>ELECTIVE IN DATA SCIENCE 4</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td></td><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ<br/>ELECTIVE IN STATISTICAL ANALYTICS 4</td><td>3 (2-2-5)</td></tr><tr><td></td><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล<br/>ELECTIVE IN DATA ENGINEERING 4</td><td></td></tr><tr><td>06066100</td><td>การบริหารโครงการเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td><td>3 (3-0-6)</td></tr><tr><td>90643021</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>ผู้ประกอบการสมัยใหม่<br/>MODERN ENTREPRENEURS</td><td>3 (3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026213</td><td>ระบบข้อมูลมหัต<br/>BIG DATA SYSTEMS</td><td>3 (2-2-5)</td></tr><tr><td>06026214</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1<br/>PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1</td><td>3 (0-9-0)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล<br/>ELECTIVE IN DATA SCIENCE 3</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ<br/>ELECTIVE IN STATISTICAL ANALYTICS 3</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล<br/>ELECTIVE IN DATA ENGINEERING 3</td><td></td></tr><tr><td>06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล<br/>ELECTIVE IN DATA SCIENCE 4</td><td>3 (3-0-6)<br/>หรือ</td></tr><tr><td></td><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ<br/>ELECTIVE IN STATISTICAL ANALYTICS 4</td><td>3 (2-2-5)</td></tr><tr><td></td><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล<br/>ELECTIVE IN DATA ENGINEERING 4</td><td></td></tr><tr><td>06066100</td><td>การบริหารโครงการเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td><td>3 (3-0-6)</td></tr><tr><td>90643021</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>ผู้ประกอบการสมัยใหม่<br/>MODERN ENTREPRENEURS</td><td>3 (3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -120,7 +107,7 @@ SPECIAL WORKSHOP IN DATA ENGINEERING 2
 
 ปีที่ 4 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026215</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2<br/>PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2</td><td>3 (0-9-0)</td></tr><tr><td>9064xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5)</td></tr><tr><td>xxxxxxxxxxx</td><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5)</td></tr><tr><td>xxxxxxxxxx</td><td>วิชาเลือกเสรี 2<br/>FREE ELECTIVE COURSE 2</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5))</td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026215</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2<br/>PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2</td><td>3 (0-9-0)</td></tr><tr><td>9064xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5)</td></tr><tr><td>xxxxxxx</td><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5)</td></tr><tr><td>xxxxxxx</td><td>วิชาเลือกเสรี 2<br/>FREE ELECTIVE COURSE 2</td><td>3 (3-0-6)<br/>หรือ 3 (2-2-5))</td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
 
 ปีที่ 4 ภาคการศึกษาที่ 2
 

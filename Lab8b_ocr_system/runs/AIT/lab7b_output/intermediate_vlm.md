@@ -4,7 +4,11 @@
 3.3 แผนการศึกษา
 
 <table><tr><th colspan="2">ปีที่ 1 ภาคการศึกษาที่ 1<th rowspan="8"></th></th></tr><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046400</td><td>แคลคูลัส 1<br/>CALCULUS 1</td><td>3 (3-0-6)</td></tr><tr><td>06046402</td><td>พีชคณิตเชิงเส้น<br/>LINEAR ALGEBRA</td><td>3 (3-0-6)</td></tr><tr><td>06066000</td><td>คณิตศาสตร์ไม่ต่อเนื่อง<br/>DISCRETE MATHEMATICS</td><td>3 (3-0-6)</td></tr><tr><td>06066001</td><td>ความน่าจะเป็นและสถิติ<br/>PROBABILITY AND STATISTICS</td><td>3 (3-0-6)</td></tr><tr><td>06066303</td><td>การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์<br/>PROBLEM SOLVING AND COMPUTER PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>15</td></tr><tr><th colspan="2">ปีที่ 1 ภาคการศึกษาที่ 2<th rowspan="8"></th></th></tr><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046401</td><td>แคลคูลัส 2<br/>CALCULUS 2</td><td>3 (3-0-6)</td></tr><tr><td>06046403</td><td>การโปรแกรมคอมพิวเตอร์<br/>COMPUTER PROGRAMMING</td><td>3 (2-2-5)</td></tr><tr><td>06066301</td><td>โครงสร้างข้อมูลและอัลกอริทึม<br/>DATA STRUCTURES AND ALGORITHMS</td><td>3 (2-2-5)</td></tr><tr><td>06046404</td><td>พื้นฐานของระบบสมองกลฝังตัว<br/>FUNDAMENTAL OF EMBEDDED SYSTEM</td><td>3 (3-0-6)</td></tr><tr><td>90641007</td><td>พลเมืองดิจิทัล<br/>DIGITAL CITIZEN</td><td>3 (3-0-6)</td></tr><tr><td colspan="2">โครงงานกลุ่ม 1<br/>TEAM-PROJECT 1</td><td>1 (0-2-1)</td></tr><tr><td>9064xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>GENERAL EDUCATION COURSES</td><td>3 (x-x-x)</td></tr><tr><td colspan="2">รวม</td><td>19</td></tr></table>
+
 วท.บ.(สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.
+<figure>
+ตราสัญลักษณ์ของมหาวิทยาลัยราชภัฏนครปฐม เป็นรูปวงกลม มีข้อความ "มหาวิทยาลัยราชภัฎนครปฐม" อยู่รอบนอก และภายในเป็นภาพอาคารสถาปัตยกรรมไทยโบราณ
+</figure>
 
 ---
 
@@ -21,7 +25,7 @@
 
 วท.บ.(สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.
 <figure>
-ภาพตราสัญลักษณ์ของมหาวิทยาลัยราชภัฏนครปฐม เป็นรูปพระเกี้ยวประดับอยู่บนพานแว่นฟ้า มีลายกนกประกอบ ภายในวงกลมที่มีข้อความ "KRUENG KHAM UNIVERSITY" และ "มหาวิทยาลัยราชภัฏนครปฐม"
+ภาพตราสัญลักษณ์ของมหาวิทยาลัยราชภัฏนครปฐม เป็นรูปพระเกี้ยวประดิษฐานอยู่บนพานแว่นฟ้า มีลายกนกประกอบ ภายในวงกลม
 </figure>
 
 ---
@@ -31,17 +35,14 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046415</td><td>การประมวลผลสัญญาณ<br/>SIGNAL PROCESSING</td><td>3 (3-0-6)</td></tr><tr><td>06046414</td><td>การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก<br/>NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING</td><td>3 (3-0-6)</td></tr><tr><td>90642012</td><td>กระบวนการคิดเชิงออกแบบ<br/>DESIGN THINKING</td><td>3 (3-0-6)</td></tr><tr><td>060464xx</td><td>วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง<br/>ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION</td><td>6 (3-0-6)</td></tr><tr><td>06046440</td><td>วิชาสัมมนาปัญญาประดิษฐ์<br/>SEMINAR IN ARTIFICIAL INTELLIGENCE</td><td>3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
-
-วท.บ.(สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046415</td><td>การประมวลผลสัญญาณ SIGNAL PROCESSING</td><td>3 (3-0-6)</td></tr><tr><td>06046414</td><td>การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING</td><td>3 (3-0-6)</td></tr><tr><td>90642012</td><td>กระบวนการคิดเชิงออกแบบ DESIGN THINKING</td><td>3 (3-0-6)</td></tr><tr><td>060464xx</td><td>วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION</td><td>6 (3-0-6)</td></tr><tr><td>06046440</td><td>วิชาสัมมนาปัญญาประดิษฐ์ SEMINAR IN ARTIFICIAL INTELLIGENCE</td><td>3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 ปีที่ 3 ภาคการศึกษาที่ 2
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>060464xx</td><td>วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง<br/>ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION</td><td>6 (3-0-6)</td></tr><tr><td>06046441</td><td>โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1<br/>PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1</td><td>3 (0-9-0)</td></tr><tr><td>90641006</td><td>โครงงานกลุ่ม 3<br/>TEAM-PROJECT 3</td><td>1 (0-2-1)</td></tr><tr><td colspan="2">วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3 (x-x-x)</td></tr><tr><td colspan="2">รวม</td><td>13</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>060464xx</td><td>วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง ELECTIVE IN ARTIFICIAL INTELLIGENCE SPECIALIZATION</td><td>6 (3-0-6)</td></tr><tr><td>06046441</td><td>โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1 PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1</td><td>3 (0-9-0)</td></tr><tr><td>90641006</td><td>โครงงานกลุ่ม 3 TEAM-PROJECT 3</td><td>1 (0-2-1)</td></tr><tr><td colspan="2">วิชาเลือกเสรี 1 FREE ELECTIVE COURSE 1</td><td>3 (x-x-x)</td></tr><tr><td colspan="2">รวม</td><td>13</td></tr></table>
 
-วท.บ.(สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.
-
-มกล้าเจ้าคุณทหาร
+วท.บ.(สาขาวิชาวิทยาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.
+มสธ
 
 ---
 
@@ -50,11 +51,11 @@
 
 ปีที่ 4 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046442</td><td>โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2<br/>PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2</td><td>3 (0-9-0)</td></tr><tr><td>9064xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>GENERAL EDUCATION COURSES</td><td>3 (x-x-x)</td></tr><tr><td>90644xxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร<br/>LANGUAGE AND COMMUNICATION COURSES</td><td>3 (x-x-x)</td></tr><tr><td>xxxxxxx</td><td>วิชาเลือกเสรี 2<br/>FREE ELECTIVE COURSE 2</td><td>3 (x-x-x)</td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06046442</td><td>โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2<br/>PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2</td><td>3 (0-9-0)</td></tr><tr><td>9064xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป<br/>GENERAL EDUCATION COURSES</td><td>3 (x-x-x)</td></tr><tr><td>90644xxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร<br/>LANGUAGE AND COMMUNICATION COURSES</td><td>3 (x-x-x)</td></tr><tr><td>xxxxxxxxx</td><td>วิชาเลือกเสรี 2<br/>FREE ELECTIVE COURSE 2</td><td>3 (x-x-x)</td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
 
 ปีที่ 4 ภาคการศึกษาที่ 2
 
-<table><tr><th rowspan="2">รหัสวิชา<th rowspan="2">ชื่อวิชา<td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></th></th></tr><tr><td>6 (0-45-0)</td></tr><tr><td>06046443</td><td>สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์<br/>COOPERATIVE EDUCATION IN ARTIFICIAL<br/>INTELLIGENCE TECHNOLOGY หรือ สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์<br/>OVERSEA COOPERPIANETED EDUCATION IN<br/>ARTIFICAL INTELLIGENC TECHNOLOGY</td><td>6 (0-45-0)</td></tr><tr><td>06046444</td><td></td><td>6 (0-45-0)</td></tr><tr><td colspan="2">รวม</td><td>6</td></tr><tr><td colspan="3">รวมตลอดหลักสูตร 120 หน่วยกิต</td></tr></table>
+<table><tr><th rowspan="2">รหัสวิชา<th rowspan="2">ชื่อวิชา<td>(บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></th></th></tr><tr><td>หน่วยกิต</td></tr><tr><td>06046443<br/>หรือ</td><td>สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์<br/>COOPERATE EDUCATION IN ARTIFICIAL<br/>INTELLIGENCE TECHNOLOGY หรือ</td><td>6 (0-45-0)</td></tr><tr><td>06046444</td><td>สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์<br/>OVERSEA COOPERPERATIVE EDUCATION IN<br/>ARTIFICIAL INTELLIGENCE TECHNOLOGY</td><td>6 (0-45-0)</td></tr><tr><td colspan="2">รวม</td><td>6</td></tr><tr><td colspan="3">รวมตลอดหลักสูตร 120 หน่วยกิต</td></tr></table>
 
 3.4 คำอธิบายรายวิชา คำอธิบายรายวิชา (ภาคผนวก จ)
 

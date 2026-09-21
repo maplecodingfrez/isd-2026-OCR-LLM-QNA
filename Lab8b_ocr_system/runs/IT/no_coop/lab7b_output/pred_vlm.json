@@ -10,6 +10,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
       "prerequisite": "ไม่มี"
     },
     {
@@ -20,6 +21,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -30,6 +32,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "INTRODUCTION TO COMPUTER SYSTEMS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -40,6 +43,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -49,16 +53,18 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "CHARM SCHOOL"
     },
     {
       "code": "90641003",
       "name_th": "กีฬาและนันทนาการ",
       "credits": "1(0-3-2)",
       "year": 1,
-      "semester": "1",
+      "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "SPORTS AND RECREATIONAL ACTIVITIES"
     },
     {
       "code": "90644007",
@@ -67,7 +73,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "FOUNDATION ENGLISH 1"
     },
     {
       "code": "06016408",
@@ -77,6 +84,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "OBJECT-ORIENTED PROGRAMMING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -87,6 +95,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "PROBABILITY AND STATISTICS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -97,6 +106,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
       "prerequisite": "ไม่มี"
     },
     {
@@ -107,6 +117,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "DATA STRUCTURES AND ALGORITHMS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -116,7 +127,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "DIGITAL INTELLIGENCE QUOTIENT"
     },
     {
       "code": "90644008",
@@ -125,7 +137,8 @@
       "year": 1,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "FOUNDATION ENGLISH 2"
     },
     {
       "code": "06016403",
@@ -135,6 +148,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "MULTIMEDIA TECHNOLOGY",
       "prerequisite": "ไม่มี"
     },
     {
@@ -145,6 +159,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "PHYSICAL COMPUTING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -155,6 +170,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "INTRODUCTION TO NETWORK SYSTEMS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -165,6 +181,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "DISCRETE MATHEMATICS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -175,6 +192,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "DATABASE SYSTEM CONCEPTS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -185,6 +203,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN",
       "prerequisite": "ไม่มี"
     },
     {
@@ -195,6 +214,7 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "CYBERSECURITY FUNDAMENTALS",
       "prerequisite": "ไม่มี"
     },
     {
@@ -205,6 +225,7 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "SOFTWARE ENGINEERING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -215,6 +236,7 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "COMPUTER ORGANIZATION AND OPERATING SYSTEM",
       "prerequisite": "ไม่มี"
     },
     {
@@ -225,16 +247,39 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "FUNDAMENTAL WEB PROGRAMMING",
       "prerequisite": "ไม่มี"
     },
     {
       "code": "06016414, 06016415",
-      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแวล",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3(2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ"
+    },
+    {
+      "code": "06016419",
+      "name_th": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร",
+      "credits": "3(2-2-5)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
+      "prerequisite": "06016413"
+    },
+    {
+      "code": "06016420",
+      "name_th": "ระบบโครงสร้างพื้นฐานและการบริการ",
+      "credits": "3(2-2-5)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+      "prerequisite": "06016413"
     },
     {
       "code": "06016424, 06016425",
@@ -246,6 +291,28 @@
       "type": "บังคับ"
     },
     {
+      "code": "06016424",
+      "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "HUMAN INTERFACE DESIGN",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06016425",
+      "name_th": "พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
+      "prerequisite": "ไม่มี"
+    },
+    {
       "code": "06016404",
       "name_th": "เทคโนโลยีกลุ่มเมฆ",
       "credits": "3(2-2-5)",
@@ -253,6 +320,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "CLOUD COMPUTING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -262,7 +330,8 @@
       "year": 3,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "MANAGEMENT INFORMATION SYSTEMS"
     },
     {
       "code": "90644xxx",
@@ -271,7 +340,8 @@
       "year": 0,
       "semester": 0,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "ELECTIVE COURSE IN LANGUAGE AND COMMUNICATION"
     },
     {
       "code": "06016416",
@@ -281,6 +351,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "prerequisite": "ไม่มี"
     },
     {
@@ -291,6 +362,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "prerequisite": "ไม่มี"
     },
     {
@@ -301,56 +373,37 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "prerequisite": "06016408"
     },
     {
-      "code": "06016421",
-      "name_th": "ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ",
-      "credits": "3(3-0-6)",
-      "year": 3,
-      "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "06016413"
-    },
-    {
-      "code": "06016422",
-      "name_th": "อินเทอร์เน็ตของสรรพสิ่ง",
-      "credits": "3(2-2-5)",
-      "year": 3,
-      "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "06016413"
-    },
-    {
       "code": "06016423",
-      "name_th": "การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
-      "credits": "3(2-2-5)",
+      "name_th": null,
+      "credits": null,
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
+      "category": null,
+      "type": null,
       "prerequisite": "06016413"
     },
     {
       "code": "06016426",
-      "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
+      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1",
       "credits": "3(2-2-5)",
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก",
       "prerequisite": "ไม่มี"
     },
     {
       "code": "06016427",
-      "name_th": "การออกแบบและพัฒนาเกมเบื้องต้น",
+      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2",
       "credits": "3(2-2-5)",
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก",
       "prerequisite": "ไม่มี"
     },
     {
@@ -360,7 +413,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 1"
     },
     {
       "code": "060164xx",
@@ -370,7 +424,8 @@
       "semester": 1,
       "category": "หมวดวิชาเลือกเสรี",
       "type": "เลือก",
-      "flexible_year_semester": "1/1"
+      "flexible_year_semester": "1/1",
+      "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 2"
     },
     {
       "code": "06066100",
@@ -381,6 +436,7 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
+      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
       "prerequisite": "ไม่มี"
     },
     {
@@ -391,7 +447,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "flexible_year_semester": null
+      "flexible_year_semester": null,
+      "name_en": "LAW FOR NEW GENERATION"
     },
     {
       "code": "90642033",
@@ -411,6 +468,7 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "PROJECT 1",
       "prerequisite": "ไม่มี"
     },
     {
@@ -420,7 +478,8 @@
       "year": 0,
       "semester": 0,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "ELECTIVE COURSE IN INFORMATION TECHNOLOGY 3"
     },
     {
       "code": "90643021",
@@ -429,7 +488,8 @@
       "year": 4,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "MODERN ENTREPRENEURS"
     },
     {
       "code": "9064xxxx",
@@ -437,39 +497,42 @@
       "credits": "3(3-0-6)",
       "year": 0,
       "semester": 0,
-      "flexible_year_semester": "4/1, 4/2, 5/1",
-      "note": "วิชาเลือกหมวดศึกษาทั่วไป 1"
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "เลือก",
+      "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 1"
     },
     {
-      "code": "XXXXXXX",
+      "code": "xxxxxxxxxx",
       "name_th": "วิชาเลือกเสรี 1",
       "credits": "3(x-x-x)",
       "year": 0,
       "semester": 0,
-      "flexible_year_semester": "4/1, 4/2, 5/1",
-      "note": "วิชาเลือกเสรี 1"
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก"
     },
     {
       "code": "06016407",
       "name_th": "โครงงาน 2",
-      "credits": "3(0-9-0)",
+      "credits": "3(3-0-6) หรือ 3(x-x-x)",
       "year": 4,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
+      "name_en": "PROJECT 2",
       "prerequisite": "06016406"
     },
     {
       "code": "9064xxxx",
       "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 2",
-      "credits": "3(3-0-6)",
+      "credits": "3(3-0-6) หรือ 3(x-x-x)",
       "year": 0,
       "semester": 0,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "ELECTIVE COURSE IN GENERAL EDUCATION 2"
     },
     {
-      "code": "XXXXXXX",
+      "code": "xxxxxxxxxx",
       "name_th": "วิชาเลือกเสรี 2",
       "credits": "3(x-x-x)",
       "year": 0,
@@ -480,7 +543,7 @@
   ],
   "_meta": {
     "pipeline": "vlm",
-    "elapsed_sec": 1979.9,
+    "elapsed_sec": 1552.2,
     "models": {
       "ocr": "scb10x/typhoon-ocr1.5-3b",
       "text": "qwen3:4b"
@@ -490,7 +553,7 @@
     "prerequisite_from_book": {
       "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
       "found": 5,
-      "none": 25,
+      "none": 27,
       "not_found": 9,
       "unreadable": 0,
       "skipped_non_code": 10

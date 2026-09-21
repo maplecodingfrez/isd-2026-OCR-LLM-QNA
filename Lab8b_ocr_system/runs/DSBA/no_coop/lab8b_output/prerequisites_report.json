@@ -1,9 +1,9 @@
 {
   "source_text": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\dsba\\dsba_curriculum_ocr.txt",
-  "courses": 34,
+  "courses": 33,
   "counts": {
     "found": 5,
-    "none": 24,
+    "none": 23,
     "not_found": 4,
     "unreadable": 1
   },
@@ -258,14 +258,6 @@
       "op": null,
       "note": null,
       "occurrences": 0,
-      "dropped": []
-    },
-    "90643021": {
-      "status": "none",
-      "requires": [],
-      "op": null,
-      "note": null,
-      "occurrences": 1,
       "dropped": []
     },
     "90644007": {

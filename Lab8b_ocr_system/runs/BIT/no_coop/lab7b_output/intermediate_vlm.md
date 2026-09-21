@@ -11,7 +11,7 @@
 3.1.4 แผนการศึกษา
 3.1.4.1 แผนการศึกษาที่ไม่เข้าโครงการสหกิจศึกษา
 
-<table><tr><td colspan="2">ปีที่ 1 ภาคการศึกษาที่ 1</td></tr><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036100</td><td>พื้นฐานทางด้านเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY FUNDAMENTALS</td><td>3(2-2-5)</td></tr><tr><td>06036101</td><td>คณิตศาสตร์สำหรับธุรกิจ<br/>MATHEMATICS FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036118</td><td>การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ<br/>PROBLEM SOLVING IN INFORMATION TECHNOLOGY</td><td>3(2-2-5)</td></tr><tr><td>96641001</td><td>โรงเรียนสร้างเสน่ห์<br/>CHARM SCHOOL</td><td>2(1-2-3)</td></tr><tr><td>96641003</td><td>กีฬาและนันทนาการ<br/>SPORTS AND RECREATIONAL ACTIVITIES</td><td>1(0-3-2)</td></tr><tr><td>96644007</td><td>ภาษาอังกฤษพื้นฐาน 1<br/>FOUNDATION ENGLISH 1</td><td>3(3-0-6)</td></tr><tr><td>96644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>การสื่อสารและการนำเสนอย่างมืออาชีพ<br/>PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><th colspan="2">ปีที่ 1 ภาคการศึกษาที่ 1</th></tr><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036100</td><td>พื้นฐานทางด้านเทคโนโลยีสารสนเทศ<br/>INFORMATION TECHNOLOGY FUNDAMENTALS</td><td>3(2-2-5)</td></tr><tr><td>06036101</td><td>คณิตศาสตร์สำหรับธุรกิจ<br/>MATHEMATICS FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036118</td><td>การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ<br/>PROBLEM SOLVING IN INFORMATION TECHNOLOGY</td><td>3(2-2-5)</td></tr><tr><td>96641001</td><td>โรงเรียนสร้างเสน่ห์<br/>CHARM SCHOOL</td><td>2(1-2-3)</td></tr><tr><td>96641003</td><td>กีฬาและนันทนาการ<br/>SPORTS AND RECREATIONAL ACTIVITIES</td><td>1(0-3-2)</td></tr><tr><td>96644007</td><td>ภาษาอังกฤษพื้นฐาน 1<br/>FOUNDATION ENGLISH 1</td><td>3(3-0-6)</td></tr><tr><td>96644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ*<br/>การสื่อสารและการนำเสนอย่างมืออาชีพ<br/>PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -43,7 +43,7 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 1
 
-<table><tr><th rowspan="2">รหัสวิชา<th rowspan="2">ชื่อวิชา<td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></th></th></tr><tr><td>3(3-0-6)<br/>3(3-0-6)<br/>3(2-2-5)<br/>3(3-0-6)<br/>หรือ 3 (2-2-5)</td></tr><tr><td>06036107</td><td>การบริหารโครงการเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td><td>3(3-0-6)</td></tr><tr><td>06036110</td><td>การวางแผนทรัพยากรองค์กร ENTERPRISE RESOURCE PLANNING</td><td>3(3-0-6)</td></tr><tr><td>06036114</td><td>การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก WEB APPLICATION DEVELOPMENT USING FRAMEWORKS</td><td>3(2-2-5)</td></tr><tr><td>06036121</td><td>การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN</td><td>3(3-0-6)</td></tr><tr><td>06036123</td><td>เทคโนโลยีกลุ่มเมฆ CLOUD TECHNOLOGY</td><td>3(3-0-6)</td></tr><tr><td>9664xxxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร ELECTIVE IN LANGUAGE AND COMMUNICATION</td><td>3 (3-0-6)<br/>หรือ 3(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036107</td><td>การบริหารโครงการเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td><td>3(3-0-6)</td></tr><tr><td>06036110</td><td>การวางแผนทรัพยากรองค์กร ENTERPRISE RESOURCE PLANNING</td><td>3(3-0-6)</td></tr><tr><td>06036114</td><td>การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก WEB APPLICATION DEVELOPMENT USING FRAMEWORKS</td><td>3(2-2-5)</td></tr><tr><td>06036121</td><td>การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN</td><td>3(3-0-6)</td></tr><tr><td>06036123</td><td>เทคโนโลยีกลุ่มเมฆ CLOUD TECHNOLOGY</td><td>3(3-0-6)</td></tr><tr><td>9664xxxx</td><td>วิชาเลือกด้านภาษาและการสื่อสาร ELECTIVE IN LANGUAGE AND COMMUNICATION</td><td>3 (3-0-6) หรือ 3 (2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -59,7 +59,7 @@
 
 ปีที่ 4 ภาคการศึกษาที่ 1
 
-<table><tr><th rowspan="2">รหัสวิชา<th rowspan="2">ชื่อวิชา<td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></th></th></tr><tr><td>3(3-0-6)</td></tr><tr><td>06036115</td><td>ความมั่นคงของระบบสารสนเทศ INFORMATION SYSTEM SECURITY</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">06036146 96642033</td><td>โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2</td><td>3(0-9-0)</td></tr><tr><td>กลุ่มวิชาที่กำหนดโดยคณะ* กฎหมายสำหรับคนรุ่นใหม่ LAW FOR NEW GENERATION</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">9664xxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2 GE ELECTIVE COURSE REQUIREMENT 2</td><td>3(3-0-6)</td></tr><tr><td colspan="2"></td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
+<table><tr><th rowspan="2">รหัสวิชา<th rowspan="2">ชื่อวิชา<td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></th></th></tr><tr><td>3(0-9-0)</td></tr><tr><td>06036115</td><td>ความมั่นคงของระบบสารสนเทศ INFORMATION SYSTEM SECURITY</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">06036146 96642033</td><td>โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2</td><td>3(0-9-0)</td></tr><tr><td>กลุ่มวิชาที่กำหนดโดยคณะ* กฎหมายสำหรับคนรุ่นใหม่ LAW FOR NEW GENERATION</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">9664xxxxx</td><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2 GE ELECTIVE COURSE REQUIREMENT 2</td><td>3(3-0-6)</td></tr><tr><td colspan="2"></td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -73,11 +73,14 @@
 
 <table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td rowspan="3">06036xxx</td><td>วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4</td><td>3(3-0-6)<br/>หรือ 3(2-2-5)</td></tr><tr><td>วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2 OR COURSE GROUP 1-4</td><td>3(3-0-6)<br/>หรือ 3(2-2-5)</td></tr><tr><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3(3-0-6)</td></tr><tr><td>Xxxxxxxx</td><td>วิชาเลือกเสรี 2<br/>FREE ELECTIVE COURSE 2</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>12</td></tr></table>
 
-สํานักงานเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
+สํานักงานเทคโนโลยีสารสนเทศแห่งชาติ
 
 <figure>
-ตราประทับวงกลมสีแดง มีรูปครุฑอยู่ตรงกลาง ด้านบนของวงกลมมีข้อความภาษาไทยว่า "สำนักงานเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง" และด้านขวาของตราประทับมีข้อความภาษาอังกฤษว่า "รวมตลอดหลักสูตร 126 หน่วยกิต"
+ภาพตราประทับวงกลมสีแดง มีรูปครุฑอยู่ตรงกลาง ด้านบนของวงกลมมีข้อความภาษาไทยว่า "สำนักงานเทคโนโลยีสารสนเทศแห่งชาติ" และด้านล่างมีข้อความภาษาอังกฤษว่า "THE OFFICE OF THE NATIONAL INSTITUTE OF INFORMATION TECHNOLOGY"
 </figure>
+
+รวมตลอดหลักสูตร 126
+หน่วยกิต
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.

@@ -3,11 +3,11 @@
 
 ความหมายของรหัสประจำรายวิชา
 รหัสวิชาที่ใช้ กำหนดให้เป็นตัวเลขและตัวอักษร 8 หลัก
-*   รหัสตัวที่ 1,2: ได้แก่เลข 06 หมายถึง คณะเทคโนโลยีสารสนเทศ
-*   รหัสตัวที่ 3,4: ได้แก่เลข 02 หมายถึง สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
-*   รหัสตัวที่ 5: ได้แก่เลข 06 หมายถึง วิชาเรียนรวม
-*   รหัสตัวที่ 6,7,8: ได้แก่เลข 6 หมายถึง ระดับปริญญาตรี
-    *   หมายถึง ลำดับที่ของรายวิชา
+*   รหัสตัวที่ 1,2: ได้แก่เลข 06 (หมายถึง) คณะเทคโนโลยีสารสนเทศ
+*   รหัสตัวที่ 3,4: ได้แก่เลข 02 (หมายถึง) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
+*   รหัสตัวที่ 5: ได้แก่เลข 06 (หมายถึง) วิชาเรียนรวม
+*   รหัสตัวที่ 6,7,8: ได้แก่เลข 6 (หมายถึง) ระดับปริญญาตรี
+    *   ลำดับที่ของรายวิชา
 
 3.1.4. แผนการศึกษา
 3.1.4.1 แผนการศึกษาที่ไม่เข้าโครงการสหกิจศึกษา
@@ -62,7 +62,7 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026211</td><td>การเรียนรู้ของเครื่องเชิงประยุกต์ APPLIED MACHINE LEARNING</td><td>3 (2-2-5)</td></tr><tr><td>06026212</td><td>การสร้างคลังข้อมูล DATA WAREHOUSING</td><td>3 (2-2-5)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 1 ELECTIVE IN DATA SCIENCE</td><td>3 (3-0-6) หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 ELECTIVE IN STATISTICAL ANALYSIS</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1 ELECTIVE IN DATA ENGINEERING</td><td></td></tr><tr><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 2 ELECTIVE IN DATA SCIENCE 2 หรือ วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 ELECTIVE IN STATISTICAL ANALYTICS 2</td><td>3 (3-0-6) หรือ 3 (2-2-5)</td></tr><tr><td rowspan="2">9064xxxx</td><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2 ELECTIVE IN DATA ENGINEERING 2</td><td></td></tr><tr><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6) หรือ 3 (2-2-5)</td></tr><tr><td rowspan="2">90644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* การสื่อสารและการนำเสนอย่างมืออาชีพ PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3 (3-0-6)</td></tr><tr><td></td><td></td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026211</td><td>การเรียนรู้ของเครื่องเชิงประยุกต์ APPLIED MACHINE LEARNING</td><td>3 (2-2-5)</td></tr><tr><td>06026212</td><td>การสร้างคลังข้อมูล DATA WAREHOUSING</td><td>3 (2-2-5)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 1 ELECTIVE IN DATA SCIENCE</td><td>3 (3-0-6) หรือ</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1 ELECTIVE IN STATISTICAL ANALYSIS</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 1 ELECTIVE IN DATA ENGINEERING</td><td></td></tr><tr><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 2 ELECTIVE IN DATA SCIENCE 2 หรือ วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2 ELECTIVE IN STATISTICAL ANALYTICS 2</td><td>3 (3-0-6) หรือ 3 (2-2-5)</td></tr><tr><td rowspan="2">9064xxxx</td><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 2 ELECTIVE IN DATA ENGINEERING 2</td><td></td></tr><tr><td>วิชาเลือกหมวดวิชาศึกษาทั่วไป ELECTIVE IN GENERAL EDUCATION</td><td>3 (3-0-6) หรือ 3 (2-2-5)</td></tr><tr><td rowspan="2">90644042</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* การสื่อสารและการนำเสนอออย่างมืออาชีพ PROFESSIONAL COMMUNICATION AND PRESENTATION</td><td>3 (3-0-6)</td></tr><tr><td></td><td></td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -74,7 +74,7 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 2
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026213</td><td>ระบบข้อมูลมหัต BIG DATA SYSTEMS</td><td>3 (2-2-5)</td></tr><tr><td>06026214</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1</td><td>3 (0-9-0)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 3 ELECTIVE IN DATA SCIENCE 3</td><td>3 (3-0-6)</td></tr><tr><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 ELECTIVE IN STATISTICAL ANALYTICS 3</td><td rowspan="2">หรือ<br/>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3 ELECTIVE IN DATA ENGINEERING 3</td></tr><tr><td>06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 4 ELECTIVE IN DATA SCIENCE 4</td><td rowspan="2">3 (3-0-6)<br/>หรือ<br/>3 (2-2-5)</td></tr><tr><td>06066100</td><td>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 ELECTIVE IN STATISTICAL ANALYTICS 4</td></tr><tr><td rowspan="2">90643021</td><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4 ELECTIVE IN DATA ENGINEERING 4</td><td rowspan="2">3 (3-0-6)</td></tr><tr><td>การบริหารโครงการเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td></tr><tr><td colspan="2">กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3 (3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06026213</td><td>ระบบข้อมูลมหัต BIG DATA SYSTEMS</td><td>3 (2-2-5)</td></tr><tr><td>06026214</td><td>โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1</td><td>3 (0-9-0)</td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 3 ELECTIVE IN DATA SCIENCE 3</td><td>3 (3-0-6)</td></tr><tr><td>หรือ<br/>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 3 ELECTIVE IN STATISTICAL ANALYTICS 3</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 3 ELECTIVE IN DATA ENGINEERING 3</td><td></td></tr><tr><td rowspan="4">06026xxx</td><td>วิชาเลือกกลุ่มวิทยาการข้อมูล 4 ELECTIVE IN DATA SCIENCE 4</td><td>3 (3-0-6)</td></tr><tr><td>หรือ<br/>วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4 ELECTIVE IN STATISTICAL ANALYTICS 4</td><td>3 (2-2-5)</td></tr><tr><td>วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4 ELECTIVE IN DATA ENGINEERING 4</td><td></td></tr><tr><td rowspan="2">06066100</td><td>การบริหารโครงการเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY PROJECT MANAGEMENT</td><td>3 (3-0-6)</td></tr><tr><td colspan="2"></td></tr><tr><td>90643021</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3 (3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ
 คณะเทคโนโลยีสารสนเทศ สจล.

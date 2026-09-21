@@ -1317,7 +1317,13 @@ def verify_full_db(conn: sqlite3.Connection) -> list[dict]:
     results.append({
         "id": "CHK1F", "name": "หน่วยกิตรวมตามเล่ม (นับช่อง wildcard/หรือ/เลือก 1 กลุ่ม) = ที่หลักสูตรประกาศ",
         "ok": total_full == declared,
-        "detail": f"นับรวมช่อง {total_full} · plan_item อย่างเดียว {total_item} · ประกาศไว้ {declared}"})
+        "detail": f"นับรวมช่อง {total_full} · plan_item อย่างเดียว {total_item} · ประกาศไว้ {declared}",
+        # แยกสาเหตุ (ก)/(ข) แบบกำหนดได้ (ใบงาน Lab 8B: verify.json ต้องแยกกรณี "สกัดผิด" กับ "เล่มเขียนแบบนั้นจริง")
+        #   (ข) = ส่วนต่างที่มาจากช่องตามเล่มซึ่ง plan_item ไม่นับ (wildcard) หรือนับเกิน (สมาชิกกลุ่ม "เลือก 1") — เป็นข้อจำกัดของ plan_item
+        #   (ก) = ส่วนต่างที่ยังเหลือหลังนับช่องแล้ว — บวก = ขาด (OCR/สกัดทำวิชาหาย) · ลบ = เกิน (เช่น หัวกลุ่มหายทำให้นับซ้ำ)
+        "cause": {"gap_vs_declared": declared - total_item,
+                  "b_book_as_written": total_full - total_item,
+                  "a_extraction": declared - total_full}})
 
     block = {(r["year"], r["semester"]) for r in conn.execute("""
         SELECT DISTINCT year, semester FROM plan_item
@@ -1325,10 +1331,17 @@ def verify_full_db(conn: sqlite3.Connection) -> list[dict]:
            OR note LIKE '%สหกิจ%' OR note LIKE '%ฝึกงาน%'
            OR code IN (SELECT code FROM course
                        WHERE name_th LIKE '%สหกิจ%' OR name_th LIKE '%ฝึกงาน%')""")}
-    bad = [f"ปี {r['year']}/{r['semester']} = {r['credits']} หน่วยกิต" for r in rows
-           if (r["year"], r["semester"]) not in block and r["semester"] != 3
-           and not (MIN_CREDITS_PER_SEM <= r["credits"] <= MAX_CREDITS_PER_SEM)]
+    def _bad_terms(term_rows):
+        return [f"ปี {r['year']}/{r['semester']} = {r['credits']} หน่วยกิต" for r in term_rows
+                if (r["year"], r["semester"]) not in block and r["semester"] != 3
+                and not (MIN_CREDITS_PER_SEM <= r["credits"] <= MAX_CREDITS_PER_SEM)]
+
+    bad = _bad_terms(rows)
+    bad_item = _bad_terms(_sem_credits(conn))
+    bad_keys = {b.split(" = ")[0] for b in bad}
     results.append({
+        "cause": {"b_book_as_written": [b for b in bad_item if b.split(" = ")[0] not in bad_keys],   # ตกตอนนับ plan_item แต่ผ่านเมื่อนับช่อง = เหตุคือช่องตามเล่ม
+                  "a_extraction": bad},                                                              # ยังตกหลังนับช่อง = ข้อมูลที่สกัดได้ผิดจริง
         "id": "CHK7F", "name": f"หน่วยกิตต่อภาคเรียน (นับช่องตามเล่ม) อยู่ระหว่าง {MIN_CREDITS_PER_SEM}–{MAX_CREDITS_PER_SEM}",
         "ok": not bad,
         "detail": "; ".join(bad[:5]) if bad else f"ผ่านทุกภาค (ยกเว้นภาคบล็อก {len(block)} ภาค และภาคฤดูร้อน)"})
