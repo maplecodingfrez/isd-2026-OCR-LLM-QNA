@@ -37,6 +37,24 @@ OCR engines ที่มีให้:
 > **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
 > ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab8b_ocr_system/`, `Lab9_evaluation/`
 
+## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
+
+ก่อนแก้โค้ด รันสคริปต์ หรืออัปเดตผลลัพธ์ ให้ซิงก์กับ GitHub ก่อนเสมอ (หลายคนใช้ repo เดียวกัน และแยก branch ตาม Lab):
+
+```bash
+git branch --show-current   # อยู่ branch ที่ตรงกับงานนี้ไหม (main / Lab-8 / Lab-9 ...)
+git status                  # มีงานค้างที่ยังไม่ commit ไหม — commit หรือ git stash ก่อน
+git fetch origin            # ดึงข้อมูลล่าสุดมาดูก่อน ยังไม่แตะไฟล์
+git status -sb              # ดู ahead / behind
+git pull --ff-only          # รวมเข้ามาเฉพาะกรณี fast-forward
+```
+
+- ถ้า `git pull --ff-only` ไม่ผ่าน = ประวัติแยกกัน → **หยุดและดูก่อน** ว่าเพื่อนแก้อะไร อย่าสั่ง `git push --force` (ถ้าจะใช้ ต้องตกลงกันในทีมก่อน)
+- ก่อน push: `git pull --rebase` อีกครั้ง แล้วค่อย `git push`
+- `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
+- สคริปต์ `run_lab8b_*.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab8b_ocr_system/runs` หลังรัน
+- แค่ใช้ระบบโดยไม่แก้โค้ด: ไม่ต้อง pull ทุกครั้ง แต่ควร pull เมื่อทีมแจ้งว่ามีอัปเดต (โค้ด/เฉลยชุดใหม่)
+
 ## Project Structure
 
 ```text
