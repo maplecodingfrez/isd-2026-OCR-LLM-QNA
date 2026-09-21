@@ -125,21 +125,16 @@
       "credits": {
         "label": "หน่วยกิต",
         "n_items": 43,
-        "cer": 0.16129,
+        "cer": 0.136842,
         "wer": null,
-        "exact_match_acc": 0.860465,
+        "exact_match_acc": 0.883721,
         "n_sub": 0,
         "n_del": 52,
-        "n_ins": 8,
+        "n_ins": 0,
         "n_missing": 5,
-        "n_hallucinated": 1,
-        "n_ref_chars": 372,
+        "n_hallucinated": 0,
+        "n_ref_chars": 380,
         "error_samples": [
-          {
-            "key": "06036116",
-            "gt": "None",
-            "pred": "3(2-2-5)"
-          },
           {
             "key": "9664xxxx [ตกแถว]",
             "gt": "3(3-0-6)",
@@ -157,6 +152,11 @@
           },
           {
             "key": "96642033 [ตกแถว]",
+            "gt": "3(3-0-6)",
+            "pred": ""
+          },
+          {
+            "key": "xxxxxxxx [ตกแถว]",
             "gt": "3(3-0-6)",
             "pred": ""
           }
@@ -353,7 +353,7 @@
         ]
       }
     },
-    "overall_micro_cer": 0.459843,
+    "overall_micro_cer": 0.457298,
     "alignment": {
       "matched": 38,
       "missed": 5,

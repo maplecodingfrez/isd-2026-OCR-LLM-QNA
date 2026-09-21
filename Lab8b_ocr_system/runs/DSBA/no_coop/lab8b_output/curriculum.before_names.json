@@ -1,0 +1,627 @@
+{
+  "program": {
+    "program_id": "DSBA-no-coop",
+    "name_th": "วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+    "name_en": null,
+    "degree": null,
+    "total_credits": 132,
+    "years": 4
+  },
+  "courses": [
+    {
+      "code": "06026200",
+      "name_th": "แคลคูลัส 1",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026202",
+      "name_th": "พีชคณิตเชิงเส้น",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066101",
+      "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066303",
+      "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "90641001",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "name_en": null,
+      "credits": 2,
+      "lecture_h": 1,
+      "lab_h": 2,
+      "self_h": 3,
+      "description_th": null
+    },
+    {
+      "code": "90641003",
+      "name_th": "กีฬาและนันทนาการ",
+      "name_en": null,
+      "credits": 1,
+      "lecture_h": 0,
+      "lab_h": 3,
+      "self_h": 2,
+      "description_th": null
+    },
+    {
+      "code": "90644007",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026201",
+      "name_th": "แคลคูลัส 2",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026203",
+      "name_th": "การโปรแกรมคอมพิวเตอร์",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026205",
+      "name_th": "การตลาดเบื้องต้น",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066001",
+      "name_th": "ความน่าจะเป็นและสถิติ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "90641002",
+      "name_th": "ความฉลาดทางดิจิทัล",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "90642033",
+      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "90644008",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026206",
+      "name_th": "การวิเคราะห์ข้อมูลและการโปรแกรม",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06066000",
+      "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066300",
+      "name_th": "แนวคิดระบบฐานข้อมูล",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06066302",
+      "name_th": "การเขียนโปรแกรมเว็บพื้นฐาน",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06066304",
+      "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026204",
+      "name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026207",
+      "name_th": "ระบบฐานข้อมูลแบบโนนอสควิวแอล",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026208",
+      "name_th": "พื้นฐานวิทยาการข้อมูล",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026209",
+      "name_th": "การแสดงข้อมูลด้วยแผนภาพ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026210",
+      "name_th": "การหาค่าที่เหมาะที่สุด",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066102",
+      "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06066301",
+      "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026211",
+      "name_th": "การเรียนรู้ของเครื่องเชิงประยุกต์",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026212",
+      "name_th": "การสร้างคลังข้อมูล",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "90644042",
+      "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026213",
+      "name_th": "ระบบข้อมูลมหัต",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06026214",
+      "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 0,
+      "lab_h": 9,
+      "self_h": 0,
+      "description_th": null
+    },
+    {
+      "code": "06066100",
+      "name_th": "วิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 4",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "90643021",
+      "name_th": "วิชาเลือกกลุ่มวิศวกรรมข้อมูล 4",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
+      "description_th": null
+    },
+    {
+      "code": "06026215",
+      "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 0,
+      "lab_h": 9,
+      "self_h": 0,
+      "description_th": null
+    }
+  ],
+  "plan": [
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "06026200",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "06026202",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "06066101",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "06066303",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "90641001",
+      "credits": 2,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "90641003",
+      "credits": 1,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "90644007",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "06026201",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "06026203",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "06026205",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "06066001",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "90641002",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "90642033",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 1,
+      "semester": 2,
+      "code": "90644008",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาศึกษาทั่วไป | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 1,
+      "code": "06026206",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 1,
+      "code": "06066000",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 1,
+      "code": "06066300",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 1,
+      "code": "06066302",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 1,
+      "code": "06066304",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06026204",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06026207",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06026208",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06026209",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06026210",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06066102",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06066301",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 3,
+      "semester": 1,
+      "code": "06026211",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | เลือก"
+    },
+    {
+      "year": 3,
+      "semester": 1,
+      "code": "06026212",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | เลือก"
+    },
+    {
+      "year": 3,
+      "semester": 1,
+      "code": "90644042",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | เลือก"
+    },
+    {
+      "year": 3,
+      "semester": 2,
+      "code": "06026213",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 3,
+      "semester": 2,
+      "code": "06026214",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 3,
+      "semester": 2,
+      "code": "06066100",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเลือกเสรี | เลือก"
+    },
+    {
+      "year": 3,
+      "semester": 2,
+      "code": "90643021",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเลือกเสรี | เลือก"
+    },
+    {
+      "year": 4,
+      "semester": 1,
+      "code": "06026215",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    }
+  ],
+  "prerequisites": []
+}
