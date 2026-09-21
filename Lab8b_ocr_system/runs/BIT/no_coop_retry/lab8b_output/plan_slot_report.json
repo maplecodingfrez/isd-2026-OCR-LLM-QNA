@@ -1,9 +1,9 @@
 {
  "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab8b_ocr_system\\runs\\BIT\\no_coop_retry\\lab7b_output\\intermediate_vlm.md",
- "slots": 7,
+ "slots": 6,
  "members": 0,
  "plan_item_credits": 105,
- "with_slots_credits": 126,
+ "with_slots_credits": 120,
  "declared_total_credits": 126,
  "terms": [
   {
@@ -67,17 +67,15 @@
    "plain": 9,
    "wildcard": 3,
    "unexplained": 0,
-   "notes": [
-    "เซลล์รหัสหลายตัวที่ไม่มีหัวกลุ่มวิชา — เป็น rowspan รวมแถว นับเป็นวิชาปกติ ไม่ถือเป็นช่อง"
-   ]
+   "notes": []
   },
   {
    "year": 4,
    "semester": 2,
    "declared_total": 12,
    "plain": 0,
-   "wildcard": 12,
-   "unexplained": 0,
+   "wildcard": 6,
+   "unexplained": 6,
    "notes": []
   }
  ],

@@ -2,12 +2,12 @@
   {
     "id": "CHK1F",
     "name": "หน่วยกิตรวมตามเล่ม (นับช่อง wildcard/หรือ/เลือก 1 กลุ่ม) = ที่หลักสูตรประกาศ",
-    "ok": true,
-    "detail": "นับรวมช่อง 120 · plan_item อย่างเดียว 99 · ประกาศไว้ 120",
+    "ok": false,
+    "detail": "นับรวมช่อง 119 · plan_item อย่างเดียว 98 · ประกาศไว้ 120",
     "cause": {
-      "gap_vs_declared": 21,
+      "gap_vs_declared": 22,
       "b_book_as_written": 21,
-      "a_extraction": 0
+      "a_extraction": 1
     }
   },
   {

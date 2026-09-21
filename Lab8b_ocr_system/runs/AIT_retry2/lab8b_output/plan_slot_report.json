@@ -2,26 +2,26 @@
  "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab8b_ocr_system\\runs\\AIT_retry2\\lab7b_output\\intermediate_vlm.md",
  "slots": 8,
  "members": 2,
- "plan_item_credits": 99,
- "with_slots_credits": 120,
+ "plan_item_credits": 98,
+ "with_slots_credits": 119,
  "declared_total_credits": 120,
  "terms": [
   {
    "year": 1,
    "semester": 1,
-   "declared_total": null,
+   "declared_total": 15,
    "plain": 15,
    "wildcard": 0,
-   "unexplained": null,
+   "unexplained": 0,
    "notes": []
   },
   {
    "year": 1,
    "semester": 2,
-   "declared_total": null,
-   "plain": 16,
+   "declared_total": 19,
+   "plain": 15,
    "wildcard": 3,
-   "unexplained": null,
+   "unexplained": 1,
    "notes": []
   },
   {

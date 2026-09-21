@@ -11,7 +11,7 @@
 คณะเทคโนโลยีสารสนเทศ สจล.
 
 <figure>
-ตราประทับวงกลมสีแดง มีรูปพระเกี้ยวอยู่ตรงกลาง ด้านบนของวงกลมมีข้อความภาษาไทยว่า "มหาวิทยาลัยราชภัฏนครปฐม" และด้านล่างมีข้อความภาษาอังกฤษว่า "KING MONGKOL UNIVERSITY"
+ตราประทับวงกลมสีแดง มีรูปครุฑอยู่ตรงกลาง และมีข้อความภาษาไทย "วท.บ." ปรากฏอยู่ด้านบนของตราประทับ
 </figure>
 
 ---
@@ -25,7 +25,7 @@
 
 ปีที่ 2 ภาคการศึกษาที่ 1
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036103</td><td>บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036104</td><td>องค์กรและการจัดการ MANAGEMENT AND ORGANIZATIONS</td><td>3(3-0-6)</td></tr><tr><td>06036105</td><td>บัญชีการเงินสำหรับผู้มิใช่นักบัญชี FINANCIAL ACCOUNTING FOR NON-ACCOUNTANTS</td><td>3(3-0-6)</td></tr><tr><td>06036117</td><td>อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ BUSINESS INTELLIGENCE AND BIG DATA</td><td>3(3-0-6)</td></tr><tr><td>06036120</td><td>หลักการโครงสร้างข้อมูลและอัลกอริทึม DATA STRUCTURES AND ALGORITHMS PRINCIPLES</td><td>3(3-0-6)</td></tr><tr><td>06036122</td><td>การสื่อสารด้วยภาพสำหรับธุรกิจ VISUAL COMMUNICATION FOR BUSINESS</td><td>3(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036103</td><td>บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS</td><td>3(3-0-6)</td></tr><tr><td>06036104</td><td>องค์กรและการจัดการ MANAGEMENT AND ORGANIZATIONS</td><td>3(3-0-6)</td></tr><tr><td>06036105</td><td>บัญชีการเงินสำหรับผู้มิใช่นักบัญชี FINANCIAL ACCOUNTING FOR NON-AccountANTS</td><td>3(3-0-6)</td></tr><tr><td>06036117</td><td>อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ BUSINESS INTELLIGENCE AND BIG DATA</td><td>3(3-0-6)</td></tr><tr><td>06036120</td><td>หลักการโครงสร้างข้อมูลและอัลกอริทึม DATA STRUCTURES AND ALGORITHMS PRINCIPLES</td><td>3(3-0-6)</td></tr><tr><td>06036122</td><td>การสื่อสารด้วยภาพสำหรับธุรกิจ VISUAL COMMUNICATION FOR BUSINESS</td><td>3(2-2-5)</td></tr><tr><td colspan="2">รวม</td><td>18</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
@@ -53,12 +53,14 @@
 
 ปีที่ 3 ภาคการศึกษาที่ 2
 
-<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036106</td><td>การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES</td><td>3(3-0-6)</td></tr><tr><td>06036116</td><td>การตลาดเชิงดิจิทัล DIGITAL MARKETING</td><td>3(2-2-5)</td></tr><tr><td rowspan="4">96643021<br/>06036xxx</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4</td><td>3(3-0-6)</td></tr><tr><td>3(2-2-5)</td></tr><tr><td>วิชาเลือกเสรี 1<br/>FREE ELECTIVE COURSE 1</td><td>3(3-0-6)</td></tr><tr><td colspan="2">รวม</td><td>15</td></tr></table>
-
-มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
+<table><tr><td>รหัสวิชา</td><td>ชื่อวิชา</td><td>หน่วยกิต (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)</td></tr><tr><td>06036106</td><td>การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES</td><td>3(3-0-6)</td></tr><tr><td>06036116</td><td>การตลาดเชิงดิจิทัล DIGITAL MARKETING</td><td>3(2-2-5)</td></tr><tr><td rowspan="4">96643021<br/>06036xxx</td><td>กลุ่มวิชาที่กำหนดโดยคณะ* ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4<br/>ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 1 OR COURSE GROUP 1-4</td><td>3(3-0-6)</td></tr><tr><td rowspan="2">3(2-2-5)<br/>หรือ</td></tr><tr><td></td></tr><tr><td colspan="3"><strong>รวม</strong> 15</td></tr></table>
 
 วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)
 คณะเทคโนโลยีสารสนเทศ สจล.
+
+<figure>
+ตราประทับวงกลมสีแดง มีรูปพระมหาพิชัยมงกุฎอยู่ตรงกลาง ด้านบนของวงกลมมีข้อความภาษาไทยว่า "สำนักงานคณะกรรมการการศึกษาแห่งชาติ" และด้านล่างเป็นตราครุฑ
+</figure>
 
 ---
 

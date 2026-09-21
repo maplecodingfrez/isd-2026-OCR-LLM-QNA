@@ -11,7 +11,7 @@
     {
       "code": "06036100",
       "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -21,7 +21,7 @@
     {
       "code": "06036101",
       "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
-      "name_en": null,
+      "name_en": "MATHEMATICS FOR BUSINESS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -31,7 +31,7 @@
     {
       "code": "06036118",
       "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -41,7 +41,7 @@
     {
       "code": "96641001",
       "name_th": "โรงเรียนสร้างเสน่ห์",
-      "name_en": null,
+      "name_en": "CHARM SCHOOL",
       "credits": 2,
       "lecture_h": 1,
       "lab_h": 2,
@@ -51,7 +51,7 @@
     {
       "code": "96641003",
       "name_th": "กีฬาและนันทนาการ",
-      "name_en": null,
+      "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
       "credits": 1,
       "lecture_h": 0,
       "lab_h": 3,
@@ -61,7 +61,7 @@
     {
       "code": "96644007",
       "name_th": "ภาษาอังกฤษพื้นฐาน 1",
-      "name_en": null,
+      "name_en": "FOUNDATION ENGLISH 1",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -71,7 +71,7 @@
     {
       "code": "96644042",
       "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
-      "name_en": null,
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -81,7 +81,7 @@
     {
       "code": "06036102",
       "name_th": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ",
-      "name_en": null,
+      "name_en": "STATISTICAL ANALYSIS FOR BUSINESS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -91,7 +91,7 @@
     {
       "code": "06036109",
       "name_th": "กระบวนการและโมเดลทางธุรกิจ",
-      "name_en": null,
+      "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -101,7 +101,7 @@
     {
       "code": "06036119",
       "name_th": "พื้นฐานการเขียนโปรแกรม",
-      "name_en": null,
+      "name_en": "PROGRAMMING FUNDAMENTALS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -111,7 +111,7 @@
     {
       "code": "06036125",
       "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
-      "name_en": null,
+      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -121,7 +121,7 @@
     {
       "code": "96644008",
       "name_th": "ภาษาอังกฤษพื้นฐาน 2",
-      "name_en": null,
+      "name_en": "FOUNDATION ENGLISH 2",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -131,7 +131,7 @@
     {
       "code": "96641002",
       "name_th": "ความฉลาดทางดิจิทัล",
-      "name_en": null,
+      "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -141,7 +141,7 @@
     {
       "code": "06036103",
       "name_th": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
-      "name_en": null,
+      "name_en": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -151,7 +151,7 @@
     {
       "code": "06036104",
       "name_th": "องค์กรและการจัดการ",
-      "name_en": null,
+      "name_en": "MANAGEMENT AND ORGANIZATIONS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -161,7 +161,7 @@
     {
       "code": "06036105",
       "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
-      "name_en": null,
+      "name_en": "FINANCIAL ACCOUNTING FOR NON-AccountANTS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -171,7 +171,7 @@
     {
       "code": "06036117",
       "name_th": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่",
-      "name_en": null,
+      "name_en": "BUSINESS INTELLIGENCE AND BIG DATA",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -181,7 +181,7 @@
     {
       "code": "06036120",
       "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
-      "name_en": null,
+      "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -191,7 +191,7 @@
     {
       "code": "06036122",
       "name_th": "การสื่อสารด้วยภาพสำหรับธุรกิจ",
-      "name_en": null,
+      "name_en": "VISUAL COMMUNICATION FOR BUSINESS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -201,7 +201,7 @@
     {
       "code": "06036108",
       "name_th": "เศรษฐศาสตร์เทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "ECONOMICS OF INFORMATION TECHNOLOGY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -211,7 +211,7 @@
     {
       "code": "06036111",
       "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
-      "name_en": null,
+      "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -221,7 +221,7 @@
     {
       "code": "06036112",
       "name_th": "แนวคิดระบบฐานข้อมูล",
-      "name_en": null,
+      "name_en": "DATABASE SYSTEM CONCEPTS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -231,7 +231,7 @@
     {
       "code": "06036113",
       "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
-      "name_en": null,
+      "name_en": "HUMAN INTERFACE DESIGN",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -241,7 +241,7 @@
     {
       "code": "06036124",
       "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
-      "name_en": null,
+      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -251,7 +251,7 @@
     {
       "code": "06036107",
       "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -261,7 +261,7 @@
     {
       "code": "06036110",
       "name_th": "การวางแผนทรัพยากรองค์กร",
-      "name_en": null,
+      "name_en": "ENTERPRISE RESOURCE PLANNING",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -271,7 +271,7 @@
     {
       "code": "06036114",
       "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
-      "name_en": null,
+      "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -281,7 +281,7 @@
     {
       "code": "06036121",
       "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
-      "name_en": null,
+      "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -291,7 +291,7 @@
     {
       "code": "06036123",
       "name_th": "เทคโนโลยีกลุ่มเมฆ",
-      "name_en": null,
+      "name_en": "CLOUD TECHNOLOGY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -301,7 +301,7 @@
     {
       "code": "06036106",
       "name_th": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่",
-      "name_en": null,
+      "name_en": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -311,7 +311,7 @@
     {
       "code": "06036116",
       "name_th": "การตลาดเชิงดิจิทัล",
-      "name_en": null,
+      "name_en": "DIGITAL MARKETING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -321,7 +321,7 @@
     {
       "code": "96643021",
       "name_th": "ผู้ประกอบการสมัยใหม่",
-      "name_en": null,
+      "name_en": "MODERN ENTREPRENEURS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -331,7 +331,7 @@
     {
       "code": "06036115",
       "name_th": "ความมั่นคงของระบบสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION SYSTEM SECURITY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -341,7 +341,7 @@
     {
       "code": "96642033",
       "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
-      "name_en": null,
+      "name_en": "LAW FOR NEW GENERATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -659,5 +659,16 @@
       "note": "หมวดวิชาเลือกเสรี | บังคับ"
     }
   ],
-  "prerequisites": []
+  "prerequisites": [
+    {
+      "code": "06036114",
+      "requires": "06036119",
+      "kind": "pre"
+    },
+    {
+      "code": "06036114",
+      "requires": "06036122",
+      "kind": "pre"
+    }
+  ]
 }

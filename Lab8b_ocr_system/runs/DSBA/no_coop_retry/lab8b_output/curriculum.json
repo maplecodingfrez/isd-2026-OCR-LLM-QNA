@@ -11,7 +11,7 @@
     {
       "code": "06026200",
       "name_th": "แคลคูลัส 1",
-      "name_en": null,
+      "name_en": "CALCULUS 1",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -21,7 +21,7 @@
     {
       "code": "06026202",
       "name_th": "พีชคณิตเชิงเส้น",
-      "name_en": null,
+      "name_en": "LINEAR ALGEBRA",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -31,7 +31,7 @@
     {
       "code": "06066101",
       "name_th": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -41,7 +41,7 @@
     {
       "code": "06066303",
       "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
-      "name_en": null,
+      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -51,7 +51,7 @@
     {
       "code": "90641001",
       "name_th": "โรงเรียนสร้างเสน่ห์",
-      "name_en": null,
+      "name_en": "CHARM SCHOOL",
       "credits": 2,
       "lecture_h": 1,
       "lab_h": 2,
@@ -61,7 +61,7 @@
     {
       "code": "90641003",
       "name_th": "กีฬาและนันทนาการ",
-      "name_en": null,
+      "name_en": "SPORTS AND RECREATIONAL ACTIVITIES",
       "credits": 1,
       "lecture_h": 0,
       "lab_h": 3,
@@ -71,7 +71,7 @@
     {
       "code": "90644007",
       "name_th": "ภาษาอังกฤษพื้นฐาน 1",
-      "name_en": null,
+      "name_en": "FOUNDATION ENGLISH 1",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -81,7 +81,7 @@
     {
       "code": "06026201",
       "name_th": "แคลคูลัส 2",
-      "name_en": null,
+      "name_en": "CALCULUS 2",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -91,7 +91,7 @@
     {
       "code": "06026203",
       "name_th": "การโปรแกรมคอมพิวเตอร์",
-      "name_en": null,
+      "name_en": "COMPUTER PROGRAMMING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -101,7 +101,7 @@
     {
       "code": "06026205",
       "name_th": "การตลาดเบื้องต้น",
-      "name_en": null,
+      "name_en": "INTRODUCTION TO MARKETING",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -111,7 +111,7 @@
     {
       "code": "06066001",
       "name_th": "ความน่าจะเป็นและสถิติ",
-      "name_en": null,
+      "name_en": "PROBABILITY AND STATISTICS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -121,7 +121,7 @@
     {
       "code": "90641002",
       "name_th": "ความฉลาดทางดิจิทัล",
-      "name_en": null,
+      "name_en": "DIGITAL INTELLIGENCE QUOTIENT",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -131,7 +131,7 @@
     {
       "code": "90642033",
       "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
-      "name_en": null,
+      "name_en": "LAW FOR NEW GENERATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -141,7 +141,7 @@
     {
       "code": "90644008",
       "name_th": "ภาษาอังกฤษพื้นฐาน 2",
-      "name_en": null,
+      "name_en": "FOUNDATION ENGLISH 2",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -151,7 +151,7 @@
     {
       "code": "06026206",
       "name_th": "การวิเคราะห์ข้อมูลและการโปรแกรม",
-      "name_en": null,
+      "name_en": "DATA ANALYTICS AND PROGRAMMING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -161,7 +161,7 @@
     {
       "code": "06066000",
       "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
-      "name_en": null,
+      "name_en": "DISCRETE MATHEMATICS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -171,7 +171,7 @@
     {
       "code": "06066300",
       "name_th": "แนวคิดระบบฐานข้อมูล",
-      "name_en": null,
+      "name_en": "DATABASE SYSTEM CONCEPTS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -181,7 +181,7 @@
     {
       "code": "06066302",
       "name_th": "การเขียนโปรแกรมเว็บพื้นฐาน",
-      "name_en": null,
+      "name_en": "FUNDAMENTAL WEB PROGRAMMING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -191,7 +191,7 @@
     {
       "code": "06066304",
       "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -201,7 +201,7 @@
     {
       "code": "06026204",
       "name_th": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
-      "name_en": null,
+      "name_en": "INTRODUCTION TO NETWORKS AND CYBERSECURITY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -210,8 +210,8 @@
     },
     {
       "code": "06026207",
-      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-      "name_en": null,
+      "name_th": "ระบบฐานข้อมูลแบบโนนอสควิวแอล",
+      "name_en": "NOSQL DATABASE SYSTEMS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -221,7 +221,7 @@
     {
       "code": "06026208",
       "name_th": "พื้นฐานวิทยาการข้อมูล",
-      "name_en": null,
+      "name_en": "FUNDAMENTALS OF DATA SCIENCE",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -231,7 +231,7 @@
     {
       "code": "06026209",
       "name_th": "การแสดงข้อมูลด้วยแผนภาพ",
-      "name_en": null,
+      "name_en": "DATA VISUALIZATION",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -241,7 +241,7 @@
     {
       "code": "06026210",
       "name_th": "การหาค่าที่เหมาะที่สุด",
-      "name_en": null,
+      "name_en": "OPTIMIZATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -251,7 +251,7 @@
     {
       "code": "06066102",
       "name_th": "ระบบสารสนเทศเพื่อการจัดการ",
-      "name_en": null,
+      "name_en": "MANAGEMENT INFORMATION SYSTEMS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -261,7 +261,7 @@
     {
       "code": "06066301",
       "name_th": "โครงสร้างข้อมูลและอัลกอริทึม",
-      "name_en": null,
+      "name_en": "DATA STRUCTURES AND ALGORITHMS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -271,7 +271,7 @@
     {
       "code": "06026211",
       "name_th": "การเรียนรู้ของเครื่องเชิงประยุกต์",
-      "name_en": null,
+      "name_en": "APPLIED MACHINE LEARNING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -281,7 +281,7 @@
     {
       "code": "06026212",
       "name_th": "การสร้างคลังข้อมูล",
-      "name_en": null,
+      "name_en": "DATA WAREHOUSING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -291,7 +291,7 @@
     {
       "code": "90644042",
       "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
-      "name_en": null,
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -301,7 +301,7 @@
     {
       "code": "06026213",
       "name_th": "ระบบข้อมูลมหัต",
-      "name_en": null,
+      "name_en": "BIG DATA SYSTEMS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -311,7 +311,7 @@
     {
       "code": "06026214",
       "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
-      "name_en": null,
+      "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
       "credits": 3,
       "lecture_h": 0,
       "lab_h": 9,
@@ -321,7 +321,7 @@
     {
       "code": "06066100",
       "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -331,7 +331,7 @@
     {
       "code": "90643021",
       "name_th": "ผู้ประกอบการสมัยใหม่",
-      "name_en": null,
+      "name_en": "MODERN ENTREPRENEURS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -341,7 +341,7 @@
     {
       "code": "06026215",
       "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
-      "name_en": null,
+      "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
       "credits": 3,
       "lecture_h": 0,
       "lab_h": 9,
@@ -623,5 +623,31 @@
       "note": "หมวดวิชาเฉพาะ | บังคับ"
     }
   ],
-  "prerequisites": []
+  "prerequisites": [
+    {
+      "code": "06026201",
+      "requires": "06026200",
+      "kind": "pre"
+    },
+    {
+      "code": "06066102",
+      "requires": "06066101",
+      "kind": "pre"
+    },
+    {
+      "code": "06026212",
+      "requires": "06066300",
+      "kind": "pre"
+    },
+    {
+      "code": "06026213",
+      "requires": "06066300",
+      "kind": "pre"
+    },
+    {
+      "code": "06026215",
+      "requires": "06026214",
+      "kind": "pre"
+    }
+  ]
 }

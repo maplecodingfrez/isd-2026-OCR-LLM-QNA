@@ -1,15 +1,17 @@
 {
-  "source_courses": 37,
+  "source_courses": 38,
   "converted_courses": 32,
   "plan_items": 32,
-  "prerequisites": 0,
-  "skipped_wildcards": 5,
+  "prerequisites": 5,
+  "skipped_wildcards": 6,
   "skipped_flexible_plan_items": 0,
+  "terms_recovered_from_markdown": [],
   "warnings": [
     "courses[10] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9064xxxx'",
     "courses[27] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '060464xx'",
     "courses[29] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '060464xx'",
-    "courses[33] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '90644xxx'",
-    "courses[34] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'xxxxxxxxx'"
+    "courses[32] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'xxxxxxxxxxx'",
+    "courses[34] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '90644xxx'",
+    "courses[35] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'xxxxxxx'"
   ]
 }
