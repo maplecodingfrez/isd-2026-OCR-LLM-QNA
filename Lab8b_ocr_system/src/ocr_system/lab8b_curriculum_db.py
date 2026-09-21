@@ -1296,9 +1296,49 @@ def verify_db(conn: sqlite3.Connection) -> list[dict]:
     return results
 
 
+def verify_full_db(conn: sqlite3.Connection) -> list[dict]:
+    """ข้อตรวจคู่ขนาน CHK1F/CHK7F — เหมือน CHK1/CHK7 แต่นับหน่วยกิตของ "ช่องตามเล่ม" (plan_slot: wildcard,
+    "A หรือ B", "เลือก 1 กลุ่ม") ผ่าน v_semester_credits_full ทำให้ผลรวมเทียบกับที่เล่มประกาศได้ตรงความจริงกว่า
+
+    เพิ่มแบบ additive: **ไม่รวมใน 7 ข้อของ verify_db** และไม่แตะ verify.json เดิม (คะแนน Lab 9/NL2SQL จึงไม่เปลี่ยน);
+    ไม่มีตาราง/ข้อมูล plan_slot ในฐานข้อมูล → คืนลิสต์ว่าง (ไม่ตรวจ ไม่ใช่ "ผ่าน")
+    ข้อผิดที่เหลือมาจากข้อมูลที่ OCR ทำเสียจริง (เช่น หัวกลุ่มวิชาหาย -> วิชาในกลุ่มถูกนับเป็นวิชาปกติ) ไม่ได้ซ่อนไว้"""
+    has = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='plan_slot'").fetchone()
+    if not has or conn.execute("SELECT COUNT(*) FROM plan_slot").fetchone()[0] == 0:
+        return []
+    prog = conn.execute("SELECT * FROM program LIMIT 1").fetchone()
+    if prog is None:
+        return []
+    results: list[dict] = []
+    rows = conn.execute("SELECT year, semester, credits FROM v_semester_credits_full ORDER BY year, semester").fetchall()
+    total_full = sum(r["credits"] for r in rows)
+    total_item = sum(r["credits"] for r in _sem_credits(conn))
+    declared = prog["total_credits"]
+    results.append({
+        "id": "CHK1F", "name": "หน่วยกิตรวมตามเล่ม (นับช่อง wildcard/หรือ/เลือก 1 กลุ่ม) = ที่หลักสูตรประกาศ",
+        "ok": total_full == declared,
+        "detail": f"นับรวมช่อง {total_full} · plan_item อย่างเดียว {total_item} · ประกาศไว้ {declared}"})
+
+    block = {(r["year"], r["semester"]) for r in conn.execute("""
+        SELECT DISTINCT year, semester FROM plan_item
+        WHERE credits >= 6
+           OR note LIKE '%สหกิจ%' OR note LIKE '%ฝึกงาน%'
+           OR code IN (SELECT code FROM course
+                       WHERE name_th LIKE '%สหกิจ%' OR name_th LIKE '%ฝึกงาน%')""")}
+    bad = [f"ปี {r['year']}/{r['semester']} = {r['credits']} หน่วยกิต" for r in rows
+           if (r["year"], r["semester"]) not in block and r["semester"] != 3
+           and not (MIN_CREDITS_PER_SEM <= r["credits"] <= MAX_CREDITS_PER_SEM)]
+    results.append({
+        "id": "CHK7F", "name": f"หน่วยกิตต่อภาคเรียน (นับช่องตามเล่ม) อยู่ระหว่าง {MIN_CREDITS_PER_SEM}–{MAX_CREDITS_PER_SEM}",
+        "ok": not bad,
+        "detail": "; ".join(bad[:5]) if bad else f"ผ่านทุกภาค (ยกเว้นภาคบล็อก {len(block)} ภาค และภาคฤดูร้อน)"})
+    return results
+
+
 def cmd_verify(args) -> None:
     conn = open_db(args.database, readonly=True)
     results = verify_db(conn)
+    full = verify_full_db(conn)
     conn.close()
 
     print()
@@ -1319,10 +1359,20 @@ def cmd_verify(args) -> None:
         print("  ข้อที่ไม่ผ่านอาจเกิดได้สองทาง และต้องแยกให้ออกก่อนแก้")
         print("    (ก) สกัดผิด        -> กลับไปแก้ prompt หรือแก้ JSON")
         print("    (ข) เล่มเขียนแบบนั้นจริง -> ต้องแก้กฎให้รู้จักข้อยกเว้นนี้")
+    if full:
+        print()
+        print("  ตรวจคู่ขนาน — นับหน่วยกิตของช่องตามเล่ม (wildcard / หรือ / เลือก 1 กลุ่ม) (ไม่รวมใน 7 ข้อข้างบน)")
+        for r in full:
+            print(f"  [{'ผ่าน  ' if r['ok'] else 'ไม่ผ่าน'}] {r['id']}  {r['name']}")
+            print(f"           {r['detail']}")
     if args.output:
         Path(args.output).write_text(
             json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\n  บันทึกผลที่ {args.output}")
+        if full:
+            full_path = Path(args.output).with_name(Path(args.output).stem + "_full.json")
+            full_path.write_text(json.dumps(full, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"  บันทึกผลตรวจคู่ขนานที่ {full_path}")
 
 
 # ═══════════════════════════════════════════════════════════════════════

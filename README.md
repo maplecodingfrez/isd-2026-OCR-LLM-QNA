@@ -19,6 +19,7 @@
 | ตัวสกัดวิชาบังคับก่อนจากข้อความ OCR | `Lab8b_ocr_system/src/ocr_system/prereq_from_book.py` |
 | โหลดเข้า DB (`load-prerequisites`, ตาราง `prerequisite_alt`) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` |
 | คำถามทอง "มีคู่ prerequisite กี่คู่" คำนวณจากเฉลย | `Lab9_evaluation/gold_questions/build_gold_questions.py` |
+| ข้อตรวจหน่วยกิตรวมช่อง wildcard (CHK1F/CHK7F) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` (`verify_full_db`) |
 | ชุดทดสอบ + ผลทดลอง | `Lab8b_ocr_system/experiments/wildcard_pass_2026-09-21/`, `.../prereq_from_book_ocr_2026-09-21/` |
 | บันทึกทุกขั้นตอน | `Lab8b_ocr_system/PROGRESS.md` |
 
@@ -83,6 +84,35 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 
 **ข้อจำกัด:** ถามเรื่อง "หรือ" ผ่าน NL2SQL ไม่ได้ (ตารางเสริมไม่อยู่ใน prompt โดยตั้งใจ) · รองรับกลุ่ม "หรือ" ได้ 1 กลุ่มต่อวิชา (ยังไม่รองรับ "(A หรือ B) และ C") ·
 วิชาที่หาหัวรายวิชาไม่เจอจะไม่มีแถวในตาราง · ตัวสกัดยังไม่เคยทดสอบกับเล่มนอกชุด 4 เล่มนี้ (ดู "ข้อควรระวัง" ด้านบน)
+
+---
+
+## 3. หน่วยกิตของแถว wildcard (ข้อตรวจคู่ขนาน CHK1F / CHK7F)
+
+**ปัญหา:** แถววิชาเลือกที่เล่มเขียนเป็นรหัส wildcard (เช่น `9664xxxx`, `06036xxx`) ไม่ถูกเก็บใน `plan_item` CHK1 (ผลรวมตรงที่ประกาศ) และ CHK7 (9–22 หน่วยกิตต่อภาค) จึงตกเกือบทุกแผน ทั้งที่หน่วยกิตของแถวเหล่านี้ **อ่านได้แล้ว** ในตาราง `plan_slot` (สกัดจาก Markdown ของ OCR อย่างเดียว ไม่ใช้เฉลย: ใช้แถว "รวม" ที่เล่มพิมพ์เป็น checksum ของแต่ละภาค)
+
+**แก้:** เพิ่ม `verify_full_db()` ใน `lab8b_curriculum_db.py` — ข้อตรวจ **CHK1F / CHK7F** เหมือน CHK1/CHK7 แต่นับหน่วยกิตของช่อง (wildcard / "A หรือ B" / "เลือก 1 กลุ่ม") ผ่าน `v_semester_credits_full` `verify` จะเขียน `verify_full.json` ไว้ข้าง `verify.json` — **ไม่รวมใน 7 ข้อเดิม และไม่แตะ `verify.json`** (เทียบ 25 รันแล้วเนื้อหาไม่เปลี่ยน) คะแนน Lab 9/NL2SQL จึงไม่เปลี่ยน; ไม่มีข้อมูล `plan_slot` = ไม่ตรวจ (ไม่ใช่ "ผ่าน")
+
+**ผล (รันหลัก 7 แผน + IT รอบควบคุม):**
+
+| แผน | CHK1 เดิม | CHK1F (นับช่อง เทียบเล่มประกาศ) | CHK7 เดิม | CHK7F |
+|---|---|---|---|---|
+| AIT | ตก | ตก (119 เทียบ 120) | ตก | ผ่าน |
+| BIT no-coop | ตก | **ผ่าน** (126) | ผ่าน | ผ่าน |
+| BIT coop | ตก | **ผ่าน** (126) | ตก | ผ่าน |
+| DSBA no-coop | ตก | **ผ่าน** (132) | ตก | ผ่าน |
+| DSBA coop | ตก | **ผ่าน** (132) | ตก | ผ่าน |
+| IT no-coop | ตก | ตก (126 เทียบ 129) | ตก | ผ่าน |
+| IT coop | ตก | ตก (126 เทียบ 129) | ตก | ผ่าน |
+| IT no-coop (รอบควบคุม) | ผ่าน* | ตก (132 เทียบ 129) | ตก | ตก (ปี 2/2 = 24) |
+
+\* CHK1 เดิมของรอบควบคุมผ่านโดยบังเอิญ (นับสมาชิกกลุ่ม "เลือก 1" เกินไปพอดีหักล้างกับ wildcard ที่หาย) ส่วนต่างที่เหลือมาจากข้อมูลที่ OCR ทำเสียจริง ไม่ได้ซ่อน: AIT ขาด 1 หน่วยกิต (`90641004` ตราน้ำบัง), IT ขาด 3 (`90644042`), และ IT รอบควบคุมปี 2/2 เกิน 6 เพราะ Markdown ของ OCR ทำหัวตารางกลุ่มที่ 3 (`06016419/420`) เสีย ตัวแยกช่องจึงไม่รู้ว่ามีกลุ่มนั้นและนับสองวิชานั้นเป็นวิชาปกติ
+
+```bash
+cd Lab8b_ocr_system
+python src/ocr_system/lab8b_curriculum_db.py verify -d runs/BIT/no_coop/lab8b_output/curriculum.db -o runs/BIT/no_coop/lab8b_output/verify.json   # เขียน verify.json + verify_full.json
+python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ชุดทดสอบ 9 ข้อ (ฐานข้อมูลสังเคราะห์)
+```
 
 ---
 
