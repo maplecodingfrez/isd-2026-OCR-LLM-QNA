@@ -5,6 +5,7 @@
   "prerequisites": 0,
   "skipped_wildcards": 15,
   "skipped_flexible_plan_items": 14,
+  "terms_recovered_from_markdown": [],
   "warnings": [
     "06026243: ไม่ใส่ในแผนเพราะปี/เทอม=0/0",
     "06026244: ไม่ใส่ในแผนเพราะปี/เทอม=0/0",

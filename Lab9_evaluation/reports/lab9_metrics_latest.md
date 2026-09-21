@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-21 15:51
+# Lab9 evaluation report — 2026-09-21 17:33
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -36,13 +36,13 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 
 | run | n_questions | valid_sql_rate | execution_accuracy | answer_text_accuracy | avg_seconds |
 |---|---|---|---|---|---|
-| ait | 30 | 0.9667 | 0.7 | 0.7 | 1.92 |
-| bit_no_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.95 |
-| bit_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.69 |
-| dsba_no_coop | 30 | 0.9667 | 0.9 | 0.8667 | 1.93 |
-| dsba_coop | 30 | 0.9667 | 0.9 | 0.9 | 1.84 |
-| it_no_coop | 30 | 0.9667 | 0.8333 | 0.8333 | 1.86 |
-| it_coop | 30 | 0.9667 | 0.7667 | 0.7667 | 1.87 |
+| ait | 30 | 0.9667 | 0.6667 | 0.6667 | 2.05 |
+| bit_no_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.96 |
+| bit_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.94 |
+| dsba_no_coop | 30 | 0.9667 | 0.9 | 0.8667 | 1.78 |
+| dsba_coop | 30 | 0.9667 | 0.9 | 0.9 | 1.99 |
+| it_no_coop | 30 | 0.9667 | 0.8 | 0.8 | 1.9 |
+| it_coop | 30 | 0.9667 | 0.7333 | 0.7333 | 1.42 |
 | dsba_coop_retry | 30 | 1.0 | 1.0 | 0.9 | 1.66 |
 | bit_coop_retry | 30 | 0.9667 | 0.8667 | 0.8667 | 1.9 |
 | it_coop_retry | 30 | 0.9667 | 0.7667 | 0.7667 | 1.8 |
@@ -79,23 +79,23 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 - **it_coop vs it_coop_retry**
   - หน่วยกิตรวมในแผน: it_coop=135  vs  it_coop_retry=135  (ต่างกัน 0.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: it_coop=44  vs  it_coop_retry=44  (ต่างกัน 0.0%) -> โอเค
-  - Execution accuracy (SQL): it_coop=0.7667  vs  it_coop_retry=0.7667  (ต่างกัน 0.0%) -> โอเค
-  - ความถูกต้องของข้อความคำตอบ: it_coop=0.7667  vs  it_coop_retry=0.7667  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): it_coop=0.7333  vs  it_coop_retry=0.7667  (ต่างกัน 4.4%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: it_coop=0.7333  vs  it_coop_retry=0.7667  (ต่างกัน 4.4%) -> โอเค
 - **ait vs ait_retry**
   - หน่วยกิตรวมในแผน: ait=98  vs  ait_retry=99  (ต่างกัน 1.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: ait=32  vs  ait_retry=34  (ต่างกัน 5.9%) -> โอเค
-  - Execution accuracy (SQL): ait=0.7  vs  ait_retry=0.9333  (ต่างกัน 25.0%) -> ⚠️ ไม่เสถียร (เกิน threshold)
-  - ความถูกต้องของข้อความคำตอบ: ait=0.7  vs  ait_retry=0.9333  (ต่างกัน 25.0%) -> ⚠️ ไม่เสถียร (เกิน threshold)
+  - Execution accuracy (SQL): ait=0.6667  vs  ait_retry=0.9333  (ต่างกัน 28.6%) -> ⚠️ ไม่เสถียร (เกิน threshold)
+  - ความถูกต้องของข้อความคำตอบ: ait=0.6667  vs  ait_retry=0.9333  (ต่างกัน 28.6%) -> ⚠️ ไม่เสถียร (เกิน threshold)
 - **ait vs ait_retry2**
   - หน่วยกิตรวมในแผน: ait=98  vs  ait_retry2=99  (ต่างกัน 1.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: ait=32  vs  ait_retry2=34  (ต่างกัน 5.9%) -> โอเค
-  - Execution accuracy (SQL): ait=0.7  vs  ait_retry2=0.9333  (ต่างกัน 25.0%) -> ⚠️ ไม่เสถียร (เกิน threshold)
-  - ความถูกต้องของข้อความคำตอบ: ait=0.7  vs  ait_retry2=0.9333  (ต่างกัน 25.0%) -> ⚠️ ไม่เสถียร (เกิน threshold)
+  - Execution accuracy (SQL): ait=0.6667  vs  ait_retry2=0.9333  (ต่างกัน 28.6%) -> ⚠️ ไม่เสถียร (เกิน threshold)
+  - ความถูกต้องของข้อความคำตอบ: ait=0.6667  vs  ait_retry2=0.9333  (ต่างกัน 28.6%) -> ⚠️ ไม่เสถียร (เกิน threshold)
 - **ait vs ait_retry3**
   - หน่วยกิตรวมในแผน: ait=98  vs  ait_retry3=98  (ต่างกัน 0.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: ait=32  vs  ait_retry3=32  (ต่างกัน 0.0%) -> โอเค
-  - Execution accuracy (SQL): ait=0.7  vs  ait_retry3=0.7333  (ต่างกัน 4.5%) -> โอเค
-  - ความถูกต้องของข้อความคำตอบ: ait=0.7  vs  ait_retry3=0.7333  (ต่างกัน 4.5%) -> โอเค
+  - Execution accuracy (SQL): ait=0.6667  vs  ait_retry3=0.7333  (ต่างกัน 9.1%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: ait=0.6667  vs  ait_retry3=0.7333  (ต่างกัน 9.1%) -> โอเค
 - **bit_no_coop vs bit_no_coop_retry**
   - หน่วยกิตรวมในแผน: bit_no_coop=105  vs  bit_no_coop_retry=105  (ต่างกัน 0.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: bit_no_coop=36  vs  bit_no_coop_retry=36  (ต่างกัน 0.0%) -> โอเค
@@ -109,8 +109,8 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 - **it_no_coop vs it_no_coop_retry**
   - หน่วยกิตรวมในแผน: it_no_coop=123  vs  it_no_coop_retry=123  (ต่างกัน 0.0%) -> โอเค
   - จำนวนวิชาที่แปลงได้: it_no_coop=42  vs  it_no_coop_retry=42  (ต่างกัน 0.0%) -> โอเค
-  - Execution accuracy (SQL): it_no_coop=0.8333  vs  it_no_coop_retry=0.8333  (ต่างกัน 0.0%) -> โอเค
-  - ความถูกต้องของข้อความคำตอบ: it_no_coop=0.8333  vs  it_no_coop_retry=0.8333  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): it_no_coop=0.8  vs  it_no_coop_retry=0.8333  (ต่างกัน 4.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: it_no_coop=0.8  vs  it_no_coop_retry=0.8333  (ต่างกัน 4.0%) -> โอเค
 
 ## 4. Metric ที่วิชานี้ไม่ได้ใช้ + ทำไม (checklist ch9 ข้อ 4)
 

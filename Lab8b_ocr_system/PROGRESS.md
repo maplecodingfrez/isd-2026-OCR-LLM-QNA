@@ -2523,3 +2523,22 @@ IT coop 40/41/43/44 · IT no-coop 34/35/36 — ผลยืนยันทุก
 - **commit `e41d26e`:** `lab10_fastapi/` (ไฟล์ใหม่ที่ยังไม่เคยถูกบันทึกใน PROGRESS นี้ — ไม่ได้ตรวจเนื้อหา; `.env` ถูก gitignore ไม่ได้เข้า commit, `__pycache__` ไม่เข้า)
 - ไม่ใส่ `Co-Authored-By` ตามที่ตกลงไว้ก่อนหน้า; author เป็นอีเมลผู้ใช้
 - **ค่อนค้าง:** ช่วงที่ 2 ของ prerequisite (รออนุมัติ); ยังไม่ push
+
+## 2026-09-21 — ข้อ 3 ช่วงที่ 2: ผูก `load-prerequisites` เข้า pipeline + คำถามทอง "กี่คู่" (รันครบ 7 แผน)
+- **สถานะที่พบหลังคอมดับ:** โค้ดช่วงที่ 2 อยู่ใน `caec952` แล้ว (subcommand `load-prerequisites` ใน `lab8b_curriculum_db.py`, ขั้นเรียกใน `run_lab8b_*.py`, `expected_prerequisite_pairs()`/`patch_prerequisite_question()` ใน `build_gold_questions.py`, `dsba_coop_gold_questions.json` แก้แล้ว) แต่รันซ้ำ 7 แผนค้างที่ AIT/BIT×2 (`experiments/prereq_from_book_ocr_2026-09-21/run_all.log` จบที่ bit_coop) และ **`runs/BIT/coop/.../eval_result.json` เป็นของเก่า 2026-09-17** (คำตอบทอง 0)
+- **รันที่เหลือ:** dsba_no_coop, dsba_coop, it_no_coop, it_coop (`run_rest.sh/.log`) — ขั้น prerequisite สำเร็จทุกแผน แต่สคริปต์กรอง `| grep` ใช้ codepage cp1252 → `UnicodeEncodeError` ตอนพิมพ์ภาษาไทย (ไม่ใช่บั๊กของโค้ดหลัก) จึงรันซ้ำทั้ง 4 + `bit_coop` ด้วย `PYTHONUTF8=1` จนจบปกติ; `evaluate_lab9.py` รีเจน `lab9_metrics_latest.{md,json}`
+- **ผล (จาก `eval_result.json`/`prerequisites_report.json` ของแต่ละรัน; SQL รันผ่าน 29/30 ทุกแผน):**
+
+| แผน | ตอบถูก เดิม→ใหม่ | prereq found/none/not_found/unreadable | คู่ในตาราง | คำตอบทอง "กี่คู่" | ข้อ "กี่คู่" |
+|---|---|---|---|---|---|
+| AIT | 21→20 | 4/23/2/3 | 5 | 6 | ผิด (ได้ 5) |
+| BIT no-coop | 26→26 | 2/27/6/1 | 3 | 3 | ถูก |
+| BIT coop | 26→26 | 1/26/8/1 | 2 | 2 | ถูก |
+| DSBA no-coop | 27→27 | 5/24/4/1 | 5 | 5 | ถูก |
+| DSBA coop | 27→27 | 5/38/6/1 | 5 | 5 | ถูก |
+| IT no-coop | 25→24 | 5/29/8/0 | 5 | 8 | ผิด (ได้ 5) |
+| IT coop | 23→22 | 5/29/10/0 | 5 | 8 | ผิด (ได้ 5) |
+
+- **อ่านตัวเลขให้ตรง:** AIT/IT ที่ตกไป 1 ข้อคือข้อ "กี่คู่" เพราะคำตอบทองคำนวณจากเฉลย (ครบ) แต่ตารางได้เฉพาะวิชาที่ตัวสกัดอ่านเจอ — หาไม่เจอ/อ่านไม่ออกไม่มีแถว (ไม่เดา) เช่น AIT `90641005` (`90641004` ไม่อยู่ใน pred เพราะตราน้ำ), IT ส่วนใหญ่เป็นวิชาที่หาหัวรายวิชาในข้อความ OCR ไม่เจอ → ความต่างนี้เป็นข้อจำกัดจริงของการสกัด ไม่ได้ซ่อน; ก่อนแก้ข้อนี้ตอบ 0 ถูกทุกแผนเพราะคำตอบทองเป็น 0 (ตรงกับตารางว่าง ไม่ใช่ความเข้าใจ prerequisite)
+- **"A หรือ B" (ข้อ 3 ที่ยังเปิด):** เก็บเป็นสองแถว `pre` แยกรหัส (BIT `06036114`→`06036119`,`06036122`); ตารางไม่มีคอลัมน์บอกว่าเป็นทางเลือก — `prerequisites_report.json` เก็บ `op: "or"` ไว้ แต่ยังไม่ลงตาราง (ต้องเพิ่มคอลัมน์/`kind` ใหม่ → เปลี่ยน schema ยังไม่ทำ)
+- **ยังไม่ได้ทำ:** push; ตัดสินเรื่อง `op: or` ใน schema; รอบ `AIT_dewm*` ยังไม่ได้รัน `load-prerequisites`
