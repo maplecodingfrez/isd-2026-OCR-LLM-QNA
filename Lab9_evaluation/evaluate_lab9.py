@@ -39,7 +39,7 @@ Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ J
 ตามขอบเขตที่อาจารย์ขอให้ประเมิน ไม่ใช่แค่ DSBA-coop เหมือนตอนแรกสุด):
     ait, bit_no_coop, bit_coop, dsba_no_coop, dsba_coop, it_no_coop, it_coop
         — ../Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/
-    dsba_coop_retry — ../Lab8b_ocr_system/archive/lab8b_run_ours_coop_retry/
+    dsba_coop_retry — ../Lab8b_ocr_system/runs/DSBA/coop_retry/lab8b_output/
     bit_coop_retry  — ../Lab8b_ocr_system/runs/BIT/coop_retry/lab8b_output/  (สร้างด้วย run_lab8b_bit_coop_retry.py)
     it_coop_retry   — ../Lab8b_ocr_system/runs/IT/coop_retry/lab8b_output/   (สร้างด้วย run_lab8b_it_coop_retry.py)
         (รันซ้ำรอบสองของเอกสารชุดเดียวกับ dsba_coop — ใช้เฉพาะเช็คความเสถียร/overfitting เท่านั้น)
@@ -85,8 +85,8 @@ DEFAULT_RUNS = [
     ("it_no_coop", DEFAULT_LAB8B_RUNS / "IT" / "no_coop" / "lab8b_output"),
     ("it_coop", DEFAULT_LAB8B_RUNS / "IT" / "coop" / "lab8b_output"),
     # เก็บไว้เฉพาะสำหรับเช็คความเสถียร/overfitting (checklist ข้อ 3) — เอกสารชุดเดียวกับ dsba_coop
-    # เป๊ะ รันซ้ำรอบสอง (ของเดิมอยู่ที่ archive/lab8b_run_ours_coop_retry/ หลังจัดโฟลเดอร์)
-    ("dsba_coop_retry", DEFAULT_LAB8B / "archive" / "lab8b_run_ours_coop_retry"),
+    # เป๊ะ รันซ้ำรอบสอง (ของเดิมอยู่ที่ runs/DSBA/coop_retry/lab8b_output/ หลังจัดโฟลเดอร์)
+    ("dsba_coop_retry", DEFAULT_LAB8B_RUNS / "DSBA" / "coop_retry" / "lab8b_output"),
     # รันซ้ำของ bit_coop (สร้างด้วย Lab8b_ocr_system/run_lab8b_bit_coop_retry.py) — ถ้ายังไม่ได้รัน
     # จะขึ้น "[ข้าม] ไม่พบ run directory" และข้ามคู่นี้ในหัวข้อความเสถียรไปเฉยๆ
     ("bit_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "coop_retry" / "lab8b_output"),
