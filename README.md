@@ -483,6 +483,42 @@ python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --no-prepr
 แปลงเป็น SQLite (`curriculum.db`), ตรวจความสอดคล้องภายใน 7 ข้อ (CHK1-CHK7 เช่น หน่วยกิตรวม,
 รหัสวิชาซ้ำ, ลำดับ prerequisite), แล้วตอบคำถามภาษาธรรมชาติด้วย NL→SQL จริง
 
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+**ต้องมีในเครื่อง (ไม่ได้อยู่ใน git):**
+
+- Python 3.10+ และ `.venv` — `pip install -r requirements.txt` แล้วเพิ่ม `pip install pythainlp requests`
+  (สองตัวนี้ Lab 7B/8B/9 ใช้ แต่ยังไม่อยู่ใน `requirements.txt`; `pythainlp` ใช้ตัดคำภาษาไทยสำหรับ WER)
+- [Ollama](https://ollama.com) รันอยู่ในเครื่องนี้เท่านั้น (`http://127.0.0.1:11434` — โค้ดบังคับโหมดออฟไลน์)
+  พร้อมโมเดล: `ollama pull scb10x/typhoon-ocr1.5-3b` (OCR) และ `ollama pull qwen3:4b` (จัด JSON / ตอบ NL→SQL)
+- Tesseract เฉพาะขั้น baseline ของ Lab 7B — ข้ามได้ด้วย `LAB7_SKIP_BASELINE=1`
+
+**อยู่ใน git แล้ว:** โค้ด, `data/ground_truth/`, ผลของแต่ละแผนที่ `Lab8b_ocr_system/runs/<AIT|BIT|DSBA|IT>/…/`
+(`data_input/` = ภาพหน้าแผนการศึกษาที่ใช้ OCR, `lab7b_output/`, `lab8b_output/` รวม `curriculum.db`),
+`outputs/<หลักสูตร>/*.json|csv` ของ Lab 4–6
+
+**ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
+`outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
+`*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
+Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
+
+**ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
+
+```bash
+cd Lab8b_ocr_system
+python run_lab8b_ait.py --skip-lab7
+```
+
+ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
+และ**เขียนทับ**ไฟล์ใน `runs/AIT/lab8b_output/` (ทดสอบบน checkout สะอาดแล้ว)
+ถ้าไม่มี Ollama: `python src/ocr_system/lab8b_curriculum_db.py selftest` (24 ข้อ) หรือ
+`python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
+หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
+
+**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก และสคริปต์ส่ง `-g ../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json`
+ให้ Lab 7B เทียบเฉลย — โฟลเดอร์ `Lab9_evaluation/` อยู่บน branch `Lab-9` / `main` ไม่ได้อยู่บน `Lab-8`
+(บน `Lab-8` จึงควรใช้ `--skip-lab7` หรือ merge `Lab-9` เข้ามาก่อน)
+
 ### Pipeline
 
 ```text
