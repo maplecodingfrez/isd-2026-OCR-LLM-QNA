@@ -515,9 +515,12 @@ python run_lab8b_ait.py --skip-lab7
 `python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
 หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
 
-**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก และสคริปต์ส่ง `-g ../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json`
-ให้ Lab 7B เทียบเฉลย — โฟลเดอร์ `Lab9_evaluation/` อยู่บน branch `Lab-9` / `main` ไม่ได้อยู่บน `Lab-8`
-(บน `Lab-8` จึงควรใช้ `--skip-lab7` หรือ merge `Lab-9` เข้ามาก่อน)
+**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี —
+โฟลเดอร์ `Lab9_evaluation/` อยู่บน branch `Lab-9` / `main` ไม่ได้อยู่บน `Lab-8` ถ้าไม่พบไฟล์ สคริปต์จะ**ข้ามการเทียบเฉลย**
+(OCR และ Lab 8B ยังรันตามปกติ; Lab 7B จะพิมพ์ "ไม่ได้ระบุ --gt จึงข้ามการเทียบกับเฉลย")
+ถ้าต้องการตัวเลข P/R/F1 + CER/WER ให้รันบน `Lab-9` หรือ `git checkout origin/Lab-9 -- Lab9_evaluation`
+ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab8b_ocr_system/runs` หลังลองรัน
 
 ### Pipeline
 

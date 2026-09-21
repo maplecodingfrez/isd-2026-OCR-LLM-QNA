@@ -59,7 +59,7 @@ def main() -> None:
 
     if not args.skip_lab7:
         run(LAB7, "-i", RUN_DIR / "data_input", "-p", "vlm", "-o", LAB7_OUT,
-            "-g", GT_SCOPED)
+            *(["-g", GT_SCOPED] if GT_SCOPED.exists() else []))   # ไม่มีไฟล์เฉลย (เช่น branch ที่ไม่มี Lab9_evaluation/) -> ข้ามการเทียบเฉลย
 
     predictions = [LAB7_OUT / "pred_vlm.json", LAB7_OUT / "pred_markdown.json"]
     prediction = next((p for p in predictions if p.exists()), None)
