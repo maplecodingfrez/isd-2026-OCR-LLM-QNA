@@ -1428,6 +1428,89 @@ def key_loose(c: dict) -> str:
     ])
 
 
+# ------------------------------------------------------------------------------
+#  รอบจับคู่เพิ่มสำหรับแถว wildcard (วิชาเลือกที่รหัสเป็น xx เช่น 9064xxxx, xxxxxxxx)
+# ------------------------------------------------------------------------------
+#  ปัญหา: แถว wildcard ไม่มี "รหัสวิชา" ที่ระบุตัวตนได้ และ Lab 7B ตั้งใจคืน year/semester = 0/0
+#  (ดู _fill_year_sem: ไม่เติมปีให้ wildcard) ขณะที่เฉลยระบุปี/ภาคจริงของช่องนั้น
+#  กุญแจ "รหัส|ปี|ภาค" จึงไม่มีทางตรงกัน แถวเดียวกันเลยถูกนับซ้ำเป็น "ตก" (GT) + "เกิน" (pred)
+#  ทั้งที่ OCR อ่านเจอ — ตรวจแล้ว 7 แผน: แถวตก 72 มี wildcard 47, แถวเกิน 96 มี wildcard 57
+#
+#  วิธี: หลังจับคู่ด้วยกุญแจเดิมแล้ว นำ "แถว wildcard ที่ยังเหลือ" ทั้งสองฝั่งมาจับคู่ด้วยชื่อไทยที่คล้ายกัน
+#  (จับคู่แบบ greedy เรียงตามความคล้าย; ปฏิเสธถ้าเลขท้ายชื่อคนละเลข หรือปี/ภาคที่ระบุชัดทั้งสองฝั่งไม่ตรงกัน)
+#  ผลการจับคู่รอบนี้ถูกนับเป็น matched ปกติ (เข้า CER/WER ของฟิลด์อื่น) ยกเว้น year_sem / flexible
+#  ที่ตัดออก เพราะ 0/0 ของ Lab 7B เป็นการออกแบบ ไม่ใช่ความผิดของการอ่าน
+#  ตัวเลขแบบเดิม (ไม่มีรอบนี้) เก็บไว้ใน alignment["strict"] เพื่อเทียบย้อนหลัง
+_WILD_CODE_RE = re.compile(r"x{2}", re.I)
+_WILD_NAME_MIN = 0.6
+
+
+def _is_wildcard(c: dict) -> bool:
+    return bool(_WILD_CODE_RE.search(str(c.get("code") or "")))
+
+
+def _wild_name(s: object) -> str:
+    return re.sub(r"[\s/,;:.()\-]+", "", str(s or "")).lower()
+
+
+def _wild_name_sim(a: str, b: str) -> float:
+    import difflib
+    a, b = _wild_name(a), _wild_name(b)
+    if not a or not b:
+        return 0.0
+    da, db = re.findall(r"\d+", a), re.findall(r"\d+", b)
+    if da and db and da[-1] != db[-1]:      # "เลือกเสรี 1" vs "เลือกเสรี 2" คนละแถว
+        return 0.0
+    short, long_ = (a, b) if len(a) <= len(b) else (b, a)
+    if len(short) >= 6 and short in long_:  # เฉลยรวมชื่อหลายกลุ่มไว้แถวเดียว pred แยกเป็นแถวละกลุ่ม
+        return 1.0
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def _year_sem_of(c: dict) -> tuple[str, str] | None:
+    y, s = M.normalize(c.get("year"), "strict"), M.normalize(c.get("semester"), "strict")
+    return None if y in ("", "0", "none") or s in ("", "0", "none") else (y, s)
+
+
+def match_wildcards(align) -> list[tuple[dict, dict]]:
+    """จับคู่แถว wildcard ที่ยังเหลือ (align.missed x align.spurious) ด้วยความคล้ายของชื่อไทย
+    แก้ align ในที่เดียว (ย้ายคู่ที่จับได้ไป align.matched) คืนรายการคู่ที่จับเพิ่ม"""
+    cands = []
+    for gi, g in enumerate(align.missed):
+        if not _is_wildcard(g):
+            continue
+        for pi, p in enumerate(align.spurious):
+            if not _is_wildcard(p):
+                continue
+            gy, py = _year_sem_of(g), _year_sem_of(p)
+            if gy and py and gy != py:      # ระบุปี/ภาคชัดทั้งสองฝั่งแต่ไม่ตรง = คนละแถว
+                continue
+            r = _wild_name_sim(g.get("name_th"), p.get("name_th"))
+            if r >= _WILD_NAME_MIN:
+                cands.append((r, gi, pi))
+    cands.sort(key=lambda t: (-t[0], t[1], t[2]))
+    used_g: set[int] = set()
+    used_p: set[int] = set()
+    pairs: list[tuple[dict, dict]] = []
+    for _r, gi, pi in cands:
+        if gi in used_g or pi in used_p:
+            continue
+        used_g.add(gi)
+        used_p.add(pi)
+        pairs.append((align.missed[gi], align.spurious[pi]))
+    if pairs:
+        align.matched.extend(pairs)
+        align.missed = [g for i, g in enumerate(align.missed) if i not in used_g]
+        align.spurious = [p for i, p in enumerate(align.spurious) if i not in used_p]
+    return pairs
+
+
+def _align_numbers(align) -> dict:
+    return {"matched": len(align.matched), "missed": len(align.missed),
+            "spurious": len(align.spurious), "precision": round(align.precision, 4),
+            "recall": round(align.recall, 4), "f1": round(align.f1, 4)}
+
+
 def evaluate(pred: dict, gt: dict) -> tuple[dict, dict]:
     S = M.FieldStat
     stats: dict[str, M.FieldStat] = {
@@ -1447,6 +1530,9 @@ def evaluate(pred: dict, gt: dict) -> tuple[dict, dict]:
 
     # จับคู่สองรอบ: เข้มก่อน (รวมชื่อ) แล้วผ่อน (เฉพาะรหัส+ปี+ภาค)
     align = M.align_multipass(g_courses, p_courses, [key_strict, key_loose])
+    strict_numbers = _align_numbers(align)            # ตัวเลขแบบเดิม ก่อนรอบจับคู่ wildcard
+    wild_pairs = match_wildcards(align)
+    wild_ids = {id(g) for g, _p in wild_pairs}         # แถวที่จับได้จากรอบ wildcard
 
     # ctype/category เป็นฟิลด์ categorical ปิด (ไม่ใช่ free text) — เก็บคู่ (gt, pred)
     # แยกไว้สำหรับทำ confusion matrix ต่างหาก (ดู M.classification_report) เพราะ
@@ -1470,15 +1556,17 @@ def evaluate(pred: dict, gt: dict) -> tuple[dict, dict]:
         stats["name_en"].add(g.get("name_en"), p.get("name_en"), k, track_wer=True)
 
         stats["credits"].add(g.get("credits"), p.get("credits"), k, track_wer=False)
-        stats["year_sem"].add(f"{g.get('year')}/{g.get('semester')}",
-                              f"{p.get('year')}/{p.get('semester')}",
-                              k, track_wer=False)
+        if id(g) not in wild_ids:     # wildcard: Lab 7B คืน 0/0 โดยออกแบบ (ดูหัวข้อรอบจับคู่ wildcard)
+            stats["year_sem"].add(f"{g.get('year')}/{g.get('semester')}",
+                                  f"{p.get('year')}/{p.get('semester')}",
+                                  k, track_wer=False)
         stats["category"].add(g.get("category"), p.get("category"), k, track_wer=False)
         stats["ctype"].add(g.get("type"), p.get("type"), k, track_wer=False)
         stats["prereq"].add(g.get("prerequisite"), p.get("prerequisite"),
                             k, track_wer=False)
-        stats["flexible"].add(g.get("flexible_year_semester"),
-                              p.get("flexible_year_semester"), k, track_wer=False)
+        if id(g) not in wild_ids:
+            stats["flexible"].add(g.get("flexible_year_semester"),
+                                  p.get("flexible_year_semester"), k, track_wer=False)
         ctype_pairs.append((g.get("type"), p.get("type")))
         category_pairs.append((g.get("category"), p.get("category")))
 
@@ -1515,6 +1603,9 @@ def evaluate(pred: dict, gt: dict) -> tuple[dict, dict]:
         "missed_codes": [g.get("code") for g in align.missed][:20],
         "spurious_codes": [p.get("code") for p in align.spurious][:20],
         "classification": classification,
+        # ก่อนรอบจับคู่ wildcard (ตัวเลขแบบเดิม) + จำนวนคู่ที่รอบ wildcard จับเพิ่ม เพื่อเทียบย้อนหลัง
+        "strict": strict_numbers,
+        "wildcard_pass_matched": len(wild_pairs),
     }
     return stats, align_summary
 

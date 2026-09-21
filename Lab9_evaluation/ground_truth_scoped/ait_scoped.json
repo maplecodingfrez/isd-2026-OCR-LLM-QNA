@@ -338,7 +338,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี",
+      "prerequisite": "90641004",
       "flexible_year_semester": null,
       "note": null
     },
@@ -442,7 +442,7 @@
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี",
+      "prerequisite": "90641005",
       "flexible_year_semester": null,
       "note": null
     },
@@ -525,5 +525,5 @@
       "note": null
     }
   ],
-  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs | 2026-09-21: removed 06016401 (not in AIT book, 346 pages searched); fixed 06066303 name_en duplicated PROGRAMMING"
+  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs | 2026-09-21: removed 06016401 (not in AIT book, 346 pages searched); fixed 06066303 name_en duplicated PROGRAMMING | 2026-09-21 (ตรวจ prerequisite กับเล่ม): prerequisite 90641005->90641004, 90641006->90641005 (เล่มหน้า 140: 'หรือ รายวิชาเทียบเคียง' ไม่ใส่)"
 }

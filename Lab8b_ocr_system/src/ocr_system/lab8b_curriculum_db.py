@@ -1016,6 +1016,46 @@ def cmd_load_electives(args) -> None:
     print(f"  โหลด elective_group {n_groups} กลุ่ม, elective_group_course {n_courses} วิชา เข้า {db}")
 
 
+def cmd_load_prerequisites(args) -> None:
+    """สกัดวิชาบังคับก่อนของทุกวิชาใน `course` จากข้อความ OCR ทั้งเล่ม (ภาคผนวกคำอธิบายรายวิชา) แล้วโหลดตาราง `prerequisite`
+
+    กฎเชิงกำหนด ไม่เรียก LLM ไม่ใช้เฉลย (prereq_from_book.py) — "ไม่เดา": วิชาที่หาช่องวิชาบังคับก่อนไม่เจอ/อ่านไม่ออก
+    จะไม่ถูกเติมแถวใดเลย และถูกบันทึกในรายงานว่า not_found/unreadable (ไม่ได้แปลว่าไม่มีวิชาบังคับก่อน)
+    ข้อจำกัด: "A หรือ B" เก็บเป็นสองแถว kind='pre' แยกรหัส (ตารางไม่มีคอลัมน์บอกว่าเป็นทางเลือก)
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from prereq_from_book import extract_prerequisites
+
+    db = Path(args.database)
+    if not db.exists():
+        raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
+    lines = Path(args.text).read_text(encoding="utf-8").replace("\r", "").split("\n")
+    conn = open_db(db)
+    codes = [r[0] for r in conn.execute("SELECT code FROM course ORDER BY code")
+             if re.fullmatch(r"\d{8}", r[0])]
+    res = extract_prerequisites(lines, codes, known_codes=codes)
+
+    pairs = 0
+    for code, r in res.items():
+        if r["status"] != "found":
+            continue
+        for req in r["requires"]:
+            conn.execute("INSERT OR REPLACE INTO prerequisite VALUES (?,?,'pre')", (code, req))
+            pairs += 1
+    conn.commit()
+    counts = {s: sum(1 for r in res.values() if r["status"] == s)
+              for s in ("found", "none", "not_found", "unreadable")}
+    print(f"  วิชารหัสจริง {len(codes)} วิชา: พบวิชาบังคับก่อน {counts['found']} · ไม่มี {counts['none']} · "
+          f"หาไม่เจอ {counts['not_found']} · อ่านไม่ออก {counts['unreadable']}  -> เติม prerequisite {pairs} คู่")
+    if counts["not_found"] or counts["unreadable"]:
+        print("  (หาไม่เจอ/อ่านไม่ออก = ไม่ทราบ ไม่ใช่ 'ไม่มี' — ไม่มีแถวในตาราง prerequisite สำหรับวิชาเหล่านี้)")
+    if args.output:
+        report = {"source_text": str(args.text), "courses": len(codes), "counts": counts,
+                  "pairs_inserted": pairs, "per_course": res}
+        Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"  บันทึกรายงานที่ {args.output}")
+
+
 def cmd_load_plan_slots_md(args) -> None:
     """สกัดช่อง wildcard / "หรือ" / "เลือก 1 กลุ่ม" จาก Markdown ของ OCR แล้วโหลดเข้า plan_slot
 
@@ -2004,6 +2044,13 @@ def main() -> None:
     p.add_argument("-m", "--markdown", required=True, help="intermediate_vlm.md จาก Lab 7B")
     p.add_argument("-d", "--database", required=True)
 
+    p = sub.add_parser("load-prerequisites",
+                       help="สกัดวิชาบังคับก่อนจากข้อความ OCR ทั้งเล่ม (ภาคผนวกคำอธิบายรายวิชา) เข้าตาราง prerequisite"
+                            " (กฎเชิงกำหนด ไม่เดา: หาไม่เจอ = ไม่เติมแถว)")
+    p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt (OCR ทั้งเล่มจาก Lab 4-6)")
+    p.add_argument("-d", "--database", required=True)
+    p.add_argument("-o", "--output", help="เขียนรายงานรายวิชา (found/none/not_found/unreadable) เป็น JSON")
+
     p = sub.add_parser("verify", help="ตรวจความสอดคล้อง 7 ข้อ")
     p.add_argument("-d", "--database", required=True)
     p.add_argument("-o", "--output", default="")
@@ -2026,6 +2073,7 @@ def main() -> None:
      "import-lab7b": cmd_import_lab7b,
      "load": cmd_load, "load-electives": cmd_load_electives,
      "load-plan-slots-md": cmd_load_plan_slots_md,
+     "load-prerequisites": cmd_load_prerequisites,
      "verify": cmd_verify, "ask": cmd_ask,
      "eval": cmd_eval}[args.cmd](args)
 

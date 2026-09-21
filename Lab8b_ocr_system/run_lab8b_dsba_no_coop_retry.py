@@ -81,6 +81,12 @@ def main() -> None:
     md_file = LAB7_OUT / "intermediate_vlm.md"
     if md_file.exists():
         run(LAB8, "load-plan-slots-md", "-m", md_file, "-d", LAB8_OUT / "curriculum.db")
+    # วิชาบังคับก่อน: สกัดจากข้อความ OCR ทั้งเล่มของ Lab 4-6 (กฎเชิงกำหนด ไม่เดา — หาไม่เจอ = ไม่มีแถว)
+    # ไม่มีไฟล์ OCR ทั้งเล่ม = ข้ามขั้นนี้ (ตาราง prerequisite ว่างเหมือนเดิม)
+    book_ocr = ROOT.parent / "outputs" / "dsba" / "dsba_curriculum_ocr.txt"
+    if book_ocr.exists():
+        run(LAB8, "load-prerequisites", "-t", book_ocr, "-d", LAB8_OUT / "curriculum.db",
+            "-o", LAB8_OUT / "prerequisites_report.json")
     run(LAB8, "verify", "-d", LAB8_OUT / "curriculum.db",
         "-o", LAB8_OUT / "verify.json")
 

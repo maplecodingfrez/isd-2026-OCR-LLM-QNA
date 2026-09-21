@@ -24,11 +24,10 @@
   (2) มีปี/ภาคเรียนระบุแน่นอน ไม่ใช่วิชาเลือกแบบยืดหยุ่น (flexible_year_semester) — กติกาเดียวกับที่
   Lab8B เดิมใช้ตอนแปลง DSBA-coop (มันข้าม wildcard/flexible ไปเหมือนกัน ดู curriculum.conversion.json)
   เพราะพวกนี้ไม่มีทางกลายเป็นแถวใน `course`/`plan_item` ที่ระบุแน่นอนได้
-- คำถามวิชาบังคับก่อน (prerequisite) — ตอบ 0 เสมอ ไม่ใช่เพราะหลักสูตรไม่มี prerequisite จริง (ในฐาน
-  ground truth มีจริง) แต่เพราะ **หน้าที่เราเลือกป้อนเข้า Lab7B คือหน้าตารางแผนการเรียนล้วนๆ
-  (ปีที่ N ภาคที่ M) ซึ่งไม่มีคอลัมน์ prerequisite ในตารางนั้นเลย** ข้อมูล prerequisite ที่ ground
-  truth มีมาจากภาคผนวกคำอธิบายรายวิชาคนละหน้า ไม่ได้อยู่ในสโคปของหน้าที่เราป้อน จึงคาดว่า SQL
-  COUNT ต้องได้ 0 เสมอ (สอดคล้องกับที่ DSBA-coop เจอ)
+- คำถามวิชาบังคับก่อน (prerequisite) — จำนวนคู่ (วิชา, วิชาบังคับก่อน) ที่ตาราง prerequisite ควรมี คำนวณจากเฉลย scoped
+  (`ground_truth_scoped/<แผน>_scoped.json` ที่แก้ให้ตรงเล่มแล้ว) ผ่าน `expected_prerequisite_pairs()`
+  (เดิม (ก่อน 2026-09-21) ตอบ 0 เสมอ เพราะ Lab 8B ยังไม่สกัดวิชาบังคับก่อน — ตอนนี้ขั้น `load-prerequisites`
+  สกัดจากข้อความ OCR ของภาคผนวกคำอธิบายรายวิชา วิชาที่หาช่องนี้ไม่เจอจะไม่มีแถว จึงอาจทำให้ตอบต่ำกว่าเฉลย)
 - คำถามแบบ "none" (ค่าธรรมเนียม/ชื่ออาจารย์/รหัสวิชาที่ไม่มีจริง) — เหมือน DSBA-coop ทุกเล่ม
   ไม่ต้องใช้ข้อมูลอะไรเพิ่ม เป็นการเช็คว่าระบบยอมรับได้ว่า "ไม่รู้" แทนที่จะเดามั่ว
 
@@ -131,8 +130,37 @@ MANUAL_GT_GAPS: dict[str, list[dict]] = {
 }
 
 
+SCOPED_DIR = HERE.parent / "ground_truth_scoped"
+
+
+def expected_prerequisite_pairs(scoped_courses: list[dict]) -> int:
+    """จำนวนคู่ (วิชา, วิชาบังคับก่อน) ที่ควรอยู่ในตาราง prerequisite ตามเฉลย scoped (แก้ให้ตรงเล่มแล้ว)
+
+    นับเฉพาะวิชาที่ระบุตัวชัด (รหัส 8 หลัก + ปี/ภาคแน่นอน) และวิชาบังคับก่อนที่ก็เป็นวิชาระบุตัวชัดในแผนเดียวกัน
+    (ตรงกับที่ตาราง course ของ Lab 8B มี — รหัสที่ไม่อยู่ในแผนถูกทิ้งตอนโหลด); "A หรือ B" นับเป็นสองคู่
+    เพราะตาราง prerequisite เก็บแยกรหัส; แถวซ้ำ (เช่น IT 06016418 สองแทร็ก) นับคู่เดียว"""
+    placed = {c["code"] for c in scoped_courses if re.fullmatch(r"\d{8}", c["code"] or "") and is_placed(c)}
+    pairs = set()
+    for c in scoped_courses:
+        if c["code"] not in placed:
+            continue
+        for req in re.findall(r"(?<!\d)\d{8}(?!\d)", c.get("prerequisite") or ""):
+            if req in placed and req != c["code"]:
+                pairs.add((c["code"], req))
+    return len(pairs)
+
+
+def patch_prerequisite_question(questions: list[dict], n_pairs: int) -> bool:
+    """แก้ค่าคาดหวังของคำถาม 'มีคู่ prerequisite กี่คู่' ในไฟล์คำถามที่มีอยู่แล้ว (ใช้กับ dsba_coop ที่ไม่ได้สร้างจากสคริปต์นี้)"""
+    for q in questions:
+        if "prerequisite" in q["question"] and q["expect"].get("type") == "value":
+            q["expect"]["value"] = str(n_pairs)
+            return True
+    return False
+
+
 def build_questions(courses: list[dict], declared_total_credits: int, years: int,
-                     valid_prefixes: set[str]) -> list[dict]:
+                     valid_prefixes: set[str], prereq_pairs: int = 0) -> list[dict]:
     concrete = [c for c in courses if is_concrete_code(c["code"], valid_prefixes)]
     placed = [c for c in concrete if is_placed(c)]
 
@@ -273,7 +301,7 @@ def build_questions(courses: list[dict], declared_total_credits: int, years: int
                    "expect": {"type": "value", "value": unique_credit_course["code"]}})
 
     q.append({"question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",
-               "expect": {"type": "value", "value": "0"}})
+               "expect": {"type": "value", "value": str(prereq_pairs)}})
 
     q.append({"question": "ค่าธรรมเนียมการศึกษา (ค่าเทอม) ของหลักสูตรนี้ต่อภาคการศึกษาคือเท่าไร",
                "expect": {"type": "none", "value": None}})
@@ -300,10 +328,23 @@ PLANS = [
 def main() -> None:
     for name, gt_path, total_credits, years, valid_prefixes in PLANS:
         courses = load_courses(gt_path) + MANUAL_GT_GAPS.get(name, [])
-        questions = build_questions(courses, total_credits, years, valid_prefixes)
+        scoped = load_courses(SCOPED_DIR / f"{name}_scoped.json")
+        n_pairs = expected_prerequisite_pairs(scoped)
+        questions = build_questions(courses, total_credits, years, valid_prefixes, n_pairs)
         out_path = HERE / f"{name}_gold_questions.json"
         out_path.write_text(json.dumps(questions, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"{name}: {len(questions)} questions -> {out_path.name}")
+        print(f"{name}: {len(questions)} questions -> {out_path.name} (prerequisite pairs = {n_pairs})")
+
+    # dsba_coop: ไฟล์คำถามเตรียมไว้ก่อนสคริปต์นี้ (อยู่ที่ output ของรัน) — คัดลอกมาไว้ที่นี่แล้วแก้เฉพาะข้อ prerequisite
+    out_path = HERE / "dsba_coop_gold_questions.json"
+    if not out_path.exists():
+        src = HERE.parents[1] / "Lab8b_ocr_system" / "runs" / "DSBA" / "coop" / "lab8b_output" / "gold_questions.json"
+        out_path.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    qs = json.loads(out_path.read_text(encoding="utf-8"))
+    n_pairs = expected_prerequisite_pairs(load_courses(SCOPED_DIR / "dsba_coop_scoped.json"))
+    patch_prerequisite_question(qs, n_pairs)
+    out_path.write_text(json.dumps(qs, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"dsba_coop: {len(qs)} questions -> {out_path.name} (prerequisite pairs = {n_pairs}; แก้เฉพาะข้อ prerequisite)")
 
 
 if __name__ == "__main__":

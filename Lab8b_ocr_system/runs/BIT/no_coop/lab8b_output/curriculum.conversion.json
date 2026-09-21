@@ -5,6 +5,7 @@
   "prerequisites": 0,
   "skipped_wildcards": 7,
   "skipped_flexible_plan_items": 0,
+  "terms_recovered_from_markdown": [],
   "warnings": [
     "courses[24] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",
     "courses[30] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",

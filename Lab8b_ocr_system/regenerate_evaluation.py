@@ -39,7 +39,10 @@ RUNS = {
     "dsba_coop":    (ROOT / "runs" / "DSBA" / "coop" / "lab7b_output",   GT_DIR / "dsba_coop_scoped.json"),
     "it_no_coop":   (ROOT / "runs" / "IT" / "no_coop" / "lab7b_output",  GT_DIR / "it_no_coop_scoped.json"),
     "it_coop":      (ROOT / "runs" / "IT" / "coop" / "lab7b_output",     GT_DIR / "it_coop_scoped.json"),
+    # รอบทดลอง AIT (ตัดตราน้ำ + อ่านซ้ำ) — เฉลยชุดเดียวกับ ait; ไม่อยู่ในค่า default ด้านล่าง (ระบุชื่อเองเมื่อต้องการ)
+    **{f"ait_dewm{i}": (ROOT / "runs" / f"AIT_dewm{i}" / "lab7b_output", GT_DIR / "ait_scoped.json") for i in range(1, 7)},
 }
+DEFAULT_RUNS = ["ait", "bit_no_coop", "bit_coop", "dsba_no_coop", "dsba_coop", "it_no_coop", "it_coop"]
 
 
 def regenerate_one(name: str, outdir: Path, gt_path: Path) -> None:
@@ -52,6 +55,10 @@ def regenerate_one(name: str, outdir: Path, gt_path: Path) -> None:
     print(f"  จับคู่วิชา: เจอ {align['matched']}/{align['gt_total']} "
           f"| ตก {align['missed']} | แต่งเกิน {align['spurious']}   "
           f"P={align['precision']:.3f} R={align['recall']:.3f} F1={align['f1']:.3f}")
+    st = align.get("strict")
+    if st:
+        print(f"    (ก่อนรอบจับคู่ wildcard: ตก {st['missed']} | แต่งเกิน {st['spurious']}   "
+              f"P={st['precision']:.3f} R={st['recall']:.3f} F1={st['f1']:.3f} — รอบ wildcard จับเพิ่ม {align['wildcard_pass_matched']} คู่)")
     M.print_classification_report(align["classification"]["ctype"], "ctype (บังคับ/เลือก)")
     M.print_classification_report(align["classification"]["category"], "category (หมวดวิชา)")
 
@@ -81,7 +88,7 @@ def require_thai_tokenizer() -> None:
 
 def main() -> None:
     require_thai_tokenizer()
-    names = sys.argv[1:] or list(RUNS.keys())
+    names = sys.argv[1:] or DEFAULT_RUNS
     unknown = [n for n in names if n not in RUNS]
     if unknown:
         raise SystemExit(f"ไม่รู้จัก run: {unknown} (ตัวเลือกคือ {list(RUNS.keys())})")

@@ -5,25 +5,25 @@
       "code": {
         "label": "รหัสวิชา",
         "n_items": 43,
-        "cer": 0.116279,
+        "cer": 0.063953,
         "wer": null,
-        "exact_match_acc": 0.883721,
-        "n_sub": 0,
-        "n_del": 40,
+        "exact_match_acc": 0.906977,
+        "n_sub": 6,
+        "n_del": 16,
         "n_ins": 0,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 344,
         "error_samples": [
           {
-            "key": "9664xxxx [ตกแถว]",
-            "gt": "9664xxxx",
-            "pred": ""
+            "key": "96644XXX",
+            "gt": "96644XXX",
+            "pred": "9664xxxx"
           },
           {
-            "key": "96644XXX [ตกแถว]",
-            "gt": "96644XXX",
-            "pred": ""
+            "key": "xxxxxxxx",
+            "gt": "xxxxxxxx",
+            "pred": "06036xxx"
           },
           {
             "key": "06036146 [ตกแถว]",
@@ -34,37 +34,22 @@
             "key": "96642033 [ตกแถว]",
             "gt": "96642033",
             "pred": ""
-          },
-          {
-            "key": "xxxxxxxx [ตกแถว]",
-            "gt": "xxxxxxxx",
-            "pred": ""
           }
         ]
       },
       "name_th": {
         "label": "ชื่อวิชา (ไทย) ⭐",
         "n_items": 43,
-        "cer": 0.120913,
-        "wer": 0.12037,
-        "exact_match_acc": 0.883721,
+        "cer": 0.048669,
+        "wer": 0.046296,
+        "exact_match_acc": 0.953488,
         "n_sub": 0,
-        "n_del": 159,
+        "n_del": 64,
         "n_ins": 0,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 1315,
         "error_samples": [
-          {
-            "key": "9664xxxx [ตกแถว]",
-            "gt": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
-            "pred": ""
-          },
-          {
-            "key": "96644XXX [ตกแถว]",
-            "gt": "วิชาเลือกด้านภาษาและการสื่อสาร",
-            "pred": ""
-          },
           {
             "key": "06036146 [ตกแถว]",
             "gt": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
@@ -73,11 +58,6 @@
           {
             "key": "96642033 [ตกแถว]",
             "gt": "กฎหมายสำหรับคนรุ่นใหม่",
-            "pred": ""
-          },
-          {
-            "key": "xxxxxxxx [ตกแถว]",
-            "gt": "วิชาเลือกเสรี 1",
             "pred": ""
           }
         ]
@@ -125,26 +105,16 @@
       "credits": {
         "label": "หน่วยกิต",
         "n_items": 43,
-        "cer": 0.136842,
+        "cer": 0.042105,
         "wer": null,
-        "exact_match_acc": 0.883721,
+        "exact_match_acc": 0.953488,
         "n_sub": 0,
-        "n_del": 52,
+        "n_del": 16,
         "n_ins": 0,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 380,
         "error_samples": [
-          {
-            "key": "9664xxxx [ตกแถว]",
-            "gt": "3(3-0-6)",
-            "pred": ""
-          },
-          {
-            "key": "96644XXX [ตกแถว]",
-            "gt": "3(3-0-6) \nหรือ \n3(2-2-5)",
-            "pred": ""
-          },
           {
             "key": "06036146 [ตกแถว]",
             "gt": "3(0-9-0)",
@@ -154,37 +124,22 @@
             "key": "96642033 [ตกแถว]",
             "gt": "3(3-0-6)",
             "pred": ""
-          },
-          {
-            "key": "xxxxxxxx [ตกแถว]",
-            "gt": "3(3-0-6)",
-            "pred": ""
           }
         ]
       },
       "year_sem": {
         "label": "ปี/ภาค",
-        "n_items": 43,
-        "cer": 0.116279,
+        "n_items": 40,
+        "cer": 0.05,
         "wer": null,
-        "exact_match_acc": 0.883721,
+        "exact_match_acc": 0.95,
         "n_sub": 0,
-        "n_del": 15,
+        "n_del": 6,
         "n_ins": 0,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
-        "n_ref_chars": 129,
+        "n_ref_chars": 120,
         "error_samples": [
-          {
-            "key": "9664xxxx [ตกแถว]",
-            "gt": "2/2",
-            "pred": ""
-          },
-          {
-            "key": "96644XXX [ตกแถว]",
-            "gt": "3/1",
-            "pred": ""
-          },
           {
             "key": "06036146 [ตกแถว]",
             "gt": "4/1",
@@ -194,24 +149,19 @@
             "key": "96642033 [ตกแถว]",
             "gt": "4/1",
             "pred": ""
-          },
-          {
-            "key": "xxxxxxxx [ตกแถว]",
-            "gt": "4/2",
-            "pred": ""
           }
         ]
       },
       "category": {
         "label": "หมวดวิชา",
         "n_items": 43,
-        "cer": 0.399684,
+        "cer": 0.330174,
         "wer": null,
-        "exact_match_acc": 0.488372,
-        "n_sub": 68,
-        "n_del": 99,
+        "exact_match_acc": 0.534884,
+        "n_sub": 77,
+        "n_del": 46,
         "n_ins": 86,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 633,
         "error_samples": [
@@ -245,13 +195,13 @@
       "ctype": {
         "label": "บังคับ/เลือก",
         "n_items": 43,
-        "cer": 0.131474,
+        "cer": 0.071713,
         "wer": null,
-        "exact_match_acc": 0.860465,
+        "exact_match_acc": 0.930233,
         "n_sub": 5,
-        "n_del": 28,
+        "n_del": 13,
         "n_ins": 0,
-        "n_missing": 5,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 251,
         "error_samples": [
@@ -259,16 +209,6 @@
             "key": "96643021",
             "gt": "บังคับ",
             "pred": "เลือก"
-          },
-          {
-            "key": "9664xxxx [ตกแถว]",
-            "gt": "เลือก",
-            "pred": ""
-          },
-          {
-            "key": "96644XXX [ตกแถว]",
-            "gt": "เลือก",
-            "pred": ""
           },
           {
             "key": "06036146 [ตกแถว]",
@@ -284,16 +224,16 @@
       },
       "prereq": {
         "label": "วิชาบังคับก่อน",
-        "n_items": 38,
+        "n_items": 41,
         "cer": 1.0,
         "wer": null,
         "exact_match_acc": 0.0,
         "n_sub": 0,
-        "n_del": 205,
+        "n_del": 220,
         "n_ins": 0,
-        "n_missing": 38,
+        "n_missing": 41,
         "n_hallucinated": 0,
-        "n_ref_chars": 205,
+        "n_ref_chars": 220,
         "error_samples": [
           {
             "key": "06036100",
@@ -353,28 +293,22 @@
         ]
       }
     },
-    "overall_micro_cer": 0.457298,
+    "overall_micro_cer": 0.41275,
     "alignment": {
-      "matched": 38,
-      "missed": 5,
-      "spurious": 4,
-      "precision": 0.9048,
-      "recall": 0.8837,
-      "f1": 0.8941,
+      "matched": 41,
+      "missed": 2,
+      "spurious": 1,
+      "precision": 0.9762,
+      "recall": 0.9535,
+      "f1": 0.9647,
       "gt_total": 43,
       "pred_total": 42,
       "missed_codes": [
-        "9664xxxx",
-        "96644XXX",
         "06036146",
-        "96642033",
-        "xxxxxxxx"
+        "96642033"
       ],
       "spurious_codes": [
-        "9664xxxx",
-        "9664xxxx",
-        "06036146 96642033",
-        "06036xxx"
+        "06036146 96642033"
       ],
       "classification": {
         "ctype": {
@@ -391,15 +325,14 @@
               "<ไม่ได้ทำนาย>": 2
             },
             "เลือก": {
-              "เลือก": 4,
-              "<ไม่ได้ทำนาย>": 3
+              "เลือก": 7
             }
           },
           "per_class": {
             "<ไม่ได้ทำนาย>": {
               "support": 0,
               "tp": 0,
-              "fp": 5,
+              "fp": 2,
               "fn": 0,
               "precision": 0.0,
               "recall": 0.0,
@@ -416,18 +349,18 @@
             },
             "เลือก": {
               "support": 7,
-              "tp": 4,
+              "tp": 7,
               "fp": 1,
-              "fn": 3,
-              "precision": 0.8,
-              "recall": 0.5714,
-              "f1": 0.6667
+              "fn": 0,
+              "precision": 0.875,
+              "recall": 1.0,
+              "f1": 0.9333
             }
           },
-          "accuracy": 0.8605,
-          "macro_f1": 0.8116,
+          "accuracy": 0.9302,
+          "macro_f1": 0.9449,
           "n": 43,
-          "mcc": 0.8812,
+          "mcc": 0.9216,
           "positive_class": "บังคับ"
         },
         "category": {
@@ -440,9 +373,10 @@
           "confusion_matrix": {
             "<ไม่ได้ทำนาย>": {},
             "หมวดวิชาศึกษาทั่วไป": {
-              "หมวดวิชาศึกษาทั่วไป": 6,
+              "หมวดวิชาศึกษาทั่วไป": 7,
               "หมวดวิชาเฉพาะ": 2,
-              "<ไม่ได้ทำนาย>": 3
+              "หมวดวิชาเลือกเสรี": 1,
+              "<ไม่ได้ทำนาย>": 1
             },
             "หมวดวิชาเฉพาะ": {
               "หมวดวิชาศึกษาทั่วไป": 13,
@@ -451,15 +385,14 @@
               "<ไม่ได้ทำนาย>": 1
             },
             "หมวดวิชาเลือกเสรี": {
-              "หมวดวิชาเลือกเสรี": 1,
-              "<ไม่ได้ทำนาย>": 1
+              "หมวดวิชาเลือกเสรี": 2
             }
           },
           "per_class": {
             "<ไม่ได้ทำนาย>": {
               "support": 0,
               "tp": 0,
-              "fp": 5,
+              "fp": 2,
               "fn": 0,
               "precision": 0.0,
               "recall": 0.0,
@@ -467,12 +400,12 @@
             },
             "หมวดวิชาศึกษาทั่วไป": {
               "support": 11,
-              "tp": 6,
+              "tp": 7,
               "fp": 13,
-              "fn": 5,
-              "precision": 0.3158,
-              "recall": 0.5455,
-              "f1": 0.4
+              "fn": 4,
+              "precision": 0.35,
+              "recall": 0.6364,
+              "f1": 0.4516
             },
             "หมวดวิชาเฉพาะ": {
               "support": 30,
@@ -485,19 +418,28 @@
             },
             "หมวดวิชาเลือกเสรี": {
               "support": 2,
-              "tp": 1,
-              "fp": 2,
-              "fn": 1,
-              "precision": 0.3333,
-              "recall": 0.5,
-              "f1": 0.4
+              "tp": 2,
+              "fp": 3,
+              "fn": 0,
+              "precision": 0.4,
+              "recall": 1.0,
+              "f1": 0.5714
             }
           },
-          "accuracy": 0.4884,
-          "macro_f1": 0.4696,
+          "accuracy": 0.5349,
+          "macro_f1": 0.5439,
           "n": 43
         }
-      }
+      },
+      "strict": {
+        "matched": 38,
+        "missed": 5,
+        "spurious": 4,
+        "precision": 0.9048,
+        "recall": 0.8837,
+        "f1": 0.8941
+      },
+      "wildcard_pass_matched": 3
     },
     "internal_check": {
       "ok": false,
