@@ -11,3 +11,20 @@ data/input/it_curriculum.pdf
 data/input/bit_curriculum.pdf
 outputs/*_test_*/
 Lab7B_curriculum/data/DSBA_curriculum.pdf
+
+# --- cleanup 2026-09-21: เก็บเฉพาะไฟล์ที่ใช้จริง ---
+.env
+.env.*
+!.env.example
+*.bak
+*.log
+!Lab8b_ocr_system/experiments/*.log
+data/input/*.pdf
+outputs/ocr_backup_before_workers/
+Lab8b_ocr_system/archive/
+Lab8b_ocr_system/work/
+# ภาพ input ที่ก๊อปซ้ำในโฟลเดอร์ retry/dewm (สร้างใหม่ได้จาก data_input ของ run หลัก)
+Lab8b_ocr_system/runs/*_retry*/data_input/
+Lab8b_ocr_system/runs/*/*_retry/data_input/
+Lab8b_ocr_system/runs/AIT_dewm*/data_input/
+Lab8b_ocr_system/runs/**/curriculum.before_*.json

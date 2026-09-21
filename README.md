@@ -1172,6 +1172,42 @@ docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอ
 แปลงเป็น SQLite (`curriculum.db`), ตรวจความสอดคล้องภายใน 7 ข้อ (CHK1-CHK7 เช่น หน่วยกิตรวม,
 รหัสวิชาซ้ำ, ลำดับ prerequisite), แล้วตอบคำถามภาษาธรรมชาติด้วย NL→SQL จริง
 
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+**ต้องมีในเครื่อง (ไม่ได้อยู่ใน git):**
+
+- Python 3.10+ และ `.venv` — `pip install -r requirements.txt` (รวม `pythainlp` สำหรับตัดคำไทยตอนคิด WER และ `requests` แล้ว)
+- [Ollama](https://ollama.com) รันอยู่ในเครื่องนี้เท่านั้น (`http://127.0.0.1:11434` — โค้ดบังคับโหมดออฟไลน์)
+  พร้อมโมเดล: `ollama pull scb10x/typhoon-ocr1.5-3b` (OCR) และ `ollama pull qwen3:4b` (จัด JSON / ตอบ NL→SQL)
+- Tesseract เฉพาะขั้น baseline ของ Lab 7B — ข้ามได้ด้วย `LAB7_SKIP_BASELINE=1`
+
+**อยู่ใน git แล้ว:** โค้ด, `data/ground_truth/`, ผลของแต่ละแผนที่ `Lab8b_ocr_system/runs/<AIT|BIT|DSBA|IT>/…/`
+(`data_input/` = ภาพหน้าแผนการศึกษาที่ใช้ OCR, `lab7b_output/`, `lab8b_output/` รวม `curriculum.db`),
+`outputs/<หลักสูตร>/*.json|csv` ของ Lab 4–6
+
+**ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
+`outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
+`*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
+Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
+
+**ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
+
+```bash
+cd Lab8b_ocr_system
+python run_lab8b_ait.py --skip-lab7
+```
+
+ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
+และ**เขียนทับ**ไฟล์ใน `runs/AIT/lab8b_output/`
+ถ้าไม่มี Ollama: `python src/ocr_system/lab8b_curriculum_db.py selftest` (24 ข้อ) หรือ
+`python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
+หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
+
+**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี (มีใน `main` / `Lab-9`);
+ถ้าไม่พบ (เช่นบน branch `Lab-8`) สคริปต์จะ**ข้ามการเทียบเฉลย** โดย OCR และ Lab 8B ยังรันตามปกติ
+ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab8b_ocr_system/runs` หลังลองรัน
+
 ### Pipeline
 
 ```text
@@ -1210,6 +1246,18 @@ python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.
 อ่านผลลัพธ์ที่ Lab 8B รันไว้แล้วเท่านั้น (ไม่รันโมเดลใหม่) มาคำนวณ metric ตามสไลด์บทที่ 9 ครบทั้ง
 5 ข้อของ checklist: เลือก metric ให้ตรงงาน, อ่านค่าออกว่าสูง/ต่ำแปลว่าอะไร, ตรวจสัญญาณ overfitting,
 รู้จัก metric ที่ไม่ได้ใช้ (+ เหตุผล), และรันสคริปต์ประเมินผลได้จริง
+
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+- ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
+- **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
+- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab8b_ocr_system/runs/` (7 แผน + รันซ้ำ 8 รันสำหรับวัดความเสถียร),
+  `Lab9_evaluation/ground_truth_scoped/`, `Lab9_evaluation/gold_questions/`
+- ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab8b_ocr_system/archive/`, `work/`
+- ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
+  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+- สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
+- คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab8b_ocr_system/regenerate_evaluation.py`
 
 ### วิธีรัน
 

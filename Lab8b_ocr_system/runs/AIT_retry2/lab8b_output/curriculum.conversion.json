@@ -1,0 +1,16 @@
+{
+  "source_courses": 40,
+  "converted_courses": 34,
+  "plan_items": 34,
+  "prerequisites": 0,
+  "skipped_wildcards": 6,
+  "skipped_flexible_plan_items": 0,
+  "warnings": [
+    "courses[12] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9064xxxx'",
+    "courses[29] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '060464xx'",
+    "courses[31] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '060464xx'",
+    "courses[35] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9064xxxx'",
+    "courses[36] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '90644xxx'",
+    "courses[37] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'xxxxxxxxxxx'"
+  ]
+}

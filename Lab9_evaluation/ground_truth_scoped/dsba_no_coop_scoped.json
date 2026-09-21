@@ -5,19 +5,6 @@
   "plan": "no_coop",
   "courses": [
     {
-      "code": "06016401",
-      "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
-      "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
-      "credits": "3(3-0-6)",
-      "year": "1",
-      "semester": "1",
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
-      "note": null
-    },
-    {
       "code": "06026200",
       "name_th": "แคลคูลัส 1",
       "name_en": "CALCULUS 1",
@@ -266,7 +253,7 @@
     },
     {
       "code": "90644xxx",
-      "name_th": "วิชาเลือกภาษาและการสื่อสาร",
+      "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
       "name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION",
       "credits": "3(3-0-6) หรือ 3(2-2-5)",
       "year": 2,
@@ -427,7 +414,7 @@
       "credits": "3(3-0-6) หรือ 3(2-2-5)",
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเฉพาะ",
+      "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "เลือก",
       "prerequisite": "ไม่มี",
       "flexible_year_semester": null,
@@ -539,7 +526,7 @@
     },
     {
       "code": "06026xxx",
-      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 1",
+      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1",
       "name_en": "ELECTIVE IN ELECTIVE OR SPECIFIC\nPROFESSIONAL COURSES 1",
       "credits": "3(3-0-6) หรือ 3(2-2-5)",
       "year": 4,
@@ -552,7 +539,7 @@
     },
     {
       "code": "06026xxx",
-      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาเฉพาะด้าน 2",
+      "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
       "name_en": "ELECTIVE IN ELECTIVE OR SPECIFIC PROFESSIONAL\nCOURSES 2",
       "credits": "3(3-0-6) หรือ 3(2-2-5)",
       "year": 4,
@@ -603,6 +590,6 @@
       "note": null
     }
   ],
-  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs",
+  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs | 2026-09-21 (ตรวจกับเล่ม): removed 06016401 (not in DSBA book); 90644xxx name_th, 9064xxxx 3/1 category, 06026xxx 4/1 name_th, 06026xxx 4/1 name_th",
   "_gt_corrections_note": "name_th ของบางรายวิชาถูกแก้ไข typo เมื่อ 2026-09-16 ให้ตรงกับ data/ground_truth/*.json ที่แก้ไปแล้ว (ดูรายละเอียดหลักฐาน+เหตุผลใน _gt_corrections ของไฟล์ data/ground_truth/*.json ต้นทาง) — ไฟล์นี้เป็นแค่ scoped copy (year>=1) จึงแก้ตามให้ตรงกัน ไม่ใช่แหล่งข้อมูลต้นฉบับ"
 }

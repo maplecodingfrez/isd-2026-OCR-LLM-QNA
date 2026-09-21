@@ -59,7 +59,7 @@ def main() -> None:
 
     if not args.skip_lab7:
         run(LAB7, "-i", RUN_DIR / "data_input", "-p", "vlm", "-o", LAB7_OUT,
-            "-g", GT_SCOPED)
+            *(["-g", GT_SCOPED] if GT_SCOPED.exists() else []))   # ไม่มีไฟล์เฉลย (เช่น branch ที่ไม่มี Lab9_evaluation/) -> ข้ามการเทียบเฉลย
 
     predictions = [LAB7_OUT / "pred_vlm.json", LAB7_OUT / "pred_markdown.json"]
     prediction = next((p for p in predictions if p.exists()), None)
@@ -69,11 +69,17 @@ def main() -> None:
     run(LAB8, "schema", "-o", LAB8_OUT / "schema")
     run(LAB8, "import-lab7b", "-i", prediction,
         "-o", LAB8_OUT / "curriculum.json",
+        "--markdown", LAB7_OUT / "intermediate_vlm.md",   # กู้ปี/เทอมวิชาที่ได้ 0/0 (ถ้ามีไฟล์)
         "--program-id", "IT",
         "--program-name", "เทคโนโลยีสารสนเทศ",
         "--total-credits", 129, "--years", 4)
     run(LAB8, "load", "-i", LAB8_OUT / "curriculum.json",
         "-d", LAB8_OUT / "curriculum.db", "--replace")
+    # ช่องตามเล่ม (wildcard / "หรือ" / เลือก 1 กลุ่ม) สกัดจาก Markdown ของ OCR ด้วยกฎเชิงกำหนด
+    # ไม่กรอกมือ และไม่แตะ plan_item/verify เดิม (ดู md_plan_slots.py)
+    md_file = LAB7_OUT / "intermediate_vlm.md"
+    if md_file.exists():
+        run(LAB8, "load-plan-slots-md", "-m", md_file, "-d", LAB8_OUT / "curriculum.db")
     run(LAB8, "verify", "-d", LAB8_OUT / "curriculum.db",
         "-o", LAB8_OUT / "verify.json")
 

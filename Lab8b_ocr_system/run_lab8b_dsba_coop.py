@@ -6,7 +6,7 @@
 - เขียน output ลง runs/DSBA/coop/lab7b_output, runs/DSBA/coop/lab8b_output (คนละโฟลเดอร์ ไม่ทับ
   work/lab8b_run เดิมที่เป็นงานส่งอาจารย์ตามขอบเขต data/input_C — ไฟล์นั้นยังอยู่ที่เดิม ไม่ได้ย้าย
   เพราะเป็นงานส่งจริงคนละขอบเขต ดู PROGRESS.md หัวข้อจัดระเบียบโฟลเดอร์ 2026-09-16)
-- program-id/name เดิมมี "(สหกิจศึกษา)" อยู่แล้วถูกต้องพอดีสำหรับชุดนี้ (ตรงกับที่ Claude Code ตั้ง
+- program-id/name เดิมมี "(สหกิจศึกษา)" อยู่แล้วถูกต้องพอดีสำหรับชุดนี้ (ตรงกับที่ตั้ง
   ไว้ใน run_lab8b.py ต้นฉบับตั้งแต่แรก)
 - (อัปเดต 2026-09-15) ตอนนี้ส่ง -g/--gt ด้วยแล้ว — เดิมไม่ส่งเพราะ GT ชุดเต็ม
   (data/ground_truth/DSBA_academic_plan_coop.json, 91 วิชา) ไม่ได้ตัดมาเฉพาะหน้าที่ scan จริง
@@ -64,7 +64,7 @@ def main() -> None:
 
     if not args.skip_lab7:
         run(LAB7, "-i", RUN_DIR / "data_input",
-            "-p", "vlm", "-o", LAB7_OUT, "-g", GT_SCOPED)
+            "-p", "vlm", "-o", LAB7_OUT, *(["-g", GT_SCOPED] if GT_SCOPED.exists() else []))   # ไม่มีไฟล์เฉลย (เช่น branch ที่ไม่มี Lab9_evaluation/) -> ข้ามการเทียบเฉลย
 
     predictions = [LAB7_OUT / "pred_vlm.json", LAB7_OUT / "pred_markdown.json"]
     prediction = next((p for p in predictions if p.exists()), None)
@@ -74,6 +74,7 @@ def main() -> None:
     run(LAB8, "schema", "-o", LAB8_OUT / "schema")
     run(LAB8, "import-lab7b", "-i", prediction,
         "-o", LAB8_OUT / "curriculum.json",
+        "--markdown", LAB7_OUT / "intermediate_vlm.md",   # กู้ปี/เทอมวิชาที่ได้ 0/0 (ถ้ามีไฟล์)
         "--program-id", "DSBA-coop",
         "--program-name", "วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ (สหกิจศึกษา)",
         # เล่มหลักสูตรระบุ "รวมตลอดหลักสูตร 132 หน่วยกิต" ทั้งฝั่งสหกิจและไม่สหกิจ — ยอดรวมเท่ากัน
@@ -81,6 +82,11 @@ def main() -> None:
         "--total-credits", 132, "--years", 4)
     run(LAB8, "load", "-i", LAB8_OUT / "curriculum.json",
         "-d", LAB8_OUT / "curriculum.db", "--replace")
+    # ช่องตามเล่ม (wildcard / "หรือ" / เลือก 1 กลุ่ม) สกัดจาก Markdown ของ OCR ด้วยกฎเชิงกำหนด
+    # ไม่กรอกมือ และไม่แตะ plan_item/verify เดิม (ดู md_plan_slots.py)
+    md_file = LAB7_OUT / "intermediate_vlm.md"
+    if md_file.exists():
+        run(LAB8, "load-plan-slots-md", "-m", md_file, "-d", LAB8_OUT / "curriculum.db")
     run(LAB8, "verify", "-d", LAB8_OUT / "curriculum.db",
         "-o", LAB8_OUT / "verify.json")
 

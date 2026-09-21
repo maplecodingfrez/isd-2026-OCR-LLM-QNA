@@ -55,6 +55,7 @@ def main() -> None:
     run(LAB8, "schema", "-o", LAB8_OUT / "schema")
     run(LAB8, "import-lab7b", "-i", prediction,
         "-o", LAB8_OUT / "curriculum.json",
+        "--markdown", LAB7_OUT / "intermediate_vlm.md",   # กู้ปี/เทอมวิชาที่ได้ 0/0 (ถ้ามีไฟล์)
         "--program-id", "DSBA-coop",
         "--program-name", "วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ (สหกิจศึกษา)",
         # เล่มหลักสูตรระบุ "รวมตลอดหลักสูตร 132 หน่วยกิต" (ดู DSBA_27.png ท้ายแผน
@@ -62,6 +63,11 @@ def main() -> None:
         "--total-credits", 132, "--years", 4)
     run(LAB8, "load", "-i", LAB8_OUT / "curriculum.json",
         "-d", LAB8_OUT / "curriculum.db", "--replace")
+    # ช่องตามเล่ม (wildcard / "หรือ" / เลือก 1 กลุ่ม) สกัดจาก Markdown ของ OCR ด้วยกฎเชิงกำหนด
+    # ไม่กรอกมือ และไม่แตะ plan_item/verify เดิม (ดู md_plan_slots.py)
+    md_file = LAB7_OUT / "intermediate_vlm.md"
+    if md_file.exists():
+        run(LAB8, "load-plan-slots-md", "-m", md_file, "-d", LAB8_OUT / "curriculum.db")
     run(LAB8, "verify", "-d", LAB8_OUT / "curriculum.db",
         "-o", LAB8_OUT / "verify.json")
 

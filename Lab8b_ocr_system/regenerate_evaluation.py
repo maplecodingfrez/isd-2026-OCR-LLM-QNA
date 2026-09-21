@@ -7,6 +7,10 @@ existing pred_vlm.json (no VLM re-call) against the current ground_truth_scoped/
 ค้างเป็นตัวเลขเก่า สคริปต์นี้เรียก evaluate()/verify_internal()/M.stats_to_dict()/M.save_csv()
 ตัวเดียวกับที่ main() ใช้ตอนรันเต็ม แล้วเขียนทับไฟล์ทั้งสองให้ตรงกับ GT ปัจจุบัน
 
+⚠️ ต้องรันผ่าน .venv ที่ activate แล้ว (มี pythainlp) — ถ้าไม่มี WER จะ fallback เป็นตัดคำด้วยช่องว่าง
+เงียบๆ ได้เลขผิดแล้วเขียนทับไฟล์ ตรวจว่าบรรทัด "tokenizer สำหรับ WER:" ต้องเป็น pythainlp/newmm
+ถ้า activate ไม่ได้: ../.venv/Scripts/python.exe regenerate_evaluation.py
+
 Usage:
     python regenerate_evaluation.py                # ทำครบทั้ง 7 run
     python regenerate_evaluation.py ait bit_coop    # ทำเฉพาะ run ที่ระบุ (ชื่อดูจาก RUNS ด้านล่าง)
@@ -62,7 +66,21 @@ def regenerate_one(name: str, outdir: Path, gt_path: Path) -> None:
     print(f"  ✓ เขียนทับ {outdir / 'evaluation.json'} และ {outdir / 'comparison.csv'}\n")
 
 
+def require_thai_tokenizer() -> None:
+    """หยุดก่อนเขียนไฟล์ ถ้า WER จะถูกคำนวณด้วย tokenizer ที่ไม่ใช่ pythainlp
+    (lab7_metrics fallback เป็นตัดคำด้วยช่องว่างแบบเงียบๆ ได้ WER ผิดแล้วเขียนทับ evaluation.json)"""
+    if M.TOKENIZER_NAME.startswith("pythainlp"):
+        return
+    raise SystemExit(
+        f"❌ tokenizer สำหรับ WER คือ '{M.TOKENIZER_NAME}' ไม่ใช่ pythainlp — WER ภาษาไทยจะผิด "
+        "จึงยังไม่เขียนไฟล์ใดๆ\n"
+        f"   Python ที่ใช้: {sys.executable}\n"
+        "   แก้: activate .venv (มี pythainlp) แล้วรันใหม่ หรือรัน  "
+        "../.venv/Scripts/python.exe regenerate_evaluation.py")
+
+
 def main() -> None:
+    require_thai_tokenizer()
     names = sys.argv[1:] or list(RUNS.keys())
     unknown = [n for n in names if n not in RUNS]
     if unknown:
