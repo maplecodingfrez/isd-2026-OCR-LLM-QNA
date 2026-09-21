@@ -5,19 +5,6 @@
   "plan": null,
   "courses": [
     {
-      "code": "06016401",
-      "name_th": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
-      "name_en": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
-      "credits": "3(3-0-6)",
-      "year": "1",
-      "semester": "1",
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี",
-      "flexible_year_semester": null,
-      "note": null
-    },
-    {
       "code": "06046400",
       "name_th": "แคลคูลัส 1",
       "name_en": "CALCULUS 1",
@@ -72,7 +59,7 @@
     {
       "code": "06066303",
       "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
-      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING\nPROGRAMMING",
+      "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING",
       "credits": "3(2-2-5)",
       "year": 1,
       "semester": 1,
@@ -538,5 +525,5 @@
       "note": null
     }
   ],
-  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs"
+  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs | 2026-09-21: removed 06016401 (not in AIT book, 346 pages searched); fixed 06066303 name_en duplicated PROGRAMMING"
 }

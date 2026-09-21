@@ -424,7 +424,7 @@
       "code": "06036116",
       "name_th": "การตลาดเชิงดิจิทัล",
       "name_en": "DIGITAL MARKETING",
-      "credits": null,
+      "credits": "3(2-2-5)",
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
@@ -551,5 +551,5 @@
       "note": null
     }
   ],
-  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs"
+  "_scoping_note": "filtered to year>=1 only (drop catalog-only year=0 entries) to match the page-cropped plan-table scope of our Lab7B/8B runs | 2026-09-21 (ตรวจกับเล่ม): 06036116 credits None -> 3(2-2-5)"
 }

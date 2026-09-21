@@ -490,6 +490,15 @@ cd Lab9_evaluation
 python evaluate_lab9.py
 ```
 
+> ⚠️ **ต้องรันผ่าน `.venv` (activate แล้ว) ทุกครั้งที่คำนวณ CER/WER**
+> ค่า WER ของภาษาไทยขึ้นกับ tokenizer — ถ้า Python ที่ใช้ไม่มี `pythainlp` จะ fallback เป็นตัดคำด้วย
+> ช่องว่างเงียบ ๆ (ไม่ error) ได้ WER ที่ผิดและเขียนทับ `evaluation.json`/`comparison.csv` ไปเลย
+> ตรวจได้จากบรรทัด `tokenizer สำหรับ WER:` ตอนรัน หรือฟิลด์ `tokenizer` ใน `evaluation.json`
+> ต้องเป็น `pythainlp/newmm` ถ้าขึ้น `whitespace (fallback)` แปลว่าผิด ให้ activate venv แล้วรันใหม่
+> (สคริปต์ที่เกี่ยวข้อง: `Lab8b_ocr_system/regenerate_evaluation.py`, `lab7b_curriculum.py --eval-only`)
+> `regenerate_evaluation.py` มี guard: ถ้าไม่มี pythainlp จะหยุดและไม่เขียนไฟล์ (ส่วน `--eval-only` ไม่มี guard)
+> ถ้า activate ไม่ได้ให้เรียกตรง: `.venv\Scripts\python.exe regenerate_evaluation.py`
+
 ### ผลลัพธ์
 
 - `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม,

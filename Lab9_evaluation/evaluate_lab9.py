@@ -40,6 +40,8 @@ Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ J
     ait, bit_no_coop, bit_coop, dsba_no_coop, dsba_coop, it_no_coop, it_coop
         — ../Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/
     dsba_coop_retry — ../Lab8b_ocr_system/archive/lab8b_run_ours_coop_retry/
+    bit_coop_retry  — ../Lab8b_ocr_system/runs/BIT/coop_retry/lab8b_output/  (สร้างด้วย run_lab8b_bit_coop_retry.py)
+    it_coop_retry   — ../Lab8b_ocr_system/runs/IT/coop_retry/lab8b_output/   (สร้างด้วย run_lab8b_it_coop_retry.py)
         (รันซ้ำรอบสองของเอกสารชุดเดียวกับ dsba_coop — ใช้เฉพาะเช็คความเสถียร/overfitting เท่านั้น)
 
 ผลลัพธ์
@@ -85,11 +87,34 @@ DEFAULT_RUNS = [
     # เก็บไว้เฉพาะสำหรับเช็คความเสถียร/overfitting (checklist ข้อ 3) — เอกสารชุดเดียวกับ dsba_coop
     # เป๊ะ รันซ้ำรอบสอง (ของเดิมอยู่ที่ archive/lab8b_run_ours_coop_retry/ หลังจัดโฟลเดอร์)
     ("dsba_coop_retry", DEFAULT_LAB8B / "archive" / "lab8b_run_ours_coop_retry"),
+    # รันซ้ำของ bit_coop (สร้างด้วย Lab8b_ocr_system/run_lab8b_bit_coop_retry.py) — ถ้ายังไม่ได้รัน
+    # จะขึ้น "[ข้าม] ไม่พบ run directory" และข้ามคู่นี้ในหัวข้อความเสถียรไปเฉยๆ
+    ("bit_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "coop_retry" / "lab8b_output"),
+    # รันซ้ำของ it_coop (สร้างด้วย Lab8b_ocr_system/run_lab8b_it_coop_retry.py)
+    ("it_coop_retry", DEFAULT_LAB8B_RUNS / "IT" / "coop_retry" / "lab8b_output"),
+    # รันซ้ำของอีก 4 หลักสูตร/แผน (สร้างด้วย run_all_stability_retries.py หรือ run_lab8b_<name>_retry.py)
+    ("ait_retry", DEFAULT_LAB8B_RUNS / "AIT_retry" / "lab8b_output"),
+    ("ait_retry2", DEFAULT_LAB8B_RUNS / "AIT_retry2" / "lab8b_output"),   # run_lab8b_ait_retry.py --tag 2
+    ("ait_retry3", DEFAULT_LAB8B_RUNS / "AIT_retry3" / "lab8b_output"),   # run_lab8b_ait_retry.py --tag 3
+    ("bit_no_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "no_coop_retry" / "lab8b_output"),
+    ("dsba_no_coop_retry", DEFAULT_LAB8B_RUNS / "DSBA" / "no_coop_retry" / "lab8b_output"),
+    ("it_no_coop_retry", DEFAULT_LAB8B_RUNS / "IT" / "no_coop_retry" / "lab8b_output"),
 ]
 
-# runs ที่ใช้เอกสารชุดเดียวกันจริง ๆ (สำหรับเช็คความเสถียร/overfitting เท่านั้น
+# คู่ run ที่ใช้เอกสารชุดเดียวกันจริง ๆ (สำหรับเช็คความเสถียร/overfitting เท่านั้น
 # ห้ามเอา run อื่นมาเทียบด้วย เพราะเป็นเอกสารคนละชุด ตัวเลขต่างกันเป็นปกติ)
-STABILITY_GROUP = {"dsba_coop", "dsba_coop_retry"}
+# แต่ละคู่ = (รันเดิม, รันซ้ำ) — เพิ่มคู่ใหม่ที่นี่ + เพิ่ม run ซ้ำใน DEFAULT_RUNS ด้านบน
+STABILITY_PAIRS = [
+    ("dsba_coop", "dsba_coop_retry"),
+    ("bit_coop", "bit_coop_retry"),
+    ("it_coop", "it_coop_retry"),
+    ("ait", "ait_retry"),
+    ("ait", "ait_retry2"),
+    ("ait", "ait_retry3"),
+    ("bit_no_coop", "bit_no_coop_retry"),
+    ("dsba_no_coop", "dsba_no_coop_retry"),
+    ("it_no_coop", "it_no_coop_retry"),
+]
 
 # ถ้าตัวเลขโครงสร้างต่างกันเกินนี้ (เป็นสัดส่วน) ระหว่างรันซ้ำ -> ติดธงว่าไม่เสถียร
 STABILITY_THRESHOLD = 0.10
@@ -240,13 +265,9 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
 
 
 def check_stability(runs: dict[str, RunMetrics]) -> list[str]:
-    """เทียบ run ที่อยู่ใน STABILITY_GROUP (เอกสารชุดเดียวกัน รันซ้ำคนละครั้ง)
+    """เทียบแต่ละคู่ใน STABILITY_PAIRS (เอกสารชุดเดียวกัน รันซ้ำคนละครั้ง)
     ตามสัญญาณ overfitting ในสไลด์: 'ผลแกว่งมากเมื่อรันซ้ำ' -> โมเดลไม่เสถียร"""
-    group = [runs[n] for n in STABILITY_GROUP if n in runs]
     notes: list[str] = []
-    if len(group) < 2:
-        notes.append("ข้าม: มี run ในกลุ่มเช็คความเสถียรไม่ครบสอง run")
-        return notes
 
     def pct_diff(a: float | None, b: float | None) -> float | None:
         if a is None or b is None or (a == 0 and b == 0):
@@ -260,14 +281,20 @@ def check_stability(runs: dict[str, RunMetrics]) -> list[str]:
         ("execution_accuracy", "Execution accuracy (SQL)"),
         ("answer_text_accuracy", "ความถูกต้องของข้อความคำตอบ"),
     ]
-    a, b = group[0], group[1]
-    for attr, label in fields_to_check:
-        va, vb = getattr(a, attr), getattr(b, attr)
-        d = pct_diff(va, vb)
-        if d is None:
+    for first, second in STABILITY_PAIRS:
+        if first not in runs or second not in runs:
+            missing = [n for n in (first, second) if n not in runs]
+            notes.append(f"**{first} vs {second}** — ข้าม: ยังไม่มี run {', '.join(missing)}")
             continue
-        flag = "⚠️ ไม่เสถียร (เกิน threshold)" if d > STABILITY_THRESHOLD else "โอเค"
-        notes.append(f"{label}: {a.name}={va}  vs  {b.name}={vb}  (ต่างกัน {d*100:.1f}%) -> {flag}")
+        a, b = runs[first], runs[second]
+        notes.append(f"**{first} vs {second}**")
+        for attr, label in fields_to_check:
+            va, vb = getattr(a, attr), getattr(b, attr)
+            d = pct_diff(va, vb)
+            if d is None:
+                continue
+            flag = "⚠️ ไม่เสถียร (เกิน threshold)" if d > STABILITY_THRESHOLD else "โอเค"
+            notes.append(f"  - {label}: {a.name}={va}  vs  {b.name}={vb}  (ต่างกัน {d*100:.1f}%) -> {flag}")
     return notes
 
 
@@ -344,7 +371,7 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
     lines.append("## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)")
     lines.append("")
     for note in stability_notes:
-        lines.append(f"- {note}")
+        lines.append(note if note.startswith("  -") else f"- {note}")
     lines.append("")
 
     lines.append("## 4. Metric ที่วิชานี้ไม่ได้ใช้ + ทำไม (checklist ch9 ข้อ 4)")
