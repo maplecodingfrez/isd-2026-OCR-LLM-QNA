@@ -328,6 +328,21 @@ GROUP BY year, semester;
 """
 
 
+# DDL ของ "หรือ" ในวิชาบังคับก่อน — แยกออกจาก DDL หลักโดยตั้งใจ (เหตุผลเดียวกับ PLAN_SLOT_DDL:
+# DDL หลักถูกยัดเข้า prompt ของ NL2SQL ถ้าแก้ตาราง prerequisite prompt เปลี่ยนและคะแนน eval เดิมอาจเพี้ยน)
+# ตาราง prerequisite เดิมไม่เปลี่ยน (ยังเก็บ "A หรือ B" เป็นสองแถว kind='pre'); ตารางนี้ระบุเพิ่มว่า
+# แถวไหนเป็น "ทางเลือกกัน": แถวของวิชาเดียวกันที่ group_no เดียวกัน = ผ่านอย่างใดอย่างหนึ่งก็พอ
+# (วิชาที่ไม่มีแถวในตารางนี้ = "และ" ตามปกติ) ใช้เฉพาะตอน `load-prerequisites`
+PREREQ_ALT_DDL = """
+CREATE TABLE IF NOT EXISTS prerequisite_alt (
+    code     TEXT NOT NULL,
+    requires TEXT NOT NULL,
+    group_no INTEGER NOT NULL,
+    PRIMARY KEY (code, requires)
+);
+"""
+
+
 # DDL ของช่องแผนที่ plan_item เก็บไม่ตรงเล่ม — แยกออกจาก DDL ด้านบนโดยตั้งใจ
 # เพราะ DDL ถูกยัดทั้งก้อนเข้า prompt ของ NL2SQL (ask/eval, num_ctx 4096) ถ้าเพิ่มตาราง
 # ตรงนั้น prompt เปลี่ยน คะแนนข้อสอบเดิมอาจเพี้ยน; ใช้เฉพาะตอน `load-plan-slots`
@@ -1021,7 +1036,7 @@ def cmd_load_prerequisites(args) -> None:
 
     กฎเชิงกำหนด ไม่เรียก LLM ไม่ใช้เฉลย (prereq_from_book.py) — "ไม่เดา": วิชาที่หาช่องวิชาบังคับก่อนไม่เจอ/อ่านไม่ออก
     จะไม่ถูกเติมแถวใดเลย และถูกบันทึกในรายงานว่า not_found/unreadable (ไม่ได้แปลว่าไม่มีวิชาบังคับก่อน)
-    ข้อจำกัด: "A หรือ B" เก็บเป็นสองแถว kind='pre' แยกรหัส (ตารางไม่มีคอลัมน์บอกว่าเป็นทางเลือก)
+    "A หรือ B" เก็บเป็นสองแถว kind='pre' แยกรหัส และระบุว่าเป็นทางเลือกกันในตาราง prerequisite_alt (PREREQ_ALT_DDL)
     """
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from prereq_from_book import extract_prerequisites
@@ -1036,22 +1051,30 @@ def cmd_load_prerequisites(args) -> None:
     res = extract_prerequisites(lines, codes, known_codes=codes)
 
     pairs = 0
+    conn.executescript(PREREQ_ALT_DDL)  # DB เดิมที่สร้างก่อนมีตารางนี้
+    conn.execute("DELETE FROM prerequisite_alt")
+    or_groups = 0
     for code, r in res.items():
         if r["status"] != "found":
             continue
         for req in r["requires"]:
             conn.execute("INSERT OR REPLACE INTO prerequisite VALUES (?,?,'pre')", (code, req))
             pairs += 1
+        if r["op"] == "or" and len(r["requires"]) >= 2:   # "A หรือ B": ทางเลือกกัน (group_no 1 ต่อวิชา)
+            or_groups += 1
+            for req in r["requires"]:
+                conn.execute("INSERT OR REPLACE INTO prerequisite_alt VALUES (?,?,1)", (code, req))
     conn.commit()
     counts = {s: sum(1 for r in res.values() if r["status"] == s)
               for s in ("found", "none", "not_found", "unreadable")}
     print(f"  วิชารหัสจริง {len(codes)} วิชา: พบวิชาบังคับก่อน {counts['found']} · ไม่มี {counts['none']} · "
-          f"หาไม่เจอ {counts['not_found']} · อ่านไม่ออก {counts['unreadable']}  -> เติม prerequisite {pairs} คู่")
+          f"หาไม่เจอ {counts['not_found']} · อ่านไม่ออก {counts['unreadable']}  -> เติม prerequisite {pairs} คู่"
+          f" (เป็นทางเลือก 'หรือ' {or_groups} วิชา -> prerequisite_alt)")
     if counts["not_found"] or counts["unreadable"]:
         print("  (หาไม่เจอ/อ่านไม่ออก = ไม่ทราบ ไม่ใช่ 'ไม่มี' — ไม่มีแถวในตาราง prerequisite สำหรับวิชาเหล่านี้)")
     if args.output:
         report = {"source_text": str(args.text), "courses": len(codes), "counts": counts,
-                  "pairs_inserted": pairs, "per_course": res}
+                  "pairs_inserted": pairs, "or_groups": or_groups, "per_course": res}
         Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  บันทึกรายงานที่ {args.output}")
 
@@ -1212,6 +1235,18 @@ def verify_db(conn: sqlite3.Connection) -> list[dict]:
         WHERE r.kind = 'pre'
           AND (b.year * 10 + b.semester) >= (a.year * 10 + a.semester)
     """).fetchall()
+    # "A หรือ B" (prerequisite_alt): ผ่านอย่างใดอย่างหนึ่งก็พอ — ถ้ามีทางเลือกที่อยู่ก่อนจริงอย่างน้อยหนึ่งทาง
+    # ไม่นับทางเลือกที่เหลือว่าผิดลำดับ (ตารางนี้อาจยังไม่มีใน DB เดิม -> ทำงานเหมือนเดิม)
+    try:
+        ok_alt = {r[0] for r in conn.execute("""
+            SELECT DISTINCT r.code FROM prerequisite_alt r
+            JOIN plan_item a ON a.code = r.code
+            JOIN plan_item b ON b.code = r.requires
+            WHERE (b.year * 10 + b.semester) < (a.year * 10 + a.semester)""")}
+        alts = {(r[0], r[1]) for r in conn.execute("SELECT code, requires FROM prerequisite_alt")}
+        viol = [r for r in viol if not ((r["code"], r["requires"]) in alts and r["code"] in ok_alt)]
+    except sqlite3.OperationalError:
+        pass
     add("CHK5", "วิชาบังคับก่อน อยู่ภาคเรียนก่อนวิชาที่อ้างถึง", not viol,
         "; ".join(f"{r['code']} ({r['at_course']}) ต้องเรียน {r['requires']} "
                   f"({r['at_prereq']}) มาก่อน" for r in viol[:5])
