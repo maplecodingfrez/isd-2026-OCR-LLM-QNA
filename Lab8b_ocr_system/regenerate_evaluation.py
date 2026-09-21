@@ -41,6 +41,11 @@ RUNS = {
     "it_coop":      (ROOT / "runs" / "IT" / "coop" / "lab7b_output",     GT_DIR / "it_coop_scoped.json"),
     # รอบทดลอง AIT (ตัดตราน้ำ + อ่านซ้ำ) — เฉลยชุดเดียวกับ ait; ไม่อยู่ในค่า default ด้านล่าง (ระบุชื่อเองเมื่อต้องการ)
     **{f"ait_dewm{i}": (ROOT / "runs" / f"AIT_dewm{i}" / "lab7b_output", GT_DIR / "ait_scoped.json") for i in range(1, 7)},
+    # รอบทดลองตัดตราน้ำ + อ่านซ้ำของ BIT/IT (run_lab8b_<แผน>_dewm.py) — เฉลยชุดเดียวกับรอบหลักของแผนนั้น; ไม่อยู่ใน DEFAULT_RUNS
+    "bit_no_coop_dewm": (ROOT / "runs" / "BIT" / "no_coop_dewm" / "lab7b_output", GT_DIR / "bit_no_coop_scoped.json"),
+    "bit_coop_dewm":    (ROOT / "runs" / "BIT" / "coop_dewm" / "lab7b_output",    GT_DIR / "bit_coop_scoped.json"),
+    "it_no_coop_dewm":  (ROOT / "runs" / "IT" / "no_coop_dewm" / "lab7b_output",  GT_DIR / "it_no_coop_scoped.json"),
+    "it_coop_dewm":     (ROOT / "runs" / "IT" / "coop_dewm" / "lab7b_output",     GT_DIR / "it_coop_scoped.json"),
 }
 DEFAULT_RUNS = ["ait", "bit_no_coop", "bit_coop", "dsba_no_coop", "dsba_coop", "it_no_coop", "it_coop"]
 

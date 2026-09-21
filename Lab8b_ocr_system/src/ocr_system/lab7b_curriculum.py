@@ -223,6 +223,24 @@ DEWATERMARK = os.getenv("LAB7B_DEWATERMARK", "0") == "1"
 DEWATERMARK_WHITE = int(os.getenv("LAB7B_DEWATERMARK_WHITE", "225"))
 
 
+# ตัวกันรายหน้า: ตัดตราน้ำเฉพาะหน้าที่ "มีตราน้ำจริง" — นับพิกเซลสีส้ม-แดงจาง (R สูง แต่ G/B ต่ำกว่า R อย่างน้อย 25)
+# ถ้าสัดส่วนน้อยกว่าเกณฑ์ (ค่าเริ่มต้น 1%) ถือว่าหน้าสะอาด ส่งภาพเดิมไม่แตะ — วัดจากภาพจริง: AIT/BIT/IT ราว 8.7% ต่อหน้า
+# ส่วน DSBA 0.00% (ช่องว่างกว้าง) เล่มที่ไม่มีตราน้ำจึงได้ภาพไบต์เดิม ผลไม่เปลี่ยนตามโครงสร้าง
+# LAB7B_DEWATERMARK_MIN_TINT=0 = ตัดทุกหน้าเหมือนเดิมก่อนมีตัวกัน
+DEWATERMARK_MIN_TINT = float(os.getenv("LAB7B_DEWATERMARK_MIN_TINT", "0.01"))
+
+
+def _watermark_fraction(im) -> float:
+    """สัดส่วนพิกเซลสีส้ม-แดงจาง (ตราน้ำ) ของภาพ — ย่อด้วย NEAREST เพื่อไม่ให้สีจางถูกเฉลี่ยจนหาย"""
+    import numpy as np
+    from PIL import Image
+    small = im.convert("RGB").copy()
+    small.thumbnail((600, 600), Image.NEAREST)
+    a = np.asarray(small).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    return float(((r >= 200) & ((r - g) >= 25) & ((r - b) >= 25)).mean())
+
+
 def _remove_watermark(im):
     """คืนภาพ RGB ที่เหลือเฉพาะหมึก: ใช้ช่อง R; ค่า R >= DEWATERMARK_WHITE ถือเป็นพื้นขาว"""
     r = im.convert("RGB").getchannel("R")
@@ -242,11 +260,18 @@ def _fit_image(raw: bytes, name: str = "") -> bytes:
         im.load()
     except Exception:
         return raw
+    dewm_applied = False
     if DEWATERMARK:
-        im = _remove_watermark(im)       # ตัดตราน้ำก่อนย่อภาพ (ย่อแล้วลายตราน้ำจะปนกับหมึก)
+        frac = _watermark_fraction(im)
+        if frac >= DEWATERMARK_MIN_TINT:
+            im = _remove_watermark(im)   # ตัดตราน้ำก่อนย่อภาพ (ย่อแล้วลายตราน้ำจะปนกับหมึก)
+            dewm_applied = True
+            print(f"      ตัดตราน้ำ {name}: พบพิกเซลตราน้ำ {frac * 100:.1f}%")
+        else:
+            print(f"      ไม่ตัดตราน้ำ {name}: ไม่พบตราน้ำ ({frac * 100:.2f}% < {DEWATERMARK_MIN_TINT * 100:g}%) ใช้ภาพเดิม")
     longest = max(im.size)
-    if longest <= MAX_IMAGE_DIM and not DEWATERMARK:
-        return raw                       # ภาพเล็กอยู่แล้ว — ส่งไบต์เดิม ไม่แตะ
+    if longest <= MAX_IMAGE_DIM and not dewm_applied:
+        return raw                       # ภาพเล็กอยู่แล้ว/หน้าสะอาด — ส่งไบต์เดิม ไม่แตะ
     scale = min(1.0, MAX_IMAGE_DIM / longest)
     new = (max(1, round(im.width * scale)), max(1, round(im.height * scale)))
     if new != im.size:

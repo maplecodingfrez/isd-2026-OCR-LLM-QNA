@@ -54,6 +54,11 @@ def main() -> None:
         "LAB7B_OCR_NUM_CTX": "4096",
         "LAB7B_OCR_NUM_PREDICT": "1200",
     })
+    # ให้ Lab 7B เติมฟิลด์ prerequisite (จากข้อความ OCR ทั้งเล่ม) ก่อนประเมินเทียบเฉลยในรอบเดียวกัน
+    _book_txt = ROOT.parent / "outputs" / "it" / "it_curriculum_ocr.txt"
+    if _book_txt.exists():
+        os.environ["LAB7_BOOK_OCR"] = str(_book_txt)
+
     LAB7_OUT.mkdir(parents=True, exist_ok=True)
     LAB8_OUT.mkdir(parents=True, exist_ok=True)
 

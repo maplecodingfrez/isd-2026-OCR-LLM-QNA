@@ -55,6 +55,11 @@ def main() -> None:
         if not SRC_INPUT.exists():
             raise SystemExit(f"ไม่พบภาพต้นทาง {SRC_INPUT}")
         shutil.copytree(SRC_INPUT, RUN_DIR / "data_input")
+    # ให้ Lab 7B เติมฟิลด์ prerequisite (จากข้อความ OCR ทั้งเล่ม) ก่อนประเมินเทียบเฉลยในรอบเดียวกัน
+    _book_txt = ROOT.parent / "outputs" / "it" / "it_curriculum_ocr.txt"
+    if _book_txt.exists():
+        os.environ["LAB7_BOOK_OCR"] = str(_book_txt)
+
     LAB7_OUT.mkdir(parents=True, exist_ok=True)
     LAB8_OUT.mkdir(parents=True, exist_ok=True)
 
