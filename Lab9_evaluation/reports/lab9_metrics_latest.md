@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-21 18:05
+# Lab9 evaluation report — 2026-09-21 18:08
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)

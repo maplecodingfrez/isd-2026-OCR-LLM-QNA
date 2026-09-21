@@ -1,0 +1,297 @@
+{
+  "source_text": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\ait\\ait_curriculum_ocr.txt",
+  "courses": 34,
+  "counts": {
+    "found": 5,
+    "none": 24,
+    "not_found": 3,
+    "unreadable": 2
+  },
+  "pairs_inserted": 6,
+  "or_groups": 0,
+  "per_course": {
+    "06046400": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046401": {
+      "status": "found",
+      "requires": [
+        "06046400"
+      ],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046402": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046403": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046404": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046405": {
+      "status": "found",
+      "requires": [
+        "06066001"
+      ],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046406": {
+      "status": "found",
+      "requires": [
+        "06046401",
+        "06046402"
+      ],
+      "op": "and",
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046407": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046408": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046409": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046410": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046411": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046412": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046413": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046414": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046415": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046440": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046441": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046442": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06046443": {
+      "status": "not_found",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 0,
+      "dropped": []
+    },
+    "06046444": {
+      "status": "not_found",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 0,
+      "dropped": []
+    },
+    "06066000": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06066001": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06066300": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06066301": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "06066303": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641004": {
+      "status": "not_found",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 0,
+      "dropped": []
+    },
+    "90641005": {
+      "status": "found",
+      "requires": [
+        "90641004"
+      ],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641006": {
+      "status": "found",
+      "requires": [
+        "90641005"
+      ],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641007": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641008": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641009": {
+      "status": "unreadable",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90641010": {
+      "status": "unreadable",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": []
+    },
+    "90642012": {
+      "status": "none",
+      "requires": [],
+      "op": null,
+      "note": null,
+      "occurrences": 2,
+      "dropped": []
+    }
+  }
+}
