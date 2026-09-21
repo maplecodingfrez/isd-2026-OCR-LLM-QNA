@@ -1,0 +1,83 @@
+{
+ "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab8b_ocr_system\\runs\\DSBA\\coop\\lab7b_output\\intermediate_vlm.md",
+ "slots": 10,
+ "members": 2,
+ "plan_item_credits": 105,
+ "with_slots_credits": 132,
+ "declared_total_credits": 132,
+ "terms": [
+  {
+   "year": 1,
+   "semester": 1,
+   "declared_total": 18,
+   "plain": 18,
+   "wildcard": 0,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 1,
+   "semester": 2,
+   "declared_total": 21,
+   "plain": 21,
+   "wildcard": 0,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 2,
+   "semester": 1,
+   "declared_total": 18,
+   "plain": 15,
+   "wildcard": 3,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 2,
+   "semester": 2,
+   "declared_total": 21,
+   "plain": 21,
+   "wildcard": 0,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 3,
+   "semester": 1,
+   "declared_total": 18,
+   "plain": 9,
+   "wildcard": 9,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 3,
+   "semester": 2,
+   "declared_total": 18,
+   "plain": 12,
+   "wildcard": 6,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 4,
+   "semester": 1,
+   "declared_total": 12,
+   "plain": 3,
+   "wildcard": 9,
+   "unexplained": 0,
+   "notes": []
+  },
+  {
+   "year": 4,
+   "semester": 2,
+   "declared_total": 6,
+   "plain": 6,
+   "wildcard": 0,
+   "unexplained": 0,
+   "notes": []
+  }
+ ],
+ "md_codes_missing_in_plan_item": {}
+}

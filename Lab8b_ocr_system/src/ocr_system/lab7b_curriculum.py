@@ -215,6 +215,22 @@ def parse_page_range(spec: str, total: int) -> list[int]:
 MAX_IMAGE_DIM = int(os.getenv("LAB7B_MAX_IMAGE_DIM", "1280"))
 
 
+# ตราน้ำของมหาวิทยาลัยบนหน้าเล่มหลักสูตรเป็นสีส้ม-แดงทับกลางหน้า ทำให้ Typhoon-OCR อ่านแถวใต้ตราน้ำ
+# ตกหรือสะกดผิดแบบไม่นิ่ง (AIT หน้า 19 อ่านได้ 2 ใน 4 รอบ) — ช่องสีแดง (R) ของภาพเห็นสีส้มเป็นเกือบขาว
+# แต่หมึกดำยังเข้ม จึงใช้ช่อง R อย่างเดียวเป็นภาพขาวดำแล้วดึงระดับให้ส่วนที่จางเป็นขาวสนิท
+# ปิดไว้เป็นค่าเริ่มต้น (LAB7B_DEWATERMARK=1 เพื่อเปิด) เพื่อไม่ให้ผลรันเดิมเปลี่ยนโดยไม่ตั้งใจ
+DEWATERMARK = os.getenv("LAB7B_DEWATERMARK", "0") == "1"
+DEWATERMARK_WHITE = int(os.getenv("LAB7B_DEWATERMARK_WHITE", "225"))
+
+
+def _remove_watermark(im):
+    """คืนภาพ RGB ที่เหลือเฉพาะหมึก: ใช้ช่อง R; ค่า R >= DEWATERMARK_WHITE ถือเป็นพื้นขาว"""
+    r = im.convert("RGB").getchannel("R")
+    w = DEWATERMARK_WHITE
+    r = r.point([min(255, round(v * 255 / w)) for v in range(256)])
+    return r.convert("RGB")
+
+
 def _fit_image(raw: bytes, name: str = "") -> bytes:
     """ย่อภาพลงถ้าด้านยาวเกิน MAX_IMAGE_DIM (คงสัดส่วน) — ป้องกัน 400 จาก VLM"""
     try:
@@ -226,12 +242,15 @@ def _fit_image(raw: bytes, name: str = "") -> bytes:
         im.load()
     except Exception:
         return raw
+    if DEWATERMARK:
+        im = _remove_watermark(im)       # ตัดตราน้ำก่อนย่อภาพ (ย่อแล้วลายตราน้ำจะปนกับหมึก)
     longest = max(im.size)
-    if longest <= MAX_IMAGE_DIM:
+    if longest <= MAX_IMAGE_DIM and not DEWATERMARK:
         return raw                       # ภาพเล็กอยู่แล้ว — ส่งไบต์เดิม ไม่แตะ
-    scale = MAX_IMAGE_DIM / longest
+    scale = min(1.0, MAX_IMAGE_DIM / longest)
     new = (max(1, round(im.width * scale)), max(1, round(im.height * scale)))
-    im = im.resize(new, Image.LANCZOS)
+    if new != im.size:
+        im = im.resize(new, Image.LANCZOS)
     if im.mode not in ("RGB", "L"):
         im = im.convert("RGB")
     print(f"      ย่อภาพ {name}: {longest}px -> {max(im.size)}px")
@@ -684,6 +703,49 @@ def _rule_based_parse(text: str) -> dict:
 # ==============================================================================
 
 
+# อ่านหน้าซ้ำเมื่อ "ยอดรวมของเล่มไม่ลงตัวกับแถวที่อ่านได้" (ดู md_plan_slots.page_check)
+# ทุกเทอมในตารางแผนการศึกษามีแถว "รวม" พิมพ์ไว้ — ถ้าผลรวมของแถวที่อ่านได้ไม่เท่ายอดนั้น แปลว่าอ่านตก/ผิดแถวหนึ่ง
+# ผลทุกรอบยังเป็นผล OCR จริง ไม่มีการแก้ด้วยมือ: เลือกรอบที่ score ต่ำสุด (ลงตัวได้ก่อนก็หยุด)
+# ปิดไว้เป็นค่าเริ่มต้น (0) เพื่อไม่ให้ผลรันเดิมเปลี่ยนโดยไม่ตั้งใจ
+OCR_RETRIES = int(os.getenv("LAB7B_OCR_RETRIES", "0"))
+
+
+def _ocr_page_with_checksum(png: bytes, page_no: int) -> tuple[str, list[dict]]:
+    """OCR หน้าเดียว (ซ้ำได้ตาม OCR_RETRIES) คืน (markdown ของรอบที่ดีที่สุด, บันทึกทุกรอบ)"""
+    check = None
+    if OCR_RETRIES > 0:
+        try:
+            from md_plan_slots import page_check as check
+        except ImportError:
+            check = None
+    best_md, best_score, attempts = "", None, []
+    for k in range(1 + (OCR_RETRIES if check else 0)):
+        try:
+            md = ollama_chat(MODEL_OCR,
+                             [{"role": "user", "content": TYPHOON_PROMPT}],
+                             images=[png], temperature=0.1,
+                             num_ctx=OCR_NUM_CTX,
+                             num_predict=OCR_NUM_PREDICT)
+        except Exception as e:
+            # หน้าเดียวอ่านไม่ได้ ไม่ควรล้มทั้ง pipeline — ใส่ placeholder ว่างไว้
+            # แล้วไปทำหน้าถัดไป (ก้อน jsonify ของหน้านี้จะได้ 0 วิชา)
+            print(f"      ❌ Typhoon-OCR หน้า {page_no} ล้มเหลว: {e}")
+            attempts.append({"attempt": k + 1, "error": str(e)})
+            continue
+        if check is None:
+            return md, [{"attempt": 1}]
+        res = check(md)
+        attempts.append({"attempt": k + 1, "ok": res["ok"], "score": res["score"],
+                         "bad_terms": res["bad_terms"]})
+        if best_score is None or res["score"] < best_score:
+            best_md, best_score = md, res["score"]
+        if res["ok"]:
+            break
+        print(f"      ⚠ หน้า {page_no} ยอดรวมไม่ลงตัว {res['bad_terms']} — "
+              + ("อ่านซ้ำ" if k < OCR_RETRIES else "หมดรอบอ่านซ้ำ ใช้รอบที่ดีที่สุด"))
+    return best_md, attempts
+
+
 def pipeline_vlm(pages: list[bytes], outdir: Path) -> dict:
     """
     ขั้น 1: Typhoon-OCR อ่านทุกหน้าเป็น Markdown
@@ -703,20 +765,15 @@ def pipeline_vlm(pages: list[bytes], outdir: Path) -> dict:
           หรือส่งหัวข้อหมวดที่เจอล่าสุดไปกับก้อนถัดไป (โจทย์ท้าทายข้อ 1)
     """
     md_pages: list[str] = []
+    ocr_log: list[dict] = []
     for i, png in enumerate(pages):
         print(f"    [ขั้น 1/2] Typhoon-OCR หน้า {i + 1}/{len(pages)}")
-        try:
-            md = ollama_chat(MODEL_OCR,
-                             [{"role": "user", "content": TYPHOON_PROMPT}],
-                             images=[png], temperature=0.1,
-                             num_ctx=OCR_NUM_CTX,
-                             num_predict=OCR_NUM_PREDICT)
-        except Exception as e:
-            # หน้าเดียวอ่านไม่ได้ ไม่ควรล้มทั้ง pipeline — ใส่ placeholder ว่างไว้
-            # แล้วไปทำหน้าถัดไป (ก้อน jsonify ของหน้านี้จะได้ 0 วิชา)
-            print(f"      ❌ Typhoon-OCR หน้า {i + 1} ล้มเหลว: {e}")
-            md = ""
+        md, attempts = _ocr_page_with_checksum(png, i + 1)
         md_pages.append(md)
+        ocr_log.append({"page": i + 1, "attempts": attempts})
+    (outdir / "ocr_checks.json").write_text(
+        json.dumps({"dewatermark": DEWATERMARK, "ocr_retries": OCR_RETRIES, "pages": ocr_log},
+                   ensure_ascii=False, indent=1), encoding="utf-8")
 
     (outdir / "intermediate_vlm.md").write_text(
         "\n\n---\n\n".join(md_pages), encoding="utf-8")
@@ -744,7 +801,7 @@ def _split_page_into_table_chunks(page_text: str) -> list[str]:
     ประมวลผลหลายตารางในคำขอเดียวอีกต่อไป"""
     table_spans = [m.span() for m in re.finditer(r"<table>.*?</table>", page_text, re.DOTALL)]
     if len(table_spans) <= 1:
-        return [page_text]
+        return _split_table_by_term(page_text)
 
     chunks: list[str] = []
     start = 0
@@ -753,7 +810,41 @@ def _split_page_into_table_chunks(page_text: str) -> list[str]:
         start = end
     if page_text[start:].strip():
         chunks[-1] += page_text[start:]
-    return chunks
+    return [piece for c in chunks for piece in _split_table_by_term(c)]
+
+
+_TERM_HEADING = re.compile(r"ปีที่\s*\d\s*ภาค(?:การศึกษา|เรียน)?\s*ที่\s*\d")
+
+
+def _split_table_by_term(chunk: str) -> list[str]:
+    """แยก <table> เดียวที่มีหลายเทอม (หัว "ปีที่ N ภาคการศึกษาที่ M" ฝังเป็นแถวกลางตาราง) เป็นก้อนละ 1 เทอม
+
+    เจอจริงเมื่อตัดตราน้ำก่อน OCR: Typhoon เขียนเทอม 1/1 และ 1/2 ไว้ใน <table> เดียว แล้ว qwen3:4b
+    ทำเทอมที่สองพัง (ยัดรหัสผิดเทอม/หายทั้งเทอม) — ให้โมเดลเห็นทีละเทอม เหมือนที่แยกตามแท็ก <table> อยู่แล้ว
+    ตัดที่ต้นแถว <tr> ที่ถือหัวเทอม แล้วปิด/เปิดแท็ก table ให้แต่ละชิ้นเป็น HTML ครบ
+    หัวเทอมนอก <table> (ข้อความนำหน้า) ไม่ถูกแตะ — นับเฉพาะหัวที่อยู่ "ในตาราง"
+    """
+    m_table = re.search(r"<table>.*</table>", chunk, re.DOTALL)
+    if not m_table:
+        return [chunk]
+    inner_start = m_table.start()
+    cuts = []
+    for h in _TERM_HEADING.finditer(chunk, m_table.start(), m_table.end()):
+        row_start = chunk.rfind("<tr>", inner_start, h.start())
+        if row_start > inner_start + len("<table>") and row_start not in cuts:   # แถวแรกของตารางไม่ต้องตัด
+            cuts.append(row_start)
+    if not cuts:
+        return [chunk]
+    bounds = [0, *cuts, len(chunk)]
+    pieces = []
+    for i in range(len(bounds) - 1):
+        piece = chunk[bounds[i]:bounds[i + 1]]
+        if i > 0:
+            piece = "<table>" + piece
+        if i < len(bounds) - 2:
+            piece = piece + "</table>"
+        pieces.append(piece)
+    return pieces
 
 
 def _blank_year_sem(value: Any) -> bool:
@@ -843,6 +934,169 @@ def _continuation_head(part_text: str, prev_text: str | None) -> tuple[str, str]
     return next(iter(prev_heads))
 
 
+_TH_CHAR_RE = re.compile(r"[฀-๿]")
+_LATIN_RE = re.compile(r"[A-Za-z]")
+_CODE_CELL_RE = re.compile(r"^\s*((?:[0-9Xx]{8,9})(?:\s*หรือ\s*[0-9Xx]{8,9})?)\s*(.*)$", re.S)
+_CREDIT_TOKEN_RE = re.compile(r"^\d+\s*\([\dxX\-]*\)?")   # เช่น "3(3-0-6)" ที่เซลล์รวมพ่วงมาท้ายชื่อ
+
+
+def _split_th_en(text: str) -> tuple[str, str | None]:
+    """แยกข้อความในเซลล์ชื่อวิชา (ไทย + อังกฤษ) : ส่วนหลังอักษรไทยตัวสุดท้ายคือชื่ออังกฤษ
+    โดยข้ามโทเคนที่เป็นตัวเลข/สัญลักษณ์ล้วนที่นำหน้า (เช่น "แคลคูลัส 1 CALCULUS 1" ->
+    ไทย "แคลคูลัส 1", อังกฤษ "CALCULUS 1") ไม่มีอักษรไทยเลย -> (ข้อความ, None)
+    ข้อจำกัด: ชื่อไทยที่ลงท้ายด้วยคำอังกฤษ (เช่น "ระบบ IoT") จะถูกนับส่วนท้ายเป็นชื่ออังกฤษ"""
+    txt = re.sub(r"\s+", " ", text).strip()
+    txt = re.sub(r"(?:\s*(?:หรือ|/))+$", "", txt).strip()    # ตัวเชื่อม "หรือ" ท้ายแถวคู่ (A หรือ B) ไม่ใช่ชื่อ
+    th_idx = [m.start() for m in _TH_CHAR_RE.finditer(txt)]
+    if not th_idx:
+        return txt, None
+    last = th_idx[-1]
+    toks = txt[last + 1:].split()
+    lead: list[str] = []                  # โทเคนตัวเลข/สัญลักษณ์ระหว่างชื่อไทยกับชื่ออังกฤษ (เช่น "1" ใน "โครงงานกลุ่ม 1 TEAM-PROJECT 1")
+    while toks and not _LATIN_RE.search(toks[0]):
+        lead.append(toks.pop(0))
+    if lead and all(re.fullmatch(r"[0-9]+", t) for t in lead):
+        last_txt = txt[:last + 1].strip() + " " + " ".join(lead)   # ตามที่ docstring บอก: เลขท้ายชื่อไทยเป็นส่วนของชื่อไทย
+    else:
+        last_txt = txt[:last + 1].strip()
+    for i, t in enumerate(toks):          # ตัดหน่วยกิตที่ OCR พ่วงท้ายชื่อในเซลล์รวม
+        if _CREDIT_TOKEN_RE.match(t):
+            toks = toks[:i]
+            break
+    return last_txt, (" ".join(toks) or None)
+
+
+_CODE_ONLY_RE = re.compile(r"(?:[0-9Xx]{8,9}\s*)+(?:หรือ\s*(?:[0-9Xx]{8,9}\s*)+)?")
+_NAME_MATCH_MIN = 0.6     # ความคล้ายขั้นต่ำของชื่อไทย (Markdown vs ที่ LLM ให้) ก่อนยอมเติม name_en
+
+
+def _markdown_name_en_rows(part_text: str) -> dict[str, list[tuple[str, str | None]]]:
+    """อ่านแถว <tr> ของตาราง Markdown (Typhoon-OCR) แล้วคืน {รหัส(พิมพ์เล็ก ช่องว่างเดียว): [(ชื่อไทย, ชื่ออังกฤษ), ...]}
+    ตามลำดับแถว รองรับรูปแบบที่พบจริง: (ก) [รหัส | ชื่อ | หน่วยกิต] (ข) เซลล์รวม colspan
+    "รหัส ชื่อ" (ค) รหัส "A หรือ B" ที่ rowspan=N โดยแถวถัดมามีแต่เซลล์ชื่อ (ใช้รหัสเดียวกัน)
+    (ง) เซลล์รหัสหลายตัว (`06016416<br/>06016417<br/>06016418`) rowspan=N — ไม่รู้ว่าชื่อแถวไหนของรหัสไหน
+    จึงลงทะเบียนทุกแถวชื่อไว้ใต้ "ทุกรหัสในกลุ่ม" แล้วให้ _fill_name_en เลือกด้วยความคล้ายของชื่อไทย
+    กฎเชิงกำหนด ไม่เรียก LLM ไม่ใช้เฉลย"""
+    out: dict[str, list[tuple[str, str]]] = {}
+    carry_keys: list[str] = []      # รหัสของ rowspan ที่ยังไม่หมด
+    carry_left = 0
+    for tr in re.findall(r"<tr>(.*?)</tr>", part_text, flags=re.S):
+        tds = re.findall(r"<td([^>]*)>(.*?)</td>", tr, flags=re.S)
+        if not tds:
+            continue
+        cells = [(attrs, re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body)).strip())
+                 for attrs, body in tds]
+        keys: list[str] = []
+        name_text: str | None = None
+        first = cells[0][1]
+        if len(cells) >= 2 and _CODE_ONLY_RE.fullmatch(first):
+            # (ก)/(ค แถวแรก)/(ง แถวแรก): เซลล์แรกคือรหัสล้วน เซลล์ที่สองคือชื่อ
+            if "หรือ" in first:
+                keys = [re.sub(r"\s+", " ", first).lower()]
+            else:
+                keys = [c.lower() for c in re.findall(r"[0-9Xx]{8,9}", first)]
+            name_text = cells[1][1]
+            rs = re.search(r'rowspan="(\d+)"', cells[0][0])
+            carry_keys, carry_left = (keys, int(rs.group(1)) - 1) if rs else ([], 0)
+        elif (m0 := _CODE_CELL_RE.match(first)) and m0.group(2):
+            # (ข) เซลล์รวม "รหัส ชื่อ ..."
+            keys = [re.sub(r"\s+", " ", m0.group(1)).lower()]
+            name_text = m0.group(2)
+            carry_keys, carry_left = [], 0
+        elif len(cells) == 1 and carry_keys and carry_left > 0:
+            # แถวถัดมาของ rowspan: มีแต่เซลล์ชื่อ
+            keys, name_text = carry_keys, first
+            carry_left -= 1
+        if keys and name_text:
+            th, en = _split_th_en(name_text)
+            # เก็บแถวที่ไม่มีชื่ออังกฤษไว้ด้วย (en=None) เพื่อให้ _fill_name_en เลือกแถวที่ "ถูกตัว"
+            # ไม่ใช่ไปหยิบชื่ออังกฤษของแถวข้างเคียงที่ชื่อไทยคล้ายกัน (เช่น สหกิจศึกษา vs สหกิจศึกษาต่างประเทศ)
+            for k in keys:
+                out.setdefault(k, []).append((th, en))
+    return out
+
+
+def _th_similarity(a: str, b: str) -> float:
+    import difflib
+    a, b = re.sub(r"\s+", "", a), re.sub(r"\s+", "", b)
+    if not a or not b:
+        return 0.0
+    if len(min(a, b, key=len)) >= 4 and (a in b or b in a):
+        return 1.0            # LLM ตัด label "กลุ่มวิชา…" ออกจากชื่อ แต่ Markdown ยังมี label ติดอยู่
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+_LABEL_START_RE = re.compile(r"^\s*(?:กลุ่มวิชา|หมวดวิชา)")
+_REAL_CODE_RE = re.compile(r"^[0-9]{8}$")
+
+
+def _is_group_label(name: str) -> bool:
+    """ข้อความที่ "หน้าตาเหมือน label หัวข้อกลุ่มวิชา" (นิยามเดียวกับ prompt ข้อ [6]):
+    ขึ้นต้นด้วย กลุ่มวิชา/หมวดวิชา หรือลงท้ายด้วย "*" """
+    n = (name or "").strip()
+    return bool(_LABEL_START_RE.match(n)) or n.endswith("*")
+
+
+def _fix_label_name_th(part_text: str, courses: list[dict]) -> int:
+    """ตัวกันเชิงกำหนด: วิชาที่มี "รหัส 8 หลักจริง" แต่ LLM ให้ name_th เป็น label หัวข้อกลุ่มวิชา
+    (เช่น 90641004 ได้ "กลุ่มวิชาเลือก" ทั้งที่ Markdown เป็น "90641004 โครงงานกลุ่ม 1 TEAM-PROJECT 1")
+    --> ใช้ชื่อไทยจาก Markdown ของแถวรหัสเดียวกันแทน
+    เงื่อนไข (ตั้งใจแคบ กันไปทับชื่อที่ถูกอยู่แล้ว): (1) รหัสเป็นเลข 8 หลักล้วน (ไม่ใช่ wildcard/คู่ "หรือ")
+    (2) name_th ของ LLM เข้านิยาม label (3) Markdown ก้อนนี้มีแถวของรหัสนั้น "แถวเดียว"
+    (4) ชื่อไทยจาก Markdown ตัด label หน้า "*" แล้วยังเหลืออยู่ และไม่ได้ขึ้นต้นด้วย label
+    (ถ้ากำกวมว่าตรงไหนคือ label ปล่อยตามที่ LLM ให้) ไม่ใช้เฉลย ไม่เรียก LLM คืนจำนวนวิชาที่แก้"""
+    rows = None
+    fixed = 0
+    for c in courses:
+        code = re.sub(r"\s+", "", str(c.get("code") or ""))
+        if not _REAL_CODE_RE.match(code) or not _is_group_label(str(c.get("name_th") or "")):
+            continue
+        if rows is None:
+            rows = _markdown_name_en_rows(part_text)
+        cands = rows.get(code)
+        if not cands or len(cands) != 1:
+            continue
+        th = cands[0][0]
+        if "*" in th:
+            th = th.split("*", 1)[1].strip()
+        if not th or _is_group_label(th):
+            continue
+        c["name_th"] = th
+        fixed += 1
+    return fixed
+
+
+def _fill_name_en(part_text: str, courses: list[dict]) -> int:
+    """เติม name_en ให้วิชาที่ LLM ไม่ส่งมา (qwen3:4b ตัดชื่ออังกฤษทิ้งเองทั้งที่ schema/prompt สั่ง)
+    โดยอ่านตรง ๆ จาก Markdown ของก้อนเดียวกัน จับคู่ด้วยรหัส แล้วเลือกแถวที่ "ชื่อไทยคล้ายที่สุด"
+    (ต้องคล้าย >= _NAME_MATCH_MIN และแถวนั้นยังไม่ถูกใช้) ไม่เดาตามลำดับ/จำนวนแถว
+    ไม่ทับ name_en ที่ LLM ให้มาแล้ว คืนจำนวนวิชาที่เติม"""
+    rows = _markdown_name_en_rows(part_text)
+    used: dict[str, set[int]] = defaultdict(set)
+    filled = 0
+    for c in courses:
+        if c.get("name_en"):
+            continue
+        key = re.sub(r"\s+", " ", str(c.get("code") or "")).strip().lower()
+        cands = rows.get(key)
+        if not cands:
+            continue
+        nm = str(c.get("name_th") or "")
+        best, best_r = None, _NAME_MATCH_MIN
+        for i, (th, _en) in enumerate(cands):
+            if i in used[key]:
+                continue
+            r = _th_similarity(th, nm)
+            if r >= best_r:
+                best, best_r = i, r
+        if best is not None:
+            used[key].add(best)
+            if cands[best][1]:
+                c["name_en"] = cands[best][1]
+                filled += 1
+    return filled
+
+
 def _text_to_json_chunked(md_pages: list[str]) -> dict:
     """แยกแต่ละหน้าที่มีหลายตารางออกเป็นก้อนละ 1 ตารางก่อน (กัน bug ตารางที่สองหาย)
     แล้วเรียก text LLM ทีละก้อน — ก้อนที่ได้จากขั้นนี้จึงละเอียดกว่า "หน้า" เดิม
@@ -914,6 +1168,16 @@ def _text_to_json_chunked(md_pages: list[str]) -> dict:
             # จะสอนไว้แล้วว่าห้าม) --> ทิ้งคีย์นี้ทิ้งเงียบ ๆ ถ้าหลุดมา ไม่ใช่ตั้งค่าให้มันเลย
             for c in d.get("courses") or []:
                 c.pop("prerequisite", None)
+            # LLM (qwen3:4b) ตัดชื่ออังกฤษทิ้งเอง ไม่ส่ง name_en มา (ตรวจแล้วทุก run) ทั้งที่ชื่ออังกฤษ
+            # อยู่ใน Markdown ครบ --> เติมด้วยกฎเชิงกำหนดจาก Markdown ก้อนเดียวกัน (ไม่ทับที่ LLM ให้มา)
+            # LLM (qwen3:4b) บางทีให้ name_th เป็น label หัวข้อกลุ่มวิชาแทนชื่อวิชาจริง (เจอ 90641004 ใน AIT_dewm5)
+            # --> ใช้ชื่อไทยจาก Markdown แทน ต้องทำก่อน _fill_name_en (ตัวนั้นจับคู่แถวด้วยความคล้ายของชื่อไทย)
+            n_th = _fix_label_name_th(part_text, d.get("courses") or [])
+            if n_th:
+                print(f"      แก้ name_th ที่เป็น label จาก Markdown {n_th} วิชา")
+            n_en = _fill_name_en(part_text, d.get("courses") or [])
+            if n_en:
+                print(f"      เติมชื่ออังกฤษจาก Markdown {n_en} วิชา")
             print(f"      ได้ {len(d.get('courses') or [])} วิชา")
             chunks.append(d)
         except Exception as e:

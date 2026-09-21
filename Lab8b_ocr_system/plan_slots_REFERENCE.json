@@ -1,0 +1,684 @@
+{
+ "_note": "ช่องตามเล่มที่ plan_item เก็บไม่ได้ — สร้างโดย build_plan_slots.py",
+ "plans": {
+  "AIT": {
+   "slots": [
+    {
+     "year": 1,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
+     "credits": 6
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกเทคโนโลยีปัญญาประดิษฐ์เฉพาะทาง",
+     "credits": 6
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "90644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "choose_one",
+     "name_th": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+     "credits": 6,
+     "groups": [
+      {
+       "name": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+       "codes": [
+        "06046443",
+        "06046444"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "BIT_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9664xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไปสำหรับหลักสูตรนานาชาติ 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "96644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06036xxx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06036xxx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9664xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไปสำหรับหลักสูตรนานาชาติ 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "choose_one",
+     "name_th": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+     "credits": 6,
+     "groups": [
+      {
+       "name": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+       "codes": [
+        "06036147",
+        "06036148"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "BIT_no_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9664xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไปสำหรับหลักสูตรนานาชาติ 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "96644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9664xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไปสำหรับหลักสูตรนานาชาติ 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06036xxx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06036xxx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    }
+   ]
+  },
+  "DSBA_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "90644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 2",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 3",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 4",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "choose_one",
+     "name_th": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+     "credits": 6,
+     "groups": [
+      {
+       "name": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+       "codes": [
+        "06026259",
+        "06026260"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "DSBA_no_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "90644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 2",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 3",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกกลุ่ม 4",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "06026xxx",
+     "name_th": "วิชาเลือกในกลุ่มวิชาเลือกหรือกลุ่มวิชาชีพเฉพาะด้าน 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    }
+   ]
+  },
+  "IT_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 2,
+     "kind": "choose_group",
+     "name_th": "เลือก 1 กลุ่มวิชา ปี 2/2",
+     "credits": 6,
+     "note": "เลือก 1 กลุ่มวิชา หน่วยกิตนับเฉพาะกลุ่มที่เลือก",
+     "groups": [
+      {
+       "name": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+       "codes": [
+        "06016414",
+        "06016415"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+       "codes": [
+        "06016419",
+        "06016420"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม",
+       "codes": [
+        "06016424",
+        "06016425"
+       ]
+      }
+     ]
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "90644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "choose_group",
+     "name_th": "เลือก 1 กลุ่มวิชา ปี 3/1",
+     "credits": 9,
+     "note": "เลือก 1 กลุ่มวิชา หน่วยกิตนับเฉพาะกลุ่มที่เลือก",
+     "groups": [
+      {
+       "name": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+       "codes": [
+        "06016416",
+        "06016417",
+        "06016418"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+       "codes": [
+        "06016421",
+        "06016422",
+        "06016423"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม",
+       "codes": [
+        "06016426",
+        "06016427",
+        "06016418"
+       ]
+      }
+     ]
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "choose_one",
+     "name_th": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+     "credits": 6,
+     "groups": [
+      {
+       "name": "สหกิจศึกษา หรือ สหกิจศึกษาต่างประเทศ",
+       "codes": [
+        "06016481",
+        "06016482"
+       ]
+      }
+     ]
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 2",
+     "credits": 3
+    }
+   ]
+  },
+  "IT_no_coop": {
+   "slots": [
+    {
+     "year": 2,
+     "semester": 2,
+     "kind": "choose_group",
+     "name_th": "เลือก 1 กลุ่มวิชา ปี 2/2",
+     "credits": 6,
+     "note": "เลือก 1 กลุ่มวิชา หน่วยกิตนับเฉพาะกลุ่มที่เลือก",
+     "groups": [
+      {
+       "name": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+       "codes": [
+        "06016414",
+        "06016415"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+       "codes": [
+        "06016419",
+        "06016420"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม",
+       "codes": [
+        "06016424",
+        "06016425"
+       ]
+      }
+     ]
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "90644xxx",
+     "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 1,
+     "kind": "choose_group",
+     "name_th": "เลือก 1 กลุ่มวิชา ปี 3/1",
+     "credits": 9,
+     "note": "เลือก 1 กลุ่มวิชา หน่วยกิตนับเฉพาะกลุ่มที่เลือก",
+     "groups": [
+      {
+       "name": "กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์",
+       "codes": [
+        "06016416",
+        "06016417",
+        "06016418"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ",
+       "codes": [
+        "06016421",
+        "06016422",
+        "06016423"
+       ]
+      },
+      {
+       "name": "กลุ่มวิชาด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม",
+       "codes": [
+        "06016426",
+        "06016427",
+        "06016418"
+       ]
+      }
+     ]
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 1",
+     "credits": 3
+    },
+    {
+     "year": 3,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "060464xx",
+     "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 3",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 1,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 1",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "9064xxxx",
+     "name_th": "วิชาเลือกหมวดศึกษาทั่วไป 2",
+     "credits": 3
+    },
+    {
+     "year": 4,
+     "semester": 2,
+     "kind": "wildcard",
+     "code": "xxxxxxxx",
+     "name_th": "วิชาเลือกเสรี 2",
+     "credits": 3
+    }
+   ]
+  }
+ },
+ "apply": {
+  "runs/AIT": "AIT",
+  "runs/AIT_retry": "AIT",
+  "runs/AIT_retry2": "AIT",
+  "runs/AIT_retry3": "AIT",
+  "runs/BIT/coop": "BIT_coop",
+  "runs/BIT/coop_retry": "BIT_coop",
+  "runs/BIT/no_coop": "BIT_no_coop",
+  "runs/BIT/no_coop_retry": "BIT_no_coop",
+  "runs/DSBA/coop": "DSBA_coop",
+  "runs/DSBA/no_coop": "DSBA_no_coop",
+  "runs/DSBA/no_coop_retry": "DSBA_no_coop",
+  "runs/IT/coop": "IT_coop",
+  "runs/IT/coop_retry": "IT_coop",
+  "runs/IT/no_coop": "IT_no_coop",
+  "runs/IT/no_coop_retry": "IT_no_coop"
+ }
+}

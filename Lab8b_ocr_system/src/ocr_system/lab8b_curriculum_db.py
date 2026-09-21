@@ -328,6 +328,59 @@ GROUP BY year, semester;
 """
 
 
+# DDL ของช่องแผนที่ plan_item เก็บไม่ตรงเล่ม — แยกออกจาก DDL ด้านบนโดยตั้งใจ
+# เพราะ DDL ถูกยัดทั้งก้อนเข้า prompt ของ NL2SQL (ask/eval, num_ctx 4096) ถ้าเพิ่มตาราง
+# ตรงนั้น prompt เปลี่ยน คะแนนข้อสอบเดิมอาจเพี้ยน; ใช้เฉพาะตอน `load-plan-slots`
+PLAN_SLOT_DDL = """
+-- ช่องในตารางแผนที่ plan_item เก็บได้ไม่ตรงเล่ม (เพิ่มแบบ additive — ไม่แตะ plan_item,
+-- v_semester_credits หรือ verify เดิม เพื่อไม่ให้คำตอบ eval/คะแนน Lab 9 เดิมเปลี่ยน)
+--   wildcard      แถวรหัส xxx (06026xxx, 9064xxxx, xxxxxxxx ...) ที่ plan_item ไม่เก็บ
+--   choose_one    "A หรือ B" (สหกิจในประเทศ/ต่างประเทศ) นับหน่วยกิตครั้งเดียว
+--   choose_group  "เลือก 1 กลุ่มวิชา" (IT ปี 2/2, 3/1) — นับหน่วยกิตของ 1 กลุ่มเท่านั้น
+-- choose_one/choose_group: วิชาสมาชิกยังอยู่ใน plan_item ครบ แต่ v_semester_credits_full
+-- ตัดออกแล้วนับ credits ของ slot แทน (credits = หน่วยกิตที่เล่มรวมให้เทอมนั้นจริง)
+CREATE TABLE IF NOT EXISTS plan_slot (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    program_id TEXT NOT NULL REFERENCES program(program_id),
+    year       INTEGER NOT NULL CHECK (year BETWEEN 1 AND 8),
+    semester   INTEGER NOT NULL CHECK (semester BETWEEN 1 AND 3),
+    kind       TEXT NOT NULL CHECK (kind IN ('wildcard','choose_one','choose_group')),
+    code       TEXT,                 -- รหัส wildcard ตามเล่ม (เช่น 06026xxx); NULL ถ้าไม่ใช่ wildcard
+    name_th    TEXT NOT NULL,
+    credits    INTEGER NOT NULL CHECK (credits BETWEEN 0 AND 12),
+    note       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS plan_slot_member (
+    slot_id    INTEGER NOT NULL REFERENCES plan_slot(id),
+    group_no   INTEGER NOT NULL DEFAULT 1,   -- choose_group: กลุ่มที่เท่าไร; choose_one: 1
+    group_name TEXT,
+    code       TEXT NOT NULL,
+    PRIMARY KEY (slot_id, group_no, code)
+);
+
+CREATE INDEX IF NOT EXISTS ix_slot_sem ON plan_slot(year, semester);
+
+-- หน่วยกิตต่อภาคเรียน "ตามเล่ม": วิชาใน plan_item ที่ไม่ใช่สมาชิก slot (นับ alt_group ครั้งเดียว)
+-- + credits ของทุก slot ถ้าไม่มีแถวใน plan_slot จะได้ค่าเท่า v_semester_credits
+CREATE VIEW IF NOT EXISTS v_semester_credits_full AS
+SELECT year, semester, SUM(credits) AS credits, COUNT(*) AS n_entries
+FROM (
+    SELECT p.year, p.semester, MIN(p.credits) AS credits
+    FROM plan_item p
+    WHERE NOT EXISTS (
+        SELECT 1 FROM plan_slot s
+        JOIN plan_slot_member m ON m.slot_id = s.id
+        WHERE s.program_id = p.program_id AND s.year = p.year
+          AND s.semester = p.semester AND m.code = p.code)
+    GROUP BY p.year, p.semester, COALESCE(p.alt_group, 'x' || p.id)
+    UNION ALL
+    SELECT year, semester, credits FROM plan_slot
+)
+GROUP BY year, semester;
+"""
+
+
 def cmd_schema(args) -> None:
     """เขียน JSON Schema และ SQL DDL ออกเป็นไฟล์ เพื่อใช้อ้างอิงและส่งงาน"""
     out = Path(args.output)
@@ -558,7 +611,8 @@ def _label_like_name(name: Any) -> bool:
 def convert_lab7b(data: dict, *, program_id: str | None = None,
                   program_name: str | None = None,
                   total_credits: int | None = None,
-                  years: int | None = None) -> tuple[dict, dict]:
+                  years: int | None = None,
+                  markdown: str | None = None) -> tuple[dict, dict]:
     """
     แปล schema ผลลัพธ์ Lab 7B เป็น Lab 8B ด้วยกฎคงที่ โดยไม่เรียก LLM
 
@@ -566,6 +620,15 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
     แต่บันทึกลง conversion report ทุกรายการ
     """
     warnings: list[str] = []
+    recovered_terms: list[dict] = []
+    if markdown:
+        # กู้ปี/เทอมของวิชารหัสจริงที่ได้ 0/0 จาก Markdown ของ OCR (กฎเชิงกำหนด; ดู md_plan_slots.recover_terms)
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from md_plan_slots import recover_terms
+        data = {**data, "courses": [dict(c) for c in (data.get("courses") or [])]}
+        recovered_terms = recover_terms(markdown, data["courses"])
+        for r in recovered_terms:
+            warnings.append(f"{r['code']}: ปี/เทอม {r['from']} -> {r['to']} (กู้จากตำแหน่งใน Markdown ของ OCR)")
     course_by_code: dict[str, dict] = {}
     plan: list[dict] = []
     prerequisites: list[dict] = []
@@ -573,6 +636,27 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
     seen_pre: set[tuple] = set()
     skipped_wildcards = 0
     skipped_flexible = 0
+
+    # แถว "A หรือ B" ที่ OCR/LLM ส่งมาเป็น "หลายแถวรหัสเดียวกันคนละชื่อ" (เช่น IT/AIT/DSBA/BIT
+    # แผนสหกิจ: "06046443 หรือ 06046444" สองแถว ชื่อ "สหกิจศึกษา…" กับ "สหกิจศึกษาต่างประเทศ…")
+    # เล่มเรียงชื่อตามลำดับรหัส -> แถวที่ k ของรหัสชุดเดียวกัน (ปี/เทอมเดียวกัน) เป็นชื่อของรหัสที่ k
+    # เดิมทุกแถวยัดชื่อของตัวเองให้ "ทุกรหัส" first-write-wins จึงทำให้รหัสที่ 2 ได้ชื่อของแถวแรก
+    # (ชื่อซ้ำ + warning "รหัสเดียวกันมาพร้อมชื่อไทยสองชื่อ") กติกาเชิงกำหนด ไม่เรียก LLM ไม่ใช้เฉลย:
+    # ใช้ต่อเมื่อ "จำนวนแถว = จำนวนรหัส" พอดีเท่านั้น ไม่งั้นคงพฤติกรรมเดิม
+    # (แถวเดียวที่เขียน "A หรือ B" ยังให้ชื่อเดียวกันทั้งสองรหัสเหมือนเดิม)
+    # ผลกระทบจำกัดที่ชื่อ/name_en/description ใน course — ไม่แตะ plan/alt_group/หน่วยกิต
+    or_rows: dict[tuple, tuple[int, list[int]]] = {}
+    for idx, s in enumerate(data.get("courses") or []):
+        rc = str(s.get("code") or "").strip()
+        cs = _lab7b_codes(rc)
+        if len(cs) > 1 and not _ambiguous_code_merge(rc, cs):
+            key = (tuple(cs), str(s.get("year")), str(s.get("semester")))
+            or_rows.setdefault(key, (len(cs), []))[1].append(idx)
+    or_row_owner: dict[int, int] = {}
+    for n_codes, idxs in or_rows.values():
+        if len(idxs) == n_codes:
+            for k, idx in enumerate(idxs):
+                or_row_owner[idx] = k
 
     for index, src in enumerate(data.get("courses") or []):
         raw_code = str(src.get("code") or "").strip()
@@ -600,7 +684,8 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
             # cell รวมจาก rowspan (ambiguous_merge): ชื่อ/คำอธิบายในแถวนี้เป็นของรหัส
             # แรกเท่านั้น รหัสที่เหลือให้ placeholder name_th=code ไว้ก่อน (เหมือน
             # "ชื่อยังหาย" ปกติ) เผื่อมีแถวอื่นที่มีชื่อจริงของรหัสนั้นมา merge ทับทีหลัง
-            use_real_name = not ambiguous_merge or i == 0
+            use_real_name = ((not ambiguous_merge or i == 0)
+                             and (index not in or_row_owner or i == or_row_owner[index]))
             candidate = {
                 "code": code,
                 "name_th": (str(src.get("name_th") or code).strip()
@@ -784,6 +869,7 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
         "prerequisites": len(result["prerequisites"]),
         "skipped_wildcards": skipped_wildcards,
         "skipped_flexible_plan_items": skipped_flexible,
+        "terms_recovered_from_markdown": recovered_terms,
         "warnings": warnings,
     }
     return result, report
@@ -792,12 +878,15 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
 def cmd_import_lab7b(args) -> None:
     src = Path(args.input)
     data = json.loads(src.read_text(encoding="utf-8"))
+    md_path = Path(args.markdown) if getattr(args, "markdown", None) else None
+    markdown = md_path.read_text(encoding="utf-8") if md_path and md_path.exists() else None
     converted, report = convert_lab7b(
         data,
         program_id=args.program_id,
         program_name=args.program_name,
         total_credits=args.total_credits,
         years=args.years,
+        markdown=markdown,
     )
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -807,6 +896,8 @@ def cmd_import_lab7b(args) -> None:
     print(f"  แปล Lab 7B JSON -> Lab 8B JSON โดยไม่เรียก LLM")
     print(f"  เขียน {out}")
     print(f"  รายงาน {meta_path}")
+    if report["terms_recovered_from_markdown"]:
+        print(f"    กู้ปี/เทอมจาก Markdown {len(report['terms_recovered_from_markdown'])} วิชา")
     print(f"    course={report['converted_courses']}  plan={report['plan_items']}  "
           f"prerequisite={report['prerequisites']}")
     if report["warnings"]:
@@ -923,6 +1014,69 @@ def cmd_load_electives(args) -> None:
     conn.commit()
     conn.close()
     print(f"  โหลด elective_group {n_groups} กลุ่ม, elective_group_course {n_courses} วิชา เข้า {db}")
+
+
+def cmd_load_plan_slots_md(args) -> None:
+    """สกัดช่อง wildcard / "หรือ" / "เลือก 1 กลุ่ม" จาก Markdown ของ OCR แล้วโหลดเข้า plan_slot
+
+    ข้อมูลมาจากผล OCR อย่างเดียว (md_plan_slots.py — กฎเชิงกำหนด ไม่กรอกมือ ไม่เรียก LLM)
+    ไม่แตะ course/plan_item/v_semester_credits/verify เดิม (ดู PLAN_SLOT_DDL)
+    หน่วยกิตที่อธิบายไม่ได้เทียบแถว "รวม" ของเล่ม = วิชาที่ OCR ตกจริง ถูกรายงานลงไฟล์ report
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from md_plan_slots import derive_slots, md_codes_by_term
+
+    md = Path(args.markdown).read_text(encoding="utf-8")
+    slots, term_report = derive_slots(md)
+    db = Path(args.database)
+    if not db.exists():
+        raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
+
+    conn = open_db(db)
+    conn.executescript(PLAN_SLOT_DDL)
+    program_id = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()[0]
+    conn.execute("DELETE FROM plan_slot_member WHERE slot_id IN "
+                 "(SELECT id FROM plan_slot WHERE program_id = ?)", (program_id,))
+    conn.execute("DELETE FROM plan_slot WHERE program_id = ?", (program_id,))
+
+    n_members = 0
+    for slot in slots:
+        cur = conn.execute(
+            "INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th,"
+            " credits, note) VALUES (?,?,?,?,?,?,?,?)",
+            (program_id, slot["year"], slot["semester"], slot["kind"], slot.get("code"),
+             slot["name_th"], slot["credits"], slot.get("note")))
+        for g_no, group in enumerate(slot.get("groups") or [], 1):
+            for code in group["codes"]:
+                conn.execute(
+                    "INSERT OR IGNORE INTO plan_slot_member (slot_id, group_no, group_name, code)"
+                    " VALUES (?,?,?,?)", (cur.lastrowid, g_no, group.get("name"), code))
+                n_members += 1
+    conn.commit()
+
+    declared = conn.execute("SELECT total_credits FROM program").fetchone()[0]
+    full = sum(r[0] for r in conn.execute("SELECT credits FROM v_semester_credits_full"))
+    base = sum(r[0] for r in conn.execute("SELECT credits FROM v_semester_credits"))
+    in_db: dict[tuple[int, int], set[str]] = {}
+    for y, sm, c in conn.execute("SELECT year, semester, code FROM plan_item"):
+        in_db.setdefault((y, sm), set()).add(c)
+    conn.close()
+    # รหัสที่ OCR อ่านได้ใน Markdown แต่หายจาก plan_item = วิชาหายที่ขั้น Markdown -> JSON (LLM)
+    lost_in_json = {f"{y}/{sm}": sorted(codes - in_db.get((y, sm), set()))
+                    for (y, sm), codes in md_codes_by_term(md).items()
+                    if codes - in_db.get((y, sm), set())}
+    unexplained = [(r["year"], r["semester"], r["unexplained"]) for r in term_report
+                   if r["unexplained"]]
+    report = {"source": str(args.markdown), "slots": len(slots), "members": n_members,
+              "plan_item_credits": base, "with_slots_credits": full,
+              "declared_total_credits": declared, "terms": term_report,
+              "md_codes_missing_in_plan_item": lost_in_json}
+    Path(args.database).with_name("plan_slot_report.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"  plan_slot {len(slots)} ช่อง, สมาชิก {n_members} · หน่วยกิตรวม plan_item {base}"
+          f" -> รวมช่อง {full} · ประกาศ {declared} · ขาด {declared - full}"
+          + (f" · เทอมที่หน่วยกิตอธิบายไม่ได้ (OCR ตก/สับสน): {unexplained}" if unexplained else "")
+          + (f" · รหัสที่อยู่ใน Markdown แต่หายจาก plan_item: {lost_in_json}" if lost_in_json else ""))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1829,6 +1983,8 @@ def main() -> None:
                    help="หน่วยกิตรวมตามที่หลักสูตรประกาศ; ไม่ระบุจะคำนวณจากแผน")
     p.add_argument("--years", type=int, default=None,
                    help="จำนวนปีของหลักสูตร; ไม่ระบุจะใช้ปีสูงสุดในแผน")
+    p.add_argument("--markdown", default=None,
+                   help="intermediate_vlm.md จาก Lab 7B — ใช้กู้ปี/เทอมของวิชารหัสจริงที่ได้ 0/0 (ไม่บังคับ)")
 
     p = sub.add_parser("load", help="JSON -> SQLite")
     p.add_argument("-i", "--input", required=True)
@@ -1841,6 +1997,12 @@ def main() -> None:
     p.add_argument("-i", "--input", required=True, help="JSON จาก extract_elective_catalog.py")
     p.add_argument("-d", "--database", required=True)
     p.add_argument("--program-id", default=None, help="ทับ program id จากไฟล์ input")
+
+    p = sub.add_parser("load-plan-slots-md",
+                       help="สกัดช่อง wildcard/หรือ/เลือก 1 กลุ่ม จาก Markdown ของ OCR เข้า plan_slot"
+                            " (ไม่แตะ plan_item/verify เดิม; ไม่กรอกมือ)")
+    p.add_argument("-m", "--markdown", required=True, help="intermediate_vlm.md จาก Lab 7B")
+    p.add_argument("-d", "--database", required=True)
 
     p = sub.add_parser("verify", help="ตรวจความสอดคล้อง 7 ข้อ")
     p.add_argument("-d", "--database", required=True)
@@ -1863,6 +2025,7 @@ def main() -> None:
     {"demo": cmd_demo, "schema": cmd_schema, "extract": cmd_extract,
      "import-lab7b": cmd_import_lab7b,
      "load": cmd_load, "load-electives": cmd_load_electives,
+     "load-plan-slots-md": cmd_load_plan_slots_md,
      "verify": cmd_verify, "ask": cmd_ask,
      "eval": cmd_eval}[args.cmd](args)
 

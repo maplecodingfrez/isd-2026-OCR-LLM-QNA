@@ -1,0 +1,532 @@
+{
+  "vlm": {
+    "tokenizer": "pythainlp/newmm",
+    "attributes": {
+      "code": {
+        "label": "รหัสวิชา",
+        "n_items": 46,
+        "cer": 0.282609,
+        "wer": null,
+        "exact_match_acc": 0.717391,
+        "n_sub": 0,
+        "n_del": 104,
+        "n_ins": 0,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 368,
+        "error_samples": [
+          {
+            "key": "06016401 [ตกแถว]",
+            "gt": "06016401",
+            "pred": ""
+          },
+          {
+            "key": "90644xxx [ตกแถว]",
+            "gt": "90644xxx",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "06026xxx",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "06026xxx",
+            "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "9064xxxx",
+            "pred": ""
+          }
+        ]
+      },
+      "name_th": {
+        "label": "ชื่อวิชา (ไทย) ⭐",
+        "n_items": 46,
+        "cer": 0.440631,
+        "wer": 0.453782,
+        "exact_match_acc": 0.695652,
+        "n_sub": 1,
+        "n_del": 640,
+        "n_ins": 1,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 1457,
+        "error_samples": [
+          {
+            "key": "06026207",
+            "gt": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
+            "pred": "ระบบฐานข้อมูลแบบโนนอสควิวแอล"
+          },
+          {
+            "key": "06016401 [ตกแถว]",
+            "gt": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
+            "pred": ""
+          },
+          {
+            "key": "90644xxx [ตกแถว]",
+            "gt": "วิชาเลือกภาษาและการสื่อสาร",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1\nวิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1\nวิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2\nวิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 2\nวิชาเลือกกลุ่มวิศวกรรมข้อมูล 2",
+            "pred": ""
+          }
+        ]
+      },
+      "name_en": {
+        "label": "ชื่อวิชา (อังกฤษ) ⭐",
+        "n_items": 46,
+        "cer": 1.0,
+        "wer": 1.0,
+        "exact_match_acc": 0.0,
+        "n_sub": 0,
+        "n_del": 1394,
+        "n_ins": 0,
+        "n_missing": 46,
+        "n_hallucinated": 0,
+        "n_ref_chars": 1394,
+        "error_samples": [
+          {
+            "key": "06026200",
+            "gt": "CALCULUS 1",
+            "pred": "None"
+          },
+          {
+            "key": "06026202",
+            "gt": "LINEAR ALGEBRA",
+            "pred": "None"
+          },
+          {
+            "key": "06066101",
+            "gt": "BUSINESS FUNDAMENTALS FOR INFORMATION\nTECHNOLOGY",
+            "pred": "None"
+          },
+          {
+            "key": "06066303",
+            "gt": "PROBLEM SOLVING AND COMPUTER\nPROGRAMMING",
+            "pred": "None"
+          },
+          {
+            "key": "90641001",
+            "gt": "CHARM SCHOOL",
+            "pred": "None"
+          }
+        ]
+      },
+      "credits": {
+        "label": "หน่วยกิต",
+        "n_items": 46,
+        "cer": 0.448,
+        "wer": null,
+        "exact_match_acc": 0.717391,
+        "n_sub": 0,
+        "n_del": 224,
+        "n_ins": 0,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 500,
+        "error_samples": [
+          {
+            "key": "06016401 [ตกแถว]",
+            "gt": "3(3-0-6)",
+            "pred": ""
+          },
+          {
+            "key": "90644xxx [ตกแถว]",
+            "gt": "3(3-0-6) หรือ 3(2-2-5)",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "3(3-0-6) หรือ 3(2-2-5)",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "3(3-0-6) หรือ 3(2-2-5)",
+            "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "3(3-0-6) หรือ 3(2-2-5)",
+            "pred": ""
+          }
+        ]
+      },
+      "year_sem": {
+        "label": "ปี/ภาค",
+        "n_items": 46,
+        "cer": 0.282609,
+        "wer": null,
+        "exact_match_acc": 0.717391,
+        "n_sub": 0,
+        "n_del": 39,
+        "n_ins": 0,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 138,
+        "error_samples": [
+          {
+            "key": "06016401 [ตกแถว]",
+            "gt": "1/1",
+            "pred": ""
+          },
+          {
+            "key": "90644xxx [ตกแถว]",
+            "gt": "2/1",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "3/1",
+            "pred": ""
+          },
+          {
+            "key": "06026xxx [ตกแถว]",
+            "gt": "3/1",
+            "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "3/1",
+            "pred": ""
+          }
+        ]
+      },
+      "category": {
+        "label": "หมวดวิชา",
+        "n_items": 46,
+        "cer": 0.418919,
+        "wer": null,
+        "exact_match_acc": 0.521739,
+        "n_sub": 36,
+        "n_del": 195,
+        "n_ins": 48,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 666,
+        "error_samples": [
+          {
+            "key": "06026200",
+            "gt": "หมวดวิชาเฉพาะ",
+            "pred": "หมวดวิชาศึกษาทั่วไป"
+          },
+          {
+            "key": "06026202",
+            "gt": "หมวดวิชาเฉพาะ",
+            "pred": "หมวดวิชาศึกษาทั่วไป"
+          },
+          {
+            "key": "06066101",
+            "gt": "หมวดวิชาเฉพาะ",
+            "pred": "หมวดวิชาศึกษาทั่วไป"
+          },
+          {
+            "key": "06066303",
+            "gt": "หมวดวิชาเฉพาะ",
+            "pred": "หมวดวิชาศึกษาทั่วไป"
+          },
+          {
+            "key": "06026201",
+            "gt": "หมวดวิชาเฉพาะ",
+            "pred": "หมวดวิชาศึกษาทั่วไป"
+          }
+        ]
+      },
+      "ctype": {
+        "label": "บังคับ/เลือก",
+        "n_items": 46,
+        "cer": 0.324528,
+        "wer": null,
+        "exact_match_acc": 0.652174,
+        "n_sub": 15,
+        "n_del": 71,
+        "n_ins": 0,
+        "n_missing": 13,
+        "n_hallucinated": 0,
+        "n_ref_chars": 265,
+        "error_samples": [
+          {
+            "key": "06026211",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "06026212",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "90644042",
+            "gt": "บังคับ",
+            "pred": "เลือก"
+          },
+          {
+            "key": "06016401 [ตกแถว]",
+            "gt": "บังคับ",
+            "pred": ""
+          },
+          {
+            "key": "90644xxx [ตกแถว]",
+            "gt": "เลือก",
+            "pred": ""
+          }
+        ]
+      },
+      "prereq": {
+        "label": "วิชาบังคับก่อน",
+        "n_items": 33,
+        "cer": 1.0,
+        "wer": null,
+        "exact_match_acc": 0.0,
+        "n_sub": 0,
+        "n_del": 180,
+        "n_ins": 0,
+        "n_missing": 33,
+        "n_hallucinated": 0,
+        "n_ref_chars": 180,
+        "error_samples": [
+          {
+            "key": "06026200",
+            "gt": "ไม่มี",
+            "pred": "None"
+          },
+          {
+            "key": "06026202",
+            "gt": "ไม่มี",
+            "pred": "None"
+          },
+          {
+            "key": "06066101",
+            "gt": "ไม่มี",
+            "pred": "None"
+          },
+          {
+            "key": "06066303",
+            "gt": "ไม่มี",
+            "pred": "None"
+          },
+          {
+            "key": "90641001",
+            "gt": "ไม่มี",
+            "pred": "None"
+          }
+        ]
+      },
+      "flexible": {
+        "label": "ปี/ภาคยืดหยุ่น",
+        "n_items": 33,
+        "cer": 0.0,
+        "wer": null,
+        "exact_match_acc": 1.0,
+        "n_sub": 0,
+        "n_del": 0,
+        "n_ins": 0,
+        "n_missing": 0,
+        "n_hallucinated": 0,
+        "n_ref_chars": 0,
+        "error_samples": []
+      }
+    },
+    "overall_micro_cer": 0.593398,
+    "alignment": {
+      "matched": 33,
+      "missed": 13,
+      "spurious": 19,
+      "precision": 0.6346,
+      "recall": 0.7174,
+      "f1": 0.6735,
+      "gt_total": 46,
+      "pred_total": 52,
+      "missed_codes": [
+        "06016401",
+        "90644xxx",
+        "06026xxx",
+        "06026xxx",
+        "9064xxxx",
+        "06026xxx",
+        "06026xxx",
+        "06066100",
+        "90643021",
+        "06026xxx",
+        "06026xxx",
+        "xxxxxxxx",
+        "xxxxxxxx"
+      ],
+      "spurious_codes": [
+        "90644xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "06026xxx",
+        "9064xxxx",
+        "9064xxxx",
+        "06066100",
+        "90643021",
+        "xxxxxxxx",
+        "xXXXXxx"
+      ],
+      "classification": {
+        "ctype": {
+          "classes": [
+            "<ไม่ได้ทำนาย>",
+            "บังคับ",
+            "เลือก"
+          ],
+          "confusion_matrix": {
+            "<ไม่ได้ทำนาย>": {},
+            "บังคับ": {
+              "บังคับ": 29,
+              "เลือก": 3,
+              "<ไม่ได้ทำนาย>": 3
+            },
+            "เลือก": {
+              "เลือก": 1,
+              "<ไม่ได้ทำนาย>": 10
+            }
+          },
+          "per_class": {
+            "<ไม่ได้ทำนาย>": {
+              "support": 0,
+              "tp": 0,
+              "fp": 13,
+              "fn": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "บังคับ": {
+              "support": 35,
+              "tp": 29,
+              "fp": 0,
+              "fn": 6,
+              "precision": 1.0,
+              "recall": 0.8286,
+              "f1": 0.9062
+            },
+            "เลือก": {
+              "support": 11,
+              "tp": 1,
+              "fp": 3,
+              "fn": 10,
+              "precision": 0.25,
+              "recall": 0.0909,
+              "f1": 0.1333
+            }
+          },
+          "accuracy": 0.6522,
+          "macro_f1": 0.5198,
+          "n": 46,
+          "mcc": 0.476,
+          "positive_class": "บังคับ"
+        },
+        "category": {
+          "classes": [
+            "<ไม่ได้ทำนาย>",
+            "หมวดวิชาศึกษาทั่วไป",
+            "หมวดวิชาเฉพาะ",
+            "หมวดวิชาเลือกเสรี"
+          ],
+          "confusion_matrix": {
+            "<ไม่ได้ทำนาย>": {},
+            "หมวดวิชาศึกษาทั่วไป": {
+              "หมวดวิชาศึกษาทั่วไป": 7,
+              "หมวดวิชาเฉพาะ": 1,
+              "<ไม่ได้ทำนาย>": 2
+            },
+            "หมวดวิชาเฉพาะ": {
+              "หมวดวิชาศึกษาทั่วไป": 8,
+              "หมวดวิชาเฉพาะ": 17,
+              "<ไม่ได้ทำนาย>": 9
+            },
+            "หมวดวิชาเลือกเสรี": {
+              "<ไม่ได้ทำนาย>": 2
+            }
+          },
+          "per_class": {
+            "<ไม่ได้ทำนาย>": {
+              "support": 0,
+              "tp": 0,
+              "fp": 13,
+              "fn": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            },
+            "หมวดวิชาศึกษาทั่วไป": {
+              "support": 10,
+              "tp": 7,
+              "fp": 8,
+              "fn": 3,
+              "precision": 0.4667,
+              "recall": 0.7,
+              "f1": 0.56
+            },
+            "หมวดวิชาเฉพาะ": {
+              "support": 34,
+              "tp": 17,
+              "fp": 1,
+              "fn": 17,
+              "precision": 0.9444,
+              "recall": 0.5,
+              "f1": 0.6538
+            },
+            "หมวดวิชาเลือกเสรี": {
+              "support": 2,
+              "tp": 0,
+              "fp": 0,
+              "fn": 2,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0
+            }
+          },
+          "accuracy": 0.5217,
+          "macro_f1": 0.4046,
+          "n": 46
+        }
+      }
+    },
+    "internal_check": {
+      "ok": false,
+      "n_courses": 52,
+      "n_duplicate_keys": 0,
+      "credits_by_term": {
+        "4/2": 3
+      },
+      "total_credits_fixed_terms": 3,
+      "issues": [
+        "90644xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "9064xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "9064xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "06026xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "xxxxxxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "รหัสวิชาผิดรูปแบบ: 'xXXXXxx'",
+        "xXXXXxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
+        "ภาค 4/2 มีแค่ 3 หน่วยกิต — น่าจะอ่านตกวิชา"
+      ]
+    }
+  }
+}
