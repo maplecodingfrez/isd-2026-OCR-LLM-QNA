@@ -48,7 +48,7 @@
     },
     {
       "code": "90641001",
-      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "name_th": "โรงเรียนสร้างเสริมทักษะ",
       "credits": "2(1-2-3)",
       "year": 1,
       "semester": 1,
@@ -175,7 +175,7 @@
     },
     {
       "code": "06066000",
-      "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
+      "name_th": "คณิตศาสตร์โมโต่อเนื่อง",
       "credits": "3(3-0-6)",
       "year": 2,
       "semester": 1,
@@ -251,66 +251,22 @@
       "prerequisite": "ไม่มี"
     },
     {
-      "code": "06016414",
-      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแวล",
+      "code": "06016414, 06016415",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3(2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี"
+      "type": "บังคับ"
     },
     {
-      "code": "06016415",
-      "name_th": "การเขียนโปรแกรมเชิงฟังก์ชัน",
-      "credits": "3(2-2-5)",
-      "year": 2,
-      "semester": 2,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี"
-    },
-    {
-      "code": "06016419",
-      "name_th": "โครงสร้างพื้นฐานและภารบริการ",
-      "credits": "3(2-2-5)",
-      "year": 2,
-      "semester": 2,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "06016413"
-    },
-    {
-      "code": "06016420",
-      "name_th": "ระบบโครงสร้างพื้นฐานและภารบริการ",
-      "credits": "3(2-2-5)",
-      "year": 2,
-      "semester": 2,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
-      "prerequisite": "06016413"
-    },
-    {
-      "code": "06016424",
+      "code": "06016424, 06016425",
       "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
       "credits": "3(3-0-6)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
-      "prerequisite": "ไม่มี"
-    },
-    {
-      "code": "06016425",
-      "name_th": "พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์",
-      "credits": "3(2-2-5)",
-      "year": 2,
-      "semester": 2,
-      "category": "หมวดวิชาเฉพาะ",
-      "type": "บังคับ",
-      "prerequisite": "ไม่มี"
+      "type": "บังคับ"
     },
     {
       "code": "06016404",
@@ -351,7 +307,7 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
+      "name_en": "REQUIREMENT ENGINEERING",
       "prerequisite": "ไม่มี"
     },
     {
@@ -362,7 +318,6 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "prerequisite": "ไม่มี"
     },
     {
@@ -373,37 +328,58 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "prerequisite": "06016408"
     },
     {
-      "code": "06016423",
-      "name_th": null,
-      "credits": null,
+      "code": "06016421",
+      "name_th": "ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ",
+      "credits": "3(3-0-6)",
       "year": 3,
       "semester": 1,
-      "category": null,
-      "type": null,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+      "prerequisite": "06016413"
+    },
+    {
+      "code": "06016422",
+      "name_th": "อินเทอร์เน็ตของสรรพสิ่ง",
+      "credits": "3(2-2-5)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "prerequisite": "06016413"
+    },
+    {
+      "code": "06016423",
+      "name_th": "การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
+      "credits": "3(2-2-5)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
       "prerequisite": "06016413"
     },
     {
       "code": "06016426",
-      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1",
+      "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
       "credits": "3(2-2-5)",
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "COMPUTER GRAPHICS AND ANIMATION",
       "prerequisite": "ไม่มี"
     },
     {
       "code": "06016427",
-      "name_th": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2",
+      "name_th": "การออกแบบและพัฒนาเกมเบื้องต้น",
       "credits": "3(2-2-5)",
       "year": 3,
       "semester": 1,
-      "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
       "prerequisite": "ไม่มี"
     },
     {
@@ -413,7 +389,7 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "บังคับ"
+      "type": "เลือก"
     },
     {
       "code": "หรือ",
@@ -422,7 +398,8 @@
       "year": 1,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก"
+      "type": "เลือก",
+      "flexible_year_semester": "1/1"
     },
     {
       "code": "06016482",
@@ -431,7 +408,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก"
+      "type": "เลือก",
+      "flexible_year_semester": null
     },
     {
       "code": "06016406",
@@ -461,30 +439,29 @@
       "year": 4,
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
-      "type": "เลือก",
-      "name_en": "MODERN ENTREPRENEURS"
+      "type": "เลือก"
     },
     {
-      "code": "9064xxxx",
+      "code": "9064xxxxxx",
       "name_th": null,
-      "credits": "3(x-x-x)",
+      "credits": null,
       "year": 0,
       "semester": 0,
       "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก"
     },
     {
-      "code": "90643021",
+      "code": "วิชาเลือก หมวดศึกษาทั่วไป 1",
       "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 1",
       "credits": "3(3-0-6)",
-      "year": 4,
-      "semester": 1,
-      "category": "หมวดวิชาศึกษาทั่วไป",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเฉพาะ",
       "type": "เลือก"
     },
     {
-      "code": "9064xxxx",
-      "name_th": "FREE ELECTIVE COURSE 1",
+      "code": "วิชาเลือกเสรี 1",
+      "name_th": "วิชาเลือกเสรี 1",
       "credits": "3(x-x-x)",
       "year": 0,
       "semester": 0,
@@ -492,14 +469,13 @@
       "type": "เลือก"
     },
     {
-      "code": "90643021",
+      "code": "วิชาเลือกเสรี 2",
       "name_th": "วิชาเลือกเสรี 2",
       "credits": "3(x-x-x)",
-      "year": 4,
-      "semester": 1,
+      "year": 0,
+      "semester": 0,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก",
-      "name_en": "FREE ELECTIVE COURSE 2"
+      "type": "เลือก"
     },
     {
       "code": "06016407",
@@ -543,7 +519,7 @@
       "type": "บังคับ"
     },
     {
-      "code": "9064xxxxx",
+      "code": "9064xxxx",
       "name_th": "วิชาเลือก หมวดศึกษาทั่วไป 2",
       "credits": "3(3-0-6)",
       "year": 4,
@@ -555,7 +531,7 @@
   ],
   "_meta": {
     "pipeline": "vlm",
-    "elapsed_sec": 1920.2,
+    "elapsed_sec": 916.7,
     "models": {
       "ocr": "scb10x/typhoon-ocr1.5-3b",
       "text": "qwen3:4b"
@@ -565,10 +541,10 @@
     "prerequisite_from_book": {
       "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
       "found": 5,
-      "none": 29,
-      "not_found": 13,
+      "none": 25,
+      "not_found": 11,
       "unreadable": 0,
-      "skipped_non_code": 6
+      "skipped_non_code": 10
     }
   }
 }

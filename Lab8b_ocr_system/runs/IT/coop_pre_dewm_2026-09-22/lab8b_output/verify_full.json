@@ -3,17 +3,18 @@
     "id": "CHK1F",
     "name": "หน่วยกิตรวมตามเล่ม (นับช่อง wildcard/หรือ/เลือก 1 กลุ่ม) = ที่หลักสูตรประกาศ",
     "ok": false,
-    "detail": "นับรวมช่อง 126 · plan_item อย่างเดียว 132 · ประกาศไว้ 129",
+    "detail": "นับรวมช่อง 126 · plan_item อย่างเดียว 135 · ประกาศไว้ 129",
     "cause": {
-      "gap_vs_declared": -3,
-      "b_book_as_written": -6,
+      "gap_vs_declared": -6,
+      "b_book_as_written": -9,
       "a_extraction": 3
     }
   },
   {
     "cause": {
       "b_book_as_written": [
-        "ปี 2/2 = 30 หน่วยกิต",
+        "ปี 2/2 = 24 หน่วยกิต",
+        "ปี 3/1 = 30 หน่วยกิต",
         "ปี 4/1 = 6 หน่วยกิต"
       ],
       "a_extraction": []
