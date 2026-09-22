@@ -115,6 +115,31 @@ def parse_terms(md: str, inherit_span: bool = False) -> dict[tuple[int, int], di
         if not name and wilds:                  # colspan: รหัสกับชื่ออยู่เซลล์เดียวกัน
             name = _thai_name(WILD_RE.sub("", code_cell))
 
+        # แถวต่อของ rowspan ที่เซลล์รหัสรวมหลายวิชา (span_kind == "merged") บางครั้งเล่ม/OCR ไม่แยกคอลัมน์
+        # ให้แถวต่อ แต่ยำรหัสวิชาไว้ในเซลล์บรรยายเดียว (พบจริง: IT ปี 2/2 — แถว "06016419 กลุ่มวิชาด้าน...")
+        # ทำให้ REAL_CODE_RE เจอรหัสแล้วเข้าใจผิดว่าเป็นแถวใหม่ (ไม่เข้าเงื่อนไข "not reals and not wilds"
+        # ด้านล่าง จึงหลุดไปนับเป็นวิชาปกติทั้งที่เครดิตอยู่ในเซลล์ของแถวเจ้าของ rowspan เท่านั้น — credits=None)
+        # ตัวกันนี้จับก่อนด้วยเงื่อนไข "อยู่กลาง rowspan ของกลุ่ม + มีแค่เซลล์เดียว" (แถวข้อมูลปกติมีอย่างน้อย 2 เซลล์เสมอ):
+        #   ไม่มี GROUP_HEADING ในเซลล์ = วิชาที่สองของกลุ่มย่อยเดิม (ใช้เครดิตต่อวิชาเดียวกับที่ rowspan ให้มา)
+        #   มี GROUP_HEADING = กลุ่มย่อยถัดไปเริ่มแล้ว (เล่มมีมากกว่า 1 กลุ่มใต้ rowspan เดียว แต่ OCR ไม่ได้แยกเซลล์รหัส)
+        #   รหัสที่ซ้ำกับกลุ่มที่มีอยู่แล้วในเทอมนี้ = แถวอธิบายซ้ำ (พบจริงหน้าเดียวกัน) — ข้าม ไม่สร้างกลุ่มซ้อน
+        if reals and len(cells) == 1 and span_left > 0 and span_kind == "merged":
+            new_codes = [rc for rc in reals if not any(rc in g["codes"] for g in t["group_cells"])]
+            if new_codes:
+                if GROUP_HEADING in code_cell and merged_ref is not None and merged_ref["codes"]:
+                    per_credit = merged_ref["credits"][0] if merged_ref["credits"] else None
+                    merged_ref = {"codes": [], "credits": []}
+                    t["group_cells"].append(merged_ref)
+                else:
+                    per_credit = merged_ref["credits"][0] if merged_ref and merged_ref["credits"] else None
+                if merged_ref is not None:
+                    for rc in new_codes:
+                        merged_ref["codes"].append(rc)
+                        if per_credit:
+                            merged_ref["credits"].append(per_credit)
+            span_left -= 1
+            continue
+
         if not reals and not wilds:
             # แถวต่อของ rowspan (ไม่มีรหัส) — ไม่นับหน่วยกิตเป็นวิชาปกติ
             row_credit = _credit([txt for _, txt in cells])
