@@ -51,6 +51,10 @@ def main() -> None:
         "LAB7B_REQUEST_TIMEOUT": "7200",
         "LAB7B_OCR_NUM_CTX": "4096",
         "LAB7B_OCR_NUM_PREDICT": "1200",
+        # 2026-09-22: รันหลักของ runs/IT/coop/ ถูกแทนที่ด้วยผลตัดตราน้ำ (กู้ 06016419/06016420 ที่หายทุกรอบก่อนหน้า)
+        # รอบซ้ำนี้ต้องใช้ค่าตั้งเดียวกับรันหลักเพื่อให้เทียบ "ความเสถียร" ได้จริง (เงื่อนไขเดียวกัน)
+        "LAB7B_DEWATERMARK": "1",
+        "LAB7B_OCR_RETRIES": "2",
     })
     if not (RUN_DIR / "data_input").exists():
         if not SRC_INPUT.exists():

@@ -1,12 +1,15 @@
 {
- "dewatermark": false,
- "ocr_retries": 0,
+ "dewatermark": true,
+ "ocr_retries": 2,
  "pages": [
   {
    "page": 1,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": true,
+     "score": 0,
+     "bad_terms": []
     }
    ]
   },
@@ -14,7 +17,10 @@
    "page": 2,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": true,
+     "score": 0,
+     "bad_terms": []
     }
    ]
   },
@@ -22,7 +28,10 @@
    "page": 3,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": true,
+     "score": 0,
+     "bad_terms": []
     }
    ]
   },
@@ -30,7 +39,10 @@
    "page": 4,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": true,
+     "score": 0,
+     "bad_terms": []
     }
    ]
   },
@@ -38,7 +50,40 @@
    "page": 5,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": false,
+     "score": 100,
+     "bad_terms": [
+      [
+       3,
+       2,
+       "ไม่พบแถว รวม"
+      ]
+     ]
+    },
+    {
+     "attempt": 2,
+     "ok": false,
+     "score": 100,
+     "bad_terms": [
+      [
+       3,
+       2,
+       "ไม่พบแถว รวม"
+      ]
+     ]
+    },
+    {
+     "attempt": 3,
+     "ok": false,
+     "score": 100,
+     "bad_terms": [
+      [
+       3,
+       2,
+       "ไม่พบแถว รวม"
+      ]
+     ]
     }
    ]
   },
@@ -46,7 +91,10 @@
    "page": 6,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": true,
+     "score": 0,
+     "bad_terms": []
     }
    ]
   },
@@ -54,7 +102,40 @@
    "page": 7,
    "attempts": [
     {
-     "attempt": 1
+     "attempt": 1,
+     "ok": false,
+     "score": 3,
+     "bad_terms": [
+      [
+       4,
+       2,
+       3
+      ]
+     ]
+    },
+    {
+     "attempt": 2,
+     "ok": false,
+     "score": 3,
+     "bad_terms": [
+      [
+       4,
+       2,
+       3
+      ]
+     ]
+    },
+    {
+     "attempt": 3,
+     "ok": false,
+     "score": 3,
+     "bad_terms": [
+      [
+       4,
+       2,
+       3
+      ]
+     ]
     }
    ]
   }

@@ -2,8 +2,8 @@
  "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab8b_ocr_system\\runs\\IT\\coop_retry\\lab7b_output\\intermediate_vlm.md",
  "slots": 9,
  "members": 15,
- "plan_item_credits": 135,
- "with_slots_credits": 126,
+ "plan_item_credits": 144,
+ "with_slots_credits": 144,
  "declared_total_credits": 129,
  "terms": [
   {
@@ -47,7 +47,7 @@
    "semester": 1,
    "declared_total": 18,
    "plain": 6,
-   "wildcard": 3,
+   "wildcard": 6,
    "unexplained": 0,
    "notes": []
   },
@@ -65,7 +65,7 @@
    "semester": 1,
    "declared_total": 18,
    "plain": 6,
-   "wildcard": 12,
+   "wildcard": 6,
    "unexplained": 0,
    "notes": []
   },
@@ -79,5 +79,9 @@
    "notes": []
   }
  ],
- "md_codes_missing_in_plan_item": {}
+ "md_codes_missing_in_plan_item": {
+  "3/1": [
+   "06016427"
+  ]
+ }
 }

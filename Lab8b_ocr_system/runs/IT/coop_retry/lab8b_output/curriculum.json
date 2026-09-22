@@ -50,7 +50,7 @@
     },
     {
       "code": "90641001",
-      "name_th": "โรงเรียนสร้างเสริมทักษะ",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
       "name_en": "CHARM SCHOOL",
       "credits": 2,
       "lecture_h": 1,
@@ -170,7 +170,7 @@
     },
     {
       "code": "06066000",
-      "name_th": "คณิตศาสตร์โมโต่อเนื่อง",
+      "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
       "name_en": "DISCRETE MATHEMATICS",
       "credits": 3,
       "lecture_h": 3,
@@ -259,9 +259,29 @@
       "description_th": null
     },
     {
+      "code": "06016419",
+      "name_th": "โครงสร้างพื้นฐานและภารบริการ",
+      "name_en": null,
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
+      "code": "06016420",
+      "name_th": "ระบบโครงสร้างพื้นฐานและภารบริการ",
+      "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
+      "credits": 3,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
+      "description_th": null
+    },
+    {
       "code": "06016424",
       "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
-      "name_en": null,
+      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -270,12 +290,12 @@
     },
     {
       "code": "06016425",
-      "name_th": "เว็บ และเกม",
+      "name_th": "พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์",
       "name_en": null,
       "credits": 3,
-      "lecture_h": 3,
-      "lab_h": 0,
-      "self_h": 6,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
       "description_th": null
     },
     {
@@ -301,7 +321,7 @@
     {
       "code": "06016416",
       "name_th": "วิศวกรรมความต้องการ",
-      "name_en": "REQUIREMENT ENGINEERING",
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -311,7 +331,7 @@
     {
       "code": "06016417",
       "name_th": "เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์",
-      "name_en": null,
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -321,7 +341,7 @@
     {
       "code": "06016418",
       "name_th": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
-      "name_en": null,
+      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -330,17 +350,17 @@
     },
     {
       "code": "06016421",
-      "name_th": "ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ",
-      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+      "name_th": "การออโตเมชันและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
+      "name_en": null,
       "credits": 3,
-      "lecture_h": 3,
-      "lab_h": 0,
-      "self_h": 6,
+      "lecture_h": 2,
+      "lab_h": 2,
+      "self_h": 5,
       "description_th": null
     },
     {
       "code": "06016422",
-      "name_th": "อินเทอร์เน็ตของสรรพสิ่ง",
+      "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
       "name_en": null,
       "credits": 3,
       "lecture_h": 2,
@@ -350,27 +370,7 @@
     },
     {
       "code": "06016423",
-      "name_th": "การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
-      "name_en": null,
-      "credits": 3,
-      "lecture_h": 2,
-      "lab_h": 2,
-      "self_h": 5,
-      "description_th": null
-    },
-    {
-      "code": "06016426",
-      "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
-      "name_en": "COMPUTER GRAPHICS AND ANIMATION",
-      "credits": 3,
-      "lecture_h": 2,
-      "lab_h": 2,
-      "self_h": 5,
-      "description_th": null
-    },
-    {
-      "code": "06016427",
-      "name_th": "การออกแบบและพัฒนาเกมเบื้องต้น",
+      "name_th": "การออกแบบและพัฒนากมเบื้องต้น",
       "name_en": null,
       "credits": 3,
       "lecture_h": 2,
@@ -411,7 +411,7 @@
     {
       "code": "90643021",
       "name_th": "ผู้ประกอบการสมัยใหม่",
-      "name_en": null,
+      "name_en": "MODERN ENTREPRENEURS",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -653,6 +653,22 @@
     {
       "year": 2,
       "semester": 2,
+      "code": "06016419",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
+      "code": "06016420",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 2,
+      "semester": 2,
       "code": "06016424",
       "credits": 3,
       "alt_group": null,
@@ -709,6 +725,22 @@
     {
       "year": 3,
       "semester": 1,
+      "code": "06016419",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 3,
+      "semester": 1,
+      "code": "06016420",
+      "credits": 3,
+      "alt_group": null,
+      "note": "หมวดวิชาเฉพาะ | บังคับ"
+    },
+    {
+      "year": 3,
+      "semester": 1,
       "code": "06016421",
       "credits": 3,
       "alt_group": null,
@@ -733,15 +765,7 @@
     {
       "year": 3,
       "semester": 1,
-      "code": "06016426",
-      "credits": 3,
-      "alt_group": null,
-      "note": "หมวดวิชาเฉพาะ | บังคับ"
-    },
-    {
-      "year": 3,
-      "semester": 1,
-      "code": "06016427",
+      "code": "06016424",
       "credits": 3,
       "alt_group": null,
       "note": "หมวดวิชาเฉพาะ | บังคับ"
@@ -752,7 +776,7 @@
       "code": "06016481",
       "credits": 6,
       "alt_group": null,
-      "note": "หมวดวิชาเลือกเสรี | เลือก"
+      "note": "หมวดวิชาเลือกเสรี | บังคับ"
     },
     {
       "year": 3,
@@ -776,7 +800,7 @@
       "code": "90643021",
       "credits": 3,
       "alt_group": null,
-      "note": "หมวดวิชาเฉพาะ | บังคับ"
+      "note": "หมวดวิชาเฉพาะ | เลือก"
     },
     {
       "year": 4,
@@ -804,6 +828,16 @@
     }
   ],
   "prerequisites": [
+    {
+      "code": "06016419",
+      "requires": "06016413",
+      "kind": "pre"
+    },
+    {
+      "code": "06016420",
+      "requires": "06016413",
+      "kind": "pre"
+    },
     {
       "code": "06016418",
       "requires": "06016408",
