@@ -19,6 +19,7 @@
 | ตัวสกัดวิชาบังคับก่อนจากข้อความ OCR | `Lab8b_ocr_system/src/ocr_system/prereq_from_book.py` |
 | โหลดเข้า DB (`load-prerequisites`, ตาราง `prerequisite_alt`) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` |
 | คำถามทอง "มีคู่ prerequisite กี่คู่" คำนวณจากเฉลย | `Lab9_evaluation/gold_questions/build_gold_questions.py` |
+| แก้ชื่อวิชาคู่ "A หรือ B" ในตาราง `course` | `Lab8b_ocr_system/src/ocr_system/or_course_names.py`, `apply_or_course_names.py` |
 | ข้อตรวจหน่วยกิตรวมช่อง wildcard (CHK1F/CHK7F) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` (`verify_full_db`) |
 | ชุดทดสอบ + ผลทดลอง | `Lab8b_ocr_system/experiments/wildcard_pass_2026-09-21/`, `.../prereq_from_book_ocr_2026-09-21/` |
 | บันทึกทุกขั้นตอน | `Lab8b_ocr_system/PROGRESS.md` |
@@ -128,6 +129,23 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 - **สาเหตุที่ CHK1/CHK7 ตก แยก (ก)/(ข) แล้ว** ใน `verify_full.json` (`cause`): ส่วนต่างหน่วยกิตส่วนใหญ่เป็น (ข) เล่มเขียนเป็นช่อง wildcard ที่ `plan_item` ไม่นับ (เช่น AIT +21 จาก +22, BIT no-coop +21 จาก +21) ส่วน (ก) การสกัดผิดจริงมีน้อย (AIT +1, DSBA +6/+3, IT no-coop −3, IT coop +3)
 
 ---
+
+---
+
+## 5. ชื่อวิชาคู่ "A หรือ B" สลับกันผิดในตาราง `course` (กระทบคำตอบจริง)
+
+**ปัญหา:** หน้าตารางแผนบางแถวเขียนสองรหัสวิชาไว้ด้วยกัน ("A หรือ B" เช่น สหกิจศึกษาในประเทศ/ต่างประเทศ) พร้อมชื่อสองชื่อ แต่ตอนแปลง Markdown → JSON (qwen3) จับคู่รหัสกับชื่อแบบไขว้กัน (สร้างทุกคู่ผสม) พอ Lab 8B เลือกเก็บชื่อเดียวต่อรหัส ทั้งสองรหัสเลยได้ชื่อซ้ำกัน — **ต่างจากปัญหาที่ตาราง `plan_slot` (ข้อ 3) ตรงที่จุดนี้อยู่ในตาราง `course` ที่ NL2SQL ใช้ตอบจริง** ถ้ามีคนถามชื่อของรหัสที่สอง ระบบจะตอบชื่อผิด
+
+**แก้ (`src/ocr_system/or_course_names.py`, `apply_or_course_names.py`):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
+
+**ผล:** พบ 2 จุดใน 7 แผนหลัก — BIT coop `06036147`/`06036148`, DSBA coop `06026259`/`06026260` แก้แล้ว (สำรองไฟล์เดิมเป็น `.before_or_names.json`) P/R/F1/CER เท่าเดิมทุกตัว (เทียบแค่รหัส ไม่เทียบชื่อ) ตอบถูก NL2SQL เท่าเดิม (ชุดคำถามทอง 30 ข้อไม่ได้ถามตรงจุดนี้พอดี แต่ข้อมูลจริงถูกแล้วสำหรับคำถามอื่นที่อาจถามถึง)
+
+```bash
+cd Lab8b_ocr_system
+python apply_or_course_names.py            # dry-run
+python apply_or_course_names.py --apply    # เขียนจริง
+python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุดทดสอบ 9 ข้อ
+```
 
 ## ต้องมีอะไรก่อนรัน
 
