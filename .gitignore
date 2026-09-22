@@ -49,3 +49,8 @@ Lab8b_ocr_system/runs/*/*_retry/
 Lab8b_ocr_system/runs/IT/*_dewm*/
 Lab8b_ocr_system/runs/IT/no_coop_ctrl/
 Lab8b_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/
+
+# 2026-09-22: local-only tidy-up — everything above this point that used to sit
+# scattered inside Lab8b_ocr_system/ was consolidated on disk into this one folder
+# for reference. Not shipped via git pull; each dev's copy may differ or be empty.
+Lab8b_ocr_system/_local_reference/
