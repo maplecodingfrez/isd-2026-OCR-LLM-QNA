@@ -1,8 +1,18 @@
 # isd-2026-OCR-LLM-QNA
 > OCR เล่มหลักสูตร เพื่อตอบคำถามเกี่ยวกับการเรียน
 
-> **Branch นี้ (`Lab-8b-prereq`) เก็บเฉพาะงานที่เพิ่มต่อจาก Lab 7B / 8B / 9** ได้แก่ (1) ตัวประเมินที่จับคู่แถววิชาเลือก (wildcard) และ
-> (2) การสกัดวิชาบังคับก่อน (`prerequisite`) จากข้อความ OCR ของเล่ม ระบบเต็มที่รวมทุก Lab พร้อมวิธีติดตั้ง/ใช้งาน ดูที่ branch `main`
+`main` เป็นจุดรวมงานทุก Lab (merge เข้ามาเรื่อยๆ ตามที่อาจารย์กำหนด) — ประวัติการทำงานแยกราย Lab
+แบบเดิมยังดูย้อนหลังได้จาก branch ของแต่ละ Lab:
+
+## Lab - Assignment (ประวัติแยกราย branch)
+* [Lab-3 - OCR (Ensemble, PaddleOCR, TrOCR, Tesseract)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-3)
+* [Lab-4 - Curriculum Extraction & Evaluation](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-4)
+* [Lab-5 - Ground Truth Page Mapping & Q&A](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-5)
+* [Lab-6 - Summary Field Level | Page Level | Category Level (Combined)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-6)
+* [Lab-6 - Summary Field Level | Page Level | Category Level (Separate each level)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-6-seperate)
+* [Lab-7 - Curriculum OCR Extraction (Local VLM: Typhoon-OCR + qwen3)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-7)
+* [Lab-8 - Curriculum JSON → SQLite → NL2SQL Q&A](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-8)
+* [Lab-9 - Evaluation & Overfitting (all 4 faculty curricula: AIT/BIT/DSBA/IT)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-9)
 
 ## Members
 * 67070168 - film_synthesis
@@ -10,25 +20,1247 @@
 * 67070195 - zvacia
 
 ---
+# Thai-English OCR System
 
-## สิ่งที่เพิ่มใน branch นี้
+โปรเจกต์นี้เป็น OCR pipeline สำหรับเอกสารภาพเดี่ยวและหลายหน้า เช่น `.jpg`, `.png`, `.tif`, `.pdf` โดยรองรับเอกสารภาษาไทยและอังกฤษปนกัน
 
-| เรื่อง | ไฟล์หลัก |
-|---|---|
-| ตัวประเมินจับคู่ wildcard | `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` (`match_wildcards`), `Lab8b_ocr_system/regenerate_evaluation.py` |
-| ตัวสกัดวิชาบังคับก่อนจากข้อความ OCR | `Lab8b_ocr_system/src/ocr_system/prereq_from_book.py` |
-| โหลดเข้า DB (`load-prerequisites`, ตาราง `prerequisite_alt`) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` |
-| คำถามทอง "มีคู่ prerequisite กี่คู่" คำนวณจากเฉลย | `Lab9_evaluation/gold_questions/build_gold_questions.py` |
-| แก้ชื่อวิชาคู่ "A หรือ B" ในตาราง `course` | `Lab8b_ocr_system/src/ocr_system/or_course_names.py`, `apply_or_course_names.py` |
-| ข้อตรวจหน่วยกิตรวมช่อง wildcard (CHK1F/CHK7F) | `Lab8b_ocr_system/src/ocr_system/lab8b_curriculum_db.py` (`verify_full_db`) |
-| ชุดทดสอบ + ผลทดลอง | `Lab8b_ocr_system/experiments/wildcard_pass_2026-09-21/`, `.../prereq_from_book_ocr_2026-09-21/` |
-| บันทึกทุกขั้นตอน | `Lab8b_ocr_system/PROGRESS.md` |
+OCR engines ที่มีให้:
 
-(โฟลเดอร์ `lab10_fastapi/` อยู่ใน branch นี้ด้วย ดูวิธีใช้ที่ `lab10_fastapi/README.md`)
+- PaddleOCR: เหมาะกับภาษาไทยและเอกสารทั่วไป
+- Tesseract OCR: ใช้ `tha+eng` ได้ดีเมื่อมีภาษาไทย/อังกฤษปนกัน
+- TrOCR: OCR แบบ Transformer เหมาะกับ printed English เป็นหลัก
+- Ensemble: ใช้ PaddleOCR + Tesseract แล้วรวมผลแบบง่าย
 
 ---
 
-## 1. ประเมินผล: จับคู่แถววิชาเลือก (wildcard)
+> **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
+> **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
+> ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab8b_ocr_system/`, `Lab9_evaluation/`
+
+## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
+
+ก่อนแก้โค้ด รันสคริปต์ หรืออัปเดตผลลัพธ์ ให้ซิงก์กับ GitHub ก่อนเสมอ (หลายคนใช้ repo เดียวกัน และแยก branch ตาม Lab):
+
+```bash
+git branch --show-current   # อยู่ branch ที่ตรงกับงานนี้ไหม (main / Lab-8 / Lab-9 ...)
+git status                  # มีงานค้างที่ยังไม่ commit ไหม — commit หรือ git stash ก่อน
+git fetch origin            # ดึงข้อมูลล่าสุดมาดูก่อน ยังไม่แตะไฟล์
+git status -sb              # ดู ahead / behind
+git pull --ff-only          # รวมเข้ามาเฉพาะกรณี fast-forward
+```
+
+- ถ้า `git pull --ff-only` ไม่ผ่าน = ประวัติแยกกัน → **หยุดและดูก่อน** ว่าเพื่อนแก้อะไร อย่าสั่ง `git push --force` (ถ้าจะใช้ ต้องตกลงกันในทีมก่อน)
+- ก่อน push: `git pull --rebase` อีกครั้ง แล้วค่อย `git push`
+- `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
+- สคริปต์ `run_lab8b_*.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab8b_ocr_system/runs` หลังรัน
+- แค่ใช้ระบบโดยไม่แก้โค้ด: ไม่ต้อง pull ทุกครั้ง แต่ควร pull เมื่อทีมแจ้งว่ามีอัปเดต (โค้ด/เฉลยชุดใหม่)
+
+## Project Structure
+
+```text
+ocr_system/
+├── README.md
+├── requirements.txt
+├── pyproject.toml
+├── Lab7B_curriculum/           # Lab 7B (เวอร์ชันต้นแบบ) — แทนที่ด้วย Lab8b_ocr_system/ ด้านล่าง
+├── Lab8b_ocr_system/           # Lab 7B→8B: OCR ด้วย local VLM → JSON → SQLite → NL2SQL Q&A
+│                                 # (ดูภาพรวมที่ Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md)
+├── Lab9_evaluation/            # Lab 9: Evaluation & Overfitting — อ่านผล Lab 8B มาคำนวณ metric
+│                                 # (ดู Lab9_evaluation/README.md)
+├── data/
+│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
+│   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
+├── outputs/
+│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
+│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
+│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
+├── scripts/
+│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
+│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
+│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
+│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
+│   └── lab6_evaluate.py       # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
+└── src/
+    └── ocr_system/
+        ├── cli.py             # command line interface
+        ├── config.py          # config หลักของระบบ
+        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
+        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
+        ├── pipeline.py        # OCR pipeline หลัก
+        ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
+        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
+        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
+        ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
+        ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
+        ├── evaluate_lab6.py         # evaluate_field_level / evaluate_page_level / evaluate_category_level / write_lab6_outputs (Lab 6)
+        ├── schemas.py         # dataclass ของผลลัพธ์
+        ├── engine_factory.py  # เลือก OCR engine
+        ├── engines/
+        │   ├── base.py
+        │   ├── paddle_engine.py
+        │   ├── tesseract_engine.py
+        │   ├── trocr_engine.py
+        │   └── ensemble_engine.py
+        └── utils/
+            └── io.py
+```
+
+---
+
+## ใช้งานผ่าน VS Code 
+
+แนะนำให้ใช้ **VS Code** เพราะเปิดดูโครงสร้างไฟล์ แก้โค้ด และรันคำสั่งใน Terminal ได้ในที่เดียว
+---
+## วิธีเปิดโปรเจกต์ใน VS Code
+1. แตกไฟล์ `ocr_system.zip`
+2. จะได้โฟลเดอร์ชื่อ `ocr_system`
+3. เปิด VS Code
+4. ไปที่เมนู
+```text
+File > Open Folder
+```
+
+5. เลือกโฟลเดอร์ `ocr_system`
+6. เปิด Terminal ใน VS Code
+```text
+Terminal > New Terminal
+```
+หลังจากนี้ให้พิมพ์คำสั่งต่าง ๆ ใน Terminal ของ VS Code ได้เลย
+
+---
+
+## Installation
+แนะนำใช้ Python 3.10 ขึ้นไป
+เช็กเวอร์ชัน Python ก่อน:
+
+```bash
+python --version
+```
+หรือบางเครื่องอาจต้องใช้:
+```bash
+py --version
+```
+ถ้าเวอร์ชันเป็น Python 3.10, 3.11 หรือ 3.12 สามารถใช้ได้
+
+---
+
+## สร้าง Virtual Environment
+Virtual Environment คือพื้นที่แยกสำหรับติดตั้ง package ของโปรเจกต์นี้โดยเฉพาะ เพื่อไม่ให้ชนกับโปรเจกต์อื่น
+ให้เข้าไปในโฟลเดอร์โปรเจกต์ก่อน:
+```bash
+cd ocr_system
+```
+จากนั้นสร้าง environment:
+```bash
+python -m venv .venv
+```
+
+ถ้าใช้ Windows แล้วคำสั่ง `python` ไม่ได้ ให้ลองใช้:
+```bash
+py -m venv .venv
+```
+
+---
+
+## เปิดใช้งาน Virtual Environment
+
+### Windows CMD
+```bash
+.venv\Scripts\activate
+```
+
+### Windows PowerShell
+```bash
+.venv\Scripts\Activate.ps1
+```
+
+ถ้า PowerShell ขึ้น error เรื่อง policy ให้รัน:
+```bash
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+แล้วลอง activate ใหม่อีกครั้ง
+
+### macOS / Linux
+```bash
+source .venv/bin/activate
+```
+ถ้าสำเร็จ จะเห็นชื่อ environment ขึ้นต้นบรรทัดประมาณนี้:
+```text
+(.venv) C:\...\ocr_system>
+```
+
+---
+
+## ติดตั้ง Python Packages
+หลังจาก activate `.venv` แล้ว ให้ติดตั้ง package ทั้งหมด:
+```bash
+pip install -r requirements.txt
+```
+
+จากนั้นติดตั้งโปรเจกต์แบบ editable:
+```bash
+pip install -e .
+```
+
+คำสั่งนี้ทำให้สามารถเรียกใช้งานโปรเจกต์ด้วยรูปแบบนี้ได้:
+```bash
+python -m ocr_system.cli
+```
+
+---
+
+## Install Tesseract Engine
+ในโปรเจกต์นี้มี OCR หลายตัว เช่น PaddleOCR, Tesseract และ TrOCR
+แต่สำหรับ Tesseract ต้องติดตั้งโปรแกรม Tesseract OCR แยกต่างหาก เพราะ `pytesseract` เป็นแค่ Python package ที่ใช้เรียกโปรแกรม Tesseract เท่านั้น
+
+---
+
+## ติดตั้ง Tesseract บน Windows
+ให้ติดตั้ง Tesseract OCR จาก UB Mannheim build
+ระหว่างติดตั้ง ให้เลือกภาษา:
+```text
+English
+Thai
+```
+
+หลังติดตั้งเสร็จ ให้เปิด CMD หรือ VS Code Terminal ใหม่ แล้วตรวจสอบ:
+```bash
+tesseract --version
+```
+
+จากนั้นตรวจสอบภาษาที่ติดตั้ง:
+```bash
+tesseract --list-langs
+```
+ควรเห็นอย่างน้อย:
+```text
+eng
+tha
+```
+ถ้าไม่เห็น `tha` แปลว่ายังไม่ได้ติดตั้งภาษาไทย
+
+---
+
+## ติดตั้ง Tesseract บน Ubuntu / Debian
+```bash
+sudo apt update
+sudo apt install tesseract-ocr tesseract-ocr-tha poppler-utils
+```
+---
+
+## ติดตั้ง Tesseract บน macOS
+```bash
+brew install tesseract poppler
+brew install tesseract-lang
+```
+หมายเหตุ: `poppler` จำเป็นสำหรับแปลง PDF เป็นภาพผ่าน `pdf2image`
+
+---
+
+## เตรียมไฟล์สำหรับทดสอบ OCR
+นำไฟล์เอกสารไปวางในโฟลเดอร์นี้:
+```text
+data/input/
+```
+
+ตัวอย่าง:
+```text
+data/input/sample.pdf
+data/input/sample.jpg
+data/input/sample.png
+```
+
+รองรับทั้ง:
+```text
+PDF หลายหน้า
+JPG
+PNG
+TIFF
+BMP
+```
+
+---
+
+## Usage
+### 1. OCR ด้วย Ensemble
+Ensemble คือการใช้หลาย OCR engine ช่วยกัน แล้วเลือกผลลัพธ์ที่เหมาะสมที่สุด
+เหมาะสำหรับเอกสารที่มีทั้งภาษาไทยและอังกฤษปนกัน
+
+```bash
+python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble
+```
+
+หลังรันเสร็จ ผลลัพธ์จะอยู่ในโฟลเดอร์:
+```text
+outputs/
+```
+
+จะได้ไฟล์ประมาณนี้:
+```text
+outputs/sample_ocr.json
+outputs/sample_ocr.txt
+outputs/sample_fields.json
+outputs/pages/
+```
+
+ความหมายของไฟล์:
+```text
+sample_ocr.json     ผล OCR แบบละเอียด เช่น text, confidence, page
+sample_ocr.txt      ข้อความ OCR รวมทั้งหมด อ่านง่าย
+sample_fields.json  field ที่ระบบพยายาม extract เช่น วันที่ ชื่อ รหัส
+outputs/pages/      ภาพแต่ละหน้าที่แปลงจาก PDF
+```
+
+---
+
+## 2. OCR ด้วย PaddleOCR
+เหมาะกับเอกสารทั่วไป โดยเฉพาะภาษาไทยและอังกฤษปนกัน
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine paddle --paddle-lang th
+```
+ถ้าเอกสารเป็นอังกฤษล้วน อาจลองใช้:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine paddle --paddle-lang en
+```
+---
+## 3. OCR ด้วย Tesseract ไทย + อังกฤษ
+เหมาะกับเอกสาร scan ที่ตัวหนังสือชัด หรือเอกสารราชการ/ฟอร์มที่ layout ไม่ซับซ้อนมาก
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --languages tha+eng
+```
+
+ถ้าเป็นอังกฤษอย่างเดียว:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --languages eng
+```
+
+ถ้าเป็นไทยอย่างเดียว:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --languages tha
+```
+
+---
+
+## 4. OCR ด้วย TrOCR
+TrOCR เป็นโมเดล OCR จาก Transformer
+ในโปรเจกต์นี้ใช้เป็น fallback สำหรับข้อความสั้น ๆ หรือภาพที่ crop เป็นบรรทัดแล้ว
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine trocr --device cpu
+```
+ถ้ามี GPU และติดตั้ง PyTorch แบบ CUDA แล้ว สามารถใช้:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine trocr --device cuda
+```
+หมายเหตุ: TrOCR ในโปรเจกต์นี้ยังไม่เหมาะกับเอกสารยาวทั้งหน้า แนะนำใช้ PaddleOCR หรือ Tesseract เป็นหลัก
+
+---
+
+## 5. รันเร็วขึ้นด้วย `--workers` (เอกสารหลายหน้า)
+
+Pipeline เดิม render PDF เป็นภาพ + OCR ทีละหน้าเสมอ (sequential) ทั้งที่แต่ละหน้า
+ไม่ขึ้นต่อกันเลย `--workers N` ให้ประมวลผลหลายหน้าพร้อมกัน (ทั้งขั้น render PDF ผ่าน
+poppler's `thread_count` และขั้น OCR ผ่าน `ThreadPoolExecutor`) — **ไม่เปลี่ยน dpi,
+preprocessing, หรือ engine settings ใดๆ ทั้งสิ้น ผลลัพธ์ OCR จึงเหมือนเดิมทุกตัวอักษร**
+ต่างกันแค่เวลาที่ใช้รัน (ยืนยันด้วย test: สลับลำดับหน้าที่ทำเสร็จแบบสุ่ม แล้วเทียบ
+output กับตอน `workers=1` — เหมือนกัน 100%)
+
+```bash
+python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --workers 4
+```
+
+ค่า default คือ `workers=1` (พฤติกรรมเดิมทุกประการ ไม่ต้องเปลี่ยนอะไรถ้าไม่ระบุ flag นี้)
+
+**ข้อควรรู้**: Tesseract แต่ละครั้งที่เรียก (`image_to_string`) เป็น process แยก
+และใช้ทุก core ของเครื่องเป็น default สำหรับ OpenMP thread ภายในตัวเอง ถ้ารันหลาย
+หน้าพร้อมกันโดยไม่ลด thread ต่อ process จะเกิด oversubscription (แย่งกัน) ทำให้
+**ช้าลง** ไม่ใช่เร็วขึ้น — โค้ดจึงตั้ง `OMP_THREAD_LIMIT=1` ให้อัตโนมัติเมื่อ
+`workers > 1` เท่านั้น (ไม่กระทบตอน `workers=1`) แนะนำตั้ง `--workers` ใกล้เคียง
+จำนวน CPU core ที่มี ไม่ใช่ยิ่งเยอะยิ่งดี
+
+ทดสอบใช้ได้ดีกับ `--engine tesseract` เป็นหลัก (ตรงกับ engine ที่โปรเจกต์นี้ใช้จริง
+กับเอกสารหลักสูตร) — engine อื่น (`paddle`/`trocr`) ยังไม่ได้ยืนยันว่า thread-safe
+สำหรับเรียก `recognize()` พร้อมกันหลาย thread
+
+### วัดความเร็วจริง (BIT, 317 หน้า, เครื่อง 16 core)
+
+| | เวลา | วินาที/หน้า |
+|---|---|---|
+| `--workers 1` | 1h 19m 51s (4791.0s) | 15.1 |
+| `--workers 12` | 23m 28.6s (1408.6s) | 4.44 |
+
+**Speedup ≈ 3.4 เท่า** (เวลาลดลง ~70.6%) — เร็วขึ้นจริงและมีนัยสำคัญ แต่ไม่ใกล้เคียง
+12 เท่าตามจำนวน worker ที่ตั้ง เหตุผล:
+
+1. การ render PDF เป็นภาพ (`pdf2image`/poppler) ไม่ได้ขนานเต็มประสิทธิภาพเท่าขั้น OCR เอง
+2. ขั้น preprocessing (deskew/denoise ด้วย cv2/numpy) รันอยู่ใน Python thread เดียวกับที่
+   เรียก Tesseract — บาง operation ของ cv2/numpy ไม่ปล่อย GIL เต็มที่ ทำให้ 12 thread
+   แย่งกันทำงานส่วนนี้แทนที่จะขนานจริง (ต่างจากตอนรอ Tesseract subprocess ซึ่งปล่อย
+   GIL เต็มที่ เป็นส่วนที่ขนานได้จริง)
+3. I/O contention — 12 process อ่าน/เขียนไฟล์ภาพพร้อมกันบนดิสก์เดียวกัน
+
+CPU 89% ที่เห็นใน Task Manager ตอนรันสอดคล้องกับภาพนี้ — ใช้ CPU เกือบเต็มจริง แต่ไม่ใช่
+ทุก core ทำงานคู่ขนานเต็มประสิทธิภาพตลอดเวลา ยังไงก็ตาม 3.4 เท่าคือกำไรจริงโดยไม่มี
+ต้นทุนด้านคุณภาพเลย (ผลลัพธ์เหมือนกันทุกตัวอักษร) — ถ้าต้องการเร็วกว่านี้อีกต้องเปลี่ยนเป็น
+process-based parallelism แทน thread-based เพื่อเลี่ยงปัญหา GIL ในขั้น preprocessing
+ซึ่งเป็นงานใหญ่กว่านี้มาก ยังไม่ได้ทำ
+
+---
+## Evaluation
+Evaluation คือการวัดว่า OCR อ่านถูกแค่ไหน โดยเทียบกับข้อความจริง หรือ Ground Truth
+สร้างไฟล์ ground truth เช่น:
+```text
+data/ground_truth/example_ground_truth.json
+```
+
+ตัวอย่างเนื้อหา:
+```json
+{
+  "sample.pdf": "ข้อความจริงทั้งหมดในเอกสาร sample.pdf",
+  "sample.jpg": "ข้อความจริงในเอกสาร sample.jpg"
+}
+```
+
+จากนั้นรัน OCR ก่อน:
+```bash
+python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble
+```
+แล้ว evaluate:
+```bash
+python -m ocr_system.cli evaluate data/ground_truth/example_ground_truth.json outputs/sample_ocr.json
+```
+
+Metric ที่ได้:
+
+```text
+cer           Character Error Rate ยิ่งต่ำยิ่งดี
+wer           Word Error Rate ยิ่งต่ำยิ่งดี
+exact_match   ข้อความตรงทั้งหมดหรือไม่
+```
+
+ตัวอย่างการอ่านผล:
+```text
+CER = 0.05 หมายถึงผิดประมาณ 5% ระดับตัวอักษร
+WER = 0.12 หมายถึงผิดประมาณ 12% ระดับคำ
+exact_match = false หมายถึงยังไม่ตรง 100%
+```
+---
+
+## คำสั่งที่ใช้บ่อย
+OCR ไฟล์ PDF ด้วยระบบรวม:
+```bash
+python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble
+```
+
+OCR รูปภาพด้วย PaddleOCR:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine paddle --paddle-lang th
+```
+
+OCR รูปภาพด้วย Tesseract:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --languages tha+eng
+```
+
+Evaluate ผล OCR:
+```bash
+python -m ocr_system.cli evaluate data/ground_truth/example_ground_truth.json outputs/sample_ocr.json
+```
+
+---
+
+## Recommended Engine
+
+สำหรับเอกสารไทย+อังกฤษปนกัน แนะนำเริ่มจาก:
+```bash
+python -m ocr_system.cli ocr data/input/sample.pdf --engine ensemble --languages tha+eng --paddle-lang th --save-debug-images
+```
+
+ถ้าเอกสารเป็นอังกฤษเกือบทั้งหมด:
+```bash
+python -m ocr_system.cli ocr data/input/sample.pdf --engine paddle --paddle-lang en
+```
+
+ถ้า Tesseract อ่านไทยเพี้ยน ให้ลอง OCR แบบไม่ preprocess:
+```bash
+python -m ocr_system.cli ocr data/input/sample.jpg --engine tesseract --no-preprocess
+```
+
+---
+
+## Output JSON Format
+```json
+{
+  "source_path": "data/input/sample.pdf",
+  "engine": "ensemble",
+  "text": "--- Page 1 ---\n...",
+  "pages": [
+    {
+      "page": 1,
+      "text": "...",
+      "lines": [
+        {
+          "text": "ข้อความที่ OCR อ่านได้",
+          "confidence": 0.95,
+          "box": [[0, 0], [100, 0], [100, 30], [0, 30]],
+          "engine": "paddle",
+          "page": 1
+        }
+      ],
+      "image_path": "outputs/pages/sample_page_001.jpg"
+    }
+  ]
+}
+```
+
+---
+
+## Curriculum Extraction (Lab 4)
+
+ทีมเลือกหัวข้อ **Curriculum Extraction** — ดึงข้อมูลรายวิชา (รหัสวิชา, ชื่อไทย, ชื่ออังกฤษ, หน่วยกิต) จากเอกสารเล่มหลักสูตร ด้วย OCR แล้ววัดผลเทียบกับ Ground Truth ครอบคลุมทั้ง 4 หลักสูตร: **DSBA** (PDF สแกน 403 หน้า, GT `DSBA_academic_plan_coop.json`), **AIT** (346 หน้า, GT `AIT_academic_plan.json`), **IT** (429 หน้า, GT `IT_academic_plan_coop.json`) และ **BIT** (GT `BIT_academic_plan_coop.json`) — ตัวอย่าง pipeline/คำสั่งด้านล่างใช้ DSBA เป็นหลัก ส่วนผลลัพธ์ทั้ง 4 หลักสูตรดูที่หัวข้อ "AIT / IT / BIT Curriculum" ท้ายส่วนนี้
+
+### Pipeline
+
+```text
+เล่มหลักสูตร (PDF, 403 หน้า)
+    → OCR (Tesseract, image_to_string)
+    → curriculum_extraction.py (ดึง code / name_th / name_en / credits)
+    → evaluate_curriculum.py (เทียบกับ Ground Truth)
+```
+
+### วิธีรัน (ครบ pipeline ในคำสั่งเดียว)
+
+```bash
+# 1. OCR เล่มหลักสูตร
+python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --engine tesseract --output-dir outputs/dsba
+
+# 2. Extract + Evaluate ในคำสั่งเดียว
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json \
+    --ground-truth data/ground_truth/DSBA_academic_plan_coop.json --output-dir outputs/dsba
+```
+
+ผลลัพธ์ที่ได้:
+```text
+outputs/dsba/dsba_curriculum_courses.json                 รายวิชาที่ดึงได้ทั้งหมด
+outputs/dsba/dsba_curriculum_curriculum_evaluation.json   ผล evaluation เทียบกับ GT
+```
+
+หมายเหตุ: `outputs/` จัดเรียงเป็นโฟลเดอร์ย่อยตามหลักสูตร (`outputs/dsba/`, `outputs/ait/`, `outputs/it/`, `outputs/bit/`) — ไฟล์ที่ใช้ร่วมกันข้ามหลักสูตร (`qa_pairs.csv`, `pages/`) ยังอยู่ที่ระดับบนสุดของ `outputs/` เหมือนเดิม
+
+### ทำไมต้องใช้ Tesseract แทน PaddleOCR
+
+ลองทั้งสอง engine แล้วพบว่า:
+- **PaddleOCR**: โมเดลภาษาไทยที่ดาวน์โหลดผ่าน `paddlex` มีปัญหาการอ่านภาษาไทยผิดเพี้ยน (อ่านออกมาเป็นตัวอักษรละตินมั่วๆ ทั้งที่ตั้ง `lang="th"` ถูกแล้ว) และการดาวน์โหลดโมเดลใหม่ค้างบ่อย (คาดว่า host ต้นทางไม่เสถียรสำหรับเครือข่ายในไทย)
+- **Tesseract**: ใช้ `pytesseract.image_to_string()` (แทน `image_to_data()`) ให้ผลลัพธ์ภาษาไทยที่ถูกต้องและเสถียรกว่า จึงเลือกใช้เป็น engine หลักสำหรับงานนี้
+
+หมายเหตุ: `image_to_data()` (word-level bounding box) ใช้ไม่ได้ดีกับภาษาไทย เพราะภาษาไทยไม่มีช่องว่างระหว่างคำ ทำให้ Tesseract ตรวจจับแต่ละตัวอักษรเป็น "คำ" แยกกัน ส่งผลให้ลำดับคำพังเมื่อพยายามต่อ (join) กลับเป็นประโยค `image_to_string()` ให้ Tesseract จัดการ line/word reconstruction เองภายใน จึงได้ผลลัพธ์ที่ถูกต้องกว่า
+
+### ทำไมต้องมี `evaluate_curriculum.py` แยกจาก `evaluation.py`
+
+`evaluation.py` เดิมออกแบบมาสำหรับวัด **CER/WER** โดยเทียบ OCR text กับ Ground Truth ที่เป็น **ข้อความก้อนเดียว** ต่อไฟล์ (`{"filename": "ข้อความเต็ม..."}`) — เหมาะกับเอกสารทั่วไปที่ไม่มีโครงสร้าง
+
+แต่ Ground Truth ของ curriculum (`DSBA_academic_plan_coop.json`) เป็น **structured data**: list ของ course record ที่มี field ย่อย (`code`, `name_th`, `name_en`, `credits`, `year`, `semester`, ...) การเทียบแบบ CER/WER ทั้งก้อนใช้ไม่ได้ จึงต้องสร้าง `evaluate_curriculum.py` ที่วัดผลแบบ:
+
+- **Recall** — ใน Ground Truth ทั้งหมด ดึงเจอกี่ % (match ด้วย course code)
+- **Field-level agreement** — ในบรรดาวิชาที่เจอ ชื่อภาษาอังกฤษ (`name_en`) และหน่วยกิต (`credits`) ตรงกับ GT กี่ %
+
+### ผลลัพธ์ล่าสุด
+
+| Metric | ผลลัพธ์ |
+|---|---|
+| Recall (จำนวนวิชาที่เจอ) | 98.8% (79 / 80 valid courses) |
+| name_en agreement | 98.7% |
+| credits agreement | 100.0% |
+
+(ตัวเลขนี้คือ DSBA แผน coop — ตารางเต็มทั้ง 4 หลักสูตร × coop/no_coop อยู่ในหัวข้อ
+"AIT / IT / BIT Curriculum (Lab 4 ต่อ)" ด้านล่าง)
+
+### Known Limitations
+
+- **1 วิชาหาไม่เจอ**: `06016401` (Mathematics for Information Technology) ไม่ถูกดึงจากตารางหลักสูตรหลัก แม้ชื่อวิชาจะปรากฏซ้ำในหน้าประวัติอาจารย์ผู้สอน (หน้า 49) คาดว่าหน้าตารางรายวิชาจริงของวิชานี้มีปัญหา OCR หรือ layout ตารางต่างจากส่วนอื่น
+- **รหัสวิชาซ้ำในเอกสาร**: เอกสารเป็น course catalog ระดับสถาบัน รหัสวิชาเดียวกันอาจปรากฏหลายจุด (ตารางหลักสูตร, หน้าภาระงานสอน, ดัชนี) บาง occurrence ไม่มีข้อมูลชื่อ/หน่วยกิตกำกับ — `evaluate_curriculum.py` แก้ปัญหานี้ด้วยการ merge ทุก occurrence ของรหัสเดียวกัน โดยเลือกค่าที่ไม่ว่างเปล่ามาใช้ แทนที่จะให้ occurrence สุดท้ายทับของเดิมเฉยๆ
+- **2-3 วิชามี field ไม่ครบ**: บาง table row มี format แตกต่างจากส่วนใหญ่ในเล่ม ทำให้ credit pattern regex จับไม่ได้ (`name_en`/`credits` เป็น `null`)
+
+### ฟิลด์เพิ่มเติม: category, prerequisite, year/semester
+
+Ground truth มีทั้งหมด 11 field ต่อวิชา (`code`, `name_th`, `name_en`, `credits`,
+`year`, `semester`, `category`, `type`, `prerequisite`, `flexible_year_semester`,
+`note`) แต่เดิม extraction ดึงได้จริงแค่ 4 field แรกจากตาราง "รายวิชา" เดียว
+ส่วนที่เหลือ hardcode เป็น `None` ทั้งหมด เพราะไม่มีข้อมูลนั้นอยู่ใน block ข้อความ
+เดียวกับ code/name/credits
+
+พบว่าเอกสารมีอีก 2 ส่วนที่ให้ข้อมูล 3 field เพิ่มได้โดยไม่ต้องแตะ logic เดิมเลย —
+สร้างเป็น lookup อิสระ (code → value) แล้ว merge เข้ากับ course ที่ extract ได้แล้ว
+ทีหลัง:
+
+- **`category`** — ตาราง "รายวิชา" เดิมมี header คั่นเป็นช่วงๆ อยู่แล้ว
+  ("ก. หมวดวิชาศึกษาทั่วไป" / "ข. หมวดวิชาเฉพาะ" / "ค. หมวดวิชาเลือกเสรี") แค่ track
+  ว่า header ล่าสุดที่เจอคืออะไรระหว่างเดินอ่านข้อความไปเรื่อยๆ
+- **`prerequisite`** — มีส่วน "คำอธิบายรายวิชา" แยกต่างหาก (มักอยู่ท้ายเล่ม) เขียนกำกับ
+  ทุกวิชาว่า `"วิชาบังคับก่อน : <รหัส> <ชื่อ>"` หรือ `"... : ไม่มี"` ตรงๆ อยู่แล้ว
+- **`year` / `semester`** — มีตาราง "แผนการศึกษา" แยกต่างหาก แสดงรหัสวิชาอีกครั้งจัด
+  กลุ่มด้วย header "ปีที่ N ภาคการศึกษาที่ M" โปรแกรมที่มีทั้ง coop/no_coop
+  (DSBA/IT/BIT) จะมีตารางนี้ซ้ำ 2 รอบ (คนละแผน) ต้องแยกอ่านให้ตรงกับ `plan` ที่ขอ
+  หลายแถวในตารางนี้ OCR ไม่เหลือรหัสวิชากำกับเลย (เหลือแต่ชื่อวิชาเปล่าๆ เช่น
+  "CALCULUS 1" ไม่มี "06026200" นำหน้า) จึงมี fallback เพิ่ม: จับคู่ชื่อวิชานั้นกับ
+  ชื่อที่ extract ได้แล้วจากตารางหลัก (`_build_name_to_code_map`) เพื่อย้อนหารหัส
+  กลับมา — ใช้เฉพาะชื่อที่ยาวพอ (≥8 ตัวอักษร) และ map กับรหัสเดียวแบบไม่กำกวมเท่านั้น
+  ถ้าชื่อเดียวกันไป match ได้เกิน 4 ช่วงปี/เทอม (ผิดปกติ ไม่ใช่ flexible จริง) จะทิ้งไปเป็น
+  `None` แทนที่จะเดา flexible ผิดๆ
+
+ผลลัพธ์จริงเมื่อรันกับทั้ง 7 ชุด (เทียบเป็น field-by-field accuracy กับ ground truth
+ตรงๆ ไม่ผ่าน `evaluate_curriculum.py`):
+
+| Program | Plan | category | prerequisite | year/semester |
+|---|---|---|---|---|
+| DSBA | coop | 100% | 100% | 39.2% |
+| DSBA | no_coop | 100% | 100% | 41.8% |
+| AIT | (ไม่มี coop) | 100% | 95.8% | 4.2% |
+| IT | coop | 100% | 97.0% | 43.4% |
+| IT | no_coop | 100% | 97.0% | 43.4% |
+| BIT | coop | 90.9% | 98.2% | 60.0% |
+| BIT | no_coop | 90.9% | 98.2% | 63.6% |
+
+`category`/`prerequisite` ใช้ได้จริงแทบทุกกรณี (BIT เหลือ 90.9% เพราะ 5 วิชาใน
+กลุ่ม 9664xxxx ถูก tag ผิดเป็น "หมวดวิชาเลือกเสรี" — โค้ดเดิมยึด occurrence แรกสุดที่
+เจอในเอกสาร แต่ของ BIT ไปเจอ mention ในโซนเลือกเสรีก่อนโซนศึกษาทั่วไป)
+
+`year`/`semester` ได้ต่ำกว่ามาก (4-64% แล้วแต่เล่ม) เพราะตาราง "แผนการศึกษา" เป็นตาราง
+คนละหน้ากับตารางหลัก และ OCR ของตารางนี้ garbled กว่าตารางอื่นๆ ในเล่มเดียวกันมาก —
+การเพิ่ม name-matching fallback ช่วย DSBA (13.9%→39.2%, 20.3%→41.8%) และ IT
+(25.3%→43.4%) ได้เกือบ 2 เท่า แต่ทำให้ AIT/BIT ลดลงเล็กน้อย (AIT 6.2%→4.2%, BIT
+61.8%→60.0% และ 65.5%→63.6%) เพราะ AIT ใช้ระบบ "กลุ่มทักษะ" ที่ชื่อวิชาเดียวกันถูก
+อ้างซ้ำเป็นตัวเลือกในหลายภาคเรียน (ไม่ใช่ fixed schedule) ทำให้ชื่อไป match กับ header
+ที่ไม่ตรงกับค่าคงที่ที่ GT ระบุ — ตัดสินใจเก็บ fallback ไว้เหมือนกันทุกโปรแกรม (ไม่ special-case
+AIT/BIT) เพราะภาพรวมได้มากกว่าเสีย และ field นี้ไม่ถูก score ใน `evaluate_curriculum.py`/
+`evaluate_lab6.py` อยู่แล้ว (ไม่กระทบเกรด Lab 4/5/6) ถ้าจะย้อนกลับทีหลังทำง่าย: ส่ง
+`name_to_code=None` เข้า `_build_year_semester_lookup()` เฉพาะตอน program เป็น AIT/BIT
+ก็พอ ไม่ต้องแก้ logic การ match เลย
+
+`flexible_year_semester` ยังคงเป็น `None` เกือบทุกกรณี — ที่ตั้งใจจะ derive จากการที่
+รหัสวิชาเดียวกันโผล่ซ้ำใน "แผนการศึกษา" มากกว่า 1 ช่วงปี/เทอม (ตรงกับที่ ground truth
+ใช้ค่าเช่น `"3/1, 3/2, 4/1"`) แต่พบว่าวิชากลุ่มเลือกที่ ground truth ระบุเป็น flexible
+จริงๆ ไม่เคยถูกระบุรหัสในตาราง "แผนการศึกษา" เลย (ตารางระบุแค่ชื่อกลุ่มวิชาเลือกที่
+ให้เลือก ไม่ใช่รหัสวิชาที่เจาะจง) จึงไม่มีสัญญาณให้ดึงจริงๆ
+
+`type` (บังคับ/เลือก) และ `note` ยังคง hardcode เป็น `None` เหมือนเดิม — ไม่พบ label
+ที่ระบุชัดเจนติดกับแต่ละวิชาในเอกสาร ต้องเดาจากชื่อกลุ่มย่อยซึ่งเสี่ยงผิดสูง จึงยังไม่ทำ
+
+**หมายเหตุ**: `evaluate_curriculum.py` และ `evaluate_lab6.py` ยังคงวัดผลแค่ 4 field
+เดิม (`code`/`name_en`/`name_th`/`credits`) เหมือนเดิม ไม่ได้แก้ให้ไปเช็ค 3 field ใหม่นี้
+ด้วย — ตัวเลขข้างต้นมาจากการเทียบ JSON ตรงๆ กับ ground truth เท่านั้น (ตรงกับที่ใช้ใน
+การเช็คงานจริง)
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/engines/tesseract_engine.py   ใช้ image_to_string() สำหรับภาษาไทย
+src/ocr_system/pipeline.py                   join ข้อความแต่ละหน้าด้วย "\n"
+src/ocr_system/curriculum_extraction.py      ดึง course records จาก OCR text (regex-based)
+                                              + _build_category_lookup / _build_prerequisite_lookup
+                                              / _build_year_semester_lookup (code -> value, merge เข้า course หลัง extract)
+                                              / _build_name_to_code_map (fallback ย้อนหารหัสจากชื่อวิชา
+                                              เมื่อ OCR ไม่เหลือรหัสในตาราง "แผนการศึกษา")
+src/ocr_system/evaluate_curriculum.py        วัดผล recall + field-level agreement เทียบ GT
+src/ocr_system/cli.py                        subcommand `curriculum` รวม extraction + evaluation
+```
+
+### หมายเหตุเกี่ยวกับ `outputs/`
+
+โฟลเดอร์ `outputs/` ใน branch นี้เก็บเฉพาะไฟล์ที่เกี่ยวข้องกับ curriculum extraction เท่านั้น
+ตัวอย่าง output ของระบบ OCR พื้นฐาน (quote.jpg, pdf_sample.pdf ฯลฯ) อยู่ใน branch `Lab-3`
+
+ไฟล์ต่อหลักสูตรทั้งหมด (OCR, extraction, evaluation, page mapping, Lab 6, general_education)
+แยกเก็บในโฟลเดอร์ย่อยตามหลักสูตร `outputs/{dsba,ait,it,bit}/` ส่วนไฟล์ที่ใช้ร่วมกันข้ามหลักสูตร
+(`qa_pairs.csv`, `pages/`) อยู่ที่ระดับบนสุดของ `outputs/`
+
+---
+
+## AIT / IT / BIT Curriculum (Lab 4 ต่อ)
+
+Lab 4 ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) — ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์และรายละเอียดเฉพาะของ AIT/IT/BIT ใช้ pipeline เดียวกันทุกขั้นตอน (OCR → `curriculum_extraction.py` → `evaluate_curriculum.py`) กับเอกสารหลักสูตร AIT (`ait_curriculum.pdf`, 346 หน้า), IT (`it_curriculum.pdf`, 429 หน้า) และ BIT (`bit_curriculum.pdf`)
+
+### ปัญหาที่เจอและวิธีแก้
+
+1. **ลายน้ำ (watermark)** — เอกสาร AIT/IT มีตราประทับสถาบันสีส้ม/ชมพูจางๆ พิมพ์ทับทุกหน้า (คลุม 50-76% ของพิกเซลที่ไม่ใช่พื้นขาว) ทำให้ Tesseract อ่านข้อความปนกับลายน้ำผิดเพี้ยนหนัก แก้ด้วย `suppress_warm_watermark()` ใน `preprocessing.py` — ตรวจ pixel ที่ warm/light (ช่อง R สูงกว่า B ชัดเจน) แล้วฟอกเป็นสีขาวก่อนแปลง grayscale ตรวจสอบแล้วว่าไม่กระทบ DSBA เลย (0% ของพิกเซลที่ไม่ใช่พื้นขาวเข้าเงื่อนไขนี้ในหน้า DSBA) ผลลัพธ์: name_en agreement ของ AIT จาก 52.1% → 97.9%
+2. **Token ตัวเลขปนในชื่อวิชา** — แก้ `_looks_english()` ให้ token ที่มีตัวเลข 4 หลักขึ้นไปไม่ถูกนับเป็นภาษาอังกฤษ (เดิมรหัสวิชาที่หลุด regex หลักมาปนในชื่อวิชา)
+3. **Block-bleed ใน `_join_english_name()`** — เจอ credits pattern ที่สองระหว่างเดินอ่านชื่อวิชา ให้ `break` แทน `continue` เพราะเป็นสัญญาณว่าอ่านเลยเข้าบล็อกของวิชาถัดไปแล้ว
+
+**BIT ไม่ต้องแก้อะไรเพิ่ม** — OCR เอกสาร BIT ผ่าน pipeline เดียวกัน (รวม `suppress_warm_watermark()` ที่ทำงานอัตโนมัติทุกหน้าอยู่แล้ว ไม่ต้องเปิดแยกต่อโปรแกรม) ได้ผลลัพธ์ recall 100% ทันทีโดยไม่ต้องหา fix ใหม่ — ดีกว่า AIT/IT ด้วยซ้ำ
+
+### CER/WER (ตามคำแนะนำอาจารย์)
+
+`evaluate_curriculum.py` เพิ่มการวัด CER/WER ต่อ field (`name_en`, `name_th`) ของทุกวิชาที่ match ได้ ต่อยอดจาก exact-match agreement เดิม เพราะ exact-match หยาบเกินไป — ชื่อที่ผิดแค่ 1-2 ตัวอักษร กับชื่อที่ผิดทั้งชื่อ นับเป็น 0 เท่ากัน แต่ CER/WER แยกความต่างนี้ได้ ใช้ `evaluate_text()` เดิมจาก `evaluation.py` ทำต่อ field แทนที่จะทำทั้งเอกสาร
+
+### ผลลัพธ์ล่าสุด
+
+| Program | Plan | Recall | name_en agreement | credits agreement | name_en CER / WER | name_th CER / WER |
+|---|---|---|---|---|---|---|
+| AIT  | none    | 98.0% (50/51)  | 98.0% | 100.0% | 0.5% / 0.3% | 3.4% / 35.0%  |
+| DSBA | coop    | 98.8% (79/80)  | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3%  |
+| DSBA | no_coop | 98.8% (79/80)  | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3%  |
+| IT   | coop    | 100% (101/101) | 97.0% | 99.0%  | 1.0% / 1.6% | 12.4% / 46.0% |
+| IT   | no_coop | 100% (101/101) | 97.0% | 99.0%  | 1.0% / 1.6% | 12.4% / 46.0% |
+| BIT  | coop    | 100% (57/57)   | 86.0% | 98.2%  | 0.2% / 8.5% | 4.1% / 47.4%  |
+| BIT  | no_coop | 100% (57/57)   | 86.0% | 98.2%  | 0.2% / 6.6% | 4.1% / 47.4%  |
+
+หมายเหตุ: ground truth ของ AIT (`AIT_academic_plan.json`) มี `"plan": null` ไม่มีการแบ่งแผน coop/no_coop เหมือน DSBA/IT/BIT — ใช้ `--plan none` เพื่อสื่อความหมายตรงกับข้อมูลจริง (ไม่กระทบผล evaluation เพราะ `plan` เป็นแค่ metadata ไม่ถูกใช้ในการ match/ประเมินผล) จึงมีแค่ไฟล์เดียว ไม่แยก coop/no_coop
+
+DSBA/IT/BIT รัน `curriculum` ทั้งสองแผนแยกกันจริง (ไม่ใช่แค่รันตัวแทนตัวเดียว) เพื่อให้มีไฟล์ผลลัพธ์คู่กับ ground truth ทั้งสองไฟล์ตรงๆ ให้ตรวจสอบได้ ผลที่ได้:
+
+- **DSBA / IT**: coop กับ no_coop ให้ผล recall/name_en/credits/CER/WER **เหมือนกันทุกประการ** — ตรวจสอบแล้วว่า field ที่ต่างกันจริงระหว่างสองแผนคือ `year`/`semester`/`note` ซึ่ง `evaluate_curriculum.py` ไม่ได้เอามาเทียบ (เก็บไฟล์แยกไว้ทั้งคู่เพื่อความครบถ้วน แม้ตัวเลขจะซ้ำกัน)
+- **BIT ต่างออกไปเล็กน้อย**: `BIT_academic_plan_coop.json`/`_no_coop.json` มี `name_en` สะกดต่างกันจริง 4 วิชา (เช่น coop เขียน `"...FORBUSINESS"` ติดกัน ส่วน no_coop เขียนแยก `"...FOR BUSINESS"`) recall/name_en agreement บังเอิญออกมาเท่ากันทั้งคู่ (86.0%) เพราะวิชาที่ mismatch สลับคู่กันพอดี แต่ `name_en_wer` ต่างกันจริง (coop 8.5% / no_coop 6.6%) ยืนยันว่าไม่ใช่ข้อมูลชุดเดียวกัน
+
+### Ground Truth: raw vs valid — กรองอะไรออกบ้าง และทำไม
+
+ไฟล์ ground truth แต่ละไฟล์มีจำนวนแถวใน `courses` มากกว่าที่ `evaluate_curriculum.py` เอามาคำนวณ recall จริง เพราะบางแถวไม่ใช่ "1 วิชา = 1 รหัสที่จับต้องได้" ตั้งแต่ต้น — `_is_valid_code()` (เช็ค `code.isdigit()`) กรองแถวเหล่านี้ออกจากตัวหาร ไม่งั้นจะนับ recall ผิด (ไม่มีทางที่ extraction จะ "เจอ" รหัสที่ไม่ใช่รหัสจริงได้อยู่แล้ว)
+
+| combo | raw (`courses` ทั้งหมดในไฟล์) | หลังขยาย "หรือ" (`expand_multicode_courses`) | valid (ตัวหารจริงที่ใช้คำนวณ recall) | ยังกรองออก |
+|---|---|---|---|---|
+| AIT | 58 | 60 | 51 | 9 |
+| DSBA coop | 91 | 91 | 80 | 11 |
+| DSBA no_coop | 92 | 92 | 80 | 12 |
+| IT coop | 107 | 109 | 101 | 8 |
+| IT no_coop | 109 | 111 | 101 | 10 |
+| BIT coop | 63 | 65 | 57 | 8 |
+| BIT no_coop | 63 | 65 | 57 | 8 |
+
+ที่ยังกรองออกอยู่ (หลังขยาย "หรือ" แล้ว) แบ่งเป็น 3 แบบ ไม่เกี่ยวกับ OCR/extraction เลยสักแบบ — เป็นลักษณะของข้อมูลใน GT เอง:
+
+**1. รหัสแบบ placeholder/wildcard** (เช่น `xxxxxxxx`, `9064xxxx`, `060464xx`, `90644xxx`, `06026xxx`, `9664xxxx`, `96644XXX`, `060164xx`) — เป็นส่วนใหญ่ของที่กรองออก คือช่อง "วิชาเลือกเสรี" หรือ "วิชาเลือกหมวดศึกษาทั่วไป/ภาษา" ที่นักศึกษาเลือกวิชาอะไรก็ได้ในกลุ่มนั้นตามเงื่อนไข ไม่มีรหัสวิชาตายตัวให้ระบบไป match เลย — ไม่มีทางให้คะแนน recall ได้ไม่ว่า extraction จะทำงานดีแค่ไหนก็ตาม
+
+พิจารณาแล้วว่าจะแก้ไข placeholder เหล่านี้ให้ match กับ `general_education_ground_truth.json` แทน (ใช้ `name_th`/`name_en` แทนรหัสที่ไม่เต็ม) แต่ตัดสินใจไม่ทำ ด้วยเหตุผล:
+
+- ใช้ได้ไม่ครบทุกกลุ่ม: `9064xxxx`/`90644xxx` (DSBA/AIT/IT) จับคู่กับ prefix `9064` ใน GT ได้จริง แต่ `9664xxxx`/`96644XXX` (BIT) จับคู่ไม่ได้เลย เพราะ `general_education_ground_truth.json` มีแต่ code ขึ้นต้น `90` ล้วน (BIT เป็นหลักสูตรนานาชาติ ใช้ pool วิชาคนละชุด ไม่มี GT รองรับ) ส่วน `xxxxxxxx` (เลือกเสรี) และ elective เฉพาะสาขา (`060464xx`/`06026xxx`/`060164xx`/`06036xxx`) ไม่มี pool ที่จำกัดหรือไม่มี GT ไฟล์รองรับเลย
+- ตรวจสอบแล้วว่า extraction ดึงรหัสขึ้นต้น `9064` ออกมาจากภาคผนวกรายวิชาเลือกในเอกสารได้อยู่แล้วหลายร้อยครั้งต่อไฟล์ (ภาคผนวกถูก OCR ซ้ำหลายหน้า) ถ้าเปลี่ยนมา match แบบ "เจอวิชาในหมวดนี้ที่ไหนก็ได้ในเอกสาร ถือว่า found" จะผ่านเกือบ 100% โดยอัตโนมัติเสมอ ไม่ได้สะท้อนว่า extraction ตรงตำแหน่งนั้น (ปี/เทอมที่ระบุใน GT) แม่นยำจริงหรือไม่ — เพราะช่องวิชาเลือกในตารางแผนการเรียนไม่มี "คำตอบที่ถูกต้องหนึ่งเดียว" ให้ match อยู่แล้วตั้งแต่ต้น (เป็น placeholder บอกว่า "เลือกได้" ไม่ใช่วิชาที่นักศึกษาเลือกจริง)
+- การมีอยู่ของภาคผนวกวิชาเลือกหมวดศึกษาทั่วไปถูกประเมินแยกต่างหากอยู่แล้ว (ดูผลใน `general_education_{program}_evaluation.json`) การเอามา match ซ้ำกับ recall ของ Lab 4/6 จะซ้ำซ้อนและ inflate ตัวเลขโดยไม่มีความหมายเพิ่ม
+
+**2. รหัสแบบ "หรือ" ที่ยังไม่มีคู่รหัสเดี่ยวอยู่แล้วในไฟล์เดียวกัน** — ส่วนใหญ่ถูกดึงกลับมานับแล้วด้วย `expand_multicode_courses()` (รายละเอียดในหัวข้อถัดไป) เหลือเป็นข้อยกเว้นแค่กรณี DSBA (`06026259 หรือ 06026260`) ที่ทั้งสองรหัสมีแถวเดี่ยวของตัวเองอยู่แล้วในไฟล์อยู่ก่อน ถ้าขยายซ้ำจะกลายเป็นนับวิชาเดียวกัน 3 รอบ (ดู guard ในหัวข้อถัดไป)
+
+**3. Record ที่ไม่ใช่วิชาเลย** (พบใน AIT, DSBA ทั้ง 2 แผน, IT ทั้ง 2 แผน — ไม่มีใน BIT) — มี 1 แถวที่ `code` เป็นข้อความหมายเหตุ ("หมายเหตุ: คอลัมน์ 'ตัวเลือกปี/เทอม (flexible)' กรอกเฉพาะแถวที่ ปี=0 และ เทอม=0 เท่านั้น...") เป็นโน้ตอธิบายวิธีกรอกสเปรดชีตที่หลุดเข้ามาปนใน array `courses` ของไฟล์ GT เอง (ความผิดพลาดตอนเตรียมไฟล์ GT ไม่เกี่ยวกับฝั่ง OCR/extraction)
+
+**หมายเหตุ**: "รหัสวิชาซ้ำในเอกสาร" ที่พูดถึงใน Known Limitations ด้านบนเป็นคนละเรื่องกับที่นี่ — อันนั้นคือรหัสเดียวกันโผล่ซ้ำหลายจุดใน**เอกสาร PDF ต้นฉบับ** (จัดการด้วย `_merge_duplicate_courses()`) ส่วนที่นี่คือแถวใน**ไฟล์ ground truth เอง**ที่ไม่ใช่วิชาที่ match ด้วยรหัสเดี่ยวได้ตั้งแต่ต้น
+
+### วิชาแบบ "หรือ" (เลือกได้ 2 ทาง) — นับเป็น GT ด้วย
+
+GT บางแถวระบุ 2 รหัสวิชาในช่อง `code` เดียว (เช่น IT `"06016481\nหรือ\n06016482"` = สหกิจศึกษา/สหกิจศึกษาต่างประเทศ ให้เลือกอย่างใดอย่างหนึ่ง) เดิม `_is_valid_code()` (เช็ค `code.isdigit()`) กรองแถวแบบนี้ทิ้งไปเลยทั้งแถว ทำให้วิชาที่ extraction ดึงถูกต้อง 100% (ทั้งชื่อ/หน่วยกิต) ไม่ได้รับเครดิตอะไรเลย
+
+เพิ่มฟังก์ชัน `expand_multicode_courses()` ใน `evaluate_curriculum.py` (ใช้ร่วมกันทั้ง Lab 4/5/6 — `evaluate_lab6.py`, `gt_page_mapping.py`/`lab5_page_mapping.py` เรียกใช้ตัวเดียวกัน) แยกแถว "หรือ" เป็น record เดี่ยวต่อรหัส ก่อนกรองด้วย `_is_valid_code()` ตามเดิม มี guard กันนับซ้ำ: ถ้ารหัสนั้นมี record เดี่ยวของตัวเองอยู่แล้วใน GT (กรณี DSBA — `06026259`/`06026260` มีทั้งแถวรวมและแถวเดี่ยวแยกอยู่แล้ว) จะไม่สร้างซ้ำ ฟังก์ชันเดียวจึงให้ผลถูกต้องอัตโนมัติตามข้อมูลจริงของแต่ละหลักสูตร ไม่ต้อง special-case:
+
+- **DSBA**: ไม่เปลี่ยน (guard กันซ้ำทำงาน) — 80 valid courses เท่าเดิม
+- **AIT**: +2 (`06046443`/`06046444`, 49→51)
+- **IT**: +2 (`06016481`/`06016482`, 99→101)
+- **BIT**: +2 (`06036147`/`06036148`, 55→57)
+
+ผลกระทบต่อคะแนนน้อยมาก (recall ยังคง 100%/98% เท่าเดิมเพราะวิชาที่เพิ่มมาก็ match ถูก แค่ตัวหารโตขึ้น, name_en agreement ขยับขึ้นเล็กน้อยเพราะ record ใหม่ match พอดี) ยืนยันว่าเป็นการแก้ให้ตัวเลขถูกต้อง/ครบถ้วนขึ้น ไม่ใช่การปรับเกณฑ์เพื่อดันคะแนน
+
+### วิธีรัน
+
+```bash
+# AIT — ไม่มี coop/no_coop แยก รันครั้งเดียว
+python -m ocr_system.cli curriculum outputs/ait/ait_curriculum_ocr.json --ground-truth data/ground_truth/AIT_academic_plan.json --program AIT --plan none --output-dir outputs/ait
+
+# DSBA — coop ก่อน แล้ว backup ไฟล์ผลลัพธ์ก่อนรัน no_coop ทับ
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json --ground-truth data/ground_truth/DSBA_academic_plan_coop.json --program DSBA --plan coop --output-dir outputs/dsba
+mv outputs/dsba/dsba_curriculum_courses.json outputs/dsba/dsba_coop_curriculum_courses.json
+mv outputs/dsba/dsba_curriculum_curriculum_evaluation.json outputs/dsba/dsba_coop_curriculum_evaluation.json
+
+python -m ocr_system.cli curriculum outputs/dsba/dsba_curriculum_ocr.json --ground-truth data/ground_truth/DSBA_academic_plan_no_coop.json --program DSBA --plan no_coop --output-dir outputs/dsba
+
+# IT — เหมือนกัน
+python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_coop.json --program IT --plan coop --output-dir outputs/it
+mv outputs/it/it_curriculum_courses.json outputs/it/it_coop_curriculum_courses.json
+mv outputs/it/it_curriculum_curriculum_evaluation.json outputs/it/it_coop_curriculum_evaluation.json
+
+python -m ocr_system.cli curriculum outputs/it/it_curriculum_ocr.json --ground-truth data/ground_truth/IT_academic_plan_no_coop.json --program IT --plan no_coop --output-dir outputs/it
+
+# BIT — เหมือนกัน
+python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_coop.json --program BIT --plan coop --output-dir outputs/bit
+mv outputs/bit/bit_curriculum_courses.json outputs/bit/bit_coop_curriculum_courses.json
+mv outputs/bit/bit_curriculum_curriculum_evaluation.json outputs/bit/bit_coop_curriculum_evaluation.json
+
+python -m ocr_system.cli curriculum outputs/bit/bit_curriculum_ocr.json --ground-truth data/ground_truth/BIT_academic_plan_no_coop.json --program BIT --plan no_coop --output-dir outputs/bit
+```
+
+หมายเหตุ: คำสั่ง `curriculum` เขียนผลลัพธ์เป็นชื่อเดิมเสมอ (`{program}_curriculum_courses.json` / `{program}_curriculum_curriculum_evaluation.json`) ไม่แยกชื่อไฟล์ตาม plan เหมือน `lab6_evaluate.py` — รันสองรอบ (coop แล้ว no_coop) ต้อง `mv` ผลของรอบแรก (coop) ไปเก็บชื่ออื่นก่อนรันรอบสอง ไม่งั้นไฟล์จะถูกเขียนทับ ผลลัพธ์สุดท้ายที่เก็บไว้ในโปรเจกต์: `{program}_coop_curriculum_courses.json` (coop, สำรองแยกไว้) และ `{program}_curriculum_courses.json` (no_coop, ผลรอบล่าสุด)
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/preprocessing.py         suppress_warm_watermark() (ใหม่)
+src/ocr_system/curriculum_extraction.py แก้ _looks_english() + _join_english_name()
+src/ocr_system/evaluate_curriculum.py   เพิ่ม CER/WER ต่อ field (name_en, name_th)
+outputs/ait/ait_curriculum_courses.json, ait_curriculum_curriculum_evaluation.json (ไม่แยก plan)
+outputs/dsba/dsba_curriculum_courses.json, dsba_curriculum_curriculum_evaluation.json (no_coop)
+outputs/dsba/dsba_coop_curriculum_courses.json, dsba_coop_curriculum_evaluation.json (coop)
+outputs/it/it_curriculum_courses.json, it_curriculum_curriculum_evaluation.json (no_coop)
+outputs/it/it_coop_curriculum_courses.json, it_coop_curriculum_evaluation.json (coop)
+outputs/bit/bit_curriculum_courses.json, bit_curriculum_curriculum_evaluation.json (no_coop)
+outputs/bit/bit_coop_curriculum_courses.json, bit_coop_curriculum_evaluation.json (coop)
+```
+
+---
+
+## Ground Truth Page Mapping (Lab 5)
+
+ต่อยอดจาก Lab 4 — โจทย์คือแมพแต่ละวิชาใน Ground Truth เข้ากับหน้าจริงของเล่มหลักสูตร ทำเป็นไฟล์ CSV ที่บอกได้ว่า GT แต่ละวิชามาจากหน้าไหน พร้อมชุดคำถาม-คำตอบที่อ้างอิงหน้าได้ (รวมข้อบังคับสถาบันฯ) — ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4 รายละเอียดด้านล่างใช้ DSBA (`DSBA_academic_plan_coop.json`, `data/input/dsba_curriculum.pdf`) เป็นตัวอย่างหลัก ส่วนผลลัพธ์ AIT/IT/BIT ดูที่หัวข้อ "AIT / IT / BIT Page Mapping" ท้ายส่วนนี้
+
+### Ground Truth ที่ใช้
+
+| Field | ค่า |
+|---|---|
+| ไฟล์ | `data/ground_truth/DSBA_academic_plan_coop.json` |
+| source | GT_Template-2.xlsx / Academic Plan GT — DSBA coop |
+| program | DSBA |
+| plan | coop |
+
+ไม่ได้ใส่ `source` เป็นคอลัมน์ใน `course_page_mapping.csv` เพราะรันจาก GT ไฟล์เดียว ทุกแถวจะมีค่าเดียวกันหมด (ต่างจาก `program`/`plan` ที่ตอบโจทย์ "หลักสูตรไหน" ตรงๆ) เลยเก็บ provenance ระดับไฟล์ไว้ที่นี่แทน — ถ้าในอนาคตรวมหลาย GT เป็น CSV เดียวค่อยพิจารณาเพิ่มคอลัมน์นี้
+
+### Pipeline
+
+```text
+outputs/dsba/dsba_curriculum_ocr.json (มีอยู่แล้วจาก Lab 4)
+    → curriculum_extraction.py (extract_curriculum, เก็บ page number ต่อ occurrence)
+    → gt_page_mapping.py (group_by_code → classify_pages → เทียบกับ GT)
+    → outputs/dsba/dsba_coop_course_page_mapping.csv
+```
+
+### วิธีรัน
+
+```bash
+python scripts/lab5_page_mapping.py DSBA_coop
+python scripts/lab5_qa_pairs.py
+```
+
+(`lab5_page_mapping.py` แก้ให้รับ program+plan เป็น argument แล้วแทนการ hardcode DSBA ตัวเดียว — ดูหัวข้อ "AIT / IT Page Mapping (Lab 5 ต่อ)" ท้าย Lab 5 สำหรับ AIT/IT/no_coop)
+
+ผลลัพธ์ที่ได้:
+```text
+outputs/dsba/dsba_coop_course_page_mapping.csv    80 วิชา พร้อมหน้าอ้างอิง (primary/other)
+outputs/qa_pairs.csv                              32 คำถาม-คำตอบ อ้างอิงหน้า (ครอบคลุม DSBA/AIT/IT/BIT)
+```
+
+### สิ่งที่แก้ใน `curriculum_extraction.py` (Lab 4) และทำไม
+
+Lab 5 ต้องรู้ว่าแต่ละ course record มาจากหน้าไหน แต่ Lab 4 ไม่เคยเก็บเลขหน้าไว้ในผลลัพธ์เลย (ทั้งที่ `_extract_page_courses` มีเลขหน้าอยู่ในมืออยู่แล้วตอน loop) จึงแก้ 2 จุด:
+
+1. เติม parameter `page_no` ให้ `_course_from_text()` และใส่ค่าเป็น key `"page"` ในผลลัพธ์ — เป็นการเติม field ใหม่แบบ additive ไม่กระทบ field เดิมที่ `evaluate_curriculum.py` ใช้เทียบ (name_en, credits) เลย
+2. แก้บั๊กใน `_trim_block_text()` — footer token `"มคอ"` (มาจากแบบฟอร์ม มคอ.3) ไปแมตช์ substring กลางคำ **"คอมพิวเตอร์"** โดยบังเอิญ (…โปรแกร**มคอ**มพิวเตอร์…) ทำให้ block ถูกตัดก่อนถึงหน่วยกิตของทุกวิชาที่ชื่อมีคำว่า "คอมพิวเตอร์" อยู่ก่อนหน่วยกิต (กระทบ `06066303`, `06026203`) แก้โดยให้เริ่มค้นหา footer token **หลัง**ตำแหน่งที่เจอ credits pattern แล้วเท่านั้น
+
+หมายเหตุ: การแก้บั๊กข้อ 2 ทำให้ตัวเลข evaluation ของ Lab 4 ดีขึ้นเล็กน้อยจากที่เคยรายงานไว้ — แก้ไว้ตรงนี้อย่างโปร่งใส ไม่ใช่แก้แบบเงียบๆ
+
+### หลักการทำงานของ mapping
+
+`gt_page_mapping.py` ทำงานเป็น 5 ขั้น (ไม่ใช่แค่ "เทียบ OCR กับ GT" เฉยๆ):
+
+1. **ดึงทุกครั้งที่เจอรหัสวิชา (ไม่ merge)** — `extract_curriculum()` ไล่อ่านทุกหน้า หารหัสวิชา ตัด block ข้อความระหว่างรหัสสองตัวที่ติดกัน แยกเป็นชื่อไทย/อังกฤษ/หน่วยกิต รหัสเดียวกันอาจโผล่ได้หลายหน้า (ตารางหลักสูตรจริง, หน้าดัชนี, หน้าภาระงานสอนอาจารย์) ขั้นนี้เก็บไว้ทุกครั้งที่เจอ ไม่ทิ้งอันไหน
+
+2. **จัดกลุ่มตามรหัส** — `group_by_code()` รวม occurrence ทั้งหมดเป็น `{รหัสวิชา: [occurrence ทั้งหมด]}`
+
+3. **เทียบแต่ละ occurrence กับ GT** — `classify_pages()` normalize ค่าทั้งสองฝั่งก่อน (ยุบช่องว่าง/ตัดขึ้นบรรทัดใหม่/ตัวพิมพ์ใหญ่) แล้วถือว่าเป็น **primary page** ถ้า `name_en` **หรือ** `name_th` **หรือ** `credits` ตรงกับ GT ข้อใดข้อหนึ่ง (ไม่ต้องตรงทุก field) ที่เหลือเป็น **other page** — เลือกเกณฑ์ OR เพราะ OCR มี noise เยอะ (เจอเคสจริงที่หน้า 30: credits ตรงแต่ name_en เพี้ยนเพราะ block ปนกับวิชาถัดไป ถ้าบังคับต้องตรงหมดจะพลาดหน้าจริงไปฟรีๆ)
+
+4. **fallback ด้วยชื่อวิชา** — ถ้าวิชาไหนหารหัสไม่เจอเลยในเอกสาร (เช่น `06016401`) จะค้นหาด้วยชื่อวิชาแทน บันทึกหน้าที่เจอไว้เป็นหลักฐาน (แต่ไม่นับ primary เพราะไม่ได้ยืนยันด้วยรหัส)
+
+5. **เขียนผลลัพธ์** — ได้ 80 แถว (1 แถวต่อวิชาใน GT) พร้อม `primary_pages`/`other_pages` → `write_csv()`
+
+### รูปแบบคอลัมน์ `primary_pages` / `other_pages`
+
+ถ้าวิชาหนึ่งเจอมากกว่า 1 หน้า จะเก็บเลขหน้าทั้งหมดไว้ในคอลัมน์เดียว คั่นด้วย `;` (เช่น `17;30;314`) ไม่ใช้ `,` เพราะ `,` เป็นตัวแบ่งคอลัมน์หลักของ CSV เองอยู่แล้ว — ถ้าเอาไปใช้แบ่งเลขหน้าในคอลัมน์เดียวกันด้วย จะต้องพึ่ง quote (`"17,30,314"`) ถึงจะไม่พัง และยังอ่านด้วยตาเปล่ายากเวลาเปิดไฟล์แบบ raw text หรือถ้ามีใครประมวลผลต่อด้วยการ split ธรรมดาไม่ผ่าน CSV parser ที่รู้เรื่อง quote ก็จะพังทันที ใช้ `;` แทนจึงชัดเจนและปลอดภัยกว่า
+
+### ผลลัพธ์
+
+| Metric | ผลลัพธ์ |
+|---|---|
+| GT courses ทั้งหมด | 80 |
+| เจอด้วยรหัสวิชา + มี primary page | 79 (98.75%) |
+| เจอด้วยชื่อวิชาเท่านั้น (fallback) | 1 |
+| หาไม่เจอเลย | 0 |
+
+### Known Limitations
+
+- **`06016401`** — เหมือนที่ระบุไว้ใน Lab 4: รหัสวิชานี้ไม่ปรากฏในเอกสาร OCR เลย พบเพียงชื่อวิชาในหน้าภาระงานสอนอาจารย์ (หน้า 49) จึงนับเป็น name-only match ไม่ใช่ primary page
+- **หน้า 30** — วิชา `06026200` มี `name_en` ปนเปื้อนจากวิชาถัดไป เพราะรหัส `06026202` หายไปจาก OCR บนหน้านี้ (ทำให้ `06026202` ไม่ได้เครดิตหน้า 30 ทั้งที่ควรจะมี) เป็นข้อจำกัดจากคุณภาพ OCR ต้นทาง ไม่ใช่บั๊กของ mapping script
+- **ข้อบังคับสถาบันฯ (หน้า 89-108)** — OCR คุณภาพต่ำกว่าส่วนอื่นมาก (เลขไทยอ่านผิดบ่อย มีตัวอักษรละตินมั่วปน) คำถามข้อบังคับที่เขียนไว้เลือกเฉพาะข้อความที่อ่านได้ชัดเจนเท่านั้น
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/curriculum_extraction.py   แก้เพิ่ม page number + แก้บั๊ก "มคอ" (ไฟล์ Lab 4, แก้ต่อใน Lab 5)
+src/ocr_system/gt_page_mapping.py         group_by_code / classify_pages / write_csv (ใหม่, Lab 5)
+scripts/lab5_page_mapping.py             รัน pipeline สร้าง course_page_mapping.csv ต่อ program+plan
+scripts/lab5_qa_pairs.py                 ชุดคำถาม-คำตอบ (ปัจจุบัน 32 ข้อ ครอบคลุม DSBA/AIT/IT/BIT) พร้อมเลขหน้าอ้างอิง
+outputs/dsba/dsba_coop_course_page_mapping.csv 80 วิชา พร้อม primary/other pages
+outputs/qa_pairs.csv                           32 คำถาม-คำตอบ (16 รายวิชา + 16 ข้อบังคับ) -- ดูจำนวน ณ ตอนเขียน Lab 5 นี้คือ 17 ข้อ (DSBA ล้วน) ก่อนขยายไป AIT/IT/BIT ทีหลัง (ดูหัวข้อ Lab 6 Known Limitations)
+```
+
+---
+
+## AIT / IT / BIT Page Mapping (Lab 5 ต่อ)
+
+เช่นเดียวกับ Lab 4 — Lab 5 ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) ไม่ใช่แค่ DSBA ตัวอย่าง pipeline/คำสั่งด้านบนโชว์แค่ DSBA (coop) เพื่อไม่ให้ซ้ำ ส่วนนี้คือผลลัพธ์เฉพาะของ AIT/IT/BIT ใช้ `gt_page_mapping.py` เดิมทั้งหมดโดยไม่แก้โค้ดเลย (`group_by_code()` / `classify_pages()` / `write_csv()` รับ program, plan, output path เป็นพารามิเตอร์อยู่แล้ว) เพียงแก้ `scripts/lab5_page_mapping.py` ให้รับ program+plan จาก command line แทนการ hardcode เป็น DSBA ตัวเดียว
+
+### ทำไมต้องรันแยกทั้ง coop และ no_coop (ไม่ใช่แค่แยก program)
+
+`evaluate_curriculum.py` (Lab 4) เช็คแค่ `name_en` / `name_th` / `credits` ซึ่งเหมือนกันทุกประการระหว่างไฟล์ coop/no_coop ของทั้ง DSBA และ IT — แต่ `classify_pages()` (Lab 5) เขียน `year` / `semester` / `flexible_year_semester` / `note` ลง CSV ตรงจาก GT โดยตรง ตรวจสอบแล้วว่า **IT** มี 57/99 วิชาที่ field เหล่านี้ต่างกันจริงระหว่าง coop/no_coop (เช่นวิชาเดียวกันเรียนปี 4 เทอม 2 ในแผน coop แต่ปี 3 เทอม 2 ในแผน no_coop) ถ้ารันแค่ไฟล์เดียวจะโชว์ปี/เทอมผิดให้นักศึกษาอีกแผน จึงต้องรันแยกทั้งคู่สำหรับ IT ส่วน DSBA เหมือนกัน 100% ทุก field แต่รันแยกไว้ด้วยเพื่อความสม่ำเสมอ ไม่ต้องให้คนอ่านต้องรู้ก่อนว่าไฟล์เหมือนกัน **BIT** อยู่ตรงกลาง — 5/60 วิชามี `year`/`semester`/`note` ต่างกันจริงระหว่าง coop/no_coop (น้อยกว่า IT มาก แต่ไม่ใช่ศูนย์) จึงยังต้องรันแยกทั้งคู่เหมือนกัน
+
+### ผลลัพธ์
+
+| Program | Plan | ไฟล์ | GT courses | with primary page |
+|---|---|---|---|---|
+| DSBA | coop | `outputs/dsba/dsba_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
+| DSBA | no_coop | `outputs/dsba/dsba_no_coop_course_page_mapping.csv` | 80 | 79 (98.75%) |
+| AIT | none | `outputs/ait/ait_course_page_mapping.csv` | 49 | 48 (97.96%) |
+| IT | coop | `outputs/it/it_coop_course_page_mapping.csv` | 99 | 99 (100%) |
+| IT | no_coop | `outputs/it/it_no_coop_course_page_mapping.csv` | 99 | 99 (100%) |
+| BIT | coop | `outputs/bit/bit_coop_course_page_mapping.csv` | 55 | 55 (100%) |
+| BIT | no_coop | `outputs/bit/bit_no_coop_course_page_mapping.csv` | 55 | 55 (100%) |
+
+(DSBA coop และ no_coop ให้ตัวเลขเดียวกันเป๊ะตามที่คาด เพราะ GT เหมือนกัน 100% ทุก field ที่ใช้ matching — BIT ให้ตัวเลขรวมเท่ากันด้วย แม้ GT จะไม่ได้เหมือนกันทุกประการเหมือน DSBA ก็ตาม เพราะทุกวิชาหารหัสเจอครบทั้งสองแผนอยู่แล้ว)
+
+### วิธีรัน
+
+```bash
+python scripts/lab5_page_mapping.py DSBA_coop
+python scripts/lab5_page_mapping.py DSBA_no_coop
+python scripts/lab5_page_mapping.py AIT
+python scripts/lab5_page_mapping.py IT_coop
+python scripts/lab5_page_mapping.py IT_no_coop
+python scripts/lab5_page_mapping.py BIT_coop
+python scripts/lab5_page_mapping.py BIT_no_coop
+```
+
+### คำถามเพิ่มจาก ground truth ใหม่ (`rules_ground_truth.json`)
+
+`outputs/qa_pairs.csv` เดิมมี 15 ข้อ (DSBA เท่านั้น) เพิ่มอีก 2 ข้อจาก `rules_ground_truth.json` (program DSBA) รวมเป็น 17 ข้อ:
+
+- **เกณฑ์เกียรตินิยม** — GPA ตั้งแต่ 3.75 ขึ้นไปได้เหรียญทอง, ตั้งแต่ 3.50 ขึ้นไปได้อันดับ 1 (เกณฑ์อันดับ 2 ไม่มีค่าระบุในไฟล์ต้นทาง)
+- **เกณฑ์การลงทะเบียน** — ขั้นต่ำ 9 หน่วยกิต สูงสุด 22 หน่วยกิตต่อภาคปกติ (เพดานกรณีพิเศษไม่มีค่าระบุในไฟล์ต้นทาง)
+
+ค่าที่ขาด (`null`) ในไฟล์ต้นทางไม่ได้เดาเติมเอง ระบุตรงๆ ในคำตอบว่า "ไม่มีข้อมูล" แทน และค่าที่เขียนเป็น `"<3.75"` / `"<3.50"` ในไฟล์ต้นทางถูกตีความใหม่เป็น "ตั้งแต่ ... ขึ้นไป" ให้ตรงความหมายจริง (เกณฑ์ขั้นต่ำ ไม่ใช่ขั้นสูง) ไม่ได้ copy เครื่องหมาย `<` ตรงๆ
+
+ทั้งสองข้อเป็น `type: regulation` เหมือนกลุ่มเดิม — ไม่กระทบ "QA citation consistency" ของ Lab 6 เลย เพราะ `evaluate_page_level()` เช็คเฉพาะแถวที่ `type == "course"` เท่านั้น (ตัวเลข 6/6 ในหัวข้อ Lab 6 ด้านล่างยังถูกต้องอยู่)
+
+อัปเดต: คำถามเฉพาะของ AIT/IT/BIT ถูกเพิ่มเข้ามาแล้วในภายหลัง (คนละรอบกับตอนเขียน Lab 5 นี้) รวมทั้งหมดเป็น 32 ข้อ — รายละเอียดอยู่ที่หัวข้อ Lab 6 Known Limitations ด้านล่าง ส่วน `general_education_ground_truth.json` ยังคงใช้แค่ยืนยันข้อเท็จจริงเดิม (เช่น CHARM SCHOOL) ยังไม่ได้แต่งเป็นคำถามใหม่
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+scripts/lab5_page_mapping.py   parameterize รับ program+plan (PROGRAMS dict) แทน hardcode DSBA
+scripts/lab5_qa_pairs.py       เพิ่ม 2 entry จาก rules_ground_truth.json (ตอนเขียน Lab 5 นี้ -- ภายหลังขยายเป็น 32 ข้อรวม AIT/IT/BIT)
+outputs/ait/ait_course_page_mapping.csv
+outputs/dsba/dsba_no_coop_course_page_mapping.csv
+outputs/it/it_coop_course_page_mapping.csv
+outputs/it/it_no_coop_course_page_mapping.csv
+outputs/bit/bit_coop_course_page_mapping.csv
+outputs/bit/bit_no_coop_course_page_mapping.csv
+outputs/qa_pairs.csv                          32 คำถาม-คำตอบ (16 รายวิชา + 16 ข้อบังคับ, ครอบคลุม DSBA/AIT/IT/BIT)
+```
+
+---
+
+## Field / Page / Category Level Evaluation (Lab 6)
+
+Lab 6 ไม่ได้ใช้ dataset ใหม่ — รัน dataset เดิมจาก Lab 4/5 ทั้งชุด (OCR output +
+ground truth + page mapping ของ Lab 5) ผ่านการคำนวณเดียวกัน (ใช้ extraction/GT
+ร่วมกัน และ Category Level เรียกใช้ฟังก์ชันของ Field Level ซ้ำภายใน) แต่บันทึกผล
+เป็น **3 ไฟล์แยกกัน** ต่อ program+plan ตามที่โจทย์ระบุ 3 ระดับไว้แยกข้อกัน
+ครอบคลุมทั้ง 4 หลักสูตร (DSBA/AIT/IT/BIT) เช่นเดียวกับ Lab 4/5:
+
+- **Field Level** — accuracy รายฟิลด์ (`name_en`, `credits`) ของวิชาที่ match ได้
+  + recall โดยรวม + **CER/WER** ของ `name_en`/`name_th` (แนวคิดเดียวกับ
+  `evaluate_curriculum.py` ของ Lab 4 — เพิ่มเข้ามาทีหลังตามคำแนะนำอาจารย์
+  ให้ใช้ CER/WER ในการ evaluate ด้วย)
+- **Page Level** — สัดส่วนวิชาที่ระบุ primary page ได้ (page mapping ของ Lab 5)
+  บวก sanity check ว่า `cited_pages` ใน `outputs/qa_pairs.csv` ตรงกับหน้าที่
+  mapping หาได้จริงหรือไม่ (เฉพาะคำถาม `type: course` ที่มีรหัสวิชาฝังใน `note`)
+- **Category Level** — เอา metric ของ Field/Page Level ข้างต้นมาแยกตาม field
+  `category` ของ ground truth (หมวดวิชาเฉพาะ / หมวดวิชาศึกษาทั่วไป)
+
+(หมายเหตุ: ตอนแรกมีมุมมองรองแยกตาม field `type` (บังคับ / เลือก) ด้วย แต่ตัดออก
+แล้ว เพราะ `type` เป็นคนละ field กับ `category` — ทำให้ dataclass/summary
+เรียบง่ายขึ้น เหลือมิติเดียวตามที่โจทย์ระบุ)
+
+extraction ถูกรันใหม่จาก `*_curriculum_ocr.json` ของแต่ละหลักสูตรทุกครั้ง (ไม่ได้
+อ่านผลลัพธ์เก่าที่ค้างไว้) จึงสะท้อนการแก้บั๊ก OCR/extraction ล่าสุดเสมอ
+
+### วิธีรัน
+
+```bash
+python scripts/lab6_evaluate.py DSBA_coop
+python scripts/lab6_evaluate.py DSBA_no_coop
+python scripts/lab6_evaluate.py AIT
+python scripts/lab6_evaluate.py IT_coop
+python scripts/lab6_evaluate.py IT_no_coop
+python scripts/lab6_evaluate.py BIT_coop
+python scripts/lab6_evaluate.py BIT_no_coop
+```
+
+### ผลลัพธ์ล่าสุด (รันจริงกับ dataset นี้ ทั้ง 7 ชุด)
+
+| Program | Plan | recall | name_en | credits | name_en CER/WER | name_th CER/WER | page primary | QA citation |
+|---|---|---|---|---|---|---|---|---|
+| DSBA | coop | 98.8% | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3% | 79/80 | 6/6 |
+| DSBA | no_coop | 98.8% | 98.7% | 100.0% | 1.2% / 1.3% | 4.4% / 44.3% | 79/80 | 6/6 |
+| AIT | (ไม่มี coop) | 98.0% | 97.9% | 100.0% | 0.5% / 0.4% | 3.6% / 36.5% | 48/49 | 2/2 |
+| IT | coop | 100.0% | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% | 99/99 | 2/2 |
+| IT | no_coop | 100.0% | 97.0% | 99.0% | 1.1% / 1.6% | 12.6% / 47.0% | 99/99 | 2/2 |
+| BIT | coop | 100.0% | 85.5% | 98.2% | 0.2% / 8.8% | 4.2% / 49.1% | 55/55 | 2/2 |
+| BIT | no_coop | 100.0% | 85.5% | 98.2% | 0.2% / 6.8% | 4.2% / 49.1% | 55/55 | 2/2 |
+
+Category Level (ทุกโปรแกรมแบ่งได้แค่ 2 กลุ่ม — ดูสาเหตุใน Known Limitations):
+
+| Program | Category | n | recall | name_en | page_localized |
+|---|---|---|---|---|---|
+| DSBA | หมวดวิชาเฉพาะ | 72 | 98.6% | 98.6% | 98.6% |
+| DSBA | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 100% | 100% |
+| AIT | หมวดวิชาเฉพาะ | 41 | 97.6% | 97.5% | 97.6% |
+| AIT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 100% | 100% |
+| IT | หมวดวิชาเฉพาะ | 91 | 100% | 98.9% | 100% |
+| IT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 75.0% | 100% |
+| BIT | หมวดวิชาเฉพาะ | 47 | 100% | 85.1% | 100% |
+| BIT | หมวดวิชาศึกษาทั่วไป | 8 | 100% | 87.5% | 100% |
+
+### Known Limitations
+
+- **`หมวดวิชาเลือกเสรี` หายไปจาก Category Level** — ground truth มี category ที่ 3
+  คือ `หมวดวิชาเลือกเสรี` (free elective, 2 รายการ) แต่ทั้งสองรายการใช้ code เป็น
+  placeholder `"xxxxxxxx"` (ยังไม่ระบุว่านักศึกษาจะเลือกวิชาอะไรจริง) ซึ่งไม่ผ่าน
+  `_is_valid_code()` (ต้องเป็นตัวเลขล้วน) เลยถูกกรองทิ้งตั้งแต่ตอนสร้าง
+  `gt_courses` ก่อนจะถึงขั้น group by category ผลคือ Category Level เห็นแค่ 2
+  กลุ่ม (เฉพาะ/ทั่วไป) ไม่ใช่ 3 กลุ่มตาม ground truth จริง — เป็น filter เดิมที่
+  สืบทอดมาจาก Lab 4 (`evaluate_curriculum.py` กรองแบบเดียวกัน) จึงกระทบ
+  Field Level และ Page Level ด้วยเช่นกัน (BIT ก็มี `หมวดวิชาเลือกเสรี` แบบเดียวกัน
+  2 รายการ โดน filter ทิ้งเหมือนกัน)
+- **หมวดวิชาศึกษาทั่วไปของ IT, name_en 75%** — ต่ำกว่า DSBA/AIT (100%) เพราะ n=8
+  เล็ก แค่ 2 วิชาผิดก็กระทบเปอร์เซ็นต์แรง ไม่ใช่ปัญหาเชิงระบบ (ดูหัวข้อ
+  `general_education_ground_truth.json` แยกต่างหากสำหรับปัญหา OCR ที่ใหญ่กว่านี้
+  ในโซนวิชาศึกษาทั่วไปของเล่ม IT)
+- **หมวดวิชาเฉพาะของ BIT, name_en 85.1%** — ต่ำกว่าโปรแกรมอื่น แต่ตรวจสอบทุก
+  mismatch แล้วพบว่า 7 ใน 8 รายการมี CER ≈ 0 (ตัวอักษรถูกหมด ต่างแค่ช่องว่างที่
+  หายไปฝั่ง ground truth เอง เช่น GT เขียน `"SPECIALTOPICS..."` ติดกัน แต่สิ่งที่
+  extract ได้ถูกต้องเป็น `"SPECIAL TOPICS..."`) มีแค่ `CHARM SCHOOL` ตัวเดียวที่
+  OCR ผิดจริง (คอมม่าเกิน) — recall และ page localization ยังคง 100% ทั้งคู่ ไม่ใช่
+  ปัญหาเชิงระบบ
+- **CHARM SCHOOL (90641001) เช็ค cross-program ผิดพลาด (แก้แล้ว)** — คำถาม QA
+  เดิมของ DSBA อ้างอิงเลขหน้าตามเล่ม DSBA แต่ 90641001 เป็นวิชาศึกษาทั่วไปที่
+  ปรากฏในเล่ม IT ด้วย (คนละเลขหน้า) ตอนรัน Lab 6 กับ IT ระบบเลยเอาเลขหน้าของ
+  DSBA ไปเทียบกับเล่ม IT แล้ว flag ว่า mismatch ทั้งที่ทั้งสองฝั่งถูกทั้งคู่ แก้โดย
+  เพิ่มคอลัมน์ `program` ใน `qa_pairs.csv` และให้ `evaluate_page_level()` ข้าม
+  แถวที่ `program` ไม่ตรงกับโปรแกรมที่กำลังประเมิน — พร้อมเพิ่มคำถาม course-level
+  ใหม่ให้ AIT/IT อย่างละ 2 ข้อ (ใช้ `cited_pages` จาก `{program}_course_page_mapping.csv`
+  โดยตรง การันตี consistency) รวม `qa_pairs.csv` เป็น 27 ข้อ (14 course + 13 regulation)
+  ณ ตอนนั้น — ต่อมาเพิ่ม BIT อีก 5 ข้อ (2 course + 3 regulation จาก
+  `rules_ground_truth.json`) รวมปัจจุบันเป็น 32 ข้อ (16 course + 16 regulation)
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+src/ocr_system/evaluate_lab6.py   evaluate_field_level (+ CER/WER) / evaluate_page_level (+ program filter) / evaluate_category_level
+                                   / write_lab6_outputs (เขียน field/page/category เป็นไฟล์แยก)
+scripts/lab6_evaluate.py          รัน pipeline ครบ 3 ระดับ แล้วเซฟแยกไฟล์ ต่อ program+plan
+scripts/lab5_qa_pairs.py         QA_PAIRS 32 ข้อ พร้อมคอลัมน์ program
+outputs/{program}/{key}_field_level.json      summary เดียว (recall, name_en/credits agreement, CER/WER) -> JSON
+outputs/{program}/{key}_page_level.json       summary เดียว + รายการ QA citation mismatch (ถ้ามี) -> JSON
+outputs/{program}/{key}_category_level.csv    1 แถวต่อ category, คอลัมน์เดียวกันทุกแถว -> CSV
+```
+
+รวม 7 program+plan × 3 ไฟล์ = 21 ไฟล์ ในโฟลเดอร์ย่อยของแต่ละหลักสูตร (ไฟล์รวม
+เดิมแบบ 1 JSON/program+plan ถูกเก็บสำรองไว้ที่ `outputs/lab6_combined_backup/`
+เผื่ออ้างอิงย้อนหลัง ไม่ได้ใช้งานต่อ)
+
+---
+
+## General Education Ground Truth (ส่วนเสริม)
+
+`data/ground_truth/general_education_ground_truth.json` เป็น ground truth ของวิชา
+ศึกษาทั่วไป (266 วิชา) ที่ใช้ร่วมกันทุกหลักสูตร ไม่ได้ผูกกับ program ใดโดยเฉพาะ —
+ทดสอบโดยเอา courses ที่ extract ไว้แล้วจาก Lab 4 (`{program}_curriculum_courses.json`)
+มาเทียบกับไฟล์นี้ผ่าน `evaluate_curriculum()` ตัวเดิม ไม่ต้องเขียนโค้ดใหม่เลย
+
+### วิธีรัน
+
+```bash
+python scripts/supplement_general_education.py
+```
+
+### ผลลัพธ์
+
+| Curriculum book | Recall | name_en agreement | credits agreement | name_en CER/WER |
+|---|---|---|---|---|
+| DSBA | 100% (266/266) | 83.5% | 99.3% | 3.8% / 6.7% |
+| AIT | 82.7% (220/266) | 78.2% | 98.2% | 3.2% / 7.8% |
+| IT | 82.0% (218/266) | **31.2%** | 78.0% | **38.4% / 56.3%** |
+
+### Known Limitations
+
+- **IT: name_en agreement ต่ำผิดปกติ (31.2%)** — สืบสาเหตุแล้วพบว่าไม่ใช่ปัญหา
+  ลายน้ำ (เช็ค pixel ratio ของ warm-color mask บนหน้า 136/137/164 ได้ 73-79%
+  ใกล้เคียงหน้า 19 ที่ตารางหลักสูตรหลักทำงานได้ดี 97% แปลว่าลายน้ำถูกลบเหมือนกัน
+  ทุกหน้า ไม่ใช่ตัวแปรที่ทำให้ต่างกัน) สาเหตุจริงคือโซนภาคผนวกรายชื่อวิชาเลือกเสรี
+  ของ IT (หน้าประมาณ 134-287, กระจายกว่า 60 หน้า) มีคุณภาพ OCR แย่กว่าตาราง
+  หลักสูตรหลักมาก ถึงขั้นที่**ตัวเลขในรหัสวิชาเองถูกอ่านผิด** เช่น `90642011` ถูก
+  อ่านเป็น `9ดธ42011` (ตัวเลขไทยปนตัวอักษร), `90642014` เป็น `90612014`
+  (เลข 4→1 สลับ) — พอรหัสไม่ตรง 8 หลักสะอาดตาม `CODE_FIND_RE` ระบบจำไม่ได้ว่า
+  เป็นวิชาใหม่ บล็อกข้อความของวิชานั้นเลยไปปนกับวิชาก่อนหน้าแทน ได้ผลลัพธ์เป็น
+  ชื่อเพี้ยนหรือ `None`
+  - เปิดดู PDF จริงแล้วยืนยันว่าโซนนี้มีทั้งลายน้ำและตารางที่แน่น/ฟอนต์เล็กกว่า
+    ตารางหลักสูตรหลักอย่างชัดเจน
+  - ไม่ได้พยายามแก้ เพราะการแก้จริงต้องทำ fuzzy-match รหัสวิชา (ยอมรับตัวอักษร
+    ผิด 1-2 ตัวแล้วเดารหัสที่ใกล้เคียงที่สุด) ซึ่งมีความเสี่ยงสูง/ผลไม่แน่นอน
+    คล้ายกับ heuristic merge ที่เคยลองทำใน Lab 4 แล้วต้อง revert (ดูหมายเหตุใน
+    `_merge_duplicate_courses()` ของ `evaluate_curriculum.py`)
+  - ผลกระทบจำกัดอยู่แค่การเทียบกับ `general_education_ground_truth.json` เท่านั้น
+    — ไม่กระทบ Lab 4/5/6 หลักที่ใช้ ground truth เฉพาะของแต่ละหลักสูตรเอง (ตาราง
+    หลักสูตรบังคับ ไม่ใช่ภาคผนวกวิชาเลือกเสรี)
+- **AIT/IT recall ต่ำกว่า DSBA (82% vs 100%)** — ยืนยันแล้วว่าเกี่ยวข้องกับปัญหา
+  เดียวกันข้างต้นจริง คือรหัสวิชาอ่านผิดจนหาไม่เจอเลย ไม่ใช่แค่ชื่อเพี้ยน
+- **`name_en = None` โดยเฉพาะ (แยกจากชื่อเพี้ยน) — กระจุกอยู่ที่ IT เกือบทั้งหมด** —
+  ในบรรดาวิชาที่ match ได้แต่ `name_en` มาเป็น `None` เป๊ะๆ (ไม่ใช่แค่สะกดผิด):
+  DSBA 2/266, AIT 1/220, **IT 40/218 (~18%)** ต้นเหตุคือหน้าภาคผนวกนี้พิมพ์แน่น
+  หลายคอลัมน์/ฟอนต์เล็กมาก จน regex หาขอบเขต "ชื่อวิชานี้จบตรงไหน" ไม่เจอเลย —
+  ไม่ได้พยายามแก้ ด้วยเหตุผลเดียวกับข้อด้านบน (fuzzy-match เสี่ยงสูง/ผลไม่แน่นอน)
+- **BIT ไม่รวมอยู่ในตารางผลลัพธ์ข้างบน — ตั้งใจ ไม่ใช่ตกหล่น** — ตรวจสอบแล้วว่า
+  รหัสวิชาหมวดวิชาศึกษาทั่วไปของ BIT เอง (ใน `BIT_academic_plan_coop.json`,
+  category `หมวดวิชาศึกษาทั่วไป`) ใช้ช่วงรหัส `9664xxxx` ทั้งหมด ไม่ทับซ้อนกับ
+  `general_education_ground_truth.json` เลยแม้แต่รหัสเดียว (ไฟล์นั้นใช้ช่วง
+  `9064xxxx` ซึ่งเป็นชุดที่ DSBA/AIT/IT ใช้ร่วมกัน) พบ overlap เล็กน้อยแค่ 6 รหัส
+  ระหว่างรหัสวิชาที่ OCR เจอทั้งหมดในเล่ม BIT (580 รหัสไม่ซ้ำ ทั้งเล่ม) กับ
+  `9064xxxx` แต่เป็นแค่การกล่าวถึงในภาคผนวก catalog ของสถาบัน ไม่ใช่ตัวข้อกำหนด
+  หมวดวิชาศึกษาทั่วไปของ BIT เอง — รันเทียบกับไฟล์นี้จะได้ recall ใกล้ 0% ซึ่ง
+  ไม่มีความหมาย เพราะเทียบกับข้อกำหนดที่ BIT ไม่ได้ใช้จริง ข้อกำหนดหมวดวิชา
+  ศึกษาทั่วไปของ BIT ถูกประเมินไปแล้วผ่าน Lab 6 Category Level (ดูหัวข้อ Lab 6
+  ด้านบน — recall 100%, name_en agreement 87.5%) ซึ่งเทียบกับ ground truth ของ
+  BIT เองโดยตรง ถูกต้องกว่า
+
+### ไฟล์ที่เกี่ยวข้อง
+
+```text
+scripts/supplement_general_education.py                รัน evaluate_curriculum() เทียบกับ general_education_ground_truth.json ทั้ง 3 หลักสูตร
+outputs/dsba/general_education_dsba_evaluation.json
+outputs/ait/general_education_ait_evaluation.json
+outputs/it/general_education_it_evaluation.json
+```
+
+---
+
+## Curriculum OCR Extraction ด้วย Local VLM (Lab 7B)
+
+ต่อยอดจาก Lab 4-6 — เปลี่ยนจาก Tesseract (regex-based) มาใช้ **local VLM สองตัวต่อกัน** เพื่อดึง
+ตาราง "แผนการศึกษา" ของเล่มหลักสูตรทั้ง 4 คณะ (AIT/BIT/DSBA/IT) ให้ครอบคลุมมากขึ้น: รหัสวิชา,
+ชื่อไทย/อังกฤษ, หน่วยกิต, ปี/ภาค, หมวดวิชา, บังคับ/เลือก, วิชาบังคับก่อน ฯลฯ
+
+### Pipeline
+
+```text
+รูปหน้าเล่มหลักสูตร (crop เฉพาะตาราง "แผนการศึกษา")
+    → Typhoon-OCR (scb10x/typhoon-ocr1.5-3b) — รูป → Markdown
+    → qwen3:4b + EXTRACT_PROMPT — Markdown → JSON ตาม COURSE_SCHEMA
+    → เทียบกับ ground truth: P/R/F1 (จับคู่วิชา) + CER/WER (รายฟิลด์)
+      + confusion matrix/MCC (ฟิลด์ categorical เช่น บังคับ/เลือก)
+```
+
+รันออฟไลน์ 100% ผ่าน Ollama บนเครื่องตัวเอง ไม่มีค่าใช้จ่าย ไม่มี API ภายนอก
+
+### วิธีรัน
+
+```bash
+cd Lab8b_ocr_system
+python src/ocr_system/lab7b_curriculum.py -i data/DSBA.pdf -g gt/x.json --pipeline all --out output/
+```
+
+รายละเอียดคำสั่งทั้งหมด (รวม `--eval-only` สำหรับคำนวณ metric ใหม่โดยไม่เรียก VLM ซ้ำ) ดูใน
+docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอง
+
+### Known Limitations
+
+- OCR typo จุดเดียวที่โดนตราประทับ/วอเตอร์มาร์กทับพอดี (บางหลักสูตร) — ลองหลายวิธีแล้วแก้ไม่ได้
+  แบบ deterministic ไม่ patch มือเพราะนโยบายไม่แต่งข้อมูล
+- Confusion matrix ของฟิลด์ `ctype` (บังคับ/เลือก) เผยว่าโมเดลเอนเอียงทาย "บังคับ" เป็นระบบทุก
+  หลักสูตร (precision(บังคับ)=1.000 ทุก run แต่ recall(เลือก) ต่ำมาก) — accuracy paradox ที่
+  `exact_match_acc` เดิมมองไม่เห็น บันทึกไว้เป็นข้อสังเกต ยังไม่ได้แก้
+
+รายละเอียดประวัติแก้บั๊กทั้งหมด (session-by-session) อยู่ที่
+`Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md` และ `Lab8b_ocr_system/PROGRESS.md`
+
+---
+
+## Curriculum DB + NL2SQL Q&A (Lab 8B)
+
+รับ JSON จาก Lab 7B มาทำงานต่อแบบ deterministic ล้วนๆ (ไม่เรียก LLM ซ้ำ ยกเว้นขั้นตอบคำถาม):
+แปลงเป็น SQLite (`curriculum.db`), ตรวจความสอดคล้องภายใน 7 ข้อ (CHK1-CHK7 เช่น หน่วยกิตรวม,
+รหัสวิชาซ้ำ, ลำดับ prerequisite), แล้วตอบคำถามภาษาธรรมชาติด้วย NL→SQL จริง
+
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+**ต้องมีในเครื่อง (ไม่ได้อยู่ใน git):**
+
+- Python 3.10+ และ `.venv` — `pip install -r requirements.txt` (รวม `pythainlp` สำหรับตัดคำไทยตอนคิด WER และ `requests` แล้ว)
+- [Ollama](https://ollama.com) รันอยู่ในเครื่องนี้เท่านั้น (`http://127.0.0.1:11434` — โค้ดบังคับโหมดออฟไลน์)
+  พร้อมโมเดล: `ollama pull scb10x/typhoon-ocr1.5-3b` (OCR) และ `ollama pull qwen3:4b` (จัด JSON / ตอบ NL→SQL)
+- Tesseract เฉพาะขั้น baseline ของ Lab 7B — ข้ามได้ด้วย `LAB7_SKIP_BASELINE=1`
+
+**อยู่ใน git แล้ว:** โค้ด, `data/ground_truth/`, ผลของแต่ละแผนที่ `Lab8b_ocr_system/runs/<AIT|BIT|DSBA|IT>/…/`
+(`data_input/` = ภาพหน้าแผนการศึกษาที่ใช้ OCR, `lab7b_output/`, `lab8b_output/` รวม `curriculum.db`),
+`outputs/<หลักสูตร>/*.json|csv` ของ Lab 4–6
+
+**ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
+`outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
+`*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
+Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
+
+**ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
+
+```bash
+cd Lab8b_ocr_system
+python run_lab8b_ait.py --skip-lab7
+```
+
+ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
+และ**เขียนทับ**ไฟล์ใน `runs/AIT/lab8b_output/`
+ถ้าไม่มี Ollama: `python src/ocr_system/lab8b_curriculum_db.py selftest` (24 ข้อ) หรือ
+`python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
+หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
+
+**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี (มีใน `main` / `Lab-9`);
+ถ้าไม่พบ (เช่นบน branch `Lab-8`) สคริปต์จะ**ข้ามการเทียบเฉลย** โดย OCR และ Lab 8B ยังรันตามปกติ
+ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab8b_ocr_system/runs` หลังลองรัน
+
+### Pipeline
+
+```text
+pred_vlm.json (จาก Lab 7B)
+    → import-lab7b (convert_lab7b) — แปล schema เป็น curriculum.json
+    → schema + load — สร้าง curriculum.db (SQLite)
+    → verify — เช็ค CHK1-CHK7 (ไม่พึ่งเฉลย)
+    → eval — ถาม-ตอบ NL→SQL เทียบ gold_questions.json (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
+```
+
+รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ผ่าน
+`run_lab8b_<curriculum>.py` แต่ละไฟล์ (มีคอมเมนต์ "วิธีรัน" พร้อมคำสั่งจริงในตัว):
+
+```bash
+cd Lab8b_ocr_system
+python run_lab8b_ait.py                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
+python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ
+```
+
+### Known Limitations (อัปเดต 2026-09-22)
+
+- **CHK1/CHK7 (7 ข้อบังคับ) ยังไม่ผ่านทุกหลักสูตร โดยตั้งใจไม่แก้** — แถว "วิชาเลือก" ที่เขียนเป็นรหัส wildcard (เช่น
+  `06036xxx`) ในเอกสารต้นฉบับเองก็ไม่ได้ระบุว่านักศึกษาจะเลือกวิชาไหน จึงไม่ถูกนับใน `plan_item` ที่ CHK1/CHK7 ใช้
+  (ไม่เดารหัสปลอม/ไม่แต่งข้อมูล) — **ตอนนี้มีข้อตรวจคู่ขนาน CHK1F/CHK7F ที่นับหน่วยกิตของช่องเหล่านี้ได้แล้ว**
+  (ไม่แตะ 7 ข้อเดิม ไม่กระทบคะแนน) พร้อมแยกสาเหตุว่าส่วนต่างมาจาก "เล่มเขียนเป็นช่องเลือก" หรือ "สกัดผิดจริง" — ดูหัวข้อ
+  "อัปเดต 2026-09-22" ด้านล่าง
+- IT บางเทอมที่ "เลือก 1 ใน หลายกลุ่มเฉพาะด้าน" เคยถูกสกัดเป็นวิชาบังคับทั้งหมดทุกกลุ่ม ทำให้หน่วยกิตต่อภาคเกินเพดาน —
+  **แก้แล้วบางส่วน** (บั๊ก "หัวกลุ่มหาย" ของ `md_plan_slots.py`, ดูหัวข้อ 3 ด้านล่าง) ที่เหลือ (เช่น IT coop ปี 2/2 ที่รหัสหาย
+  จาก OCR ทั้งหมด) ยังเป็น known limitation เพราะกู้ด้วยกฎเชิงกำหนดไม่ได้จริง
+
+### อัปเดต 2026-09-22 — งานต่อยอด Lab 7B/8B (branch `Lab-8b-prereq`)
+
+แก้บั๊กจริงที่พบระหว่างตรวจงาน + เพิ่มข้อตรวจเสริม ทั้งหมดเป็นกฎเชิงกำหนด ไม่เรียก LLM ซ้ำ ไม่ใช้เฉลยสร้างผล (ตรวจแล้วว่า Lab 7B บันทึกผลก่อนโหลดเฉลยเสมอ) รายละเอียดทุกขั้นตอนอยู่ใน `Lab8b_ocr_system/PROGRESS.md`
+
+#### 1. ประเมินผล: จับคู่แถววิชาเลือก (wildcard)
 
 **ปัญหา:** แถววิชาเลือกที่เล่มเขียนเป็นรหัส wildcard (เช่น `06036xxx`) Lab 7B คืนปี/ภาค = 0/0 โดยออกแบบ แต่เฉลย scoped มีปี/ภาคจริง
 กุญแจจับคู่ `รหัส|ปี|ภาค` จึงไม่มีทางตรง แถวเดียวกันถูกนับซ้ำเป็นทั้ง "ตก" และ "เกิน" ทั้งที่ OCR อ่านเจอ
@@ -63,7 +1295,7 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 
 ---
 
-## 2. วิชาบังคับก่อน (prerequisite)
+#### 2. วิชาบังคับก่อน (prerequisite)
 
 **ที่มา:** Lab 7B ไม่สกัดฟิลด์นี้โดยตั้งใจ (หน้าแผนการเรียนไม่มีคอลัมน์นี้ และโมเดลเคยเดาเอง) ข้อมูลจริงอยู่ที่หน้า "3.4 คำอธิบายรายวิชา"
 (`วิชาบังคับก่อน : <รหัส> <ชื่อ>`) ซึ่งเรามีข้อความ OCR ทั้งเล่มจาก Lab 4–6 อยู่แล้ว (`outputs/<หลักสูตร>/*_curriculum_ocr.txt`)
@@ -88,7 +1320,7 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 
 ---
 
-## 3. หน่วยกิตของแถว wildcard (ข้อตรวจคู่ขนาน CHK1F / CHK7F)
+#### 3. หน่วยกิตของแถว wildcard (ข้อตรวจคู่ขนาน CHK1F / CHK7F) + แก้บั๊ก `md_plan_slots.py` ("หัวกลุ่มหาย")
 
 **ปัญหา:** แถววิชาเลือกที่เล่มเขียนเป็นรหัส wildcard (เช่น `9664xxxx`, `06036xxx`) ไม่ถูกเก็บใน `plan_item` CHK1 (ผลรวมตรงที่ประกาศ) และ CHK7 (9–22 หน่วยกิตต่อภาค) จึงตกเกือบทุกแผน ทั้งที่หน่วยกิตของแถวเหล่านี้ **อ่านได้แล้ว** ในตาราง `plan_slot` (สกัดจาก Markdown ของ OCR อย่างเดียว ไม่ใช้เฉลย: ใช้แถว "รวม" ที่เล่มพิมพ์เป็น checksum ของแต่ละภาค)
 
@@ -117,7 +1349,7 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 
 ---
 
-## 4. ความน่าเชื่อถือของตัวเลข (กันโกงเฉลย / overfit / underfit)
+#### 4. ความน่าเชื่อถือของตัวเลข (กันโกงเฉลย / overfit / underfit)
 
 - **ไม่ใช้เฉลยสร้างผลลัพธ์:** ตรวจโค้ดแล้ว — Lab 7B บันทึกผล (`pred_*.json`) ก่อนโหลดเฉลย เฉลยใช้ตัดสินผลอย่างเดียว; ตัวสกัด/ตัวกู้ผล (`prereq_from_book.py`, `md_plan_slots.py`, `name_consensus.py`, `lab8b_curriculum_db.py`) ไม่อ่านไฟล์เฉลยเลย; NL2SQL เห็นแค่ตัวคำถาม
 - **ไม่แก้เฉลยด้วยมือเพิ่ม:** เฉลยที่แก้มีแค่ 6 แถวของ prerequisite (ตรวจกับภาพเล่มทุกแถว, ต้นฉบับเก็บที่ `Lab8b_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/`) และรายงานทั้งสองแบบเทียบกัน (`Lab8b_ocr_system/experiments/generalization_audit_2026-09-22/result.md`): prerequisite exact เฉลยเดิม → แก้แล้ว AIT 0.867 → 0.900, IT no-coop 0.795 → 0.800, IT coop 0.757 → 0.789
@@ -130,9 +1362,7 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 
 ---
 
----
-
-## 5. ชื่อวิชาคู่ "A หรือ B" สลับกันผิดในตาราง `course` (กระทบคำตอบจริง)
+#### 5. ชื่อวิชาคู่ "A หรือ B" สลับกันผิดในตาราง `course` (กระทบคำตอบจริง)
 
 **ปัญหา:** หน้าตารางแผนบางแถวเขียนสองรหัสวิชาไว้ด้วยกัน ("A หรือ B" เช่น สหกิจศึกษาในประเทศ/ต่างประเทศ) พร้อมชื่อสองชื่อ แต่ตอนแปลง Markdown → JSON (qwen3) จับคู่รหัสกับชื่อแบบไขว้กัน (สร้างทุกคู่ผสม) พอ Lab 8B เลือกเก็บชื่อเดียวต่อรหัส ทั้งสองรหัสเลยได้ชื่อซ้ำกัน — **ต่างจากปัญหาที่ตาราง `plan_slot` (ข้อ 3) ตรงที่จุดนี้อยู่ในตาราง `course` ที่ NL2SQL ใช้ตอบจริง** ถ้ามีคนถามชื่อของรหัสที่สอง ระบบจะตอบชื่อผิด
 
@@ -147,9 +1377,41 @@ python apply_or_course_names.py --apply    # เขียนจริง
 python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุดทดสอบ 9 ข้อ
 ```
 
-## ต้องมีอะไรก่อนรัน
+รายละเอียดเต็มอยู่ที่ `Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
-Python 3.10+ และ `pip install pythainlp requests` (ยังไม่มี `requirements.txt` ครอบคลุม Lab 7B/8B) · Ollama พร้อมโมเดล `scb10x/typhoon-ocr1.5-3b` และ `qwen3:4b`
-· รันจาก `--skip-lab7` ได้โดยไม่ต้อง OCR ใหม่ถ้ามี `pred_vlm.json` ใน `runs/<แผน>/lab7b_output/` แล้ว
+---
 
-วิธีติดตั้งเต็ม, Lab 3–9 และโครงสร้างโปรเจกต์ทั้งหมด → ดู branch `main`
+## Evaluation & Overfitting (Lab 9)
+
+อ่านผลลัพธ์ที่ Lab 8B รันไว้แล้วเท่านั้น (ไม่รันโมเดลใหม่) มาคำนวณ metric ตามสไลด์บทที่ 9 ครบทั้ง
+5 ข้อของ checklist: เลือก metric ให้ตรงงาน, อ่านค่าออกว่าสูง/ต่ำแปลว่าอะไร, ตรวจสัญญาณ overfitting,
+รู้จัก metric ที่ไม่ได้ใช้ (+ เหตุผล), และรันสคริปต์ประเมินผลได้จริง
+
+### เริ่มใช้งานเร็ว (หลัง clone / pull)
+
+- ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
+- **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
+- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab8b_ocr_system/runs/` (7 แผน + รันซ้ำ 8 รันสำหรับวัดความเสถียร),
+  `Lab9_evaluation/ground_truth_scoped/`, `Lab9_evaluation/gold_questions/`
+- ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab8b_ocr_system/archive/`, `work/`
+- ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
+  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+- สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
+- คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab8b_ocr_system/regenerate_evaluation.py`
+
+### วิธีรัน
+
+```bash
+cd Lab9_evaluation
+python evaluate_lab9.py
+```
+
+### ผลลัพธ์
+
+- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม,
+  execution_accuracy, answer_text_accuracy, ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
+  matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
+- `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
+
+รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
+matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
