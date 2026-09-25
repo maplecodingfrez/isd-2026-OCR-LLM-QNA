@@ -1104,7 +1104,8 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     rows = citations.course_pages(ocr_pages, courses)
     for r in rows:
         r["printed_page"] = printed.get(r["pdf_page"])
-    for t in citations.plan_pages(image_names, md_text, printed):
+    book_text = {int(p["page"]): p.get("text") or "" for p in ocr_pages}
+    for t in citations.plan_pages(image_names, md_text, printed, book_text):
         for (code,) in conn.execute("SELECT DISTINCT code FROM plan_item WHERE year = ? AND semester = ?",
                                     (t["year"], t["semester"])).fetchall():
             rows.append({"code": code, "pdf_page": t["pdf_page"], "printed_page": t["printed_page"],

@@ -128,3 +128,13 @@ def test_format_citation():
     assert citations.format_citation([]) == ""
     assert citations.format_citation([{"pdf_page": 38, "printed_page": "33"}, {"pdf_page": 23, "printed_page": None}]) == (
         "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)")
+
+
+# Break caught (found in Task 6 on DSBA coop): image files numbered differently from the book PDF
+# (DSBA_28.png is PDF 30) — the book's own OCR shows another term's heading there, so no plan page is cited,
+# nor for the continuation page that would inherit the rejected term.
+def test_plan_pages_drops_page_whose_book_heading_contradicts():
+    md = "ปีที่ 1 ภาคการศึกษาที่ 1\n<table>a</table>\n---\n<table>b</table>\n---\nปีที่ 1 ภาคการศึกษาที่ 2\n<table>c</table>"
+    book = {28: "27\nปีที่ 3 ภาคการศึกษาที่ 2\n...", 29: "28\nไม่มีหัวเทอม", 30: "29\nปีที่ 1 ภาคการศึกษาที่ 2"}
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], md, {}, book)
+    assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 2, 30)]

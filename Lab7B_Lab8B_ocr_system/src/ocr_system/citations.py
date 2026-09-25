@@ -50,9 +50,12 @@ IMAGE_PAGE_RE = re.compile(r"(\d+)\.(?:jpe?g|png)$", re.I)
 
 
 def plan_pages(image_names: list[str], md_text: str,
-               printed_by_pdf: dict[int, str | None]) -> list[dict]:
+               printed_by_pdf: dict[int, str | None],
+               book_text_by_pdf: dict[int, str] | None = None) -> list[dict]:
     """หน้าตารางแผนของแต่ละเทอม: ส่วนที่ i ของ Markdown (คั่น ---) = ภาพหน้าที่ i เรียงตามเลขหน้า
-    ส่วนที่ไม่มีหัวเทอมแต่มีตาราง = ตารางของเทอมก่อนหน้าที่ล้นมาหน้าใหม่; จำนวนไม่ตรงกัน = ไม่คืนอะไร (ไม่เดา)"""
+    ส่วนที่ไม่มีหัวเทอมแต่มีตาราง = ตารางของเทอมก่อนหน้าที่ล้นมาหน้าใหม่; จำนวนไม่ตรงกัน = ไม่คืนอะไร (ไม่เดา)
+    เลขในชื่อไฟล์ภาพไม่จำเป็นต้องเป็นเลขหน้า PDF ของเล่ม (DSBA coop: DSBA_28.png = PDF 30) — ถ้า OCR ทั้งเล่ม
+    ของหน้านั้นมีหัวเทอมแต่ไม่ใช่เทอมเดียวกับที่ VLM อ่านได้ = ขัดกัน ไม่อ้างหน้านั้น (และหน้าต่อเนื่องของเทอมนั้น)"""
     pages = sorted(int(m.group(1)) for n in image_names if (m := IMAGE_PAGE_RE.search(n)))
     chunks = md_text.split("\n---\n")
     if len(pages) != len(chunks):
@@ -61,6 +64,11 @@ def plan_pages(image_names: list[str], md_text: str,
     last = None
     for pdf, chunk in zip(pages, chunks):
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
+        if terms and book_text_by_pdf is not None:
+            book_terms = {(int(y), int(s)) for y, s in HEADING_RE.findall(book_text_by_pdf.get(pdf, ""))}
+            if book_terms and not book_terms & set(terms):
+                last = None
+                continue
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
         for y, s in dict.fromkeys(terms):

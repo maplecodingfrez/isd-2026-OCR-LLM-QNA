@@ -41,3 +41,12 @@ def test_load_course_pages_stores_null_for_misread_printed_number():
     lab8b.load_course_pages(conn, ocr, ["it_curriculum_page_038.jpg"], MD)
     printed = {tuple(r) for r in conn.execute("SELECT pdf_page, printed_page FROM course_page WHERE pdf_page = 38")}
     assert printed == {(38, None)}
+
+
+# Break caught: load_course_pages not passing the book OCR to plan_pages (contradicted plan page still cited).
+def test_load_course_pages_skips_plan_page_contradicted_by_book_heading():
+    conn = _db()
+    ocr = [dict(p) for p in OCR]
+    ocr[1] = {"page": "38", "text": "33\nปีที่ 3 ภาคการศึกษาที่ 2\n06016401 คณิตศาสตร์ 3(3-0-6)"}
+    counts = lab8b.load_course_pages(conn, ocr, ["it_curriculum_page_038.jpg"], MD)
+    assert counts["plan"] == 0
