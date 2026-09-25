@@ -37,6 +37,27 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
 
 ถ้าแจกเฉพาะกลุ่ม Curriculum ให้ก็อปโฟลเดอร์นี้ พร้อม Lab 8B และไฟล์ DB ตามตำแหน่งข้างต้น
 
+## รายการ API ในระบบ
+
+| Method | Path | รายละเอียด |
+|---|---|---|
+| `GET` | `/` | หน้าเว็บ Frontend สำหรับผู้ใช้ |
+| `GET` | `/api/health` | ตรวจสอบสถานะ DB และ Ollama |
+| `GET` | `/api/program` | ดูข้อมูลภาพรวมหลักสูตร |
+| `GET` | `/api/courses` | ดู/ค้นหารายวิชา (มี limit, offset, search) |
+| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้า SQLite |
+| `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) |
+| `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
+
+### การใช้งาน API ตรวจสอบวิชาบังคับก่อน (`GET /api/courses/{code}/prerequisites`)
+* **Path Parameter**: `code` รหัสวิชา 8 หลัก (เช่น `06016407`)
+* **ผลลัพธ์**: คืน JSON ระบุวิชาที่ต้องผ่านก่อน (`prerequisites_required`) และวิชาที่จะปลดล็อคให้เรียนต่อ (`unlocked_courses`)
+* **ตัวอย่างการเรียก**:
+  ```bash
+  curl -s http://127.0.0.1:8000/api/courses/06016407/prerequisites
+  ```
+* **หมายเหตุ**: ฐานข้อมูลปัจจุบันเป็นหลักสูตร IT มี 41 รายวิชาตามแผน 4 ปี โดยมีวิชาบังคับก่อน 4 ตัว (`06016407`, `06016418`, `06016419`, `06016420`)
+
 ## คำถามที่พบบ่อย
 
 ### เปิดเว็บแล้วขึ้น `ERR_CONNECTION_REFUSED`

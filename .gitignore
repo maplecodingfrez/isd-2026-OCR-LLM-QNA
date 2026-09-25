@@ -23,6 +23,7 @@ data/input/*.pdf
 outputs/ocr_backup_before_workers/
 Lab8b_ocr_system/archive/
 Lab8b_ocr_system/work/
+work/
 # ภาพ input ที่ก๊อปซ้ำในโฟลเดอร์ retry/dewm (สร้างใหม่ได้จาก data_input ของ run หลัก)
 Lab8b_ocr_system/runs/*_retry*/data_input/
 Lab8b_ocr_system/runs/*/*_retry/data_input/

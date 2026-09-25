@@ -196,6 +196,7 @@ python -m uvicorn lab10_fastapi.transcript_app.main:app --reload --host 127.0.0.
 | GET | `/api/courses` | อ่าน/ค้นหารายวิชา |
 | POST | `/api/courses` | เพิ่มรายวิชาลง SQLite |
 | POST | `/api/ask` | ให้ Qwen สร้าง SQL และตอบคำถาม |
+| GET | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
 
 ### Transcript API
 
@@ -236,6 +237,66 @@ http://127.0.0.1:8000/api/courses?search=06026200
 ```
 
 > POST `/api/courses` เขียนลง DB จริง ควรใช้รหัสทดลองที่ลบออกภายหลัง หรือใช้สำเนา DB สำหรับการสาธิต
+
+### 9.1 API เพิ่มเติม: ตรวจสอบวิชาบังคับก่อน (Prerequisite Analyzer)
+
+เป็น Endpoint เพิ่มเติมที่พัฒนาขึ้นเพื่อต่อยอดฐานข้อมูล `prerequisite` จาก Lab 8B ช่วยให้นักศึกษาสามารถวางแผนการลงทะเบียนเรียนได้อย่างแม่นยำ
+
+* **Path**: `GET /api/courses/{code}/prerequisites`
+* **พารามิเตอร์**: `code` (Path Parameter) รหัสวิชาตัวเลข 8 หลัก (เช่น `06016407`)
+* **หน้าที่**:
+  1. `prerequisites_required`: ตรวจสอบวิชาที่ต้องสอบผ่านก่อน จึงจะลงเรียนวิชานี้ได้ (Requires)
+  2. `unlocked_courses`: ตรวจสอบวิชาที่จะปลดล็อคให้ลงเรียนต่อได้ หลังจากสอบผ่านวิชานี้ (Unlocks)
+
+#### วิธีใช้งาน (How to use)
+
+1. **ผ่าน Browser URL โดยตรง**:
+   - ตรวจสอบวิชาที่มีวิชาบังคับก่อน: [http://127.0.0.1:8000/api/courses/06016407/prerequisites](http://127.0.0.1:8000/api/courses/06016407/prerequisites)
+   - ตรวจสอบวิชาที่ปลดล็อควิชาอื่น: [http://127.0.0.1:8000/api/courses/06016406/prerequisites](http://127.0.0.1:8000/api/courses/06016406/prerequisites)
+2. **ผ่าน cURL / Terminal**:
+   ```bash
+   curl -s http://127.0.0.1:8000/api/courses/06016407/prerequisites
+   ```
+3. **ผ่าน Swagger UI (`/docs`)**:
+   - เปิด [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+   - เลือกแท็ก **Prerequisites** ➔ `GET /api/courses/{code}/prerequisites`
+   - กด **Try it out** ➔ กรอก `code`: `06016407` ➔ กด **Execute**
+4. **ผ่านหน้าเว็บ Web UI (`/`)**:
+   - เปิด [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+   - เลื่อนลงมาที่ส่วน **"ตรวจสอบวิชาบังคับก่อน (Prerequisite Analyzer)"**
+   - พิมพ์รหัสวิชา (มีระบบเลือกรหัสวิชาอัตโนมัติจากฐานข้อมูล) หรือคลิกปุ่มลัดตัวอย่าง เช่น `06016407` แล้วกด **"ตรวจสอบ"**
+
+#### ตัวอย่างผลลัพธ์ (Response JSON)
+
+```json
+{
+  "code": "06016407",
+  "name_th": "โครงงาน 2",
+  "name_en": "PROJECT 2",
+  "credits": 3,
+  "prerequisites_required": [
+    {
+      "code": "06016406",
+      "name_th": "โครงงาน 1",
+      "name_en": "PROJECT 1",
+      "credits": 3,
+      "kind": "pre"
+    }
+  ],
+  "unlocked_courses": []
+}
+```
+
+#### การทำงานเบื้องหลัง (How it works)
+
+1. **Validation (`schemas.py`)**: ตรวจสอบว่ารหัสวิชาเป็นตัวเลข 8 หลักพอดี (`^\d{8}$`) หากผิดรูปแบบจะส่งกลับ `422 Unprocessable Entity`
+2. **Read-Only Database Connection (`database.py`)**: เชื่อมต่อ SQLite แบบ Read-Only ป้องกันการแก้ไขข้อมูล
+3. **Query รายวิชาหลัก**: ค้นหารายละเอียดชื่อวิชาและหน่วยกิตจากตาราง `course` หากไม่พบจะคืน `404 Not Found`
+4. **Query วิชาบังคับก่อน (Requires)**: ดึงข้อมูลจากตาราง `prerequisite` โดยจับคู่ `WHERE code = ?` และ JOIN กับ `course` เพื่อนำชื่อวิชามาแสดง
+5. **Query วิชาที่ปลดล็อค (Unlocks)**: ดึงข้อมูลจากตาราง `prerequisite` โดยจับคู่ `WHERE requires = ?` และ JOIN กับ `course`
+6. **Data Contract Serialization**: แปลงผลลัพธ์ผ่าน Pydantic Model `CoursePrerequisitesResponse` ส่งคืน Client เป็น JSON
+
+> 💡 **หมายเหตุเกี่ยวกับข้อมูลในระบบ**: ฐานข้อมูลปัจจุบัน (`work/lab8b_run/curriculum.db`) เป็นข้อมูลของ **หลักสูตร IT (เทคโนโลยีสารสนเทศ) แผนปกติ** มี 41 รายวิชาตามแผนการศึกษา 4 ปี โดยมีกฎ Prerequisite อยู่จริง 4 วิชา (`06016407`, `06016418`, `06016419`, `06016420`) วิชาอื่นๆ ในเล่มจะไม่มีวิชาบังคับก่อน และหากค้นหารหัสวิชาของสาขาอื่น (เช่น DSBA, BIT) จะคืนค่า `404 Not Found`
 
 ## 10. จุดเปลี่ยนโมเดลของนักศึกษา
 

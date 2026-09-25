@@ -39,3 +39,28 @@ class HealthResponse(BaseModel):
     ollama_ready: bool
     lab8b_module: str
 
+
+class PrerequisiteItem(BaseModel):
+    code: str
+    name_th: str | None = None
+    name_en: str | None = None
+    credits: int | None = None
+    kind: str = "pre"
+
+
+class CoursePrerequisitesResponse(BaseModel):
+    code: str
+    name_th: str
+    name_en: str | None = None
+    credits: int
+    prerequisites_required: list[PrerequisiteItem] = Field(
+        default_factory=list,
+        description="รายวิชาที่ต้องเรียนผ่านก่อน จึงจะสามารถลงเรียนวิชานี้ได้"
+    )
+    unlocked_courses: list[PrerequisiteItem] = Field(
+        default_factory=list,
+        description="รายวิชาที่จะปลดล็อคให้ลงเรียนได้หลังจากเรียนผ่านวิชานี้"
+    )
+
+
+

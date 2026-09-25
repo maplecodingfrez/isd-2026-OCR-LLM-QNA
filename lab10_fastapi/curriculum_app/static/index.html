@@ -5,39 +5,127 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Curriculum Assistant</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 850px; margin: 40px auto; padding: 0 18px; line-height: 1.6; }
-    textarea { width: 100%; min-height: 90px; padding: 10px; box-sizing: border-box; }
-    button { margin-top: 10px; padding: 9px 18px; cursor: pointer; }
-    section { margin-top: 22px; padding: 16px; background: #f4f4f4; }
-    pre { overflow-x: auto; white-space: pre-wrap; }
-    .muted { color: #666; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 0 18px;
+      line-height: 1.6;
+      color: #1f2937;
+    }
+    h1 { margin-bottom: 4px; color: #111827; }
+    h2 { margin-top: 0; font-size: 1.25rem; color: #1f2937; }
+    h3 { font-size: 1.05rem; margin-top: 16px; margin-bottom: 6px; }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    button {
+      margin-top: 10px;
+      padding: 9px 18px;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    button:hover { background: #1d4ed8; }
+    section {
+      margin-top: 24px;
+      padding: 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    pre {
+      overflow-x: auto;
+      white-space: pre-wrap;
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .muted { color: #64748b; font-size: 0.9rem; }
+    .prereq-list { margin: 6px 0 12px 18px; padding-left: 0; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
   <h1>Curriculum Book Assistant</h1>
-  <p>Qwen แปลงคำถามเป็น SQL, SQLite ค้นข้อมูล แล้ว Qwen สรุปคำตอบ</p>
-  <p class="muted">ตัวอย่าง: “ปี 1 เทอม 1 เรียนกี่หน่วยกิต”</p>
+  <p class="muted">ถามตอบข้อมูลหลักสูตรด้วย AI (Qwen Text-to-SQL + SQLite) และตรวจสอบวิชาบังคับก่อน</p>
 
-  <form id="ask-form">
-    <textarea id="question" required>หลักสูตรนี้มีหน่วยกิตรวมทั้งหมดเท่าไร</textarea>
-    <button type="submit">ถาม</button>
-  </form>
-
+  <!-- ส่วนที่ 1: ถามคำถามหลักสูตร (Text-to-SQL) -->
   <section>
-    <h2>คำตอบ</h2><div id="answer">รอคำถาม...</div>
-    <h3>ค่าที่ได้จากฐานข้อมูล</h3><pre id="rows">-</pre>
-    <h3>SQL ที่ใช้</h3><pre id="sql">-</pre>
+    <h2>💬 ถามคำถามหลักสูตร</h2>
+    <p class="muted">ตัวอย่าง: “หลักสูตรนี้มีหน่วยกิตรวมทั้งหมดเท่าไร”, “วิชา 06016407 คือวิชาอะไร”</p>
+    <form id="ask-form">
+      <textarea id="question" required>หลักสูตรนี้มีหน่วยกิตรวมทั้งหมดเท่าไร</textarea>
+      <button type="submit">ถามคำถาม</button>
+    </form>
+
+    <h3 style="margin-top: 18px;">คำตอบ</h3>
+    <div id="answer" style="font-weight: 500; color: #1e40af;">รอคำถาม...</div>
+    <h3>ค่าที่ได้จากฐานข้อมูล (rows)</h3>
+    <pre id="rows">-</pre>
+    <h3>SQL ที่ใช้</h3>
+    <pre id="sql">-</pre>
+  </section>
+
+  <!-- ส่วนที่ 2: API เพิ่มเติม ตรวจสอบวิชาบังคับก่อน (Prerequisites) -->
+  <section>
+    <h2>🔗 ตรวจสอบวิชาบังคับก่อน (Prerequisite Analyzer)</h2>
+    <p class="muted">ตรวจสอบวิชาที่ต้องเรียนผ่านก่อน และวิชาที่จะปลดล็อคให้เรียนต่อได้ (API: <code>GET /api/courses/{code}/prerequisites</code>)</p>
+    <div style="font-size: 0.85rem; color: #475569; background: #e2e8f0; padding: 6px 12px; border-radius: 6px; margin-bottom: 12px;">
+      💡 <strong>หมายเหตุ:</strong> ฐานข้อมูลปัจจุบันเป็น<strong>หลักสูตร IT (เทคโนโลยีสารสนเทศ)</strong> มีทั้งหมด <strong>41 รายวิชา</strong> หากค้นหารหัสวิชาของสาขาอื่น (เช่น DSBA, BIT) หรือวิชาเลือกนอกแผน จะไม่พบในฐานข้อมูลนี้
+    </div>
+
+    <form id="prereq-form">
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="course-code" list="courses-list" placeholder="พิมพ์หรือเลือกรหัสวิชา 8 หลัก เช่น 06016407" value="06016407" maxlength="8" required style="flex: 1;">
+        <datalist id="courses-list"></datalist>
+        <button type="submit" style="margin-top: 0; white-space: nowrap;">ตรวจสอบ</button>
+      </div>
+    </form>
+
+    <!-- ปุ่มลัดทดสอบวิชาตัวอย่าง -->
+    <div style="margin-top: 8px; font-size: 0.85rem;">
+      <span class="muted">ลองกดทดสอบ: </span>
+      <a href="#" class="sample-btn" data-code="06016407" style="margin-right: 8px; color: #2563eb; text-decoration: underline;">06016407 (โครงงาน 2 - มี Prereq)</a>
+      <a href="#" class="sample-btn" data-code="06016418" style="margin-right: 8px; color: #2563eb; text-decoration: underline;">06016418 (เว็บเซิร์ฟเวอร์ - มี Prereq)</a>
+      <a href="#" class="sample-btn" data-code="06016406" style="margin-right: 8px; color: #2563eb; text-decoration: underline;">06016406 (โครงงาน 1 - ปลดล็อควิชาอื่น)</a>
+      <a href="#" class="sample-btn" data-code="06016401" style="color: #2563eb; text-decoration: underline;">06016401 (คณิตฯ - ไม่มี Prereq)</a>
+    </div>
+
+    <div id="prereq-result" style="display: none; margin-top: 16px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <div id="prereq-info"></div>
+    </div>
   </section>
 
   <script>
+    // ส่วนถามตอบหลักสูตร
     document.getElementById("ask-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const answer = document.getElementById("answer");
-      answer.textContent = "กำลังประมวลผล...";
+      answer.textContent = "⏳ กำลังประมวลผลคำถาม...";
       try {
         const response = await fetch("/api/ask", {
-          method: "POST", headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({question: document.getElementById("question").value})
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: document.getElementById("question").value })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || "เกิดข้อผิดพลาด");
@@ -45,10 +133,92 @@
         document.getElementById("rows").textContent = JSON.stringify(data.rows, null, 2);
         document.getElementById("sql").textContent = data.sql;
       } catch (error) {
-        answer.textContent = `ผิดพลาด: ${error.message}`;
+        answer.textContent = `❌ ผิดพลาด: ${error.message}`;
       }
     });
+
+    // ส่วนตรวจสอบวิชาบังคับก่อน
+    document.getElementById("prereq-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const code = document.getElementById("course-code").value.trim();
+      const resBox = document.getElementById("prereq-result");
+      const info = document.getElementById("prereq-info");
+      if (!code) return;
+
+      resBox.style.display = "block";
+      info.innerHTML = "⏳ กำลังตรวจสอบข้อมูลวิชาบังคับก่อน...";
+
+      try {
+        const response = await fetch(`/api/courses/${code}/prerequisites`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "เกิดข้อผิดพลาด");
+
+        let html = `
+          <div style="margin-bottom: 12px;">
+            <strong style="font-size: 1.1rem; color: #1e3a8a;">[${data.code}] ${data.name_th}</strong>
+            <span class="muted">(${data.credits} หน่วยกิต) ${data.name_en ? '— ' + data.name_en : ''}</span>
+          </div>
+        `;
+
+        // วิชาที่ต้องผ่านก่อน
+        html += `<h4 style="margin: 10px 0 4px 0; color: #b45309;">⚠️ วิชาที่ต้องผ่านมาก่อน (Requires):</h4>`;
+        if (!data.prerequisites_required || data.prerequisites_required.length === 0) {
+          html += `<div class="muted">- ไม่มีวิชาบังคับก่อน สามารถลงเรียนได้ทันที -</div>`;
+        } else {
+          html += `<ul class="prereq-list">`;
+          data.prerequisites_required.forEach(item => {
+            html += `<li><span class="badge">${item.code}</span> <strong>${item.name_th || 'วิชาในหลักสูตร'}</strong> (${item.credits ?? '?'} หน่วยกิต)</li>`;
+          });
+          html += `</ul>`;
+        }
+
+        // วิชาที่ปลดล็อคให้เรียนต่อ
+        html += `<h4 style="margin: 14px 0 4px 0; color: #047857;">🚀 วิชาที่จะปลดล็อคให้เรียนต่อได้ (Unlocks):</h4>`;
+        if (!data.unlocked_courses || data.unlocked_courses.length === 0) {
+          html += `<div class="muted">- ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน -</div>`;
+        } else {
+          html += `<ul class="prereq-list">`;
+          data.unlocked_courses.forEach(item => {
+            html += `<li><span class="badge">${item.code}</span> <strong>${item.name_th || 'วิชาในหลักสูตร'}</strong> (${item.credits ?? '?'} หน่วยกิต)</li>`;
+          });
+          html += `</ul>`;
+        }
+
+        info.innerHTML = html;
+      } catch (error) {
+        info.innerHTML = `<span style="color: #dc2626;">❌ ${error.message}</span>
+        <div style="margin-top: 6px; font-size: 0.85rem; color: #64748b;">(แนะนำให้เลือกจากรายชื่อวิชาในช่องค้นหา หรือกดวิชาตัวอย่างด้านบน)</div>`;
+      }
+    });
+
+    // ปุ่มตัวอย่างคลิกแล้วกรอกและค้นหาทันที
+    document.querySelectorAll(".sample-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("course-code").value = btn.dataset.code;
+        document.getElementById("prereq-form").dispatchEvent(new Event("submit"));
+      });
+    });
+
+    // โหลดรายชื่อวิชาทั้งหมดใส่ datalist เพื่อ autocomplete
+    async function loadCourseDatalist() {
+      try {
+        const res = await fetch("/api/courses?limit=100");
+        if (!res.ok) return;
+        const courses = await res.json();
+        const datalist = document.getElementById("courses-list");
+        datalist.innerHTML = "";
+        courses.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.code;
+          opt.label = `${c.code} - ${c.name_th}`;
+          datalist.appendChild(opt);
+        });
+      } catch (err) {
+        // silent fail
+      }
+    }
+    loadCourseDatalist();
   </script>
 </body>
 </html>
-

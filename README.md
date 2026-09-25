@@ -13,6 +13,7 @@
 * [Lab-7 - Curriculum OCR Extraction (Local VLM: Typhoon-OCR + qwen3)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-7)
 * [Lab-8 - Curriculum JSON → SQLite → NL2SQL Q&A](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-8)
 * [Lab-9 - Evaluation & Overfitting (all 4 faculty curricula: AIT/BIT/DSBA/IT)](https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA/tree/Lab-9)
+* [Lab-10 - FastAPI + Qwen Text-to-SQL + Web Application](lab10_fastapi/README.md)
 
 ## Members
 * 67070168 - film_synthesis
@@ -1417,3 +1418,67 @@ python evaluate_lab9.py
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
 matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
+
+---
+
+## RESTful Web API & Application (Lab 10)
+
+ต่อยอดระบบสกัดข้อมูลหลักสูตร (Lab 7B-9) สู่การเป็น Web Application เต็มรูปแบบด้วยสถาปัตยกรรม RESTful API ผ่าน **FastAPI** เชื่อมโยงระหว่าง Frontend, Local LLM (Ollama / Qwen Text-to-SQL) และฐานข้อมูล SQLite (`curriculum.db`)
+
+### วิธีเปิดใช้งานระบบ
+
+```powershell
+# รันเซิร์ฟเวอร์ FastAPI จากรากโปรเจกต์
+.\.venv\Scripts\python.exe -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+* 🌐 **หน้าเว็บแอปพลิเคชัน (Web UI)**: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+* 📄 **Swagger Interactive API Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* 🩺 **Health Check**: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+
+### รายการ API ในระบบ
+
+| Method | Endpoint | หน้าที่ | Parameters / Body |
+|---|---|---|---|
+| `GET` | `/` | หน้าเว็บ Frontend สำหรับผู้ใช้ | ไม่มี |
+| `GET` | `/api/health` | ตรวจสอบสถานะ DB และ Ollama | ไม่มี |
+| `GET` | `/api/program` | อ่านข้อมูลภาพรวมหลักสูตร | ไม่มี |
+| `GET` | `/api/courses` | อ่านและค้นหารายวิชา | `search`, `limit`, `offset` |
+| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล | JSON: `CourseCreate` |
+| `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) | JSON: `{"question": "..."}` |
+| `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค | Path: `code` (รหัสวิชา 8 หลัก) |
+
+### API เพิ่มเติม: ตรวจสอบวิชาบังคับก่อน (`GET /api/courses/{code}/prerequisites`)
+
+เป็น Endpoint เฉพาะทางที่พัฒนาขึ้นเพื่อต่อยอดตาราง `prerequisite` จาก Lab 8B สำหรับการวางแผนการเรียน:
+
+* **การทำงาน**:
+  1. `prerequisites_required`: แสดงรายวิชาที่ต้องเรียนผ่านก่อน จึงจะลงทะเบียนวิชานี้ได้ (Requires)
+  2. `unlocked_courses`: แสดงรายวิชาที่จะปลดล็อคให้ลงเรียนต่อได้หลังจากเรียนผ่านวิชานี้ (Unlocks)
+* **วิธีเรียกใช้งานผ่าน cURL**:
+  ```bash
+  # ตรวจสอบวิชาโครงงาน 2 (06016407)
+  curl -s http://127.0.0.1:8000/api/courses/06016407/prerequisites
+  ```
+* **ตัวอย่างผลลัพธ์ JSON**:
+  ```json
+  {
+    "code": "06016407",
+    "name_th": "โครงงาน 2",
+    "name_en": "PROJECT 2",
+    "credits": 3,
+    "prerequisites_required": [
+      {
+        "code": "06016406",
+        "name_th": "โครงงาน 1",
+        "name_en": "PROJECT 1",
+        "credits": 3,
+        "kind": "pre"
+      }
+    ],
+    "unlocked_courses": []
+  }
+  ```
+* **หมายเหตุข้อมูล**: ฐานข้อมูลปัจจุบันเป็นหลักสูตร IT (มี 41 รายวิชาตามแผน 4 ปี และมีกฎ Prerequisite ตามเล่ม 4 รายวิชา คือ `06016407`, `06016418`, `06016419`, `06016420`) หากค้นหารหัสวิชาอื่นที่ไม่อยู่ในเล่มจะตอบกลับ `404 Not Found`
+
+รายละเอียดเต็มของ Lab 10 อยู่ที่ [`lab10_fastapi/README.md`](lab10_fastapi/README.md) และรายงานฉบับสมบูรณ์อยู่ที่ [`docs/reports/lab10_fastapi_report.md`](docs/reports/lab10_fastapi_report.md)
