@@ -28,7 +28,11 @@ def question_level(question: str, expect_type: str) -> str:
 
 
 def _pages(row: dict) -> set[int]:
-    return {int(p) for p in (row.get("primary_pages", "") + ";" + row.get("other_pages", "")).split(";") if p}
+    """หน้าที่คาดว่าควรอ้าง = หน้า primary (มีรหัสและชื่อวิชา) — หน้า other แค่เอ่ยรหัส (เช่นเป็นวิชาบังคับก่อน
+    ของวิชาอื่น) ใช้เฉพาะเมื่อไม่มี primary เลย; รวมทั้งสองแบบจะทำให้อัตราอ้างถูกสูงเกินจริง"""
+    def split(field: str) -> set[int]:
+        return {int(p) for p in (row.get(field) or "").split(";") if p}
+    return split("primary_pages") or split("other_pages")
 
 
 def expected_pages(question: str, expect_value, mapping: list[dict]) -> set[int] | None:

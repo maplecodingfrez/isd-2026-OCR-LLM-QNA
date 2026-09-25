@@ -1083,7 +1083,7 @@ CREATE TABLE IF NOT EXISTS course_page (
     code         TEXT NOT NULL,
     pdf_page     INTEGER NOT NULL,
     printed_page TEXT,
-    kind         TEXT NOT NULL CHECK (kind IN ('primary', 'other', 'plan')),
+    kind         TEXT NOT NULL CHECK (kind IN ('primary', 'description', 'other', 'plan')),
     PRIMARY KEY (code, pdf_page, kind)
 );
 -- หน้าตารางแผนของแต่ละเทอม เก็บเทอมไว้ตรง ๆ (ไม่ย้อนหาเทอมจากรหัสวิชา — วิชาที่อยู่ในแผนหลายเทอมจะอ้างหน้าผิดเทอม)
@@ -1112,9 +1112,8 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     + หน้าตารางแผนของเทอมที่วิชานั้นอยู่ (plan) จากภาพหน้าของ Lab 7B — ไม่ใช้ LLM/เฉลย
     เลขหน้าที่พิมพ์ผ่าน consistent_printed (ตัดเลขที่ Tesseract อ่านผิด เช่น IT PDF 42 = "27")"""
     citations = _citations_module()
-    conn.executescript(COURSE_PAGE_DDL)
-    conn.execute("DELETE FROM course_page")
-    conn.execute("DELETE FROM term_page")
+    # สร้างใหม่ทุกครั้ง (ข้อมูลเดิมถูกแทนที่ทั้งหมดอยู่แล้ว) — DB เก่ามี CHECK ของ kind ชุดเดิม
+    conn.executescript("DROP TABLE IF EXISTS course_page; DROP TABLE IF EXISTS term_page;" + COURSE_PAGE_DDL)
     courses = [dict(r) for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     printed = citations.consistent_printed(
         {int(p["page"]): citations.printed_page(p.get("text") or "") for p in ocr_pages})
@@ -1131,20 +1130,25 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
                          "kind": "plan"})
     conn.executemany("INSERT OR IGNORE INTO course_page VALUES (:code, :pdf_page, :printed_page, :kind)", rows)
     conn.commit()
-    counts = {"primary": 0, "other": 0, "plan": 0}
+    counts = {"primary": 0, "description": 0, "other": 0, "plan": 0}
     for kind, n in conn.execute("SELECT kind, COUNT(*) FROM course_page GROUP BY kind"):
         counts[kind] = n
     return counts
 
 
 def cmd_load_course_pages(args) -> None:
+    missing = [str(p) for p in (Path(args.ocr_json), Path(args.data_input), Path(args.markdown)) if not p.exists()]
+    if missing:
+        print(f"  ข้าม load-course-pages (ไม่พบ {', '.join(missing)}) — คำตอบรอบนี้จะไม่มีอ้างอิงหน้า")
+        return
     ocr_pages = json.loads(Path(args.ocr_json).read_text(encoding="utf-8"))["pages"]
     image_names = [p.name for p in Path(args.data_input).iterdir() if p.is_file()]
     md_text = Path(args.markdown).read_text(encoding="utf-8")
     conn = open_db(args.database)
     counts = load_course_pages(conn, ocr_pages, image_names, md_text)
     conn.close()
-    print(f"  course_page: primary {counts['primary']} · other {counts['other']} · plan {counts['plan']}")
+    print(f"  course_page: primary {counts['primary']} · description {counts['description']} · "
+          f"other {counts['other']} · plan {counts['plan']}")
 
 
 def cmd_load_plan_slots_md(args) -> None:

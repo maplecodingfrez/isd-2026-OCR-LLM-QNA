@@ -30,7 +30,7 @@ def test_load_course_pages_writes_course_and_plan_rows_and_is_rerunnable():
         "SELECT code, pdf_page, printed_page, kind FROM course_page ORDER BY kind, pdf_page")]
     assert rows == [("06016401", 90, "86", "other"), ("06016401", 38, "33", "plan"),
                     ("06016401", 38, "33", "primary")]
-    assert counts == {"primary": 1, "other": 1, "plan": 1}
+    assert counts == {"primary": 1, "description": 0, "other": 1, "plan": 1}
 
 
 # Break caught: storing a misread printed page number (raw printed_page instead of consistent_printed).
@@ -64,3 +64,14 @@ def test_term_page_not_leaked_to_other_term_sharing_a_code():
     assert citations.citations_for([{"credits": 3}], sql_1_2, lookup) == []
     sql_1_1 = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"
     assert citations.citations_for([{"credits": 3}], sql_1_1, lookup) == [{"pdf_page": 38, "printed_page": "33"}]
+
+
+# Break caught (review minor #7): a run without data_input aborting the whole run instead of skipping citations.
+def test_cmd_load_course_pages_skips_with_message_when_inputs_missing(tmp_path, capsys):
+    import argparse
+    db = tmp_path / "c.db"
+    lab8b.open_db(str(db)).close()
+    args = argparse.Namespace(database=str(db), ocr_json=str(tmp_path / "none.json"),
+                              data_input=str(tmp_path / "no_dir"), markdown=str(tmp_path / "none.md"))
+    lab8b.cmd_load_course_pages(args)
+    assert "ข้าม" in capsys.readouterr().out

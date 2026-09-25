@@ -28,8 +28,13 @@ def printed_page(text: str) -> str | None:
     return None
 
 
+# หน้าคำอธิบายรายวิชามีบรรทัดวิชาบังคับก่อนของแต่ละวิชา — ตารางเทียบหลักสูตรในภาคผนวก (เช่น DSBA PDF 353) ไม่มี
+DESCRIPTION_RE = re.compile(r"วิชาบังคับก่อน|prerequisite", re.I)
+
+
 def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:
-    """หน้า (PDF) ที่มีรหัสวิชาแต่ละตัว — primary เมื่อหน้านั้นมีชื่อไทยหรืออังกฤษของวิชาด้วย (กฎ Lab 5)"""
+    """หน้า (PDF) ที่มีรหัสวิชาแต่ละตัว — primary เมื่อหน้านั้นมีชื่อไทยหรืออังกฤษของวิชาด้วย (กฎ Lab 5);
+    primary ที่เป็นหน้าคำอธิบายรายวิชา = description (ให้ขึ้นก่อน ไม่ถูกตัดตอนจำกัด MAX_CITED)"""
     out = []
     for c in courses:
         code = c["code"]
@@ -40,8 +45,8 @@ def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:
             if not code_re.search(text):
                 continue
             primary = (len(th) >= 4 and th in _norm_th(text)) or (len(en) >= 4 and en in _norm_en(text))
-            out.append({"code": code, "pdf_page": int(p["page"]), "printed_page": printed_page(text),
-                        "kind": "primary" if primary else "other"})
+            kind = ("description" if DESCRIPTION_RE.search(text) else "primary") if primary else "other"
+            out.append({"code": code, "pdf_page": int(p["page"]), "printed_page": printed_page(text), "kind": kind})
     return sorted(out, key=lambda r: (r["code"], r["pdf_page"]))
 
 
@@ -106,6 +111,8 @@ def consistent_printed(printed_by_pdf: dict[int, str | None]) -> dict[int, str |
 CODE_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
 YEAR_SQL_RE = re.compile(r"\byear\s*=\s*'?(\d)'?", re.I)
 SEM_SQL_RE = re.compile(r"\bsemester\s*=\s*'?(\d)'?", re.I)
+# ตัวกรองเทอมแบบปฏิเสธ ("ไม่อยู่ในเทอม 1/1") — หน้าตารางของเทอมนั้นไม่ใช่ที่มาของคำตอบ
+NEGATED_SQL_RE = re.compile(r"\bNOT\s+IN\b|\bEXCEPT\b|!=|<>", re.I)
 
 
 def load_lookup(conn: sqlite3.Connection):
@@ -117,12 +124,16 @@ def load_lookup(conn: sqlite3.Connection):
                                  "ORDER BY year, semester, pdf_page").fetchall()
     except sqlite3.OperationalError:
         return None
-    by_kind: dict[str, dict[str, list]] = {"plan": {}, "primary": {}, "other": {}}
+    by_kind: dict[str, dict[str, list]] = {"plan": {}, "description": {}, "primary": {}, "other": {}}
     for code, pdf, printed, kind in rows:
         by_kind[kind].setdefault(code, []).append((pdf, printed))
+    # หน้าคำอธิบายรายวิชาอยู่หลังตารางแผน (มคอ.2 หมวด 3.1.5 ต่อจาก 3.1.4) — หน้าก่อนนั้นที่มีคำว่าวิชาบังคับก่อน
+    # (เช่น หน้าโครงสร้างหลักสูตร) ให้อยู่ท้าย
+    last_plan = max((r[2] for r in term_rows), default=0)
     course: dict[str, list] = {}
     for code in {r[0] for r in rows}:
-        pages = by_kind["plan"].get(code, []) + by_kind["primary"].get(code, [])
+        desc = sorted(by_kind["description"].get(code, []), key=lambda p: (p[0] <= last_plan, p[0]))
+        pages = by_kind["plan"].get(code, []) + desc + by_kind["primary"].get(code, [])
         course[code] = pages or by_kind["other"].get(code, [])
     term: dict[tuple[int, int], list] = {}
     for y, s, pdf, printed in term_rows:
@@ -143,7 +154,7 @@ def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
 
     sql = sql or ""
     y, s = YEAR_SQL_RE.search(sql), SEM_SQL_RE.search(sql)
-    if y and s:
+    if y and s and not NEGATED_SQL_RE.search(sql):
         add(term.get((int(y.group(1)), int(s.group(1))), []))
     codes = CODE_RE.findall(sql)
     for r in rows:

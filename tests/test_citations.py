@@ -159,3 +159,28 @@ def test_plan_pages_rejects_continuation_contradicted_by_book_heading():
     book = {28: "ปีที่ 1 ภาคการศึกษาที่ 1", 29: "ปีที่ 2 ภาคการศึกษาที่ 1\n06016403"}
     got = citations.plan_pages(["X_28.png", "X_29.png"], md, {}, book)
     assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 1, 28)]
+
+
+# Break caught (review minor #5): a negated term filter (NOT IN / EXCEPT / !=) citing that term's plan page.
+def test_citations_for_skips_term_page_for_negated_filters():
+    lookup = citations.load_lookup(_db_with_pages())
+    for sql in ("SELECT code FROM course WHERE code NOT IN (SELECT code FROM plan_item WHERE year=1 AND semester=1)",
+                "SELECT code FROM course EXCEPT SELECT code FROM plan_item WHERE year=1 AND semester=1",
+                "SELECT COUNT(*) FROM plan_item WHERE year=1 AND semester != 1"):
+        assert citations.citations_for([{"n": 5}], sql, lookup) == [], sql
+
+
+# Break caught (review minor #8): the 3-page cap dropping the course-description page (it sits late in the book).
+def test_course_pages_marks_description_page():
+    pages = [{"page": "23", "text": "06016401 คณิตศาสตร์"},
+             {"page": "324", "text": "06016401 คณิตศาสตร์ 3(3-0-6)\nวิชาบังคับก่อน : ไม่มี"}]
+    kinds = [(r["pdf_page"], r["kind"]) for r in citations.course_pages(pages, [{"code": "06016401", "name_th": "คณิตศาสตร์"}])]
+    assert kinds == [(23, "primary"), (324, "description")]
+
+
+def test_citations_for_puts_description_page_right_after_plan():
+    conn = _db_with_pages()
+    conn.executemany("INSERT INTO course_page VALUES (?, ?, ?, ?)", [
+        ("06016401", 20, "15", "primary"), ("06016401", 21, "16", "primary"), ("06016401", 330, "325", "description")])
+    got = citations.citations_for([], "SELECT name_th FROM course WHERE code = '06016401'", citations.load_lookup(conn))
+    assert [c["pdf_page"] for c in got] == [38, 330, 20]

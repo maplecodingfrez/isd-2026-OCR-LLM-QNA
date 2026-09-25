@@ -25,7 +25,7 @@ def test_question_level_rules():
 
 # Break caught: expected pages from the wrong source (code in expect value, term = most common page).
 def test_expected_pages():
-    assert levels.expected_pages("รหัสวิชา 06016402 มีชื่อภาษาไทยว่าอะไร", "x", MAP) == {23, 38, 90}
+    assert levels.expected_pages("รหัสวิชา 06016402 มีชื่อภาษาไทยว่าอะไร", "x", MAP) == {23, 38}  # primary only
     assert levels.expected_pages("วิชา 'คณิตศาสตร์สำหรับ เทคโนโลยีสารสนเทศ' มีรหัสวิชาอะไร", "06016401", MAP) == {23, 38, 324}
     assert levels.expected_pages("ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต", "18", MAP) == {23, 38}
     assert levels.expected_pages("มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3", "31", MAP) is None
@@ -52,3 +52,10 @@ def test_level_stats_none_questions_are_not_citation_checkable():
              "correct": True, "citations": []}]
     assert levels.level_stats(rows, MAP)["none"] == {
         "n": 1, "correct": 1, "with_citation": 0, "cite_checkable": 0, "cite_hit": 0}
+
+
+# Break caught (review minor #4): a course with only "other" pages (mentioned, never with its name) gets no expected page.
+def test_expected_pages_falls_back_to_other_pages():
+    only_other = [{"code": "06016499", "name_th": "x", "year": "", "semester": "",
+                   "primary_pages": "", "other_pages": "77;78"}]
+    assert levels.expected_pages("รหัสวิชา 06016499 มีกี่หน่วยกิต", "3", only_other) == {77, 78}
