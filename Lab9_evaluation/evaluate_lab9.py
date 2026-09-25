@@ -69,6 +69,8 @@ from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import levels  # noqa: E402  ระดับคำถาม ch1 + หน้าอ้างอิงที่คาดหวัง (levels.py ข้างไฟล์นี้)
 DEFAULT_LAB8B = HERE.parent / "Lab7B_Lab8B_ocr_system"
 DEFAULT_LAB8B_RUNS = DEFAULT_LAB8B / "runs"
 
@@ -181,6 +183,7 @@ class RunMetrics:
     answer_text_accuracy: float | None = None
     avg_seconds: float | None = None
     sql_ok_text_wrong: list[str] = field(default_factory=list)  # ตรง gap ที่สไลด์เตือน
+    level_stats: dict = field(default_factory=dict)   # ระดับคำถาม ch1 -> n/correct/citation (levels.py)
 
 
 def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
@@ -274,6 +277,9 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
         m.execution_accuracy = round(exec_correct / n, 4) if n else None
         secs = [r.get("seconds") for r in eval_result if isinstance(r.get("seconds"), (int, float))]
         m.avg_seconds = round(statistics.mean(secs), 2) if secs else None
+        prog = name.split("_")[0]
+        mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
+        m.level_stats = levels.level_stats(eval_result, mapping)
 
         # answer_text_accuracy: เช็คว่า "ข้อความคำตอบ" จริง ๆ ที่โมเดลพิมพ์ มีค่าที่ถูกต้องอยู่ไหม
         # ต่างจาก execution_accuracy ที่เช็คแค่แถว SQL — จุดนี้จับบั๊ก "SQL ถูกแต่ตอบเป็นข้อความผิด"
@@ -432,6 +438,22 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
         lines.append("ไม่พบในรอบนี้ (execution_accuracy กับ answer_text_accuracy ตรงกันทุกข้อ)")
     lines.append("")
 
+    lines.append("### คำตอบ + อ้างอิงหน้า แยกตามระดับคำถาม (ch1: 1 = ค้นตรง, 2 = อ่านตาราง/รวม; none = ไม่มีในเล่ม)")
+    lines.append("")
+    lines.append("หน้าอ้างอิงแนบด้วยโค้ดจากตาราง `course_page` (ไม่ใช่ LLM) · ถูก = หน้าที่อ้างมีอย่างน้อย 1 หน้าตรงกับหน้าที่ "
+                 "Lab 5 พบวิชา/ตารางเทอมนั้น (เทียบเลขหน้า PDF) · ข้อที่ไม่มีหน้าคาดหวัง (เช่น นับทั้งหลักสูตร) ไม่นับในอัตราอ้างอิง")
+    lines.append("")
+    lines.append("| run | level | n | execution_accuracy | answers with citation | citation_accuracy (checkable) |")
+    lines.append("|---|---|---|---|---|---|")
+    for r in runs.values():
+        for lvl in ("1", "2", "none"):
+            s = r.level_stats.get(lvl)
+            if not s:
+                continue
+            acc = round(s["correct"] / s["n"], 4) if s["n"] else None
+            cite = f"{s['cite_hit']}/{s['cite_checkable']}" if s["cite_checkable"] else "-"
+            lines.append(f"| {r.name} | {lvl} | {s['n']} | {acc} | {s['with_citation']}/{s['n']} | {cite} |")
+    lines.append("")
     lines.append("## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)")
     lines.append("")
     for note in stability_notes:
@@ -510,7 +532,22 @@ def main() -> None:
         "--runs", nargs="*", metavar="NAME=PATH",
         help="ระบุ run เอง เช่น --runs my_run=work/lab8b_run  (ถ้าไม่ระบุ ใช้ค่า default สาม run)",
     )
+    ap.add_argument("--list-levels", action="store_true",
+                    help="พิมพ์ระดับคำถาม + หน้าที่คาดหวังของทุกคำถามทอง ให้ตรวจก่อนใช้ในรายงาน แล้วจบ")
     args = ap.parse_args()
+
+    if args.list_levels:
+        for name, path in DEFAULT_RUNS:
+            gold = path / "gold_questions.json"
+            if not gold.exists():   # run ที่ไม่มีบนเครื่อง (เช่น dsba_coop_retry) — ข้าม
+                continue
+            prog = name.split("_")[0]
+            mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
+            for q in json.loads(gold.read_text(encoding="utf-8")):
+                exp = q["expect"]
+                print(f"{name}\tL{levels.question_level(q['question'], exp['type'])}\t"
+                      f"{sorted(levels.expected_pages(q['question'], exp.get('value'), mapping) or [])}\t{q['question']}")
+        return
 
     if args.runs:
         run_specs = []
