@@ -1,0 +1,485 @@
+{
+  "program": null,
+  "plan": null,
+  "courses": [
+    {
+      "code": "06036100",
+      "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036101",
+      "name_th": "คณิตศาสตร์สำหรับธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "MATHEMATICS FOR BUSINESS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036118",
+      "name_th": "การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "PROBLEM SOLVING IN INFORMATION TECHNOLOGY",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "96641001",
+      "name_th": "โรงเรียนสร้างเสน่ห์",
+      "credits": "2(1-2-3)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "CHARM SCHOOL",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "96641003",
+      "name_th": "กีฬาและนันทนาการ",
+      "credits": "1(0-3-2)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "SPORTS AND RECREATIONAL ACTIVITIES"
+    },
+    {
+      "code": "96644007",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 1",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "FOUNDATION ENGLISH 1"
+    },
+    {
+      "code": "96644042",
+      "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+    },
+    {
+      "code": "06036102",
+      "name_th": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "STATISTICAL ANALYSIS FOR BUSINESS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036109",
+      "name_th": "กระบวนการและโมเดลทางธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "BUSINESS PROCESSES AND BUSINESS MODEL",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036119",
+      "name_th": "พื้นฐานการเขียนโปรแกรม",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "PROGRAMMING FUNDAMENTALS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036125",
+      "name_th": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
+      "credits": "3(2-2-5)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "96644008",
+      "name_th": "ภาษาอังกฤษพื้นฐาน 2",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "FOUNDATION ENGLISH 2"
+    },
+    {
+      "code": "96641002",
+      "name_th": "ความฉลาดทางดิจิทัล",
+      "credits": "3(3-0-6)",
+      "year": 1,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "DIGITAL INTELLIGENCE QUOTIENT"
+    },
+    {
+      "code": "06036103",
+      "name_th": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036104",
+      "name_th": "องค์กรและการจัดการ",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "MANAGEMENT AND ORGANIZATIONS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036105",
+      "name_th": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "FINANCIAL ACCOUNTING FOR NON-AccountANTS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036117",
+      "name_th": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "BUSINESS INTELLIGENCE AND BIG DATA",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036120",
+      "name_th": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036122",
+      "name_th": "การสื่อสารด้วยภาพสำหรับธุรกิจ",
+      "credits": "3(2-2-5)",
+      "year": 2,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "VISUAL COMMUNICATION FOR BUSINESS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036108",
+      "name_th": "เศรษฐศาสตร์เทคโนโลยีสารสนเทศ",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "ECONOMICS OF INFORMATION TECHNOLOGY",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036111",
+      "name_th": "เทคโนโลยีดิจิทัลสำหรับธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "DIGITAL TECHNOLOGY FOR BUSINESS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036112",
+      "name_th": "แนวคิดระบบฐานข้อมูล",
+      "credits": "3(2-2-5)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "DATABASE SYSTEM CONCEPTS",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036113",
+      "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "HUMAN INTERFACE DESIGN",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036124",
+      "name_th": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น",
+      "credits": "3(3-0-6)",
+      "year": 2,
+      "semester": 2,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "9664xxxx",
+      "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 1",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "เลือก",
+      "name_en": "GE ELECTIVE COURSE REQUIREMENT 1"
+    },
+    {
+      "code": "06036107",
+      "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036110",
+      "name_th": "การวางแผนทรัพยากรองค์กร",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "ENTERPRISE RESOURCE PLANNING",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036114",
+      "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
+      "credits": "3(2-2-5)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+      "prerequisite": "06036119 หรือ 06036122"
+    },
+    {
+      "code": "06036121",
+      "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036123",
+      "name_th": "เทคโนโลยีกลุ่มเมฆ",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 1,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "CLOUD TECHNOLOGY",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "9664xxxx",
+      "name_th": "วิชาเลือกด้านภาษาและการสื่อสาร",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก",
+      "name_en": "ELECTIVE IN LANGUAGE AND COMMUNICATION"
+    },
+    {
+      "code": "06036106",
+      "name_th": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "06036116",
+      "name_th": "การตลาดเชิงดิจิทัล",
+      "credits": "3(2-2-5)",
+      "year": 3,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "บังคับ",
+      "name_en": "DIGITAL MARKETING",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "96643021",
+      "name_th": "ผู้ประกอบการสมัยใหม่",
+      "credits": "3(3-0-6)",
+      "year": 3,
+      "semester": 2,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "เลือก",
+      "name_en": "MODERN ENTREPRENEURS"
+    },
+    {
+      "code": "06036xxx",
+      "name_th": "วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1 หรือ กลุ่มวิชาที่ 1-4",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเฉพาะ",
+      "type": "เลือก"
+    },
+    {
+      "code": "xXXXXxx",
+      "name_th": "วิชาเลือกเสรี 1",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก"
+    },
+    {
+      "code": "06036115",
+      "name_th": "ความมั่นคงของระบบสารสนเทศ",
+      "credits": "3(3-0-6)",
+      "year": 4,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "INFORMATION SYSTEM SECURITY",
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "96642033",
+      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+      "credits": "3(3-0-6)",
+      "year": 4,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "name_en": "LAW FOR NEW GENERATION"
+    },
+    {
+      "code": "06036xxx",
+      "name_th": "วิชาเลือกเสรี 2",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก",
+      "name_en": "FREE ELECTIVE COURSE 2"
+    },
+    {
+      "code": "06036xxx",
+      "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2",
+      "credits": "3(3-0-6)",
+      "year": 0,
+      "semester": 0,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก"
+    },
+    {
+      "code": "06036147",
+      "name_th": "สหกิจศึกษา",
+      "credits": "6(0-35-0)",
+      "year": 4,
+      "semester": 2,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "บังคับ"
+    },
+    {
+      "code": "06036148",
+      "name_th": "สหกิจศึกษา",
+      "credits": "6(0-35-0)",
+      "year": 4,
+      "semester": 2,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "บังคับ"
+    },
+    {
+      "code": "06036147",
+      "name_th": "สหกิจศึกษาต่างประเทศ",
+      "credits": null,
+      "year": 4,
+      "semester": 2,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก"
+    },
+    {
+      "code": "06036148",
+      "name_th": "สหกิจศึกษาต่างประเทศ",
+      "credits": null,
+      "year": 4,
+      "semester": 2,
+      "category": "หมวดวิชาเลือกเสรี",
+      "type": "เลือก"
+    }
+  ],
+  "_meta": {
+    "pipeline": "vlm",
+    "elapsed_sec": 1883.1,
+    "models": {
+      "ocr": "scb10x/typhoon-ocr1.5-3b",
+      "text": "qwen3:4b"
+    },
+    "dpi": 150,
+    "pages_per_chunk": 1,
+    "prerequisite_from_book": {
+      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\bit\\bit_curriculum_ocr.txt",
+      "found": 1,
+      "none": 26,
+      "not_found": 10,
+      "unreadable": 1,
+      "skipped_non_code": 6
+    },
+    "filled_from_markdown": []
+  }
+}

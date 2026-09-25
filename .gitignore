@@ -18,39 +18,39 @@ Lab7B_curriculum/data/DSBA_curriculum.pdf
 !.env.example
 *.bak
 *.log
-!Lab8b_ocr_system/experiments/*.log
+!Lab7B_Lab8B_ocr_system/experiments/*.log
 data/input/*.pdf
 outputs/ocr_backup_before_workers/
-Lab8b_ocr_system/archive/
-Lab8b_ocr_system/work/
+Lab7B_Lab8B_ocr_system/archive/
+Lab7B_Lab8B_ocr_system/work/
 # ภาพ input ที่ก๊อปซ้ำในโฟลเดอร์ retry/dewm (สร้างใหม่ได้จาก data_input ของ run หลัก)
-Lab8b_ocr_system/runs/*_retry*/data_input/
-Lab8b_ocr_system/runs/*/*_retry/data_input/
-Lab8b_ocr_system/runs/AIT_dewm*/data_input/
-Lab8b_ocr_system/runs/**/curriculum.before_*.json
+Lab7B_Lab8B_ocr_system/runs/*_retry*/data_input/
+Lab7B_Lab8B_ocr_system/runs/*/*_retry/data_input/
+Lab7B_Lab8B_ocr_system/runs/AIT_dewm*/data_input/
+Lab7B_Lab8B_ocr_system/runs/**/curriculum.before_*.json
 
-# --- Lab8b_ocr_system: ทดลอง/อ้างอิงเฉยๆ ไม่ใช่ของจริงที่ต้องส่ง (2026-09-22) ---
+# --- Lab7B_Lab8B_ocr_system: ทดลอง/อ้างอิงเฉยๆ ไม่ใช่ของจริงที่ต้องส่ง (2026-09-22) ---
 # เก็บไว้ในเครื่องได้ (untrack ด้วย git rm --cached แล้ว) แค่ไม่ push ให้ทีม
-Lab8b_ocr_system/experiments/
-Lab8b_ocr_system/run_lab8b_*_retry.py
-Lab8b_ocr_system/run_lab8b_*_dewm.py
-Lab8b_ocr_system/run_all_stability_retries.py
-Lab8b_ocr_system/ocr_watermark_ab.py
-Lab8b_ocr_system/stage2_ab.py
-Lab8b_ocr_system/build_plan_slots_reference.py
-Lab8b_ocr_system/compare_slots_to_reference.py
-Lab8b_ocr_system/derive_all_plan_slots.py
-Lab8b_ocr_system/merge_page19_patch.py
-Lab8b_ocr_system/recover_terms_all.py
-Lab8b_ocr_system/plan_slots_REFERENCE.json
-Lab8b_ocr_system/runs/AIT_dewm*/
-Lab8b_ocr_system/runs/AIT_retry*/
-Lab8b_ocr_system/runs/*/*_retry/
-Lab8b_ocr_system/runs/IT/*_dewm*/
-Lab8b_ocr_system/runs/IT/no_coop_ctrl/
-Lab8b_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/
+Lab7B_Lab8B_ocr_system/experiments/
+Lab7B_Lab8B_ocr_system/run_lab8b_*_retry.py
+Lab7B_Lab8B_ocr_system/run_lab8b_*_dewm.py
+Lab7B_Lab8B_ocr_system/run_all_stability_retries.py
+Lab7B_Lab8B_ocr_system/ocr_watermark_ab.py
+Lab7B_Lab8B_ocr_system/stage2_ab.py
+Lab7B_Lab8B_ocr_system/build_plan_slots_reference.py
+Lab7B_Lab8B_ocr_system/compare_slots_to_reference.py
+Lab7B_Lab8B_ocr_system/derive_all_plan_slots.py
+Lab7B_Lab8B_ocr_system/merge_page19_patch.py
+Lab7B_Lab8B_ocr_system/recover_terms_all.py
+Lab7B_Lab8B_ocr_system/plan_slots_REFERENCE.json
+Lab7B_Lab8B_ocr_system/runs/AIT_dewm*/
+Lab7B_Lab8B_ocr_system/runs/AIT_retry*/
+Lab7B_Lab8B_ocr_system/runs/*/*_retry/
+Lab7B_Lab8B_ocr_system/runs/IT/*_dewm*/
+Lab7B_Lab8B_ocr_system/runs/IT/no_coop_ctrl/
+Lab7B_Lab8B_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/
 
 # 2026-09-22: local-only tidy-up — everything above this point that used to sit
-# scattered inside Lab8b_ocr_system/ was consolidated on disk into this one folder
+# scattered inside Lab7B_Lab8B_ocr_system/ was consolidated on disk into this one folder
 # for reference. Not shipped via git pull; each dev's copy may differ or be empty.
-Lab8b_ocr_system/_local_reference/
+Lab7B_Lab8B_ocr_system/_local_reference/

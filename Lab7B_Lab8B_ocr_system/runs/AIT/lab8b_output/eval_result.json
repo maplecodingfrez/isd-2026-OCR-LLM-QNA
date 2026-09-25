@@ -1,0 +1,489 @@
+[
+  {
+    "question": "หลักสูตรนี้ประกาศจำนวนหน่วยกิตรวมตลอดหลักสูตรไว้กี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "120"
+    },
+    "sql": "SELECT total_credits FROM program LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT total_credits FROM program\"}",
+    "answer_model_output": "{\"answer\": \"120 หน่วยกิต\"}",
+    "answer": "120 หน่วยกิต",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 10.3
+  },
+  {
+    "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
+    "expect": {
+      "type": "value",
+      "value": "4"
+    },
+    "sql": "SELECT years FROM program LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT years FROM program\"}",
+    "answer_model_output": "{\"answer\": \"4 ปี\"}",
+    "answer": "4 ปี",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1\"}",
+    "answer_model_output": "{\"answer\": \"5 วิชา\"}",
+    "answer": "5 วิชา",
+    "correct": false,
+    "why": "ไม่พบค่า 6 (ได้ ['5'])",
+    "seconds": 2.1
+  },
+  {
+    "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "15"
+    },
+    "sql": "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1\"}",
+    "answer_model_output": "{\"answer\": \"15 หน่วยกิต\"}",
+    "answer": "15 หน่วยกิต",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
+    "expect": {
+      "type": "set",
+      "value": [
+        "06046400",
+        "06046402",
+        "06066000",
+        "06066001",
+        "06066303",
+        "90641008"
+      ]
+    },
+    "sql": "SELECT p.code FROM v_plan WHERE p.year = 1 AND p.semester = 1 LIMIT 200",
+    "n_rows": 0,
+    "error": "OperationalError: no such column: p.code",
+    "sql_model_output": "{\"sql\": \"SELECT p.code FROM v_plan WHERE p.year = 1 AND p.semester = 1\"}",
+    "answer_model_output": null,
+    "answer": "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง",
+    "correct": false,
+    "why": "ขาด 06046400, 06046402, 06066000, 06066001, 06066303",
+    "seconds": 1.5
+  },
+  {
+    "question": "รหัสวิชา 06046400 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "แคลคูลัส 1"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '06046400' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06046400'\" }",
+    "answer_model_output": "{\"answer\": \"แคลคูลัส 1\"}",
+    "answer": "แคลคูลัส 1",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "question": "รหัสวิชา 06046402 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "พีชคณิตเชิงเส้น"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '06046402' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06046402'\" }",
+    "answer_model_output": "{\"answer\": \"พีชคณิตเชิงเส้น\"}",
+    "answer": "พีชคณิตเชิงเส้น",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "รหัสวิชา 06066000 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "คณิตศาสตร์ไม่ต่อเนื่อง"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '06066000' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06066000'\" }",
+    "answer_model_output": "{\"answer\": \"คณิตศาสตร์ไม่ต่อเนื่อง\"}",
+    "answer": "คณิตศาสตร์ไม่ต่อเนื่อง",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
+  },
+  {
+    "question": "รหัสวิชา 06066001 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "ความน่าจะเป็นและสถิติ"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '06066001' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06066001'\" }",
+    "answer_model_output": "{\"answer\": \"ความน่าจะเป็นและสถิติ\"}",
+    "answer": "ความน่าจะเป็นและสถิติ",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "รหัสวิชา 06066303 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '06066303' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06066303'\" }",
+    "answer_model_output": "{\"answer\": \"การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์\"}",
+    "answer": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
+  },
+  {
+    "question": "รหัสวิชา 90641008 มีชื่อภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ"
+    },
+    "sql": "SELECT name_th FROM course WHERE code = '90641008' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '90641008'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": false,
+    "why": "ไม่พบค่า พื้นฐานทักษะการสื่อสารภาษาอังกฤษ (ได้ [])",
+    "seconds": 0.8
+  },
+  {
+    "question": "วิชา 'การเรียนรู้ของเครื่องเชิงความน่าจะเป็น' มีรหัสวิชาอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06046405"
+    },
+    "sql": "SELECT code FROM course WHERE name_th = 'การเรียนรู้ของเครื่องเชิงความน่าจะเป็น' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'การเรียนรู้ของเครื่องเชิงความน่าจะเป็น'\"}",
+    "answer_model_output": "{\"answer\": \"06046405\"}",
+    "answer": "06046405",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "วิชา 'พื้นฐานการเรียนรู้เชิงลึก' มีรหัสวิชาอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06046406"
+    },
+    "sql": "SELECT code FROM course WHERE name_th = 'พื้นฐานการเรียนรู้เชิงลึก' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'พื้นฐานการเรียนรู้เชิงลึก'\" }",
+    "answer_model_output": "{\"answer\": \"06046406\"}",
+    "answer": "06046406",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
+  },
+  {
+    "question": "วิชา 'คอมพิวเตอร์วิทัศน์เบื้องต้น' มีรหัสวิชาอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06046409"
+    },
+    "sql": "SELECT code FROM course WHERE name_th = 'คอมพิวเตอร์วิทัศน์เบื้องต้น' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'คอมพิวเตอร์วิทัศน์เบื้องต้น'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": false,
+    "why": "ไม่พบค่า 06046409 (ได้ [])",
+    "seconds": 1.0
+  },
+  {
+    "question": "รหัสวิชา 90641005 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
+    "expect": {
+      "type": "value",
+      "value": "2"
+    },
+    "sql": "SELECT year FROM v_plan WHERE code='90641005' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT year FROM v_plan WHERE code='90641005'\"}",
+    "answer_model_output": "{\"answer\": \"ปีที่ 2\"}",
+    "answer": "ปีที่ 2",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.8
+  },
+  {
+    "question": "รหัสวิชา 90641005 มีกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "1"
+    },
+    "sql": "SELECT credits FROM course WHERE code='90641005' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE code='90641005'\" }",
+    "answer_model_output": "{\"answer\": \"1 หน่วยกิต\"}",
+    "answer": "1 หน่วยกิต",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "question": "ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "34"
+    },
+    "sql": "SELECT COUNT(*) FROM course LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM course\"}",
+    "answer_model_output": "{\"answer\": \"33 วิชา\"}",
+    "answer": "33 วิชา",
+    "correct": false,
+    "why": "ไม่พบค่า 34 (ได้ ['33'])",
+    "seconds": 1.8
+  },
+  {
+    "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
+    "expect": {
+      "type": "value",
+      "value": "28"
+    },
+    "sql": "SELECT COUNT(*) FROM course WHERE credits = 3 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM course WHERE credits = 3\"}",
+    "answer_model_output": "{\"answer\": \"28 วิชา\"}",
+    "answer": "28 วิชา",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "question": "มีรายวิชากี่วิชาที่ไม่มีชั่วโมงปฏิบัติการ (ชั่วโมงปฏิบัติการเท่ากับ 0)",
+    "expect": {
+      "type": "value",
+      "value": "21"
+    },
+    "sql": "SELECT COUNT(*) FROM course WHERE lab_h = 0 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM course WHERE lab_h = 0\"}",
+    "answer_model_output": "{\"answer\": \"20 วิชา\"}",
+    "answer": "20 วิชา",
+    "correct": false,
+    "why": "ไม่พบค่า 21 (ได้ ['20'])",
+    "seconds": 1.9
+  },
+  {
+    "question": "รายวิชาในหลักสูตรนี้มีชั่วโมงปฏิบัติการต่อสัปดาห์มากที่สุดกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "45"
+    },
+    "sql": "SELECT MAX(lab_h) FROM course LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT MAX(lab_h) FROM course\"}",
+    "answer_model_output": "{\"answer\": \"45 ชั่วโมง\"}",
+    "answer": "45 ชั่วโมง",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "0"
+    },
+    "sql": "SELECT MIN(credits) FROM course LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT MIN(credits) FROM course\"}",
+    "answer_model_output": "{\"answer\": \"1 หน่วยกิต\"}",
+    "answer": "1 หน่วยกิต",
+    "correct": false,
+    "why": "ไม่พบค่า 0 (ได้ ['1'])",
+    "seconds": 1.8
+  },
+  {
+    "question": "รหัสวิชา 06066303 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "2"
+    },
+    "sql": "SELECT lab_h FROM course WHERE code = '06066303' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT lab_h FROM course WHERE code = '06066303'\" }",
+    "answer_model_output": "{\"answer\": \"2 ชั่วโมง\"}",
+    "answer": "2 ชั่วโมง",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "รหัสวิชา 06046400 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "sql": "SELECT lecture_h FROM course WHERE code = '06046400' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT lecture_h FROM course WHERE code = '06046400'\" }",
+    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
+    "answer": "3 ชั่วโมง",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "question": "มีรายวิชากี่วิชาที่มีคำว่า 'เทคโนโลยี' อยู่ในชื่อภาษาไทย",
+    "expect": {
+      "type": "value",
+      "value": "4"
+    },
+    "sql": "SELECT COUNT(*) FROM course WHERE name_th LIKE '%เทคโนโลยี%' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM course WHERE name_th LIKE '%เทคโนโลยี%'\" }",
+    "answer_model_output": "{\"answer\": \"4 วิชา\"}",
+    "answer": "4 วิชา",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีกี่วิชาที่มีหน่วยกิตมากกว่า 2",
+    "expect": {
+      "type": "value",
+      "value": "5"
+    },
+    "sql": "SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 AND credits > 2 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 AND credits > 2\"}",
+    "answer_model_output": "{\"answer\": \"5 วิชา\"}",
+    "answer": "5 วิชา",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
+  },
+  {
+    "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี 0 หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "90641008"
+    },
+    "sql": "SELECT p.code FROM v_plan p WHERE p.year = 1 AND p.semester = 1 AND p.credits = 0 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT p.code FROM v_plan p WHERE p.year = 1 AND p.semester = 1 AND p.credits = 0\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": false,
+    "why": "ไม่พบค่า 90641008 (ได้ [])",
+    "seconds": 1.0
+  },
+  {
+    "question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "sql": "SELECT COUNT(*) FROM prerequisite LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
+    "answer_model_output": "{\"answer\": \"6 คู่\"}",
+    "answer": "6 คู่",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.6
+  },
+  {
+    "question": "ค่าธรรมเนียมการศึกษา (ค่าเทอม) ของหลักสูตรนี้ต่อภาคการศึกษาคือเท่าไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT NULL WHERE 0 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT NULL WHERE 0\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.6
+  },
+  {
+    "question": "รายวิชา 06046400 มีอาจารย์ผู้สอนประจำวิชาชื่อว่าอะไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT NULL WHERE 0 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT NULL WHERE 0\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.5
+  },
+  {
+    "question": "รหัสวิชา 99999999 เป็นรายวิชาอะไร และมีกี่หน่วยกิต",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT c.name_th, c.credits FROM course c WHERE c.code = '99999999' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT c.name_th, c.credits FROM course c WHERE c.code = '99999999'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.7
+  }
+]
