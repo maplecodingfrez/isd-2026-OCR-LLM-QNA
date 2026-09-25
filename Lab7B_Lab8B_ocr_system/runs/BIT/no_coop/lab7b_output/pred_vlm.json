@@ -391,15 +391,6 @@
       "prerequisite": "ไม่มี"
     },
     {
-      "code": "06036146 96642033",
-      "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
-      "credits": "3(0-9-0)",
-      "year": 4,
-      "semester": 1,
-      "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "บังคับ"
-    },
-    {
       "code": "9664xxxxx",
       "name_th": "วิชาเลือกหมวดวิชาศึกษาทั่วไป สำหรับหลักสูตรนานาชาติ 2",
       "credits": "3(3-0-6)",
@@ -450,6 +441,33 @@
       "type": "เลือก",
       "flexible_year_semester": "4/2",
       "name_en": "FREE ELECTIVE COURSE 2"
+    },
+    {
+      "year": 4,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "prerequisite": "06036145",
+      "code": "06036146",
+      "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
+      "credits": "3(0-9-0)",
+      "name_en": null,
+      "_code_from_book": {
+        "split_from": "06036146 96642033"
+      }
+    },
+    {
+      "year": 4,
+      "semester": 1,
+      "category": "หมวดวิชาศึกษาทั่วไป",
+      "type": "บังคับ",
+      "code": "96642033",
+      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
+      "credits": "3(3-0-6)",
+      "name_en": null,
+      "_code_from_book": {
+        "split_from": "06036146 96642033"
+      }
     }
   ],
   "_meta": {
@@ -463,13 +481,23 @@
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
       "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\bit\\bit_curriculum_ocr.txt",
-      "found": 1,
+      "found": 2,
       "none": 27,
-      "not_found": 5,
+      "not_found": 6,
       "unreadable": 1,
-      "skipped_non_code": 8
+      "skipped_non_code": 7
     },
     "filled_from_markdown": [],
-    "code_from_book": []
+    "code_from_book": [
+      {
+        "action": "split",
+        "from": "06036146 96642033",
+        "to": [
+          "06036146",
+          "96642033"
+        ],
+        "term": "4/1"
+      }
+    ]
   }
 }

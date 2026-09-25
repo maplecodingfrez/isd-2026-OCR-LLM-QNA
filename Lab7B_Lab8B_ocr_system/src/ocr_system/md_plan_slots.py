@@ -157,6 +157,26 @@ def parse_terms(md: str, inherit_span: bool = False,
             span_left -= 1
             continue
 
+        # หัว "กลุ่มวิชาด้าน…" ที่ไม่มีเซลล์รหัสของตัวเอง = กลุ่มวิชาที่ OCR ทำรหัสหาย (พบจริง: IT ปี 3/1 ตราน้ำทับ
+        # กลุ่มโครงสร้างพื้นฐาน — เซลล์แรกเป็นหัวกลุ่ม + ชื่อวิชา 3 วิชา rowspan="4" ไม่มีรหัส) — เป็น "กลุ่ม" ของ
+        # "เลือก 1 กลุ่ม" ไม่ใช่ช่อง wildcard (เดิม inherit_span สร้างเป็น wildcard ปลอม 3 หน่วยกิต ทำให้กลุ่มเหลือ 2)
+        # รหัสสมาชิก: แถวรหัสจริงที่อยู่ใต้ rowspan นี้ + (ใน derive_slots) วิชาใน DB ที่ชื่ออยู่ในเซลล์นี้
+        if not reals and not wilds and code_cell.lstrip().startswith(GROUP_HEADING):
+            entry = {"codes": [], "credits": [], "text": code_cell, "nocode": True}
+            t["group_cells"].append(entry)
+            m_span = re.search(r'rowspan="(\d+)"', cells[0][0])
+            span_left = int(m_span.group(1)) - 1 if m_span else 0
+            span_code, span_mixed, span_kind, merged_ref, pending = None, False, "nocode_group", entry, None
+            continue
+        if span_left > 0 and span_kind == "nocode_group":
+            if len(reals) == 1 and not wilds and merged_ref is not None:
+                merged_ref["codes"].append(reals[0])     # แถวรหัสจริงใต้กลุ่มที่ไม่มีรหัส = สมาชิกของกลุ่มนั้น
+                span_left -= 1
+                continue
+            if not reals and not wilds:
+                span_left -= 1                           # แถวหน่วยกิตของสมาชิกในกลุ่ม ไม่ใช่วิชาปกติ/ช่อง
+                continue
+
         if not reals and not wilds:
             # แถวต่อของ rowspan (ไม่มีรหัส) — ไม่นับหน่วยกิตเป็นวิชาปกติ
             row_credit = _credit([txt for _, txt in cells])
@@ -257,8 +277,18 @@ def _merged_credits(t: dict) -> int:
     return sum(c for g in t["group_cells"] if len(g["credits"]) == len(g["codes"]) for c in g["credits"])
 
 
-def derive_slots(md: str) -> tuple[list[dict], list[dict]]:
-    """คืน (slots, term_report) — slots พร้อมใส่ plan_slot, report บอกยอดที่อธิบายได้/ไม่ได้ต่อเทอม"""
+def _loose(text: str) -> str:
+    """เทียบชื่อไทยข้าม OCR: ตัดช่องว่าง, "ํา"->"ำ", ตัดวรรณยุกต์/ไม้ไต่คู้/การันต์ (เช่น "ออโตเมชัน" vs "ออโตเมชั่น")"""
+    t = (text or "").replace("ํา", "ำ")
+    return re.sub(r"[\s็-์​]", "", t)
+
+
+def derive_slots(md: str, names_by_term: dict[tuple[int, int], dict[str, str]] | None = None
+                 ) -> tuple[list[dict], list[dict]]:
+    """คืน (slots, term_report) — slots พร้อมใส่ plan_slot, report บอกยอดที่อธิบายได้/ไม่ได้ต่อเทอม
+
+    names_by_term: {(ปี, เทอม): {รหัส: ชื่อไทย}} ของวิชาใน DB — ใช้หาสมาชิกของกลุ่มวิชาที่ OCR ทำรหัสหาย
+    (ชื่อวิชาต้องอยู่ในเซลล์หัวกลุ่มนั้น) ไม่ส่งมา = ใช้เฉพาะรหัสที่อยู่ใน Markdown"""
     slots: list[dict] = []
     report: list[dict] = []
     base, spanned = parse_terms(md), parse_terms(md, inherit_span=True)
@@ -283,6 +313,13 @@ def derive_slots(md: str) -> tuple[list[dict], list[dict]]:
             if t1 is not cur_t and (r1 == 0 and r0 != 0 or (0 <= r1 < r0 and r0 > 0)):
                 chosen[key] = t1
     for (year, sem), t in sorted(chosen.items()):
+        for g in t["group_cells"]:
+            if g.get("nocode"):
+                cell = _loose(g["text"])
+                for code, name in sorted((names_by_term or {}).get((year, sem), {}).items()):
+                    key = _loose(name)
+                    if len(key) >= 8 and key in cell and code not in g["codes"]:
+                        g["codes"].append(code)
         plain_sum = sum(p["credits"] or 0 for p in t["plain"]) + _merged_credits(t)
         wild_sum = sum(w["credits"] or 0 for w in t["wildcards"])
         total = t["total"]

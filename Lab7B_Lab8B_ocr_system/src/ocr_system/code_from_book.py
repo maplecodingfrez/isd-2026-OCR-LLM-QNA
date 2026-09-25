@@ -171,3 +171,200 @@ def recover_codes(md: str, courses: list[dict], book_text: str) -> list[dict]:
                          "term": f"{row['year']}/{row['semester']}", "name_th": row["name_th"]})
         present.add(code)
     return done
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ซ่อมเพิ่มเติมด้วย "ดัชนีรหัส -> ชื่อ" ของเล่ม (พบจริงใน IT: หน้าที่มีตราน้ำ + ตารางกลุ่มวิชา "เลือก 1 กลุ่ม")
+# ─────────────────────────────────────────────────────────────────────────────
+FULL_CREDIT_RE = re.compile(r"(\d+)\s*\(\s*[\dxX]+\s*-\s*[\dxX]+\s*-\s*[\dxX]+\s*\)")
+MIN_NAME_LEN = 8          # ชื่อสั้นกว่านี้ (หลัง normalize) ไม่ใช้ค้นแบบ substring — กันจับผิดวิชา
+
+
+def book_index(book_text: str) -> dict[str, dict[str, Any]]:
+    """{รหัส: {"name": ชื่อที่เล่มพิมพ์บ่อยสุด, "credits": "3(2-2-5)" | None}} เฉพาะรหัสที่ชื่อ "ชัดเจน":
+    ชื่อที่พบบ่อยสุดต้องเจออย่างน้อย 2 บรรทัด และมากกว่าชื่อแบบอื่นของรหัสเดียวกันอย่างชัดเจน
+    (OCR ทั้งเล่มสะกดเพี้ยนบางบรรทัด เช่น "คอมพิวตอร์กราิก์…" — ถ้าเพี้ยนเท่า ๆ กัน = ไม่ใช้รหัสนั้น)"""
+    names: dict[str, dict[str, list[str]]] = {}
+    credits: dict[str, dict[str, int]] = {}
+    for line in book_text.splitlines():
+        m = BOOK_LINE_RE.search(line)
+        if not m:
+            continue
+        code, rest = m.group(1), m.group(2)
+        name = re.split(r"\s{2,}|\||\d+\s*\(", rest, maxsplit=1)[0].strip(" .*-:")
+        name = re.sub(r"^[^฀-๿A-Za-z0-9]+", "", name)   # เศษ OCR หน้าชื่อ เช่น "!( "
+        if not re.search(r"[฀-๿]", name) or name.startswith(SKIP_PREFIXES):
+            continue
+        key = normalize(name)
+        if len(key) < 4:
+            continue
+        names.setdefault(code, {}).setdefault(key, []).append(name)
+        c = FULL_CREDIT_RE.search(rest)
+        if c:
+            ct = re.sub(r"\s+", "", c.group(0))
+            credits.setdefault(code, {})[ct] = credits.get(code, {}).get(ct, 0) + 1
+    out: dict[str, dict[str, Any]] = {}
+    for code, variants in names.items():
+        ranked = sorted(variants.items(), key=lambda kv: -len(kv[1]))
+        top_key, top = ranked[0]
+        second = len(ranked[1][1]) if len(ranked) > 1 else 0
+        if len(top) < 2 or len(top) <= second:
+            continue
+        cr = credits.get(code, {})
+        best_cr = max(cr, key=cr.get) if cr else None
+        out[code] = {"name": top[0].replace("ํา", "ำ"), "key": top_key, "credits": best_cr}
+    return out
+
+
+def book_credits(book_text: str) -> dict[str, str]:
+    """{รหัส: หน่วยกิตเต็มรูป เช่น "3(2-2-5)"} ที่พบบ่อยสุดในบรรทัดของรหัสนั้น — ต้องเป็นแบบเดียวที่ชนะชัด
+    (แยกจากการเลือกชื่อ: รหัสที่ชื่อสะกดเพี้ยนเท่า ๆ กันยังใช้หน่วยกิตที่พิมพ์ตรงกันได้)"""
+    counts: dict[str, dict[str, int]] = {}
+    for line in book_text.splitlines():
+        m = BOOK_LINE_RE.search(line)
+        if not m:
+            continue
+        c = FULL_CREDIT_RE.search(m.group(2))
+        if c:
+            ct = re.sub(r"\s+", "", c.group(0))
+            counts.setdefault(m.group(1), {})[ct] = counts.get(m.group(1), {}).get(ct, 0) + 1
+    out: dict[str, str] = {}
+    for code, cs in counts.items():
+        ranked = sorted(cs.values(), reverse=True)
+        if len(ranked) == 1 or ranked[0] > ranked[1]:
+            out[code] = max(cs, key=cs.get)
+    return out
+
+
+def book_variants(book_text: str) -> dict[str, dict[str, tuple[int, str]]]:
+    """{รหัส: {ชื่อ normalize: (จำนวนบรรทัด, ชื่อดิบ)}} ทุกแบบสะกด — ใช้กับกฎ 2 ที่มี OCR ตัวที่สองยืนยัน"""
+    out: dict[str, dict[str, tuple[int, str]]] = {}
+    for line in book_text.splitlines():
+        m = BOOK_LINE_RE.search(line)
+        if not m:
+            continue
+        name = re.split(r"\s{2,}|\||\d+\s*\(", m.group(2), maxsplit=1)[0].strip(" .*-:")
+        name = re.sub(r"^[^฀-๿A-Za-z0-9]+", "", name)
+        if not re.search(r"[฀-๿]", name) or name.startswith(SKIP_PREFIXES):
+            continue
+        key = normalize(name)
+        n, raw = out.setdefault(m.group(1), {}).get(key, (0, name))
+        out[m.group(1)][key] = (n + 1, raw)
+    return out
+
+
+def split_merged_codes(courses: list[dict], idx: dict[str, dict[str, Any]]) -> list[dict]:
+    """กฎ 1: วิชาที่ช่อง code มีรหัสจริงหลายตัวคั่นด้วย , หรือ / (ไม่ใช่ "หรือ") = LLM รวมหลายวิชาเป็นแถวเดียว
+    (IT ไม่สหกิจ 2/2: "06016414, 06016415") -> แยกเป็นวิชาละแถว ชื่อ/หน่วยกิตจากดัชนีของเล่ม
+    ทุกรหัสต้องมีชื่อชัดเจนในดัชนี ไม่งั้นไม่แตะทั้งแถว; รหัสที่มีแถวของตัวเองอยู่แล้วไม่สร้างซ้ำ"""
+    done: list[dict] = []
+    singles = {str(c.get("code") or "").strip() for c in courses}
+    for c in list(courses):
+        raw = str(c.get("code") or "")
+        codes = CODE8.findall(raw)
+        if len(codes) < 2 or "หรือ" in raw:
+            continue
+        if not all(k in idx for k in codes):
+            continue
+        new = []
+        for k in codes:
+            if k in singles:
+                continue
+            new.append({**{f: c.get(f) for f in ("year", "semester", "category", "type", "prerequisite")},
+                        "code": k, "name_th": idx[k]["name"],
+                        "credits": idx[k]["credits"] or c.get("credits"), "name_en": None,
+                        "_code_from_book": {"split_from": raw}})
+        courses.remove(c)
+        courses.extend(new)
+        singles.update(n["code"] for n in new)
+        done.append({"action": "split", "from": raw, "to": [n["code"] for n in new],
+                     "term": f"{c.get('year')}/{c.get('semester')}"})
+    return done
+
+
+def _term_texts(md: str) -> list[tuple[tuple[int, int], str]]:
+    """ข้อความ (normalize แล้ว) ของตารางแต่ละเทอม: จากหัว "ปีที่ N ภาค…ที่ M" ถึงหัวถัดไป"""
+    heads = [(m.start(), (int(m.group(1)), int(m.group(2)))) for m in HEADING_RE.finditer(md)]
+    out = []
+    for i, (pos, term) in enumerate(heads):
+        end = heads[i + 1][0] if i + 1 < len(heads) else len(md)
+        text = re.sub(r"<[^>]+>", " ", md[pos:end])
+        out.append((term, normalize(text)))
+    return out
+
+
+def add_names_found_in_term(md: str, courses: list[dict], idx: dict[str, dict[str, Any]],
+                            variants: dict[str, dict[str, tuple[int, str]]],
+                            credits: dict[str, str] | None = None) -> list[dict]:
+    """กฎ 2: ชื่อวิชาของเล่มที่ "อยู่ในตารางเทอมนั้น" แต่รหัสหายจาก OCR และ LLM ไม่ส่งออกมา
+    (IT 3/1: กลุ่มวิชาด้านโครงสร้างพื้นฐานฯ โดนตราน้ำ -> 06016421/06016422 ไม่มีรหัสใน Markdown)
+    เงื่อนไข: ชื่อ (normalize) ยาว >= MIN_NAME_LEN, อยู่ในตารางของ "เทอมเดียว", ไม่ได้เป็นส่วนหนึ่งของชื่อวิชาอื่น
+    ในดัชนีที่ก็อยู่ในเทอมนั้นด้วย, รหัสไม่ปรากฏใน Markdown เลย และไม่อยู่ใน courses
+    ชื่อที่ใช้: แบบสะกดที่ Tesseract เจอ >= 2 บรรทัด "และ" Typhoon (Markdown) ก็อ่านได้ตรงกัน — ต้องมีแบบเดียว
+    (กรณีเล่มสะกดเพี้ยนเท่า ๆ กัน เช่น 06016422 "…สรรพสิ่ง" 2 ครั้ง / "…สรรหสิ่ง" 2 ครั้ง ใช้ OCR สองตัวที่ตรงกันตัดสิน)"""
+    present = {k for c in courses for k in CODE8.findall(str(c.get("code") or ""))}
+    md_codes = set(CODE8.findall(md))
+    terms = _term_texts(md)
+    done: list[dict] = []
+    credits = credits or {}
+    all_keys = [(o, k) for o, vs in variants.items() for k in vs]
+    for code, vs in variants.items():
+        if code in present or code in md_codes:
+            continue
+        confirmed = []
+        for key, (n, raw) in vs.items():
+            if n < 2 or len(key) < MIN_NAME_LEN:
+                continue
+            hits = {t for t, text in terms if key in text}
+            if len(hits) == 1:
+                confirmed.append((key, raw, next(iter(hits))))
+        if len(confirmed) != 1:
+            continue
+        key, raw, term = confirmed[0]
+        text = dict(terms)[term]
+        longer = [o for o, k in all_keys if o != code and key in k and k != key and k in text]
+        if longer:
+            continue
+        cr = idx.get(code, {}).get("credits") or credits.get(code)
+        courses.append({"code": code, "name_th": raw.replace("ํา", "ำ"), "credits": cr,
+                        "year": term[0], "semester": term[1], "category": None, "type": None,
+                        "name_en": None, "_code_from_book": {"from": None, "via": "name_in_term"}})
+        present.add(code)
+        done.append({"action": "add", "to": code, "term": f"{term[0]}/{term[1]}", "name_th": raw})
+    return done
+
+
+def fix_placeholder_names(courses: list[dict], idx: dict[str, dict[str, Any]]) -> list[dict]:
+    """กฎ 3: วิชารหัสจริง 8 หลักที่ชื่อว่าง หรือชื่อเป็นป้ายช่องวิชาเลือก ("วิชาเลือก…"/"วิชาเสรี…" — รหัสจริง
+    ไม่ใช่ช่องเลือก) -> ใช้ชื่อจากดัชนีของเล่ม (เติมหน่วยกิตถ้าว่าง) ไม่แตะชื่อที่เป็นชื่อวิชาปกติอยู่แล้ว"""
+    def placeholder(n: str) -> bool:
+        return not n or n.startswith(("วิชาเลือก", "วิชาเสรี"))
+
+    real_named = {str(c.get("code") or "").strip() for c in courses
+                  if not placeholder(str(c.get("name_th") or "").strip())}
+    done: list[dict] = []
+    for c in courses:
+        code = str(c.get("code") or "").strip()
+        if not re.fullmatch(r"\d{8}", code) or code not in idx:
+            continue
+        name = str(c.get("name_th") or "").strip()
+        if not placeholder(name):
+            continue
+        if code in real_named:
+            # รหัสนี้มีแถวชื่อจริงอยู่แล้ว = แถวนี้คือช่องวิชาเลือกที่ LLM ประทับรหัสผิด (เช่น IT coop 4/1
+            # "90643021 / 9064xxxx" rowspan) — ไม่เปลี่ยนชื่อ เพราะจะซ่อนความผิดแทนที่จะแก้
+            continue
+        c["_name_from_book"] = {"from": c.get("name_th")}
+        c["name_th"] = idx[code]["name"]
+        if not c.get("credits") and idx[code]["credits"]:
+            c["credits"] = idx[code]["credits"]
+        done.append({"action": "rename", "code": code, "from": name or None, "to": idx[code]["name"]})
+    return done
+
+
+def repair_with_book(md: str, courses: list[dict], book_text: str) -> list[dict]:
+    """กฎ 1-3 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย) รันซ้ำได้"""
+    idx = book_index(book_text)
+    return (split_merged_codes(courses, idx)
+            + add_names_found_in_term(md, courses, idx, book_variants(book_text), book_credits(book_text))
+            + fix_placeholder_names(courses, idx))

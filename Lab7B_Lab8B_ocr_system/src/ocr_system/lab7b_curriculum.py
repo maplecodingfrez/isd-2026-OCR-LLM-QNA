@@ -1775,13 +1775,16 @@ def main() -> None:
             print(f"  ⚠ ไม่พบ {md_path.name} หรือ {args.book_ocr} — ข้ามขั้นกู้รหัสจากเล่ม")
             return
         sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from code_from_book import recover_codes
+        from code_from_book import recover_codes, repair_with_book
         pred = json.loads(target.read_text(encoding="utf-8"))
         backup = target.with_name(target.stem + ".before_codes.json")
         if not backup.exists():           # ไม่ทับสำเนาต้นฉบับถ้ารันซ้ำ
             backup.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
-        done = recover_codes(md_path.read_text(encoding="utf-8"), pred.setdefault("courses", []),
-                             Path(args.book_ocr).read_text(encoding="utf-8"))
+        md_text = md_path.read_text(encoding="utf-8")
+        book_text = Path(args.book_ocr).read_text(encoding="utf-8")
+        courses = pred.setdefault("courses", [])
+        # รหัสหายในแถว -> แยกรหัสที่ LLM รวม -> ชื่อที่อยู่ในตารางแต่รหัสหาย -> ชื่อว่าง/ป้ายวิชาเลือกบนรหัสจริง
+        done = recover_codes(md_text, courses, book_text) + repair_with_book(md_text, courses, book_text)
         # รันซ้ำได้ (รหัสที่กู้แล้วอยู่ใน courses จะไม่ถูกทำซ้ำ) — สะสมรายการ ไม่ทับของรอบก่อน
         pred.setdefault("_meta", {}).setdefault("code_from_book", []).extend(done)
         target.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -1087,12 +1087,17 @@ def cmd_load_plan_slots_md(args) -> None:
     from md_plan_slots import derive_slots, md_codes_by_term
 
     md = Path(args.markdown).read_text(encoding="utf-8")
-    slots, term_report = derive_slots(md)
     db = Path(args.database)
     if not db.exists():
         raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
 
     conn = open_db(db)
+    # ชื่อวิชาต่อเทอมใน DB — ให้ derive_slots หาสมาชิกของกลุ่มวิชาที่ OCR ทำรหัสหาย (ชื่อต้องอยู่ในเซลล์หัวกลุ่ม)
+    names_by_term: dict[tuple[int, int], dict[str, str]] = {}
+    for y, sm, code, name in conn.execute(
+            "SELECT p.year, p.semester, p.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code"):
+        names_by_term.setdefault((y, sm), {})[code] = name
+    slots, term_report = derive_slots(md, names_by_term)
     conn.executescript(PLAN_SLOT_DDL)
     program_id = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()[0]
     conn.execute("DELETE FROM plan_slot_member WHERE slot_id IN "

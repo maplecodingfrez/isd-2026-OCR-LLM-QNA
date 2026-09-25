@@ -5,13 +5,13 @@
       "code": {
         "label": "รหัสวิชา",
         "n_items": 53,
-        "cer": 0.158257,
+        "cer": 0.12156,
         "wer": null,
-        "exact_match_acc": 0.849057,
+        "exact_match_acc": 0.886792,
         "n_sub": 0,
-        "n_del": 68,
+        "n_del": 52,
         "n_ins": 1,
-        "n_missing": 7,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 436,
         "error_samples": [
@@ -19,16 +19,6 @@
             "key": "9064xxxx",
             "gt": "9064xxxx",
             "pred": "9064xxxxx"
-          },
-          {
-            "key": "06016421 [ตกแถว]",
-            "gt": "06016421",
-            "pred": ""
-          },
-          {
-            "key": "06016422 [ตกแถว]",
-            "gt": "06016422",
-            "pred": ""
           },
           {
             "key": "06016418 [ตกแถว]",
@@ -39,19 +29,29 @@
             "key": "06016481\nหรือ\n06016482 [ตกแถว]",
             "gt": "06016481\nหรือ\n06016482",
             "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "9064xxxx",
+            "pred": ""
+          },
+          {
+            "key": "xxxxxxxx [ตกแถว]",
+            "gt": "xxxxxxxx",
+            "pred": ""
           }
         ]
       },
       "name_th": {
         "label": "ชื่อวิชา (ไทย) ⭐",
         "n_items": 53,
-        "cer": 0.220578,
-        "wer": 0.248804,
-        "exact_match_acc": 0.735849,
-        "n_sub": 55,
-        "n_del": 255,
-        "n_ins": 3,
-        "n_missing": 8,
+        "cer": 0.093728,
+        "wer": 0.110048,
+        "exact_match_acc": 0.830189,
+        "n_sub": 10,
+        "n_del": 123,
+        "n_ins": 0,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 1419,
         "error_samples": [
@@ -76,9 +76,9 @@
             "pred": "ระบบโครงสร้างพื้นฐานและภารบริการ"
           },
           {
-            "key": "06016423",
-            "gt": "การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
-            "pred": "None"
+            "key": "06016418 [ตกแถว]",
+            "gt": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            "pred": ""
           }
         ]
       },
@@ -125,13 +125,13 @@
       "credits": {
         "label": "หน่วยกิต",
         "n_items": 53,
-        "cer": 0.151448,
+        "cer": 0.097996,
         "wer": null,
-        "exact_match_acc": 0.830189,
+        "exact_match_acc": 0.886792,
         "n_sub": 3,
-        "n_del": 65,
+        "n_del": 41,
         "n_ins": 0,
-        "n_missing": 8,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 449,
         "error_samples": [
@@ -141,23 +141,23 @@
             "pred": "3(2-2-5)"
           },
           {
-            "key": "06016423",
+            "key": "06016418 [ตกแถว]",
             "gt": "3(2-2-5)",
-            "pred": "None"
+            "pred": ""
           },
           {
-            "key": "06016421 [ตกแถว]",
+            "key": "06016481\nหรือ\n06016482 [ตกแถว]",
+            "gt": "6(0-36-0)",
+            "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
             "gt": "3(3-0-6)",
             "pred": ""
           },
           {
-            "key": "06016422 [ตกแถว]",
-            "gt": "3(2-2-5)",
-            "pred": ""
-          },
-          {
-            "key": "06016418 [ตกแถว]",
-            "gt": "3(2-2-5)",
+            "key": "xxxxxxxx [ตกแถว]",
+            "gt": "3(x-x-x)",
             "pred": ""
           }
         ]
@@ -165,26 +165,16 @@
       "year_sem": {
         "label": "ปี/ภาค",
         "n_items": 50,
-        "cer": 0.14,
+        "cer": 0.1,
         "wer": null,
-        "exact_match_acc": 0.86,
+        "exact_match_acc": 0.9,
         "n_sub": 0,
-        "n_del": 21,
+        "n_del": 15,
         "n_ins": 0,
-        "n_missing": 7,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 150,
         "error_samples": [
-          {
-            "key": "06016421 [ตกแถว]",
-            "gt": "3/1",
-            "pred": ""
-          },
-          {
-            "key": "06016422 [ตกแถว]",
-            "gt": "3/1",
-            "pred": ""
-          },
           {
             "key": "06016418 [ตกแถว]",
             "gt": "3/1",
@@ -197,6 +187,16 @@
           },
           {
             "key": "9064xxxx [ตกแถว]",
+            "gt": "4/1",
+            "pred": ""
+          },
+          {
+            "key": "xxxxxxxx [ตกแถว]",
+            "gt": "4/1",
+            "pred": ""
+          },
+          {
+            "key": "xxxxxxxx [ตกแถว]",
             "gt": "4/1",
             "pred": ""
           }
@@ -256,9 +256,14 @@
         "n_ref_chars": 312,
         "error_samples": [
           {
-            "key": "90643021",
+            "key": "06016421",
             "gt": "บังคับ",
-            "pred": "เลือก"
+            "pred": "None"
+          },
+          {
+            "key": "06016422",
+            "gt": "บังคับ",
+            "pred": "None"
           },
           {
             "key": "06016423",
@@ -274,26 +279,21 @@
             "key": "06016427",
             "gt": "บังคับ",
             "pred": "เลือก"
-          },
-          {
-            "key": "06016421 [ตกแถว]",
-            "gt": "บังคับ",
-            "pred": ""
           }
         ]
       },
       "prereq": {
         "label": "วิชาบังคับก่อน",
-        "n_items": 46,
-        "cer": 0.254032,
+        "n_items": 48,
+        "cer": 0.238636,
         "wer": null,
-        "exact_match_acc": 0.73913,
+        "exact_match_acc": 0.75,
         "n_sub": 0,
         "n_del": 63,
         "n_ins": 0,
         "n_missing": 12,
         "n_hallucinated": 0,
-        "n_ref_chars": 248,
+        "n_ref_chars": 264,
         "error_samples": [
           {
             "key": "90641001",
@@ -324,7 +324,7 @@
       },
       "flexible": {
         "label": "ปี/ภาคยืดหยุ่น",
-        "n_items": 43,
+        "n_items": 45,
         "cer": 0.0,
         "wer": null,
         "exact_match_acc": 1.0,
@@ -337,19 +337,17 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.286669,
+    "overall_micro_cer": 0.242765,
     "alignment": {
-      "matched": 46,
-      "missed": 7,
+      "matched": 48,
+      "missed": 5,
       "spurious": 7,
-      "precision": 0.8679,
-      "recall": 0.8679,
-      "f1": 0.8679,
+      "precision": 0.8727,
+      "recall": 0.9057,
+      "f1": 0.8889,
       "gt_total": 53,
-      "pred_total": 53,
+      "pred_total": 55,
       "missed_codes": [
-        "06016421",
-        "06016422",
         "06016418",
         "06016481\nหรือ\n06016482",
         "9064xxxx",
@@ -376,8 +374,8 @@
             "<ไม่ได้ทำนาย>": {},
             "บังคับ": {
               "บังคับ": 39,
-              "เลือก": 3,
-              "<ไม่ได้ทำนาย>": 5
+              "<ไม่ได้ทำนาย>": 5,
+              "เลือก": 3
             },
             "เลือก": {
               "เลือก": 3,
@@ -488,30 +486,30 @@
         }
       },
       "strict": {
-        "matched": 43,
-        "missed": 10,
+        "matched": 45,
+        "missed": 8,
         "spurious": 10,
-        "precision": 0.8113,
-        "recall": 0.8113,
-        "f1": 0.8113
+        "precision": 0.8182,
+        "recall": 0.8491,
+        "f1": 0.8333
       },
       "wildcard_pass_matched": 3
     },
     "internal_check": {
       "ok": false,
-      "n_courses": 53,
+      "n_courses": 55,
       "n_duplicate_keys": 0,
       "credits_by_term": {
         "1/1": 24,
         "1/2": 18,
         "2/1": 18,
         "2/2": 30,
-        "3/1": 21,
+        "3/1": 30,
         "3/2": 12,
         "4/1": 12,
         "4/2": 15
       },
-      "total_credits_fixed_terms": 150,
+      "total_credits_fixed_terms": 159,
       "issues": [
         "90644xxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "รหัสวิชาผิดรูปแบบ: 'หรือ'",
@@ -522,7 +520,8 @@
         "9064xxxx: ปี/ภาค = 0 แต่ไม่ได้ระบุ flexible_year_semester",
         "หน่วยกิตผิดรูปแบบ: 90643021 -> '3(x-x-x)'",
         "รหัสวิชาผิดรูปแบบ: '9064xxxxx'",
-        "ภาค 2/2 มีถึง 30 หน่วยกิต — น่าจะมีวิชาซ้ำ"
+        "ภาค 2/2 มีถึง 30 หน่วยกิต — น่าจะมีวิชาซ้ำ",
+        "ภาค 3/1 มีถึง 30 หน่วยกิต — น่าจะมีวิชาซ้ำ"
       ]
     }
   }

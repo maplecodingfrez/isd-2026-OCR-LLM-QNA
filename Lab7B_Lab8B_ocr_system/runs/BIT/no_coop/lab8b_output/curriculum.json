@@ -360,12 +360,12 @@
     },
     {
       "code": "96642033",
-      "name_th": "96642033",
+      "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
       "name_en": null,
       "credits": 3,
-      "lecture_h": 0,
-      "lab_h": 9,
-      "self_h": 0,
+      "lecture_h": 3,
+      "lab_h": 0,
+      "self_h": 6,
       "description_th": null
     }
   ],
@@ -668,6 +668,11 @@
     {
       "code": "06036114",
       "requires": "06036122",
+      "kind": "pre"
+    },
+    {
+      "code": "06036146",
+      "requires": "06036145",
       "kind": "pre"
     }
   ]
