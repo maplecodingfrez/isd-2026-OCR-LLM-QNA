@@ -15,7 +15,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.7
   },
   {
     "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
@@ -49,22 +49,22 @@
     "answer": "แคลคูลัส 2",
     "citations": [
       {
+        "pdf_page": 314,
+        "printed_page": "313"
+      },
+      {
         "pdf_page": 17,
         "printed_page": "16"
       },
       {
         "pdf_page": 31,
         "printed_page": "30"
-      },
-      {
-        "pdf_page": 314,
-        "printed_page": "313"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 16 (PDF 17), หน้า 30 (PDF 31), หน้า 313 (PDF 314))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 313 (PDF 314), หน้า 16 (PDF 17), หน้า 30 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "รหัสวิชา 06026206 มีชื่อภาษาไทยว่าอะไร",
@@ -80,22 +80,22 @@
     "answer": "การวิเคราะห์ข้อมูลและการโปรแกรม",
     "citations": [
       {
+        "pdf_page": 321,
+        "printed_page": "320"
+      },
+      {
         "pdf_page": 18,
         "printed_page": "17"
       },
       {
         "pdf_page": 25,
         "printed_page": "24"
-      },
-      {
-        "pdf_page": 321,
-        "printed_page": "320"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 17 (PDF 18), หน้า 24 (PDF 25), หน้า 320 (PDF 321))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 320 (PDF 321), หน้า 17 (PDF 18), หน้า 24 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06066303 มีชื่อภาษาไทยว่าอะไร",
@@ -111,19 +111,19 @@
     "answer": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
     "citations": [
       {
+        "pdf_page": 319,
+        "printed_page": "318"
+      },
+      {
         "pdf_page": 18,
         "printed_page": "17"
       },
       {
         "pdf_page": 23,
         "printed_page": "22"
-      },
-      {
-        "pdf_page": 319,
-        "printed_page": "318"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 17 (PDF 18), หน้า 22 (PDF 23), หน้า 318 (PDF 319))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 318 (PDF 319), หน้า 17 (PDF 18), หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
     "seconds": 1.6
@@ -142,22 +142,22 @@
     "answer": "06026201",
     "citations": [
       {
+        "pdf_page": 314,
+        "printed_page": "313"
+      },
+      {
         "pdf_page": 17,
         "printed_page": "16"
       },
       {
         "pdf_page": 31,
         "printed_page": "30"
-      },
-      {
-        "pdf_page": 314,
-        "printed_page": "313"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 16 (PDF 17), หน้า 30 (PDF 31), หน้า 313 (PDF 314))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 313 (PDF 314), หน้า 16 (PDF 17), หน้า 30 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "วิชา 'ระบบข้อมูลมหัต' มีรหัสวิชาอะไร",
@@ -173,22 +173,22 @@
     "answer": "06026213",
     "citations": [
       {
+        "pdf_page": 324,
+        "printed_page": "323"
+      },
+      {
         "pdf_page": 19,
         "printed_page": "18"
       },
       {
         "pdf_page": 28,
         "printed_page": "27"
-      },
-      {
-        "pdf_page": 324,
-        "printed_page": "323"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 18 (PDF 19), หน้า 27 (PDF 28), หน้า 323 (PDF 324))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 323 (PDF 324), หน้า 18 (PDF 19), หน้า 27 (PDF 28))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "รหัสวิชา 06026259 (สหกิจศึกษา) มีกี่หน่วยกิต",
@@ -204,22 +204,22 @@
     "answer": "6 หน่วยกิต",
     "citations": [
       {
+        "pdf_page": 341,
+        "printed_page": "340"
+      },
+      {
         "pdf_page": 22,
         "printed_page": "21"
       },
       {
         "pdf_page": 36,
         "printed_page": "35"
-      },
-      {
-        "pdf_page": 341,
-        "printed_page": "340"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 22), หน้า 35 (PDF 36), หน้า 340 (PDF 341))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 340 (PDF 341), หน้า 21 (PDF 22), หน้า 35 (PDF 36))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.9
   },
   {
     "question": "รหัสวิชา 06026215 มีกี่หน่วยกิต",
@@ -235,22 +235,22 @@
     "answer": "3 หน่วยกิต",
     "citations": [
       {
+        "pdf_page": 325,
+        "printed_page": "324"
+      },
+      {
         "pdf_page": 19,
         "printed_page": "18"
       },
       {
         "pdf_page": 29,
         "printed_page": "28"
-      },
-      {
-        "pdf_page": 36,
-        "printed_page": "35"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 18 (PDF 19), หน้า 28 (PDF 29), หน้า 35 (PDF 36))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 324 (PDF 325), หน้า 18 (PDF 19), หน้า 28 (PDF 29))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.9
   },
   {
     "question": "รหัสวิชา 90641003 มีกี่หน่วยกิต",
@@ -266,22 +266,22 @@
     "answer": "1 หน่วยกิต",
     "citations": [
       {
+        "pdf_page": 151,
+        "printed_page": "150"
+      },
+      {
         "pdf_page": 16,
         "printed_page": "15"
       },
       {
         "pdf_page": 123,
         "printed_page": "122"
-      },
-      {
-        "pdf_page": 125,
-        "printed_page": "124"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 15 (PDF 16), หน้า 122 (PDF 123), หน้า 124 (PDF 125))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 150 (PDF 151), หน้า 15 (PDF 16), หน้า 122 (PDF 123))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
@@ -317,7 +317,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 1.8
   },
   {
     "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 2 เรียนรวมทั้งหมดกี่หน่วยกิต",
@@ -335,7 +335,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 3.2
+    "seconds": 2.2
   },
   {
     "question": "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ในแผนการศึกษามีหน่วยกิตรวมเท่าไร",
@@ -353,7 +353,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 3.1
+    "seconds": 2.2
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 2 ประกอบด้วยรายวิชารหัสใดบ้าง",
@@ -377,22 +377,22 @@
     "answer": "06026204, 06026207, 06026208, 06026209, 06026210, 06066102, 06066301",
     "citations": [
       {
+        "pdf_page": 316,
+        "printed_page": "315"
+      },
+      {
         "pdf_page": 17,
         "printed_page": "16"
       },
       {
         "pdf_page": 26,
         "printed_page": "25"
-      },
-      {
-        "pdf_page": 33,
-        "printed_page": "32"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 16 (PDF 17), หน้า 25 (PDF 26), หน้า 32 (PDF 33))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 315 (PDF 316), หน้า 16 (PDF 17), หน้า 25 (PDF 26))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 4.0
+    "seconds": 3.1
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 2 ประกอบด้วยรายวิชารหัสใดบ้าง",
@@ -416,22 +416,22 @@
     "answer": "06026201, 06026203, 06026205, 06066001, 90641002, 90642033, 90644008",
     "citations": [
       {
+        "pdf_page": 314,
+        "printed_page": "313"
+      },
+      {
         "pdf_page": 17,
         "printed_page": "16"
       },
       {
         "pdf_page": 31,
         "printed_page": "30"
-      },
-      {
-        "pdf_page": 314,
-        "printed_page": "313"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 16 (PDF 17), หน้า 30 (PDF 31), หน้า 313 (PDF 314))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 313 (PDF 314), หน้า 16 (PDF 17), หน้า 30 (PDF 31))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 3.9
+    "seconds": 3.1
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 3 ภาคการศึกษาที่ 1 มีรายวิชากี่วิชา",
@@ -449,7 +449,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.5
+    "seconds": 2.0
   },
   {
     "question": "รหัสวิชา 06026215 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
@@ -465,22 +465,22 @@
     "answer": "ปีที่ 4",
     "citations": [
       {
+        "pdf_page": 325,
+        "printed_page": "324"
+      },
+      {
         "pdf_page": 19,
         "printed_page": "18"
       },
       {
         "pdf_page": 29,
         "printed_page": "28"
-      },
-      {
-        "pdf_page": 36,
-        "printed_page": "35"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 18 (PDF 19), หน้า 28 (PDF 29), หน้า 35 (PDF 36))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 324 (PDF 325), หน้า 18 (PDF 19), หน้า 28 (PDF 29))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.0
   },
   {
     "question": "หน่วยกิตรวมต่อภาคเรียนที่มากที่สุดในแผนการศึกษาคือกี่หน่วยกิต",
@@ -498,7 +498,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.9
   },
   {
     "question": "หน่วยกิตรวมต่อภาคเรียนที่น้อยที่สุดในแผนการศึกษาคือกี่หน่วยกิต",
@@ -516,7 +516,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.9
   },
   {
     "question": "ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
@@ -534,7 +534,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
@@ -552,7 +552,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 6",
@@ -570,7 +570,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีค่าชั่วโมงปฏิบัติการเท่ากับ 0",
@@ -588,7 +588,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 21 (ได้ ['19'])",
-    "seconds": 2.0
+    "seconds": 2.3
   },
   {
     "question": "รหัสวิชา 06026214 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
@@ -604,22 +604,22 @@
     "answer": "9 ชั่วโมง",
     "citations": [
       {
+        "pdf_page": 324,
+        "printed_page": "323"
+      },
+      {
+        "pdf_page": 325,
+        "printed_page": "324"
+      },
+      {
         "pdf_page": 19,
         "printed_page": "18"
-      },
-      {
-        "pdf_page": 28,
-        "printed_page": "27"
-      },
-      {
-        "pdf_page": 35,
-        "printed_page": "34"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 18 (PDF 19), หน้า 27 (PDF 28), หน้า 34 (PDF 35))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 323 (PDF 324), หน้า 324 (PDF 325), หน้า 18 (PDF 19))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.3
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีคำว่า 'ข้อมูล' อยู่ในชื่อภาษาไทย",

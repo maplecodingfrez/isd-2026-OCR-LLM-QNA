@@ -15,7 +15,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.9
   },
   {
     "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
@@ -33,7 +33,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.4
+    "seconds": 1.1
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
@@ -79,7 +79,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.4
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
@@ -107,18 +107,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
+        "pdf_page": 324,
+        "printed_page": "323"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 18 (PDF 23), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 3.6
+    "seconds": 3.1
   },
   {
     "question": "รหัสวิชา 06016401 มีชื่อภาษาไทยว่าอะไร",
@@ -138,18 +138,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
+        "pdf_page": 324,
+        "printed_page": "323"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 18 (PDF 23), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.7
+    "seconds": 2.2
   },
   {
     "question": "รหัสวิชา 06016402 มีชื่อภาษาไทยว่าอะไร",
@@ -169,18 +169,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
+        "pdf_page": 324,
+        "printed_page": "323"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 18 (PDF 23), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.6
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06016411 มีชื่อภาษาไทยว่าอะไร",
@@ -200,18 +200,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 24,
-        "printed_page": "19"
-      },
-      {
         "pdf_page": 328,
         "printed_page": "327"
+      },
+      {
+        "pdf_page": 24,
+        "printed_page": "19"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 19 (PDF 24), หน้า 327 (PDF 328))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 327 (PDF 328), หน้า 19 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06066303 มีชื่อภาษาไทยว่าอะไร",
@@ -231,18 +231,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 24,
-        "printed_page": "19"
+        "pdf_page": 359,
+        "printed_page": "358"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 24,
+        "printed_page": "19"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 19 (PDF 24), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 358 (PDF 359), หน้า 19 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.6
   },
   {
     "question": "รหัสวิชา 90641001 มีชื่อภาษาไทยว่าอะไร",
@@ -262,18 +262,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 21,
-        "printed_page": "16"
+        "pdf_page": 162,
+        "printed_page": "161"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 21,
+        "printed_page": "16"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 16 (PDF 21), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 161 (PDF 162), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.6
   },
   {
     "question": "รหัสวิชา 90641003 มีชื่อภาษาไทยว่าอะไร",
@@ -304,7 +304,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 16 (PDF 21), หน้า 33 (PDF 38))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.6
   },
   {
     "question": "วิชา 'ภาษาอังกฤษพื้นฐาน 1' มีรหัสวิชาอะไร",
@@ -324,18 +324,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 22,
-        "printed_page": "17"
+        "pdf_page": 220,
+        "printed_page": "219"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 22,
+        "printed_page": "17"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 17 (PDF 22), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 219 (PDF 220), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.7
   },
   {
     "question": "วิชา 'เทคโนโลยีสื่อประสม' มีรหัสวิชาอะไร",
@@ -355,18 +355,18 @@
         "printed_page": "28"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
-      },
-      {
         "pdf_page": 324,
         "printed_page": "323"
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 18 (PDF 23), หน้า 323 (PDF 324))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "question": "วิชา 'การประมวลผลทางกายภาพ' มีรหัสวิชาอะไร",
@@ -384,7 +384,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 06016409 (ได้ [])",
-    "seconds": 0.9
+    "seconds": 0.8
   },
   {
     "question": "รหัสวิชา 06016404 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
@@ -404,18 +404,18 @@
         "printed_page": "30"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
-      },
-      {
         "pdf_page": 325,
         "printed_page": "324"
+      },
+      {
+        "pdf_page": 336,
+        "printed_page": "335"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 18 (PDF 23), หน้า 324 (PDF 325))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 324 (PDF 325), หน้า 335 (PDF 336))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.8
   },
   {
     "question": "รหัสวิชา 06016404 มีกี่หน่วยกิต",
@@ -435,18 +435,18 @@
         "printed_page": "30"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
-      },
-      {
         "pdf_page": 325,
         "printed_page": "324"
+      },
+      {
+        "pdf_page": 336,
+        "printed_page": "335"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 18 (PDF 23), หน้า 324 (PDF 325))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 324 (PDF 325), หน้า 335 (PDF 336))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.9
   },
   {
     "question": "ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
@@ -464,7 +464,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
@@ -482,7 +482,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "question": "มีรายวิชากี่วิชาที่ไม่มีชั่วโมงปฏิบัติการ (ชั่วโมงปฏิบัติการเท่ากับ 0)",
@@ -500,7 +500,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.8
   },
   {
     "question": "รายวิชาในหลักสูตรนี้มีชั่วโมงปฏิบัติการต่อสัปดาห์มากที่สุดกี่ชั่วโมง",
@@ -518,7 +518,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 3.0
   },
   {
     "question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
@@ -536,7 +536,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "รหัสวิชา 06016402 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
@@ -556,18 +556,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
+        "pdf_page": 324,
+        "printed_page": "323"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 18 (PDF 23), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.3
   },
   {
     "question": "รหัสวิชา 06016401 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง",
@@ -587,18 +587,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 23,
-        "printed_page": "18"
+        "pdf_page": 324,
+        "printed_page": "323"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 23,
+        "printed_page": "18"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 18 (PDF 23), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.3
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีคำว่า 'เทคโนโลยี' อยู่ในชื่อภาษาไทย",
@@ -639,7 +639,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 1.9
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี 2 หน่วยกิต",
@@ -659,18 +659,18 @@
         "printed_page": "26"
       },
       {
-        "pdf_page": 21,
-        "printed_page": "16"
+        "pdf_page": 162,
+        "printed_page": "161"
       },
       {
-        "pdf_page": 38,
-        "printed_page": "33"
+        "pdf_page": 21,
+        "printed_page": "16"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 16 (PDF 21), หน้า 33 (PDF 38))",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 26 (PDF 31), หน้า 161 (PDF 162), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.9
   },
   {
     "question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",
@@ -688,7 +688,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 8 (ได้ ['7'])",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "question": "ค่าธรรมเนียมการศึกษา (ค่าเทอม) ของหลักสูตรนี้ต่อภาคการศึกษาคือเท่าไร",
@@ -706,7 +706,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.7
   },
   {
     "question": "รายวิชา 06016401 มีอาจารย์ผู้สอนประจำวิชาชื่อว่าอะไร",
@@ -724,7 +724,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 0.5
   },
   {
     "question": "รหัสวิชา 99999999 เป็นรายวิชาอะไร และมีกี่หน่วยกิต",
