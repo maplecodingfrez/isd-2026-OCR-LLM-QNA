@@ -443,6 +443,11 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
     lines.append("หน้าอ้างอิงแนบด้วยโค้ดจากตาราง `course_page` (ไม่ใช่ LLM) · ถูก = หน้าที่อ้างมีอย่างน้อย 1 หน้าตรงกับหน้าที่ "
                  "Lab 5 พบวิชา/ตารางเทอมนั้น (เทียบเลขหน้า PDF) · ข้อที่ไม่มีหน้าคาดหวัง (เช่น นับทั้งหลักสูตร) ไม่นับในอัตราอ้างอิง")
     lines.append("")
+    lines.append("ข้อจำกัดของตัววัดระดับ 2: หน้าที่คาดของคำถามรายเทอม = หน้าที่พบวิชาของเทอมนั้นบ่อยที่สุดในผล Lab 5 "
+                 "ซึ่งบางเล่มชี้ผิดหน้า (IT no_coop ชี้หน้าแผนสหกิจ PDF 38 เพราะ Tesseract อ่านรหัสวิชาหน้า 31 ไม่ออก; "
+                 "DSBA ชี้หน้าภาคผนวก PDF 353) — หน้าที่ระบบอ้างในกรณีนี้ตรวจกับหัวเทอมใน OCR ทั้งเล่มแล้วถูก "
+                 "จึงอัตราระดับ 2 ต่ำกว่าจริง · DSBA coop ไม่อ้างหน้าตารางแผน (เลขไฟล์ภาพไม่ตรงเลขหน้า PDF — ขัดกับหัวเทอมในเล่ม จึงไม่อ้าง)")
+    lines.append("")
     lines.append("| run | level | n | execution_accuracy | answers with citation | citation_accuracy (checkable) |")
     lines.append("|---|---|---|---|---|---|")
     for r in runs.values():

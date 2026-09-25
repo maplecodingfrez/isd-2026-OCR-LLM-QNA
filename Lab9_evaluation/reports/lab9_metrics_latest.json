@@ -43,8 +43,31 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.7333,
     "answer_text_accuracy": 0.7333,
-    "avg_seconds": 2.45,
-    "sql_ok_text_wrong": []
+    "avg_seconds": 2.22,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 13,
+        "with_citation": 11,
+        "cite_checkable": 13,
+        "cite_hit": 11
+      },
+      "2": {
+        "n": 12,
+        "correct": 6,
+        "with_citation": 4,
+        "cite_checkable": 5,
+        "cite_hit": 4
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "bit_no_coop": {
     "name": "bit_no_coop",
@@ -89,8 +112,31 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.66,
-    "sql_ok_text_wrong": []
+    "avg_seconds": 2.1,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 13,
+        "cite_hit": 13
+      },
+      "2": {
+        "n": 12,
+        "correct": 9,
+        "with_citation": 5,
+        "cite_checkable": 5,
+        "cite_hit": 5
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "bit_coop": {
     "name": "bit_coop",
@@ -136,8 +182,31 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 2.05,
-    "sql_ok_text_wrong": []
+    "avg_seconds": 1.55,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 13,
+        "cite_hit": 13
+      },
+      "2": {
+        "n": 12,
+        "correct": 9,
+        "with_citation": 5,
+        "cite_checkable": 5,
+        "cite_hit": 5
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "dsba_no_coop": {
     "name": "dsba_no_coop",
@@ -183,10 +252,33 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 1.0,
     "answer_text_accuracy": 0.9667,
-    "avg_seconds": 1.9,
+    "avg_seconds": 1.91,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ]
+    ],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 13,
+        "cite_hit": 13
+      },
+      "2": {
+        "n": 12,
+        "correct": 12,
+        "with_citation": 5,
+        "cite_checkable": 5,
+        "cite_hit": 2
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "dsba_coop": {
     "name": "dsba_coop",
@@ -232,8 +324,31 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9667,
     "answer_text_accuracy": 0.9667,
-    "avg_seconds": 2.15,
-    "sql_ok_text_wrong": []
+    "avg_seconds": 2.13,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 12,
+        "correct": 12,
+        "with_citation": 10,
+        "cite_checkable": 10,
+        "cite_hit": 10
+      },
+      "2": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 2,
+        "cite_checkable": 7,
+        "cite_hit": 2
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "it_no_coop": {
     "name": "it_no_coop",
@@ -279,10 +394,33 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9333,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.47,
+    "avg_seconds": 2.02,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ]
+    ],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 12,
+        "cite_checkable": 13,
+        "cite_hit": 12
+      },
+      "2": {
+        "n": 12,
+        "correct": 11,
+        "with_citation": 5,
+        "cite_checkable": 5,
+        "cite_hit": 2
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   },
   "it_coop": {
     "name": "it_coop",
@@ -328,9 +466,32 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.8333,
     "answer_text_accuracy": 0.8,
-    "avg_seconds": 1.84,
+    "avg_seconds": 1.5,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ]
+    ],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 12,
+        "cite_checkable": 13,
+        "cite_hit": 12
+      },
+      "2": {
+        "n": 12,
+        "correct": 8,
+        "with_citation": 5,
+        "cite_checkable": 5,
+        "cite_hit": 5
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 1,
+        "cite_hit": 0
+      }
+    }
   }
 }
