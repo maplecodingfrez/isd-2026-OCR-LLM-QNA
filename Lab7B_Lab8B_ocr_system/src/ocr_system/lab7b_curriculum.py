@@ -1707,6 +1707,11 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
     if prereq_counts is not None:
         data["_meta"]["prerequisite_from_book"] = {"source": book_ocr, **prereq_counts}
     path = outdir / f"pred_{name}.json"
+    # ผลใหม่ของ LLM -> สำเนา "ก่อนแก้" ของขั้นหลังประมวลผล (--fill-prerequisites/--fill-missing-rows/
+    # --recover-codes) เป็นของรอบ LLM เก่าแล้ว — ลบทิ้ง ขั้นเหล่านั้นจะเขียนสำเนาใหม่ที่ตรงกับผลรอบนี้เอง
+    # (เดิมเขียนครั้งเดียวไม่ทับ ทำให้ diff สำเนากับผลปัจจุบันแสดงการเปลี่ยนแปลงที่กฎไม่ได้ทำ)
+    for stale in outdir.glob(f"pred_{name}.before_*.json"):
+        stale.unlink()
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  ✓ บันทึก {path}  ({len(data['courses'])} วิชา, "
           f"{data['_meta']['elapsed_sec']} วิ)")

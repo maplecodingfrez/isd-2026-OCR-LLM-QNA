@@ -254,7 +254,7 @@ def book_variants(book_text: str) -> dict[str, dict[str, tuple[int, str]]]:
 
 
 def split_merged_codes(courses: list[dict], idx: dict[str, dict[str, Any]]) -> list[dict]:
-    """กฎ 1: วิชาที่ช่อง code มีรหัสจริงหลายตัวคั่นด้วย , หรือ / (ไม่ใช่ "หรือ") = LLM รวมหลายวิชาเป็นแถวเดียว
+    """กฎ 1: วิชาที่ช่อง code มีรหัสจริงหลายตัวคั่นด้วยช่องว่าง/จุลภาค (ไม่มี "หรือ" หรือ "/") = OCR/LLM รวมหลายวิชาเป็นแถวเดียว
     (IT ไม่สหกิจ 2/2: "06016414, 06016415") -> แยกเป็นวิชาละแถว ชื่อ/หน่วยกิตจากดัชนีของเล่ม
     ทุกรหัสต้องมีชื่อชัดเจนในดัชนี ไม่งั้นไม่แตะทั้งแถว; รหัสที่มีแถวของตัวเองอยู่แล้วไม่สร้างซ้ำ"""
     done: list[dict] = []
@@ -262,7 +262,9 @@ def split_merged_codes(courses: list[dict], idx: dict[str, dict[str, Any]]) -> l
     for c in list(courses):
         raw = str(c.get("code") or "")
         codes = CODE8.findall(raw)
-        if len(codes) < 2 or "หรือ" in raw:
+        # "หรือ" / "/" = ทางเลือก "A หรือ B" จริง (Lab 8B _ambiguous_code_merge ใช้เกณฑ์เดียวกัน นับหน่วยกิตครั้งเดียว)
+        # แยกเฉพาะรหัสที่ OCR รวมด้วยช่องว่าง/จุลภาค (เช่น "06016414, 06016415", "06036146 96642033")
+        if len(codes) < 2 or re.search(r"หรือ|/", raw):
             continue
         if not all(k in idx for k in codes):
             continue
@@ -362,9 +364,36 @@ def fix_placeholder_names(courses: list[dict], idx: dict[str, dict[str, Any]]) -
     return done
 
 
+def fix_malformed_credits(courses: list[dict], credits: dict[str, str]) -> list[dict]:
+    """กฎ 4: วิชารหัสจริง 8 หลักมีหน่วยกิตได้ "แบบเดียว" — ถ้าช่อง credits มีหลายแบบ ("3(3-0-6) หรือ 3(x-x-x)")
+    แปลว่า OCR เลื่อน/รวมเซลล์หน่วยกิตของแถวอื่นมา (พบจริง: IT ไม่สหกิจ 4/2 ตราน้ำทับ แถวหน่วยกิตหลุดออกมา
+    เป็นแถวเดียว ทุกแถวได้หน่วยกิตของแถวถัดไป -> 06016407 "โครงงาน 2" ได้ของช่องวิชาเลือก แทน 3(0-9-0))
+    แทนด้วยหน่วยกิตที่เล่มพิมพ์ชัดเจนสำหรับรหัสนั้น เฉพาะเมื่อจำนวนหน่วยกิต (ตัวเลขหน้าวงเล็บ) ตรงกัน
+    ไม่แตะช่องที่มีหน่วยกิตแบบเดียวอยู่แล้ว (ไม่ override ค่าของ LLM เพียงเพราะเล่มพิมพ์ต่าง)"""
+    done: list[dict] = []
+    for c in courses:
+        code = str(c.get("code") or "").strip()
+        text = str(c.get("credits") or "")
+        if not re.fullmatch(r"\d{8}", code) or code not in credits:
+            continue
+        units_found = FULL_CREDIT_RE.findall(text)          # เลขหน่วยกิตของแต่ละแบบ
+        if len(units_found) < 2 and "หรือ" not in text:
+            continue
+        book = credits[code]
+        units = {int(n) for n in units_found}
+        if units != {int(FULL_CREDIT_RE.match(book).group(1))}:
+            continue
+        c["_credits_from_book"] = {"from": text}
+        c["credits"] = book
+        done.append({"action": "credits", "code": code, "from": text, "to": book})
+    return done
+
+
 def repair_with_book(md: str, courses: list[dict], book_text: str) -> list[dict]:
-    """กฎ 1-3 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย) รันซ้ำได้"""
+    """กฎ 1-4 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย -> แก้หน่วยกิตหลายแบบ) รันซ้ำได้"""
     idx = book_index(book_text)
+    credits = book_credits(book_text)
     return (split_merged_codes(courses, idx)
-            + add_names_found_in_term(md, courses, idx, book_variants(book_text), book_credits(book_text))
-            + fix_placeholder_names(courses, idx))
+            + add_names_found_in_term(md, courses, idx, book_variants(book_text), credits)
+            + fix_placeholder_names(courses, idx)
+            + fix_malformed_credits(courses, credits))

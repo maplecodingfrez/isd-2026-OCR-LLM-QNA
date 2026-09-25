@@ -115,12 +115,12 @@
       "credits": {
         "label": "หน่วยกิต",
         "n_items": 54,
-        "cer": 0.154762,
+        "cer": 0.126984,
         "wer": null,
-        "exact_match_acc": 0.907407,
-        "n_sub": 2,
+        "exact_match_acc": 0.925926,
+        "n_sub": 0,
         "n_del": 52,
-        "n_ins": 24,
+        "n_ins": 12,
         "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 504,
@@ -129,11 +129,6 @@
             "key": "060164xx",
             "gt": "3(3-0-6) หรือ 3(2-2-5) หรือ 3(0-6-3)",
             "pred": "3(3-0-6) หรือ 3(2-2-5)"
-          },
-          {
-            "key": "06016407",
-            "gt": "3(0-9-0)",
-            "pred": "3(3-0-6) หรือ 3(x-x-x)"
           },
           {
             "key": "9064xxxx",
@@ -312,7 +307,7 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.180806,
+    "overall_micro_cer": 0.178207,
     "alignment": {
       "matched": 52,
       "missed": 2,

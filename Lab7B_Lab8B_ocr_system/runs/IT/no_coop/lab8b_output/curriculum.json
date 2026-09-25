@@ -413,9 +413,9 @@
       "name_th": "โครงงาน 2",
       "name_en": "PROJECT 2",
       "credits": 3,
-      "lecture_h": 3,
-      "lab_h": 0,
-      "self_h": 6,
+      "lecture_h": 0,
+      "lab_h": 9,
+      "self_h": 0,
       "description_th": null
     },
     {
