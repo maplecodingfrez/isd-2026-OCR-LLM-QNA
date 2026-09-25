@@ -1714,6 +1714,13 @@ def ask(conn: sqlite3.Connection, question: str,
                 seen.append(v)
         if seen and not all(v in result["answer"] for v in seen):
             result["answer"] = ", ".join(seen)
+    # ผลลัพธ์ค่าเดียว (COUNT/MIN/MAX/ชื่อ) ที่ข้อความคำตอบไม่มีค่านั้น — เช่น qwen ลอกเลข 3 จากคำถาม
+    # "กี่วิชาที่ 3 หน่วยกิต" ทั้งที่ SQL ได้ 32 → ใช้ค่าจากฐานข้อมูลเป็นคำตอบ (ตัวเลขต้องตรงทั้งตัว: 2 ≠ 12)
+    elif len(flat) == len(result["rows"]) == 1 and len(flat[0]) <= 40:
+        value = flat[0]
+        pattern = rf"(?<!\d){re.escape(value)}(?!\d)" if re.fullmatch(r"-?\d+(\.\d+)?", value) else re.escape(value)
+        if not re.search(pattern, result["answer"] or ""):
+            result["answer"] = value
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
     citations = _citations_module()

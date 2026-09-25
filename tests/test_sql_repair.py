@@ -4,6 +4,8 @@ Real failure (all 7 Lab 8B runs): the DDL shown to qwen defines
 `v_plan AS SELECT p.code, ... FROM plan_item p`, so qwen writes
 `SELECT p.code FROM v_plan WHERE p.year = 1` -> sqlite3 "no such column: p.code".
 """
+import json
+import re
 import sqlite3
 
 import pytest
@@ -166,3 +168,34 @@ def test_ask_does_not_grow_sys_path(monkeypatch):
         lab8b.ask(conn, "q", verbose=False)
         lab8b.load_course_pages(conn, [], [], "")
     assert len(sys.path) == before
+
+
+def _count_db():
+    conn = _citation_db()
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06016402', 'ข', 3)")
+    return conn
+
+
+def _answering(answer):
+    def fake(prompt, fmt=None, **kwargs):
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT COUNT(*) FROM course WHERE credits = 3"}'
+        return json.dumps({"answer": answer}, ensure_ascii=False)
+    return fake
+
+
+# Break caught (BIT coop/no_coop "กี่วิชาที่ 3 หน่วยกิต"): SQL returned one value, the model copied the 3 from
+# the question — the answer text must carry the value the database returned.
+def test_ask_single_value_answer_uses_database_value(monkeypatch):
+    monkeypatch.setattr(lab8b, "ollama_generate", _answering("3 วิชา"))
+    got = lab8b.ask(_count_db(), "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3", verbose=False)
+    assert got["rows"] == [{"COUNT(*)": 2}]
+    assert re.search(r"(?<!\d)2(?!\d)", got["answer"]) and "3" not in got["answer"]
+
+
+# Break caught: the guard overwriting a model answer that already states the value (a 2 inside "12" is not it).
+def test_ask_single_value_answer_kept_when_it_states_the_value(monkeypatch):
+    monkeypatch.setattr(lab8b, "ollama_generate", _answering("มีทั้งหมด 2 วิชา"))
+    assert lab8b.ask(_count_db(), "q", verbose=False)["answer"] == "มีทั้งหมด 2 วิชา"
+    monkeypatch.setattr(lab8b, "ollama_generate", _answering("12 วิชา"))
+    assert lab8b.ask(_count_db(), "q", verbose=False)["answer"] != "12 วิชา"
