@@ -49,13 +49,24 @@ HEADING_RE = re.compile(r"ปีที่\s*(\d)\s*ภาค(?:การศึ�
 IMAGE_PAGE_RE = re.compile(r"(\d+)\.(?:jpe?g|png)$", re.I)
 
 
+def _confirmed(chunk: str, terms: list[tuple[int, int]], book_text: str) -> bool:
+    """หน้าเล่มยืนยันว่าเป็นตารางของเทอมนี้: หัวเทอมตรง หรือ (ไม่มีหัวเทอม) รหัสวิชาตรง >= ครึ่งหนึ่ง"""
+    book_terms = {(int(y), int(s)) for y, s in HEADING_RE.findall(book_text)}
+    if book_terms:
+        return bool(book_terms & set(terms))
+    codes = set(re.findall(r"(?<!\d)\d{8}(?!\d)", chunk))
+    return bool(codes) and len(codes & set(re.findall(r"(?<!\d)\d{8}(?!\d)", book_text))) * 2 >= len(codes)
+
+
 def plan_pages(image_names: list[str], md_text: str,
                printed_by_pdf: dict[int, str | None],
                book_text_by_pdf: dict[int, str] | None = None) -> list[dict]:
     """หน้าตารางแผนของแต่ละเทอม: ส่วนที่ i ของ Markdown (คั่น ---) = ภาพหน้าที่ i เรียงตามเลขหน้า
     ส่วนที่ไม่มีหัวเทอมแต่มีตาราง = ตารางของเทอมก่อนหน้าที่ล้นมาหน้าใหม่; จำนวนไม่ตรงกัน = ไม่คืนอะไร (ไม่เดา)
-    เลขในชื่อไฟล์ภาพไม่จำเป็นต้องเป็นเลขหน้า PDF ของเล่ม (DSBA coop: DSBA_28.png = PDF 30) — ถ้า OCR ทั้งเล่ม
-    ของหน้านั้นมีหัวเทอมแต่ไม่ใช่เทอมเดียวกับที่ VLM อ่านได้ = ขัดกัน ไม่อ้างหน้านั้น (และหน้าต่อเนื่องของเทอมนั้น)"""
+    เลขในชื่อไฟล์ภาพไม่จำเป็นต้องเป็นเลขหน้า PDF ของเล่ม (DSBA coop: DSBA_28.png = PDF 30) — จึงต้องยืนยันกับ
+    OCR ทั้งเล่มของหน้านั้น (book_text_by_pdf): มีหัวเทอม → ต้องมีเทอมเดียวกับที่ VLM อ่าน; ไม่มีหัวเทอม (Tesseract
+    อ่านไม่ออก เช่น AIT) → รหัสวิชาในตารางของหน้านั้นต้องอยู่ในหน้าเล่มอย่างน้อยครึ่งหนึ่ง; ยืนยันไม่ได้ = ไม่อ้าง
+    (และหน้าต่อเนื่องของเทอมนั้น)"""
     pages = sorted(int(m.group(1)) for n in image_names if (m := IMAGE_PAGE_RE.search(n)))
     chunks = md_text.split("\n---\n")
     if len(pages) != len(chunks):
@@ -64,13 +75,11 @@ def plan_pages(image_names: list[str], md_text: str,
     last = None
     for pdf, chunk in zip(pages, chunks):
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
-        if terms and book_text_by_pdf is not None:
-            book_terms = {(int(y), int(s)) for y, s in HEADING_RE.findall(book_text_by_pdf.get(pdf, ""))}
-            if book_terms and not book_terms & set(terms):
-                last = None
-                continue
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
+        if terms and book_text_by_pdf is not None and not _confirmed(chunk, terms, book_text_by_pdf.get(pdf, "")):
+            last = None
+            continue
         for y, s in dict.fromkeys(terms):
             out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed_by_pdf.get(pdf)})
         if terms:
@@ -104,10 +113,8 @@ def load_lookup(conn: sqlite3.Connection):
     try:
         rows = conn.execute("SELECT code, pdf_page, printed_page, kind FROM course_page "
                             "ORDER BY code, pdf_page").fetchall()
-        term_rows = conn.execute(
-            "SELECT DISTINCT p.year, p.semester, cp.pdf_page, cp.printed_page FROM course_page cp "
-            "JOIN plan_item p ON p.code = cp.code WHERE cp.kind = 'plan' "
-            "ORDER BY p.year, p.semester, cp.pdf_page").fetchall()
+        term_rows = conn.execute("SELECT year, semester, pdf_page, printed_page FROM term_page "
+                                 "ORDER BY year, semester, pdf_page").fetchall()
     except sqlite3.OperationalError:
         return None
     by_kind: dict[str, dict[str, list]] = {"plan": {}, "primary": {}, "other": {}}

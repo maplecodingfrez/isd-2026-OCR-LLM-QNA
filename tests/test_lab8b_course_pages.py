@@ -50,3 +50,17 @@ def test_load_course_pages_skips_plan_page_contradicted_by_book_heading():
     ocr[1] = {"page": "38", "text": "33\nปีที่ 3 ภาคการศึกษาที่ 2\n06016401 คณิตศาสตร์ 3(3-0-6)"}
     counts = lab8b.load_course_pages(conn, ocr, ["it_curriculum_page_038.jpg"], MD)
     assert counts["plan"] == 0
+
+
+# Break caught (final review #2): term pages rebuilt by joining plan rows on course code — a code planned in
+# two terms would get term A's page cited for term B.
+def test_term_page_not_leaked_to_other_term_sharing_a_code():
+    import citations
+    conn = _db()
+    conn.execute("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('X', 1, 2, '06016401', 3)")
+    lab8b.load_course_pages(conn, OCR, ["it_curriculum_page_038.jpg"], MD)
+    lookup = citations.load_lookup(conn)
+    sql_1_2 = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2"
+    assert citations.citations_for([{"credits": 3}], sql_1_2, lookup) == []
+    sql_1_1 = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"
+    assert citations.citations_for([{"credits": 3}], sql_1_1, lookup) == [{"pdf_page": 38, "printed_page": "33"}]

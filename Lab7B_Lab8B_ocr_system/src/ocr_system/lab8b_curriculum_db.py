@@ -1086,6 +1086,14 @@ CREATE TABLE IF NOT EXISTS course_page (
     kind         TEXT NOT NULL CHECK (kind IN ('primary', 'other', 'plan')),
     PRIMARY KEY (code, pdf_page, kind)
 );
+-- หน้าตารางแผนของแต่ละเทอม เก็บเทอมไว้ตรง ๆ (ไม่ย้อนหาเทอมจากรหัสวิชา — วิชาที่อยู่ในแผนหลายเทอมจะอ้างหน้าผิดเทอม)
+CREATE TABLE IF NOT EXISTS term_page (
+    year         INTEGER NOT NULL,
+    semester     INTEGER NOT NULL,
+    pdf_page     INTEGER NOT NULL,
+    printed_page TEXT,
+    PRIMARY KEY (year, semester, pdf_page)
+);
 """
 
 
@@ -1098,6 +1106,7 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     import citations
     conn.executescript(COURSE_PAGE_DDL)
     conn.execute("DELETE FROM course_page")
+    conn.execute("DELETE FROM term_page")
     courses = [dict(r) for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     printed = citations.consistent_printed(
         {int(p["page"]): citations.printed_page(p.get("text") or "") for p in ocr_pages})
@@ -1106,6 +1115,8 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
         r["printed_page"] = printed.get(r["pdf_page"])
     book_text = {int(p["page"]): p.get("text") or "" for p in ocr_pages}
     for t in citations.plan_pages(image_names, md_text, printed, book_text):
+        conn.execute("INSERT OR IGNORE INTO term_page VALUES (?, ?, ?, ?)",
+                     (t["year"], t["semester"], t["pdf_page"], t["printed_page"]))
         for (code,) in conn.execute("SELECT DISTINCT code FROM plan_item WHERE year = ? AND semester = ?",
                                     (t["year"], t["semester"])).fetchall():
             rows.append({"code": code, "pdf_page": t["pdf_page"], "printed_page": t["printed_page"],

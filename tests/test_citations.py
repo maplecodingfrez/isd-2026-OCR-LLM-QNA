@@ -97,6 +97,7 @@ def _db_with_pages():
     conn.execute("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('X', 1, 1, '06016401', 3)")
     conn.executemany("INSERT INTO course_page VALUES (?, ?, ?, ?)", [
         ("06016401", 38, "33", "plan"), ("06016401", 324, "319", "primary"), ("06016401", 23, None, "other")])
+    conn.execute("INSERT INTO term_page VALUES (1, 1, 38, '33')")
     return conn
 
 
@@ -138,3 +139,23 @@ def test_plan_pages_drops_page_whose_book_heading_contradicts():
     book = {28: "27\nปีที่ 3 ภาคการศึกษาที่ 2\n...", 29: "28\nไม่มีหัวเทอม", 30: "29\nปีที่ 1 ภาคการศึกษาที่ 2"}
     got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], md, {}, book)
     assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 2, 30)]
+
+
+# Break caught (final review #1): a plan page accepted only because nothing contradicts it — a misnumbered
+# image whose book page has no readable heading and none of the table's codes must not be cited.
+def test_plan_pages_needs_positive_confirmation_from_book():
+    md = "ปีที่ 1 ภาคการศึกษาที่ 1\n<table>06016401 06016402</table>\n---\n<table>06016403 06016404</table>"
+    unconfirmed = {28: "27\nภาคผนวก 90641008", 29: "28\nข้อความอื่น"}
+    assert citations.plan_pages(["X_28.png", "X_29.png"], md, {}, unconfirmed) == []
+    # AIT-like: no heading read by Tesseract, but the table's codes are on the page -> confirmed
+    by_codes = {28: "06016401 x 06016402", 29: "06016403 y 06016404"}
+    got = citations.plan_pages(["X_28.png", "X_29.png"], md, {}, by_codes)
+    assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 1, 28), (1, 1, 29)]
+
+
+# Break caught (final review #1): a continuation page whose book heading shows another term.
+def test_plan_pages_rejects_continuation_contradicted_by_book_heading():
+    md = "ปีที่ 1 ภาคการศึกษาที่ 1\n<table>06016401</table>\n---\n<table>06016403</table>"
+    book = {28: "ปีที่ 1 ภาคการศึกษาที่ 1", 29: "ปีที่ 2 ภาคการศึกษาที่ 1\n06016403"}
+    got = citations.plan_pages(["X_28.png", "X_29.png"], md, {}, book)
+    assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 1, 28)]

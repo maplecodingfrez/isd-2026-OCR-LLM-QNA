@@ -121,6 +121,7 @@ def test_ask_attaches_citations_without_touching_answer(monkeypatch):
     assert no_table["citations"] == [] and no_table["citation_text"] == ""
     conn.executescript(lab8b.COURSE_PAGE_DDL)
     conn.execute("INSERT INTO course_page VALUES ('06016401', 38, '33', 'plan')")
+    conn.execute("INSERT INTO term_page VALUES (1, 1, 38, '33')")
     got = lab8b.ask(conn, "ปี 1 เทอม 1 กี่หน่วยกิต", verbose=False)
     assert got["answer"] == "3 หน่วยกิต"
     assert got["citations"] == [{"pdf_page": 38, "printed_page": "33"}]
