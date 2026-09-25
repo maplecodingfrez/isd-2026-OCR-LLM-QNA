@@ -104,6 +104,11 @@ def main() -> None:
     if book_ocr.exists():
         run(LAB8, "load-prerequisites", "-t", book_ocr, "-d", LAB8_OUT / "curriculum.db",
             "-o", LAB8_OUT / "prerequisites_report.json")
+    # หน้าในเล่มสำหรับอ้างอิงคำตอบ (citations.py) — OCR ทั้งเล่ม + ภาพหน้าตารางแผนของ Lab 7B
+    ocr_json = _book_txt.with_suffix(".json")
+    if ocr_json.exists() and md_file.exists():
+        run(LAB8, "load-course-pages", "-d", LAB8_OUT / "curriculum.db", "--ocr-json", ocr_json,
+            "--data-input", RUN_DIR / "data_input", "-m", md_file)
     run(LAB8, "verify", "-d", LAB8_OUT / "curriculum.db",
         "-o", LAB8_OUT / "verify.json")
 

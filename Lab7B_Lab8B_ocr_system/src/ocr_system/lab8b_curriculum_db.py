@@ -1076,6 +1076,57 @@ def cmd_load_prerequisites(args) -> None:
         print(f"  บันทึกรายงานที่ {args.output}")
 
 
+# ตารางอ้างอิงหน้า — แยกจาก DDL หลักโดยตั้งใจ (DDL หลักอยู่ใน prompt ของ NL2SQL; เพิ่มตารางตรงนั้น
+# prompt เปลี่ยนและคำตอบข้ออื่นอาจเปลี่ยน) ใช้เฉพาะตอน `load-course-pages` และตอนแนบอ้างอิงใน ask()
+COURSE_PAGE_DDL = """
+CREATE TABLE IF NOT EXISTS course_page (
+    code         TEXT NOT NULL,
+    pdf_page     INTEGER NOT NULL,
+    printed_page TEXT,
+    kind         TEXT NOT NULL CHECK (kind IN ('primary', 'other', 'plan')),
+    PRIMARY KEY (code, pdf_page, kind)
+);
+"""
+
+
+def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
+                      image_names: list[str], md_text: str) -> dict[str, int]:
+    """เติมตาราง course_page (ลบของเดิมก่อน รันซ้ำได้): หน้าที่มีรหัสวิชา (primary/other) จาก OCR ทั้งเล่ม
+    + หน้าตารางแผนของเทอมที่วิชานั้นอยู่ (plan) จากภาพหน้าของ Lab 7B — ไม่ใช้ LLM/เฉลย
+    เลขหน้าที่พิมพ์ผ่าน consistent_printed (ตัดเลขที่ Tesseract อ่านผิด เช่น IT PDF 42 = "27")"""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import citations
+    conn.executescript(COURSE_PAGE_DDL)
+    conn.execute("DELETE FROM course_page")
+    courses = [dict(r) for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    printed = citations.consistent_printed(
+        {int(p["page"]): citations.printed_page(p.get("text") or "") for p in ocr_pages})
+    rows = citations.course_pages(ocr_pages, courses)
+    for r in rows:
+        r["printed_page"] = printed.get(r["pdf_page"])
+    for t in citations.plan_pages(image_names, md_text, printed):
+        for (code,) in conn.execute("SELECT DISTINCT code FROM plan_item WHERE year = ? AND semester = ?",
+                                    (t["year"], t["semester"])).fetchall():
+            rows.append({"code": code, "pdf_page": t["pdf_page"], "printed_page": t["printed_page"],
+                         "kind": "plan"})
+    conn.executemany("INSERT OR IGNORE INTO course_page VALUES (:code, :pdf_page, :printed_page, :kind)", rows)
+    conn.commit()
+    counts = {"primary": 0, "other": 0, "plan": 0}
+    for kind, n in conn.execute("SELECT kind, COUNT(*) FROM course_page GROUP BY kind"):
+        counts[kind] = n
+    return counts
+
+
+def cmd_load_course_pages(args) -> None:
+    ocr_pages = json.loads(Path(args.ocr_json).read_text(encoding="utf-8"))["pages"]
+    image_names = [p.name for p in Path(args.data_input).iterdir() if p.is_file()]
+    md_text = Path(args.markdown).read_text(encoding="utf-8")
+    conn = open_db(args.database)
+    counts = load_course_pages(conn, ocr_pages, image_names, md_text)
+    conn.close()
+    print(f"  course_page: primary {counts['primary']} · other {counts['other']} · plan {counts['plan']}")
+
+
 def cmd_load_plan_slots_md(args) -> None:
     """สกัดช่อง wildcard / "หรือ" / "เลือก 1 กลุ่ม" จาก Markdown ของ OCR แล้วโหลดเข้า plan_slot
 
@@ -2184,6 +2235,14 @@ def main() -> None:
     p.add_argument("-m", "--markdown", required=True, help="intermediate_vlm.md จาก Lab 7B")
     p.add_argument("-d", "--database", required=True)
 
+    p = sub.add_parser("load-course-pages",
+                       help="หน้าในเล่มที่มีรหัสวิชา (OCR ทั้งเล่ม) + หน้าตารางแผนของแต่ละเทอม (ภาพหน้า Lab 7B)"
+                            " เข้าตาราง course_page สำหรับอ้างอิงหน้าในคำตอบ")
+    p.add_argument("-d", "--database", required=True)
+    p.add_argument("--ocr-json", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.json")
+    p.add_argument("--data-input", required=True, help="runs/<PROG>/<plan>/data_input")
+    p.add_argument("-m", "--markdown", required=True, help="intermediate_vlm.md จาก Lab 7B")
+
     p = sub.add_parser("load-prerequisites",
                        help="สกัดวิชาบังคับก่อนจากข้อความ OCR ทั้งเล่ม (ภาคผนวกคำอธิบายรายวิชา) เข้าตาราง prerequisite"
                             " (กฎเชิงกำหนด ไม่เดา: หาไม่เจอ = ไม่เติมแถว)")
@@ -2213,6 +2272,7 @@ def main() -> None:
      "import-lab7b": cmd_import_lab7b,
      "load": cmd_load, "load-electives": cmd_load_electives,
      "load-plan-slots-md": cmd_load_plan_slots_md,
+     "load-course-pages": cmd_load_course_pages,
      "load-prerequisites": cmd_load_prerequisites,
      "verify": cmd_verify, "ask": cmd_ask,
      "eval": cmd_eval}[args.cmd](args)
