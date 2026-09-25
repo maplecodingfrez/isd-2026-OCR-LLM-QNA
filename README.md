@@ -1247,6 +1247,9 @@ python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.
 
 ### Known Limitations (อัปเดต 2026-09-22)
 
+> **อัปเดต 2026-09-26:** สองข้อด้านล่างแก้แล้ว — CHK1F (นับหน่วยกิตตามช่องในเล่ม) ตรงหน่วยกิตที่เล่มประกาศ**ครบทั้ง 7 แผน**
+> และ IT "เลือก 1 กลุ่ม" ถูกสร้างเป็นกลุ่มเดียวแล้ว ดูหัวข้อ "อัปเดต 2026-09-26" ด้านล่าง (ข้อความเดิมเก็บไว้เป็นประวัติ)
+
 - **CHK1/CHK7 (7 ข้อบังคับ) ยังไม่ผ่านทุกหลักสูตร โดยตั้งใจไม่แก้** — แถว "วิชาเลือก" ที่เขียนเป็นรหัส wildcard (เช่น
   `06036xxx`) ในเอกสารต้นฉบับเองก็ไม่ได้ระบุว่านักศึกษาจะเลือกวิชาไหน จึงไม่ถูกนับใน `plan_item` ที่ CHK1/CHK7 ใช้
   (ไม่เดารหัสปลอม/ไม่แต่งข้อมูล) — **ตอนนี้มีข้อตรวจคู่ขนาน CHK1F/CHK7F ที่นับหน่วยกิตของช่องเหล่านี้ได้แล้ว**
@@ -1383,6 +1386,40 @@ python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุ
 
 ---
 
+### อัปเดต 2026-09-26 — กู้วิชาที่หาย, แก้ SQL, อ้างอิงหน้าในคำตอบ (branch `feature/page-citations`)
+
+ทุกข้อเป็นกฎเชิงกำหนด (deterministic) ไม่แก้ผลด้วยมือ ไม่ใช้เฉลยสร้างผล (เฉลยใช้วัดผลอย่างเดียว) และลองแบบ dry-run กับทั้ง 7 แผน
+ก่อนใช้จริงทุกครั้ง รายละเอียดทีละขั้นอยู่ที่ `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+
+**Lab 7B — กู้แถว/รหัสวิชาที่ OCR ทำหาย** (`lab7b_curriculum.py --fill-missing-rows --recover-codes --book-ocr ...`, run scripts เรียกให้แล้ว)
+
+- `fill_missing_rows` (`md_plan_slots.py`): แถวที่อยู่ใน Markdown ของ OCR แต่ qwen ไม่ได้ใส่ใน JSON → เติมจาก Markdown
+- แยกแถวชุดวิชา (series) และหัวกลุ่มที่ไม่มีรหัส ("กลุ่มวิชาด้าน...") ให้เป็นกลุ่ม "เลือก 1" — แก้ IT "เลือก 1 จาก 3 กลุ่ม"
+- `code_from_book.py`: กู้รหัสที่ OCR อ่านเพี้ยน/หาย โดยค้นจาก OCR ทั้งเล่ม (Tesseract, Lab 4–6) — แยกรหัสที่ถูกรวมเป็นก้อนเดียว,
+  เติมชื่อวิชาที่เจอในเทอมนั้น, แทนชื่อที่เป็นตัวยึดตำแหน่ง, แก้หน่วยกิตที่ OCR เลื่อนแถว (เช่น IT `06016407` ใต้ลายน้ำ)
+- ผล: หน่วยกิตรวมแบบนับช่องตามเล่ม (CHK1F) **ตรงที่เล่มประกาศครบ 7 แผน** (MAE 0) · F1 (wildcard-aware) AIT 0.923, BIT no-coop 1.000,
+  BIT coop 0.930, DSBA no-coop 0.928, DSBA coop 0.830, IT no-coop 0.972, IT coop 0.889 (เฉลี่ย 0.925)
+
+**Lab 8B — NL→SQL**
+
+- `repair_undefined_aliases()`: qwen ลอก alias `p.` จาก DDL ของ `v_plan` ไปใช้ในคำสั่งที่ไม่ได้ประกาศ alias → SQL error ทุกแผน;
+  ตัด alias ที่ไม่ได้ประกาศออกก่อนรัน → `valid_sql_rate` 1.0 ทุกแผน, ตอบถูก 182 → 188/210
+- ผลลัพธ์ค่าเดียว (COUNT/MIN/MAX) ที่ข้อความคำตอบไม่มีค่านั้น (เช่น qwen ลอกเลข 3 จากคำถาม "กี่วิชาที่ 3 หน่วยกิต") → ใช้ค่าจากฐานข้อมูลเป็นคำตอบ
+
+**อ้างอิงหน้าในคำตอบ (คำถามระดับ 1–2 ตาม ch1)**
+
+- คำตอบมีฟิลด์ `citations` / `citation_text` เช่น `(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))` — "หน้า 33" = เลขที่พิมพ์บนหน้ากระดาษ,
+  "PDF 38" = ลำดับหน้าในไฟล์ PDF; เลขหน้าที่พิมพ์ไม่น่าเชื่อ (ไม่ต่อเนื่องกับหน้าข้างเคียง) → แสดงแค่ PDF
+- แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า และไม่รวมในข้อความ `answer` · หาไม่เจอ/ยืนยันกับเล่มไม่ได้ = ไม่อ้างอิง (ไม่เดา)
+- ข้อมูลจากตาราง `course_page` (หน้าที่มีรหัสวิชา: `primary` / `description` = หน้าคำอธิบายรายวิชา / `other` / `plan`) และ `term_page`
+  (หน้าตารางแผนของแต่ละเทอม — ต้องยืนยันกับหัวเทอมหรือรหัสวิชาใน OCR ทั้งเล่ม; DSBA coop ยืนยันไม่ได้เพราะเลขไฟล์ภาพ
+  `DSBA_28..34` ไม่ใช่เลขหน้า PDF จึงไม่อ้างหน้าตารางแผน) — สร้างด้วย `lab8b_curriculum_db.py load-course-pages` (run scripts เรียกให้แล้ว)
+- ตารางอ้างอิงไม่อยู่ใน prompt ของ NL→SQL (มีเทสกัน) จึงไม่กระทบคำตอบข้ออื่น
+
+**เทส:** `python -m pytest tests -q` (ต้องใช้ `.venv`) + `python src/ocr_system/lab8b_curriculum_db.py selftest`
+
+---
+
 ## Evaluation & Overfitting (Lab 9)
 
 อ่านผลลัพธ์ที่ Lab 8B รันไว้แล้วเท่านั้น (ไม่รันโมเดลใหม่) มาคำนวณ metric ตามสไลด์บทที่ 9 ครบทั้ง
@@ -1393,8 +1430,9 @@ python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุ
 
 - ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
 - **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
-- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab7B_Lab8B_ocr_system/runs/` (7 แผน + รันซ้ำ 8 รันสำหรับวัดความเสถียร),
-  `Lab9_evaluation/ground_truth_scoped/`, `Lab9_evaluation/gold_questions/`
+- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab7B_Lab8B_ocr_system/runs/` (7 แผน), `Lab9_evaluation/ground_truth_scoped/`,
+  `Lab9_evaluation/gold_questions/` — รันซ้ำ (`*_retry*`) ของวันที่ 2026-09-20 ถูกลบตอนจัดโฟลเดอร์แล้ว หัวข้อความเสถียรในรายงาน
+  จึงขึ้นว่า "ข้าม" ผลรันซ้ำเดิมสรุปไว้ที่ `reports/lab9_overfit_underfit_summary.md`
 - ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`
 - ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
   (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
@@ -1410,9 +1448,11 @@ python evaluate_lab9.py
 
 ### ผลลัพธ์
 
-- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม,
-  execution_accuracy, answer_text_accuracy, ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
+- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม (ทั้งแบบ `plan_item`
+  และนับช่องตามเล่ม), execution_accuracy, answer_text_accuracy, **คำตอบ + อ้างอิงหน้าแยกตามระดับคำถาม** (ระดับ 1/2/none
+  ติดป้ายด้วยกฎ — ดูรายการด้วย `python evaluate_lab9.py --list-levels`), ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
   matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
+- `reports/lab9_overfit_underfit_summary.md` — สรุป overfit/underfit (เขียนเอง ไม่ถูกเขียนทับ)
 - `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
