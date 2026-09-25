@@ -40,10 +40,10 @@
     "ctype_recall_elective": 0.7143,
     "ctype_mcc": 1.0,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
+    "valid_sql_rate": 1.0,
     "execution_accuracy": 0.7333,
     "answer_text_accuracy": 0.7333,
-    "avg_seconds": 1.73,
+    "avg_seconds": 2.45,
     "sql_ok_text_wrong": []
   },
   "bit_no_coop": {
@@ -86,10 +86,10 @@
     "ctype_recall_elective": 1.0,
     "ctype_mcc": 0.9223,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.8667,
-    "answer_text_accuracy": 0.8667,
-    "avg_seconds": 1.81,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 1.66,
     "sql_ok_text_wrong": []
   },
   "bit_coop": {
@@ -133,10 +133,10 @@
     "ctype_recall_elective": 0.8571,
     "ctype_mcc": 0.9121,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.8667,
-    "answer_text_accuracy": 0.8667,
-    "avg_seconds": 1.43,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 2.05,
     "sql_ok_text_wrong": []
   },
   "dsba_no_coop": {
@@ -180,10 +180,10 @@
     "ctype_recall_elective": 1.0,
     "ctype_mcc": 0.8452,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.9667,
-    "answer_text_accuracy": 0.9333,
-    "avg_seconds": 1.76,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 1.0,
+    "answer_text_accuracy": 0.9667,
+    "avg_seconds": 1.9,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
     ]
@@ -229,10 +229,10 @@
     "ctype_recall_elective": 1.0,
     "ctype_mcc": 0.7423,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.9333,
-    "answer_text_accuracy": 0.9333,
-    "avg_seconds": 1.85,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9667,
+    "answer_text_accuracy": 0.9667,
+    "avg_seconds": 2.15,
     "sql_ok_text_wrong": []
   },
   "it_no_coop": {
@@ -276,10 +276,10 @@
     "ctype_recall_elective": 0.875,
     "ctype_mcc": 0.8607,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.8667,
-    "answer_text_accuracy": 0.8333,
-    "avg_seconds": 1.9,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9333,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 1.47,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
     ]
@@ -325,10 +325,10 @@
     "ctype_recall_elective": 0.5,
     "ctype_mcc": 0.6814,
     "n_questions": 30,
-    "valid_sql_rate": 0.9667,
-    "execution_accuracy": 0.8,
-    "answer_text_accuracy": 0.7667,
-    "avg_seconds": 1.43,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.8333,
+    "answer_text_accuracy": 0.8,
+    "avg_seconds": 1.84,
     "sql_ok_text_wrong": [
       "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
     ]

@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-25 22:17
+# Lab9 evaluation report — 2026-09-26 00:19
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -45,13 +45,13 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 
 | run | n_questions | valid_sql_rate | execution_accuracy | answer_text_accuracy | avg_seconds |
 |---|---|---|---|---|---|
-| ait | 30 | 0.9667 | 0.7333 | 0.7333 | 1.73 |
-| bit_no_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.81 |
-| bit_coop | 30 | 0.9667 | 0.8667 | 0.8667 | 1.43 |
-| dsba_no_coop | 30 | 0.9667 | 0.9667 | 0.9333 | 1.76 |
-| dsba_coop | 30 | 0.9667 | 0.9333 | 0.9333 | 1.85 |
-| it_no_coop | 30 | 0.9667 | 0.8667 | 0.8333 | 1.9 |
-| it_coop | 30 | 0.9667 | 0.8 | 0.7667 | 1.43 |
+| ait | 30 | 1.0 | 0.7333 | 0.7333 | 2.45 |
+| bit_no_coop | 30 | 1.0 | 0.9 | 0.9 | 1.66 |
+| bit_coop | 30 | 1.0 | 0.9 | 0.9 | 2.05 |
+| dsba_no_coop | 30 | 1.0 | 1.0 | 0.9667 | 1.9 |
+| dsba_coop | 30 | 1.0 | 0.9667 | 0.9667 | 2.15 |
+| it_no_coop | 30 | 1.0 | 0.9333 | 0.9 | 1.47 |
+| it_coop | 30 | 1.0 | 0.8333 | 0.8 | 1.84 |
 
 ### บั๊ก "SQL ถูกแต่ข้อความคำตอบผิด" (execution_accuracy สูงแต่ answer_text_accuracy ต่ำกว่า)
 

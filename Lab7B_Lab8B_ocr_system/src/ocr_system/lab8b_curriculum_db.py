@@ -1426,6 +1426,45 @@ def guard_sql(sql: str) -> str:
     return s
 
 
+_SQL_STRING = re.compile(r"'(?:[^']|'')*'")
+_SQL_KEYWORDS = {"where", "on", "join", "left", "right", "inner", "outer", "cross", "natural",
+                 "group", "order", "limit", "having", "union", "except", "intersect", "using", "as"}
+_SQL_SOURCE = re.compile(r"\b(?:from|join)\s+([A-Za-z_]\w*)(?:\s+(?:as\s+)?([A-Za-z_]\w*))?", re.I)
+_SQL_SUBQUERY_ALIAS = re.compile(r"\)\s*(?:as\s+)?([A-Za-z_]\w*)", re.I)
+_SQL_QUALIFIER = re.compile(r"\b([A-Za-z_]\w*)\.(?=[A-Za-z_\"])")
+
+
+def repair_undefined_aliases(sql: str) -> str:
+    """ตัด "X." ออกเมื่อ X ไม่ใช่ตาราง/view/alias ที่ประกาศใน FROM/JOIN (รวม alias ของ subquery) ของ SQL นี้เลย
+    (ชื่อ CTE ถูกนับผ่าน "FROM <ชื่อ CTE>" อยู่แล้ว)
+
+    พบจริง (ทั้ง 7 run): DDL ที่ส่งให้ qwen นิยาม `v_plan AS SELECT p.code ... FROM plan_item p`
+    qwen จึงเขียน `SELECT p.code FROM v_plan WHERE p.year = 1` -> "no such column: p.code"
+    (รอบ retry ที่ส่ง error กลับไปก็ยังเขียนแบบเดิม) SQL ที่มี alias ที่ไม่ได้ประกาศรันไม่ได้แน่นอน
+    ฟังก์ชันนี้จึงแตะเฉพาะ query ที่จะพังอยู่แล้ว — query ที่ถูกต้องไม่เปลี่ยน
+    ไม่แตะข้อความในเครื่องหมาย '...' และตัวเลขทศนิยม"""
+    code = _SQL_STRING.sub(" ", sql)                   # หาชื่อที่ประกาศจากส่วนที่ไม่ใช่ string
+    defined: set[str] = set()
+    for table, alias in _SQL_SOURCE.findall(code):
+        defined.add(table.lower())
+        if alias and alias.lower() not in _SQL_KEYWORDS:
+            defined.add(alias.lower())
+    defined.update(n.lower() for n in _SQL_SUBQUERY_ALIAS.findall(code)
+                   if n.lower() not in _SQL_KEYWORDS)
+
+    def fix(segment: str) -> str:
+        return _SQL_QUALIFIER.sub(
+            lambda m: m.group(0) if m.group(1).lower() in defined else "", segment)
+
+    out, pos = [], 0
+    for m in _SQL_STRING.finditer(sql):                 # แก้เฉพาะช่วงนอก string literal
+        out.append(fix(sql[pos:m.start()]))
+        out.append(m.group(0))
+        pos = m.end()
+    out.append(fix(sql[pos:]))
+    return "".join(out)
+
+
 SQL_PROMPT = """คุณคือผู้ช่วยแปลงคำถามภาษาไทยเป็นคำสั่ง SQL ของ SQLite
 
 โครงสร้างฐานข้อมูล
@@ -1545,7 +1584,8 @@ def ask(conn: sqlite3.Connection, question: str,
             sql = clean_sql_output(
                 str(parsed_sql.get("sql", "")) if isinstance(parsed_sql, dict)
                 else raw_sql)
-            sql = guard_sql(sql)
+            # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
+            sql = guard_sql(repair_undefined_aliases(sql))
             result["sql"] = sql
             rows = [dict(r) for r in conn.execute(sql).fetchall()]
             result["rows"] = rows
