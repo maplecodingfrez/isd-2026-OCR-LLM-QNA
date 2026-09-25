@@ -44,3 +44,11 @@ def test_level_stats():
     stats = levels.level_stats(rows, MAP)
     assert stats["1"] == {"n": 2, "correct": 2, "with_citation": 2, "cite_checkable": 2, "cite_hit": 1}
     assert stats["2"] == {"n": 1, "correct": 0, "with_citation": 0, "cite_checkable": 0, "cite_hit": 0}
+
+
+# Break caught (review minor #3): a question the book cannot answer counted as a citation miss when not cited.
+def test_level_stats_none_questions_are_not_citation_checkable():
+    rows = [{"question": "รายวิชา 06016401 มีอาจารย์ผู้สอนประจำวิชาชื่อว่าอะไร", "expect": {"type": "none"},
+             "correct": True, "citations": []}]
+    assert levels.level_stats(rows, MAP)["none"] == {
+        "n": 1, "correct": 1, "with_citation": 0, "cite_checkable": 0, "cite_hit": 0}

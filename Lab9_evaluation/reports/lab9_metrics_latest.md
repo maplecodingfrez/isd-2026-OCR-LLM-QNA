@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-26 01:21
+# Lab9 evaluation report — 2026-09-26 02:37
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -72,25 +72,25 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 |---|---|---|---|---|---|
 | ait | 1 | 15 | 0.8667 | 11/15 | 11/13 |
 | ait | 2 | 12 | 0.5 | 4/12 | 4/5 |
-| ait | none | 3 | 1.0 | 0/3 | 0/1 |
+| ait | none | 3 | 1.0 | 0/3 | - |
 | bit_no_coop | 1 | 15 | 1.0 | 13/15 | 13/13 |
 | bit_no_coop | 2 | 12 | 0.75 | 5/12 | 5/5 |
-| bit_no_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| bit_no_coop | none | 3 | 1.0 | 0/3 | - |
 | bit_coop | 1 | 15 | 1.0 | 13/15 | 13/13 |
 | bit_coop | 2 | 12 | 0.75 | 5/12 | 5/5 |
-| bit_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| bit_coop | none | 3 | 1.0 | 0/3 | - |
 | dsba_no_coop | 1 | 15 | 1.0 | 13/15 | 13/13 |
 | dsba_no_coop | 2 | 12 | 1.0 | 5/12 | 2/5 |
-| dsba_no_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| dsba_no_coop | none | 3 | 1.0 | 0/3 | - |
 | dsba_coop | 1 | 12 | 1.0 | 10/12 | 10/10 |
 | dsba_coop | 2 | 15 | 0.9333 | 2/15 | 2/7 |
-| dsba_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| dsba_coop | none | 3 | 1.0 | 0/3 | - |
 | it_no_coop | 1 | 15 | 0.9333 | 12/15 | 12/13 |
 | it_no_coop | 2 | 12 | 0.9167 | 5/12 | 2/5 |
-| it_no_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| it_no_coop | none | 3 | 1.0 | 0/3 | - |
 | it_coop | 1 | 15 | 0.9333 | 12/15 | 12/13 |
 | it_coop | 2 | 12 | 0.6667 | 5/12 | 5/5 |
-| it_coop | none | 3 | 1.0 | 0/3 | 0/1 |
+| it_coop | none | 3 | 1.0 | 0/3 | - |
 
 ## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)
 

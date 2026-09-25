@@ -67,7 +67,8 @@ def level_stats(eval_rows: list[dict], mapping: list[dict]) -> dict[str, dict]:
         s["correct"] += bool(r.get("correct"))
         cited = {c["pdf_page"] for c in r.get("citations") or []}
         s["with_citation"] += bool(cited)
-        want = expected_pages(r["question"], expect.get("value"), mapping)
+        # ระดับ none = เล่มไม่มีคำตอบ ไม่อ้างหน้าคือถูก — ไม่นับในอัตราอ้างอิง
+        want = expected_pages(r["question"], expect.get("value"), mapping) if lvl != "none" else None
         if want:
             s["cite_checkable"] += 1
             s["cite_hit"] += bool(cited & want)

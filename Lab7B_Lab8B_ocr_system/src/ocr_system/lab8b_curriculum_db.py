@@ -1097,13 +1097,21 @@ CREATE TABLE IF NOT EXISTS term_page (
 """
 
 
+def _citations_module():
+    """citations.py (ไฟล์ข้าง ๆ) — เพิ่มโฟลเดอร์นี้ใน sys.path ครั้งเดียว ไม่เพิ่มซ้ำทุกคำถาม"""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import citations
+    return citations
+
+
 def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
                       image_names: list[str], md_text: str) -> dict[str, int]:
     """เติมตาราง course_page (ลบของเดิมก่อน รันซ้ำได้): หน้าที่มีรหัสวิชา (primary/other) จาก OCR ทั้งเล่ม
     + หน้าตารางแผนของเทอมที่วิชานั้นอยู่ (plan) จากภาพหน้าของ Lab 7B — ไม่ใช้ LLM/เฉลย
     เลขหน้าที่พิมพ์ผ่าน consistent_printed (ตัดเลขที่ Tesseract อ่านผิด เช่น IT PDF 42 = "27")"""
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import citations
+    citations = _citations_module()
     conn.executescript(COURSE_PAGE_DDL)
     conn.execute("DELETE FROM course_page")
     conn.execute("DELETE FROM term_page")
@@ -1704,8 +1712,7 @@ def ask(conn: sqlite3.Connection, question: str,
             result["answer"] = ", ".join(seen)
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import citations
+    citations = _citations_module()
     lookup = citations.load_lookup(conn)
     if lookup is not None:
         result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)

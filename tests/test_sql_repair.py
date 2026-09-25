@@ -126,3 +126,43 @@ def test_ask_attaches_citations_without_touching_answer(monkeypatch):
     assert got["answer"] == "3 หน่วยกิต"
     assert got["citations"] == [{"pdf_page": 38, "printed_page": "33"}]
     assert got["citation_text"] == "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"
+
+
+def _citation_db():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(lab8b.DDL)
+    conn.executescript(lab8b.COURSE_PAGE_DDL)
+    conn.execute("INSERT INTO program VALUES ('X', 'ท', NULL, NULL, 120, 4)")
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06016401', 'ก', 3)")
+    return conn
+
+
+def _fake_ollama(prompts):
+    def fake(prompt, fmt=None, **kwargs):
+        prompts.append(prompt)
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT credits FROM course WHERE code = \'06016401\'"}'
+        return '{"answer": "3 หน่วยกิต"}'
+    return fake
+
+
+# Break caught (review minor #9): the citation tables leaking into the NL2SQL prompt (would change other answers).
+def test_citation_tables_stay_out_of_llm_prompts(monkeypatch):
+    prompts: list[str] = []
+    monkeypatch.setattr(lab8b, "ollama_generate", _fake_ollama(prompts))
+    lab8b.ask(_citation_db(), "รหัสวิชา 06016401 มีกี่หน่วยกิต", verbose=False)
+    assert prompts and not any("course_page" in p or "term_page" in p for p in prompts)
+
+
+# Break caught (review minor #6): sys.path growing by one entry on every question (cmd_eval, Lab 10).
+def test_ask_does_not_grow_sys_path(monkeypatch):
+    import sys
+    monkeypatch.setattr(lab8b, "ollama_generate", _fake_ollama([]))
+    conn = _citation_db()
+    lab8b.ask(conn, "q", verbose=False)
+    before = len(sys.path)
+    for _ in range(3):
+        lab8b.ask(conn, "q", verbose=False)
+        lab8b.load_course_pages(conn, [], [], "")
+    assert len(sys.path) == before
