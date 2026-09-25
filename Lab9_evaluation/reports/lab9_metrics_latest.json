@@ -43,7 +43,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.7333,
     "answer_text_accuracy": 0.7333,
-    "avg_seconds": 2.2,
+    "avg_seconds": 1.92,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -112,7 +112,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.82,
+    "avg_seconds": 1.83,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -182,7 +182,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.42,
+    "avg_seconds": 1.4,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -251,11 +251,9 @@
     "n_questions": 30,
     "valid_sql_rate": 1.0,
     "execution_accuracy": 1.0,
-    "answer_text_accuracy": 0.9667,
-    "avg_seconds": 1.76,
-    "sql_ok_text_wrong": [
-      "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ],
+    "answer_text_accuracy": 1.0,
+    "avg_seconds": 1.68,
+    "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
         "n": 15,
@@ -324,7 +322,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9667,
     "answer_text_accuracy": 0.9667,
-    "avg_seconds": 1.88,
+    "avg_seconds": 1.78,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -393,11 +391,9 @@
     "n_questions": 30,
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9333,
-    "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.83,
-    "sql_ok_text_wrong": [
-      "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ],
+    "answer_text_accuracy": 0.9333,
+    "avg_seconds": 1.66,
+    "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
         "n": 15,
@@ -465,11 +461,9 @@
     "n_questions": 30,
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.8333,
-    "answer_text_accuracy": 0.8,
-    "avg_seconds": 1.43,
-    "sql_ok_text_wrong": [
-      "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3"
-    ],
+    "answer_text_accuracy": 0.8333,
+    "avg_seconds": 1.36,
+    "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
         "n": 15,
