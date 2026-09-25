@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import re
+import sqlite3
 
 PAGE_NO_RE = re.compile(r"^\s*(\d{1,3})(?:\s|$)")
 MAX_CITED = 3
@@ -83,3 +84,65 @@ def consistent_printed(printed_by_pdf: dict[int, str | None]) -> dict[int, str |
         ok = n is not None and (num(pdf - 1) == n - 1 or num(pdf + 1) == n + 1)
         out[pdf] = p if ok else None
     return out
+
+
+CODE_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
+YEAR_SQL_RE = re.compile(r"\byear\s*=\s*'?(\d)'?", re.I)
+SEM_SQL_RE = re.compile(r"\bsemester\s*=\s*'?(\d)'?", re.I)
+
+
+def load_lookup(conn: sqlite3.Connection):
+    """(หน้าต่อรหัสวิชา, หน้าต่อเทอม) จากตาราง course_page — ไม่มีตาราง = None (ตอบได้ตามปกติ ไม่อ้างอิง)"""
+    try:
+        rows = conn.execute("SELECT code, pdf_page, printed_page, kind FROM course_page "
+                            "ORDER BY code, pdf_page").fetchall()
+        term_rows = conn.execute(
+            "SELECT DISTINCT p.year, p.semester, cp.pdf_page, cp.printed_page FROM course_page cp "
+            "JOIN plan_item p ON p.code = cp.code WHERE cp.kind = 'plan' "
+            "ORDER BY p.year, p.semester, cp.pdf_page").fetchall()
+    except sqlite3.OperationalError:
+        return None
+    by_kind: dict[str, dict[str, list]] = {"plan": {}, "primary": {}, "other": {}}
+    for code, pdf, printed, kind in rows:
+        by_kind[kind].setdefault(code, []).append((pdf, printed))
+    course: dict[str, list] = {}
+    for code in {r[0] for r in rows}:
+        pages = by_kind["plan"].get(code, []) + by_kind["primary"].get(code, [])
+        course[code] = pages or by_kind["other"].get(code, [])
+    term: dict[tuple[int, int], list] = {}
+    for y, s, pdf, printed in term_rows:
+        term.setdefault((y, s), []).append((pdf, printed))
+    return course, term
+
+
+def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
+    """หน้าอ้างอิงของคำตอบ: หน้าตารางแผนของเทอมที่ SQL กรอง (year= และ semester=) ก่อน แล้วหน้าของรหัสวิชา
+    ที่อยู่ใน SQL หรือในแถวผลลัพธ์ — ไม่เกิน MAX_CITED หน้า; ไม่มีข้อมูล = [] (ไม่เดา)"""
+    course, term = lookup
+    cited: list[tuple[int, str | None]] = []
+
+    def add(pages):
+        for p in pages:
+            if p not in cited:
+                cited.append(p)
+
+    sql = sql or ""
+    y, s = YEAR_SQL_RE.search(sql), SEM_SQL_RE.search(sql)
+    if y and s:
+        add(term.get((int(y.group(1)), int(s.group(1))), []))
+    codes = CODE_RE.findall(sql)
+    for r in rows:
+        for v in r.values():
+            codes += CODE_RE.findall(str(v))
+    for code in dict.fromkeys(codes):
+        add(course.get(code, []))
+    return [{"pdf_page": pdf, "printed_page": printed} for pdf, printed in cited[:MAX_CITED]]
+
+
+def format_citation(cites: list[dict]) -> str:
+    """ "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)" — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
+    if not cites:
+        return ""
+    parts = [f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"
+             for c in cites]
+    return f"(อ้างอิง: เล่มหลักสูตร {', '.join(parts)})"

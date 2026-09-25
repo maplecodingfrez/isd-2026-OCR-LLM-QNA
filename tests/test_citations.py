@@ -80,3 +80,51 @@ def test_consistent_printed_drops_numbers_off_the_book_offset():
 def test_consistent_printed_keeps_sections_with_their_own_numbering():
     raw = {6: "1", 7: "2", 8: "3", 38: "30", 39: "31", 40: "32", 41: "33"}   # offsets 5 (section) vs 8 (body)
     assert citations.consistent_printed(raw) == raw
+
+
+import sqlite3  # noqa: E402
+
+import lab8b_curriculum_db as lab8b  # noqa: E402
+
+
+def _db_with_pages():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(lab8b.DDL)
+    conn.executescript(lab8b.COURSE_PAGE_DDL)
+    conn.execute("INSERT INTO program VALUES ('X', 'ท', NULL, NULL, 120, 4)")
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06016401', 'ก', 3)")
+    conn.execute("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('X', 1, 1, '06016401', 3)")
+    conn.executemany("INSERT INTO course_page VALUES (?, ?, ?, ?)", [
+        ("06016401", 38, "33", "plan"), ("06016401", 324, "319", "primary"), ("06016401", 23, None, "other")])
+    return conn
+
+
+# Break caught: term questions (no code in rows) getting no citation.
+def test_citations_for_term_question_cites_plan_page():
+    lookup = citations.load_lookup(_db_with_pages())
+    sql = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"
+    assert citations.citations_for([{"credits": 18}], sql, lookup) == [{"pdf_page": 38, "printed_page": "33"}]
+
+
+# Break caught: code taken only from rows (name lookup "WHERE code='X'" returns no code column).
+def test_citations_for_code_in_sql_cites_plan_then_primary_not_other():
+    lookup = citations.load_lookup(_db_with_pages())
+    sql = "SELECT name_th FROM course WHERE code = '06016401'"
+    assert citations.citations_for([{"name_th": "ก"}], sql, lookup) == [
+        {"pdf_page": 38, "printed_page": "33"}, {"pdf_page": 324, "printed_page": "319"}]
+
+
+# Break caught: guessing a page for an unknown code / no-pages DB (Review Focus 1).
+def test_citations_empty_for_unknown_code_and_missing_table():
+    lookup = citations.load_lookup(_db_with_pages())
+    assert citations.citations_for([{"code": "99999999"}], "SELECT code FROM course", lookup) == []
+    bare = sqlite3.connect(":memory:")
+    assert citations.load_lookup(bare) is None
+
+
+# Break caught: wrong format when the printed page is unknown.
+def test_format_citation():
+    assert citations.format_citation([]) == ""
+    assert citations.format_citation([{"pdf_page": 38, "printed_page": "33"}, {"pdf_page": 23, "printed_page": None}]) == (
+        "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)")

@@ -100,3 +100,28 @@ def test_ask_answers_when_model_uses_an_undefined_alias(monkeypatch):
     assert [dict(r) for r in result["rows"]] == [{"code": "06016401"}]
     assert result["sql"].startswith("SELECT code FROM v_plan WHERE year = 1")
     assert len([p for p in prompts if "SQL" in p]) == 1      # fixed on the first attempt, no retry
+
+
+# Break caught: ask() not attaching citations, or crashing on a DB without course_page.
+def test_ask_attaches_citations_without_touching_answer(monkeypatch):
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(lab8b.DDL)
+    conn.execute("INSERT INTO program VALUES ('X', 'ท', NULL, NULL, 120, 4)")
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06016401', 'ก', 3)")
+    conn.execute("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('X', 1, 1, '06016401', 3)")
+
+    def fake_ollama(prompt, fmt=None, **kwargs):
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"}'
+        return '{"answer": "3 หน่วยกิต"}'
+
+    monkeypatch.setattr(lab8b, "ollama_generate", fake_ollama)
+    no_table = lab8b.ask(conn, "ปี 1 เทอม 1 กี่หน่วยกิต", verbose=False)
+    assert no_table["citations"] == [] and no_table["citation_text"] == ""
+    conn.executescript(lab8b.COURSE_PAGE_DDL)
+    conn.execute("INSERT INTO course_page VALUES ('06016401', 38, '33', 'plan')")
+    got = lab8b.ask(conn, "ปี 1 เทอม 1 กี่หน่วยกิต", verbose=False)
+    assert got["answer"] == "3 หน่วยกิต"
+    assert got["citations"] == [{"pdf_page": 38, "printed_page": "33"}]
+    assert got["citation_text"] == "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"

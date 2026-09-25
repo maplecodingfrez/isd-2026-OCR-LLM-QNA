@@ -1616,6 +1616,7 @@ def ask(conn: sqlite3.Connection, question: str,
     result: dict[str, Any] = {
         "question": question, "sql": None, "rows": [], "answer": None,
         "error": None, "sql_model_output": None, "answer_model_output": None,
+        "citations": [], "citation_text": "",
     }
     ddl = DDL.strip()
     prompt = SQL_PROMPT.format(ddl=ddl, question=question)
@@ -1689,6 +1690,14 @@ def ask(conn: sqlite3.Connection, question: str,
                 seen.append(v)
         if seen and not all(v in result["answer"] for v in seen):
             result["answer"] = ", ".join(seen)
+    # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
+    # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import citations
+    lookup = citations.load_lookup(conn)
+    if lookup is not None:
+        result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)
+        result["citation_text"] = citations.format_citation(result["citations"])
     return result
 
 
@@ -1701,6 +1710,8 @@ def cmd_ask(args) -> None:
     print(f"  SQL   : {r['sql']}")
     print(f"  แถว   : {len(r['rows'])}")
     print(f"  คำตอบ : {r['answer']}")
+    if r["citation_text"]:
+        print(f"  อ้างอิง : {r['citation_text']}")
     print(f"  Raw SQL   : {r['sql_model_output']}")
     print(f"  Raw answer: {r['answer_model_output']}")
     if r["error"]:
@@ -1779,7 +1790,8 @@ def cmd_eval(args) -> None:
                          "error": got["error"],
                          "sql_model_output": got["sql_model_output"],
                          "answer_model_output": got["answer_model_output"],
-                         "answer": got["answer"], "correct": ok, "why": why,
+                         "answer": got["answer"], "citations": got["citations"],
+                         "citation_text": got["citation_text"], "correct": ok, "why": why,
                          "seconds": round(time.time() - t0, 1)})
         print(f"  {i:>2}. [{'ถูก ' if ok else 'ผิด'}] {q['question'][:44]:<46} {why[:26]}")
     conn.close()
