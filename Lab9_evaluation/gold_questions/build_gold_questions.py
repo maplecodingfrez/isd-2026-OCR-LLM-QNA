@@ -338,7 +338,7 @@ def main() -> None:
     # dsba_coop: ไฟล์คำถามเตรียมไว้ก่อนสคริปต์นี้ (อยู่ที่ output ของรัน) — คัดลอกมาไว้ที่นี่แล้วแก้เฉพาะข้อ prerequisite
     out_path = HERE / "dsba_coop_gold_questions.json"
     if not out_path.exists():
-        src = HERE.parents[1] / "Lab8b_ocr_system" / "runs" / "DSBA" / "coop" / "lab8b_output" / "gold_questions.json"
+        src = HERE.parents[1] / "Lab7B_Lab8B_ocr_system" / "runs" / "DSBA" / "coop" / "lab8b_output" / "gold_questions.json"
         out_path.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
     qs = json.loads(out_path.read_text(encoding="utf-8"))
     n_pairs = expected_prerequisite_pairs(load_courses(SCOPED_DIR / "dsba_coop_scoped.json"))
