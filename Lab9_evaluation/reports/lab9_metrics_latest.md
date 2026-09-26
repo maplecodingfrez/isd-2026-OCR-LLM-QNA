@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-26 03:04
+# Lab9 evaluation report — 2026-09-26 13:42
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -129,5 +129,5 @@ CHK1 เดิมบอกแค่ผ่าน/ไม่ผ่าน ไม่�
 
 - **MSE/RMSE/MAPE/Huber สำหรับฟิลด์อื่นนอกจากหน่วยกิตรวม** — ไม่มีงาน regression/depth-estimation อื่นในโปรเจกต์นี้ ฟิลด์ที่เหลือเป็น categorical หรือ free text ทั้งหมด วัดด้วย CER/WER/exact_match (ฟิลด์อิสระ) หรือ confusion matrix (ฟิลด์ categorical) แทน
 - **LLM-as-a-judge / Cohen kappa** — คำถาม NL→SQL ของโปรเจกต์นี้เป็น closed-form (มีคำตอบถูกหนึ่งเดียว ตรวจด้วยกฎ/SQL result ได้ตรง ๆ) ไม่ใช่งานปลายเปิดที่ต้องให้ LLM ช่วยตัดสินความ "ดี" แบบอัตนัย จึงไม่จำเป็นต้องใช้
-- **Citation coverage** — คำตอบมาจาก SQL ที่รันจริงกับ DB ที่สกัดมา ไม่ใช่การ generate ข้อความอิสระแบบ RAG ที่ต้องอ้างอิงหน้า/แหล่งที่มา จึงไม่มีขั้นตอน "citation" ให้วัดตั้งแต่ต้น
+- **Citation coverage / accuracy — ใช้แล้ว (อัปเดต 2026-09-26)** — เดิมตัดสินใจไม่ใช้เพราะคำตอบมาจาก SQL ไม่ใช่ RAG; ตอนนี้คำตอบแนบหน้าอ้างอิงในเล่ม (ch1 ส่วน Q&A ต้องอ้างอิงหน้า) จึงวัดทั้ง "คำตอบที่มีอ้างอิง" (coverage) และ "อ้างหน้าถูก" (accuracy) แยกตามระดับคำถาม — ดูตารางในหัวข้อ 2
 - **Faithfulness/Groundedness** — รับประกันโดยสถาปัตยกรรมเดียวกับข้อบน: คำตอบมาจาก SQL execution ต่อฐานข้อมูลจริงเสมอ ไม่มีช่องให้โมเดล "แต่งเรื่อง" หลุดจากข้อมูลได้
