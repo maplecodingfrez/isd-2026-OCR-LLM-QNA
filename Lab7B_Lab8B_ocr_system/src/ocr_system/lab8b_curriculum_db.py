@@ -585,6 +585,18 @@ def cmd_extract(args) -> None:
 
 # ── นำ JSON จาก Lab 7B มาใช้ต่อโดยไม่เรียก LLM ซ้ำ ─────────────────────────
 
+REPO_ROOT = Path(__file__).resolve().parents[3]      # ocr_system/ (src/ocr_system/ -> Lab7B_Lab8B_ocr_system/ -> repo)
+
+
+def repo_relative(path: str | Path) -> str:
+    """path ที่เขียนลงรายงาน: ถ้าอยู่ใน repo ใช้แบบ relative (a/b/c) — ไฟล์ที่ commit ไว้จึงไม่เปลี่ยนตามเครื่องที่รัน
+    และไม่มี path ในเครื่องหลุดไป; อยู่นอก repo คงค่าเดิม"""
+    try:
+        return Path(path).resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def _credit_parts(value: Any) -> tuple[int, int | None, int | None, int | None]:
     """แปล 3(2-2-5) ของ Lab 7B เป็นคอลัมน์ตัวเลขของ Lab 8B"""
     text = str(value or "").strip()
@@ -1079,7 +1091,7 @@ def cmd_load_prerequisites(args) -> None:
     if counts["not_found"] or counts["unreadable"]:
         print("  (หาไม่เจอ/อ่านไม่ออก = ไม่ทราบ ไม่ใช่ 'ไม่มี' — ไม่มีแถวในตาราง prerequisite สำหรับวิชาเหล่านี้)")
     if args.output:
-        report = {"source_text": str(args.text), "courses": len(codes), "counts": counts,
+        report = {"source_text": repo_relative(args.text), "courses": len(codes), "counts": counts,
                   "pairs_inserted": pairs, "or_groups": or_groups, "per_course": res}
         Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  บันทึกรายงานที่ {args.output}")
@@ -1241,7 +1253,7 @@ def cmd_load_plan_slots_md(args) -> None:
                     if codes - in_db.get((y, sm), set())}
     unexplained = [(r["year"], r["semester"], r["unexplained"]) for r in term_report
                    if r["unexplained"]]
-    report = {"source": str(args.markdown), "slots": len(slots), "members": n_members,
+    report = {"source": repo_relative(args.markdown), "slots": len(slots), "members": n_members,
               "plan_item_credits": base, "with_slots_credits": full,
               "declared_total_credits": declared, "terms": term_report,
               "md_codes_missing_in_plan_item": lost_in_json}

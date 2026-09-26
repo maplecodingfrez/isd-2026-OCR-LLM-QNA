@@ -210,7 +210,11 @@ def nl2sql_metrics(eval_result: list[dict], mapping: list[dict]) -> dict:
 
 
 def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
-    m = RunMetrics(name=name, path=str(run_dir))
+    try:                                   # path ในรายงาน: relative จาก repo (ไม่เปลี่ยนตามเครื่องที่รัน)
+        shown = run_dir.resolve().relative_to(HERE.parent).as_posix()
+    except ValueError:
+        shown = str(run_dir)
+    m = RunMetrics(name=name, path=shown)
 
     conversion = load_json(run_dir / "curriculum.conversion.json")
     m.found["curriculum.conversion.json"] = conversion is not None

@@ -1705,7 +1705,7 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
         "dpi": DPI, "pages_per_chunk": PAGES_PER_CHUNK,
     }
     if prereq_counts is not None:
-        data["_meta"]["prerequisite_from_book"] = {"source": book_ocr, **prereq_counts}
+        data["_meta"]["prerequisite_from_book"] = {"source": _repo_relative(book_ocr), **prereq_counts}
     path = outdir / f"pred_{name}.json"
     # ผลใหม่ของ LLM -> สำเนา "ก่อนแก้" ของขั้นหลังประมวลผล (--fill-prerequisites/--fill-missing-rows/
     # --recover-codes) เป็นของรอบ LLM เก่าแล้ว — ลบทิ้ง ขั้นเหล่านั้นจะเขียนสำเนาใหม่ที่ตรงกับผลรอบนี้เอง
@@ -1717,6 +1717,14 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
           f"{data['_meta']['elapsed_sec']} วิ)")
     return data
 
+
+
+def _repo_relative(path: str | Path) -> str:
+    """path ที่บันทึกใน pred_vlm.json: relative จาก repo (ไม่เปลี่ยนตามเครื่องที่รัน) — ดู lab8b_curriculum_db.repo_relative"""
+    try:
+        return Path(path).resolve().relative_to(Path(__file__).resolve().parents[3]).as_posix()
+    except ValueError:
+        return str(path)
 
 def main() -> None:
     ap = argparse.ArgumentParser(
@@ -1831,7 +1839,7 @@ def main() -> None:
         counts = apply_book_prerequisites(pred, args.book_ocr)
         if counts is None:
             raise SystemExit(1)
-        pred.setdefault("_meta", {})["prerequisite_from_book"] = {"source": args.book_ocr, **counts}
+        pred.setdefault("_meta", {})["prerequisite_from_book"] = {"source": _repo_relative(args.book_ocr), **counts}
         target.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  ✓ เขียน {target} (สำเนาก่อนแก้: {backup.name})")
         return
