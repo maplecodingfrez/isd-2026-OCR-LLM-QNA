@@ -43,7 +43,7 @@
         for (const p of programs) {
           const option = document.createElement("option");
           option.value = p.id;                                     // ค่าที่จะส่งไป API เช่น "it_no_coop"
-          option.textContent = `${p.label} (${p.total_credits ?? "?"} หน่วยกิต)`;  // ข้อความที่ผู้ใช้เห็น
+          option.textContent = p.label;                            // ข้อความที่ผู้ใช้เห็น เช่น "IT ไม่สหกิจ"
           option.disabled = !p.available;                          // ไม่มีไฟล์ DB = กดไม่ได้
           select.appendChild(option);
         }
