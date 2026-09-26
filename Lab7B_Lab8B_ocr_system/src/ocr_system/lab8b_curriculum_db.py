@@ -1803,14 +1803,19 @@ def _values_of(rows: list[dict]) -> set[str]:
     return out
 
 
-def score_one(expect: dict, got: dict) -> tuple[bool, str]:
+_SCORE_CODE_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
+
+
+def score_one(expect: dict, got: dict, question: str = "") -> tuple[bool, str]:
     """
     ให้คะแนนหนึ่งข้อ ตามชนิดของคำถาม
 
-    value  — ต้องมีค่านี้อยู่ในผลลัพธ์
-    set    — ชุดคำตอบต้องตรงกันทั้งหมด (ใช้กับคำถาม "มีวิชาอะไรบ้าง")
-    count  — จำนวนแถวต้องเท่ากับที่คาด
-    none   — ต้องตอบว่าไม่พบ (ใช้ทดสอบว่าระบบยอมรับได้ว่าไม่รู้)
+    value     — ต้องมีค่านี้อยู่ในผลลัพธ์
+    set       — ชุดคำตอบต้องตรงกันทั้งหมด (ใช้กับคำถาม "มีวิชาอะไรบ้าง")
+    set_exact — ชุดรหัสวิชา 8 หลักในผลลัพธ์ต้องเท่ากับที่คาดพอดี (ไม่ขาด ไม่เกิน) — ไม่นับรหัสที่อยู่ในคำถาม
+                และรหัสใน expect["ignore"] (วิชาที่ถูกถามเอง ซึ่ง SQL มักคืนมาคู่กับคำตอบ)
+    count     — จำนวนแถวต้องเท่ากับที่คาด
+    none      — ต้องตอบว่าไม่พบ (ใช้ทดสอบว่าระบบยอมรับได้ว่าไม่รู้)
     """
     kind = expect.get("type", "value")
     rows = got.get("rows") or []
@@ -1823,6 +1828,15 @@ def score_one(expect: dict, got: dict) -> tuple[bool, str]:
     if kind == "count":
         ok = (len(rows) == int(expect["value"]))
         return ok, f"ได้ {len(rows)} แถว คาด {expect['value']}"
+
+    if kind == "set_exact":
+        want = {str(x).strip() for x in expect["value"]}
+        skip = set(_SCORE_CODE_RE.findall(question)) | {str(x) for x in expect.get("ignore") or []}
+        have = {c for v in vals for c in _SCORE_CODE_RE.findall(v)} - skip
+        ok = bool(want) and have == want
+        if ok:
+            return True, "ครบพอดี"
+        return False, f"ขาด {', '.join(sorted(want - have)[:5]) or '-'} เกิน {', '.join(sorted(have - want)[:5]) or '-'}"
 
     if kind == "set":
         want = {str(x).strip() for x in expect["value"]}
@@ -1846,7 +1860,7 @@ def cmd_eval(args) -> None:
     for i, q in enumerate(questions, 1):
         t0 = time.time()
         got = ask(conn, q["question"], verbose=False)
-        ok, why = score_one(q["expect"], got)
+        ok, why = score_one(q["expect"], got, question=q["question"])
         sql_ok = got["error"] is None
         n_ok += ok
         n_sql_ok += sql_ok
