@@ -39,7 +39,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.4
   },
   {
     "id": "B1",
@@ -69,7 +69,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "id": "B2",
@@ -144,7 +144,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 325 (PDF 326), หน้า 330 (PDF 331))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.9
+    "seconds": 3.0
   },
   {
     "id": "B4",
@@ -204,7 +204,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.1
   },
   {
     "id": "B6",
@@ -249,7 +249,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 323 (PDF 324), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 3.4
+    "seconds": 2.9
   },
   {
     "id": "C1",
@@ -286,7 +286,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 358 (PDF 359), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.8
+    "seconds": 2.2
   },
   {
     "id": "C2",
@@ -323,7 +323,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 329 (PDF 330), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "C3",
@@ -360,7 +360,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 330 (PDF 331), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "D1",
@@ -398,7 +398,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 356 (PDF 357), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.1
   },
   {
     "id": "D2",
@@ -436,7 +436,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 29 (PDF 34), หน้า 330 (PDF 331), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "id": "D3",
@@ -537,7 +537,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 31 (PDF 36), หน้า 228 (PDF 229))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "E3",
@@ -575,7 +575,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 31 (PDF 36), หน้า 356 (PDF 357))",
     "correct": false,
     "why": "ไม่พบค่า 0 (ได้ ['3'])",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "E4",
@@ -613,7 +613,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 345 (PDF 346), หน้า 356 (PDF 357))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "F1",
@@ -700,7 +700,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 332 (PDF 333), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.4
+    "seconds": 2.1
   },
   {
     "id": "F3",
@@ -730,7 +730,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ขาด 06066102 เกิน -",
-    "seconds": 1.0
+    "seconds": 0.9
   },
   {
     "id": "F4",
@@ -751,7 +751,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "G1",
@@ -793,7 +793,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.7
   },
   {
     "id": "G3",
@@ -835,7 +835,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.6
   },
   {
     "id": "H2",
@@ -919,6 +919,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.9
+    "seconds": 0.8
   }
 ]

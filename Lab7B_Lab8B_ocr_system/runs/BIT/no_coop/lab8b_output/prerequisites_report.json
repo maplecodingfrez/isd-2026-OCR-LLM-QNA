@@ -1,5 +1,5 @@
 {
-  "source_text": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\bit\\bit_curriculum_ocr.txt",
+  "source_text": "outputs/bit/bit_curriculum_ocr.txt",
   "courses": 36,
   "counts": {
     "found": 2,

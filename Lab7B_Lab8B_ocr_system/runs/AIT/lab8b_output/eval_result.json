@@ -18,7 +18,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 10.4
+    "seconds": 2.6
   },
   {
     "id": "A2",
@@ -39,7 +39,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.3
   },
   {
     "id": "B1",
@@ -69,7 +69,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.5
   },
   {
     "id": "B2",
@@ -88,8 +88,8 @@
     "n_rows": 1,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1\"}",
-    "answer_model_output": "{\"answer\": \"18 หน่วยกิต\"}",
-    "answer": "18 หน่วยกิต",
+    "answer_model_output": "{\"answer\": \"18 หน่วยกิจ\"}",
+    "answer": "18 หน่วยกิจ",
     "citations": [
       {
         "pdf_page": 24,
@@ -99,7 +99,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.5
   },
   {
     "id": "B3",
@@ -144,7 +144,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 286 (PDF 290), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.8
+    "seconds": 2.3
   },
   {
     "id": "B4",
@@ -174,7 +174,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.5
   },
   {
     "id": "B5",
@@ -204,7 +204,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.5
   },
   {
     "id": "B6",
@@ -250,7 +250,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 288 (PDF 292), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 3.0
+    "seconds": 2.4
   },
   {
     "id": "C1",
@@ -287,7 +287,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 290 (PDF 294), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 1.7
   },
   {
     "id": "C2",
@@ -324,7 +324,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 143 (PDF 147), หน้า 15 (PDF 19))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.4
   },
   {
     "id": "C3",
@@ -361,7 +361,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 289 (PDF 293), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.5
   },
   {
     "id": "D1",
@@ -399,7 +399,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 26), หน้า 299 (PDF 303), หน้า 18 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.7
   },
   {
     "id": "D2",
@@ -437,7 +437,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 292 (PDF 296), หน้า 17 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.5
   },
   {
     "id": "D3",
@@ -500,7 +500,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 291 (PDF 295), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.7
+    "seconds": 2.2
   },
   {
     "id": "E2",
@@ -538,7 +538,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 116 (PDF 120), PDF 144)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.4
   },
   {
     "id": "E3",
@@ -572,7 +572,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 291 (PDF 295))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 1.5
   },
   {
     "id": "E4",
@@ -610,7 +610,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 19 (PDF 23), หน้า 115 (PDF 119), หน้า 116 (PDF 120))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.5
   },
   {
     "id": "F1",
@@ -654,7 +654,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 288 (PDF 292), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.4
+    "seconds": 1.7
   },
   {
     "id": "F2",
@@ -698,7 +698,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 287 (PDF 291), หน้า 16 (PDF 20))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.3
+    "seconds": 1.6
   },
   {
     "id": "F3",
@@ -741,7 +741,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 19 (PDF 23), หน้า 283 (PDF 287), หน้า 15 (PDF 19))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.2
+    "seconds": 1.6
   },
   {
     "id": "F4",
@@ -762,7 +762,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 1.6
   },
   {
     "id": "G1",
@@ -783,7 +783,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.6
   },
   {
     "id": "G2",
@@ -804,7 +804,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 1.7
   },
   {
     "id": "G3",
@@ -825,7 +825,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 1.5
   },
   {
     "id": "H1",
@@ -846,7 +846,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.7
   },
   {
     "id": "H2",
@@ -867,7 +867,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.4
   },
   {
     "id": "H3",
@@ -888,7 +888,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.7
   },
   {
     "id": "H4",
@@ -909,7 +909,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 1.4
+    "seconds": 1.2
   },
   {
     "id": "H5",
@@ -930,6 +930,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.9
+    "seconds": 0.8
   }
 ]

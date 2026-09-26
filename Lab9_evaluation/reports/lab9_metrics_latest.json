@@ -1,7 +1,7 @@
 {
   "ait": {
     "name": "ait",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -43,7 +43,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9667,
     "answer_text_accuracy": 0.9667,
-    "avg_seconds": 2.28,
+    "avg_seconds": 1.5,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -106,7 +106,7 @@
   },
   "bit_no_coop": {
     "name": "bit_no_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\BIT\\no_coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/BIT/no_coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -147,7 +147,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.99,
+    "avg_seconds": 1.89,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -210,7 +210,7 @@
   },
   "bit_coop": {
     "name": "bit_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\BIT\\coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/BIT/coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -252,7 +252,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9667,
     "answer_text_accuracy": 0.9667,
-    "avg_seconds": 1.81,
+    "avg_seconds": 1.83,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -315,7 +315,7 @@
   },
   "dsba_no_coop": {
     "name": "dsba_no_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -420,7 +420,7 @@
   },
   "dsba_coop": {
     "name": "dsba_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -462,7 +462,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9333,
     "answer_text_accuracy": 0.9333,
-    "avg_seconds": 1.82,
+    "avg_seconds": 1.83,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -525,7 +525,7 @@
   },
   "it_no_coop": {
     "name": "it_no_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -567,7 +567,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.91,
+    "avg_seconds": 1.81,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {
@@ -630,7 +630,7 @@
   },
   "it_coop": {
     "name": "it_coop",
-    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output",
+    "path": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output",
     "found": {
       "curriculum.conversion.json": true,
       "curriculum.json": true,
@@ -672,7 +672,7 @@
     "valid_sql_rate": 1.0,
     "execution_accuracy": 0.9,
     "answer_text_accuracy": 0.9,
-    "avg_seconds": 1.81,
+    "avg_seconds": 1.79,
     "sql_ok_text_wrong": [],
     "level_stats": {
       "1": {

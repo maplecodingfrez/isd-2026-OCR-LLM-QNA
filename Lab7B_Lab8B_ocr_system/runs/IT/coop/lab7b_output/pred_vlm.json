@@ -619,7 +619,7 @@
     "dpi": 150,
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
-      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
+      "source": "outputs/it/it_curriculum_ocr.txt",
       "found": 8,
       "none": 29,
       "not_found": 12,
