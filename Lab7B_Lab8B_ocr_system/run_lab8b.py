@@ -38,6 +38,11 @@ PLANS = {
 }
 
 
+# ค่าตั้ง OCR เฉพาะแผน (มีผลเฉพาะตอน OCR ใหม่ ไม่ใส่ --skip-lab7): IT coop ของที่ commit ไว้รันด้วยการตัดตราน้ำ
+# (กู้รหัส 06016419/06016420 ที่ตราน้ำบัง — ดู LAB7B_LAB8B_OVERVIEW.md) ต้องเปิดไว้จึงจะได้ผลแบบเดิม
+PLAN_ENV = {"it_coop": {"LAB7B_DEWATERMARK": "1"}}
+
+
 def run(*args: object) -> None:
     subprocess.run([sys.executable, *(str(x) for x in args)], cwd=ROOT, check=True)
 
@@ -52,6 +57,8 @@ def run_plan(plan: str, skip_lab7: bool) -> None:
     db = lab8_out / "curriculum.db"
     print(f"\n===== {plan} ({rel}) =====")
 
+    os.environ.pop("LAB7B_DEWATERMARK", None)
+    os.environ.update(PLAN_ENV.get(plan, {}))
     # ให้ Lab 7B เติมฟิลด์ prerequisite (จากข้อความ OCR ทั้งเล่ม) ก่อนประเมินเทียบเฉลยในรอบเดียวกัน
     if book_txt.exists():
         os.environ["LAB7_BOOK_OCR"] = str(book_txt)
@@ -92,13 +99,7 @@ def run_plan(plan: str, skip_lab7: bool) -> None:
         "--data-input", run_dir / "data_input", "-m", md_file)
     run(LAB8, "verify", "-d", db, "-o", lab8_out / "verify.json")
 
-    # ชุดคำถามทองต้องตรง sha256 ที่ล็อกไว้ — กันรายงานผลจากไฟล์ที่ถูกแก้หลังเห็นผลว่าเป็นชุดทางการ
-    sys.path.insert(0, str(GOLD_DIR))
-    from build_gold_questions import frozen_ok
-    gold = GOLD_DIR / f"{plan}_gold_questions.json"
-    if not frozen_ok(plan):
-        raise SystemExit(f"{gold.name} ไม่ตรง sha256 ใน frozen.json — ห้ามแก้ชุดคำถามหลังล็อก (ดู build_gold_questions.py)")
-    run(LAB8, "eval", "-d", db, "-q", gold, "-o", lab8_out / "eval_result.json")
+    run(LAB8, "eval", "-d", db, "-q", GOLD_DIR / f"{plan}_gold_questions.json", "-o", lab8_out / "eval_result.json")
     print(f"เสร็จแล้ว: {lab8_out}")
 
 
@@ -116,7 +117,16 @@ def main() -> None:
         "LAB7B_OCR_NUM_CTX": "4096",
         "LAB7B_OCR_NUM_PREDICT": "1200",
     })
-    for plan in (PLANS if args.plan == "all" else [args.plan]):
+    plans = list(PLANS) if args.plan == "all" else [args.plan]
+    # ชุดคำถามทองต้องตรง sha256 ที่ล็อกไว้ (ตรวจก่อนเริ่ม ไม่ให้สร้าง DB เสร็จแล้วค่อยพัง) — กันรายงานผลจากไฟล์ที่ถูกแก้
+    # หลังเห็นผลว่าเป็นชุดทางการ
+    sys.path.insert(0, str(GOLD_DIR))
+    from build_gold_questions import frozen_ok
+    bad = [p for p in plans if not frozen_ok(p)]
+    if bad:
+        raise SystemExit(f"ชุดคำถามทองของ {', '.join(bad)} ไม่ตรง sha256 ใน gold_questions/frozen.json — "
+                         "ห้ามแก้ชุดคำถามหลังล็อก (ดู build_gold_questions.py)")
+    for plan in plans:
         run_plan(plan, args.skip_lab7)
 
 

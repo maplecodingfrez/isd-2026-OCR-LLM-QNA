@@ -300,3 +300,14 @@ def test_report_paths_are_repo_relative():
     assert lab8b.repo_relative(str(book)) == "outputs/ait/ait_curriculum_ocr.txt"
     outside = Path("C:/elsewhere/x.txt") if book.drive else Path("/elsewhere/x.txt")
     assert lab8b.repo_relative(outside) == str(outside)       # outside the repo: keep as given
+
+
+# Review finding: "shared English name" must be judged within ONE pair — two different pairs that happen to carry
+# the same English name are not the conflation symptom.
+def test_or_pair_shared_english_is_scoped_per_pair():
+    from or_course_names import apply_to_courses
+    courses = [{"code": "A1", "name_th": "ก", "name_en": "SAME"}, {"code": "A2", "name_th": "ข", "name_en": "OTHER"},
+               {"code": "B1", "name_th": "ค", "name_en": "SAME"}, {"code": "B2", "name_th": "ง", "name_en": "ELSE"}]
+    apply_to_courses(courses, [{"A1": ("ก", "FROM MD 1"), "A2": ("ข", "FROM MD 2")},
+                               {"B1": ("ค", "FROM MD 3"), "B2": ("ง", "FROM MD 4")}])
+    assert [c["name_en"] for c in courses] == ["SAME", "OTHER", "SAME", "ELSE"]

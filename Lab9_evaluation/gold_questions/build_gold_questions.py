@@ -2,10 +2,10 @@
 
 เฉลยคำนวณจาก ground_truth_scoped (แก้ให้ตรงเล่มแล้ว) + หน่วยกิตรวม/จำนวนปีที่เล่มประกาศ — ไม่อ่าน DB
 สุ่มด้วย seed ตายตัว "gold-v2:<แผน>" รันซ้ำได้ไฟล์เดิมทุกไบต์ — ไฟล์ที่สร้างแล้วถูกล็อก (sha256 ใน frozen.json)
-ห้ามแก้หลังเห็นผล; `tests/test_gold_v2.py` ตรวจว่าไฟล์ตรงกับตัวสร้างและ sha256
+ห้ามแก้หลังเห็นผล; `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับตัวสร้างและ sha256
 
 ประวัติ: ชุดนี้คือ "v2" ที่ออกแบบมาแทนชุดแรก (v1) — ชุด v1 อยู่ใน git tag `gold-v1`
-(`git checkout gold-v1 -- Lab9_evaluation/gold_questions`) ค่าที่ v2 ใช้จาก v1 (วิชาที่ v1 ถามแล้ว ให้เลี่ยง,
+(ดูโดยไม่ทับไฟล์ปัจจุบัน: `git show gold-v1:Lab9_evaluation/gold_questions/ait_gold_questions.json`) ค่าที่ v2 ใช้จาก v1 (วิชาที่ v1 ถามแล้ว ให้เลี่ยง,
 หน่วยกิตรวม/ปีที่ประกาศ, คำค้นที่ v1 ใช้) ฝังไว้เป็นค่าคงที่ `V1` ด้านล่าง ไฟล์ที่สร้างจึงเหมือนเดิมทุกไบต์
 
     python build_gold_questions.py        # เขียน <แผน>_gold_questions.json ×7 + frozen.json
@@ -390,8 +390,10 @@ def write_all() -> dict[str, dict]:
 
 def frozen_ok(plan: str, folder: Path = HERE) -> bool:
     """ไฟล์คำถามตรง sha256 ที่ล็อกไว้ — กันรายงานผลจากไฟล์ที่ถูกแก้หลังล็อกว่าเป็นชุดทางการ"""
-    q = folder / f"{plan}_gold_questions.json"
-    meta = json.loads((folder / "frozen.json").read_text(encoding="utf-8")).get(plan) or {}
+    q, frozen = folder / f"{plan}_gold_questions.json", folder / "frozen.json"
+    if not frozen.exists():
+        return False
+    meta = json.loads(frozen.read_text(encoding="utf-8")).get(plan) or {}
     return q.exists() and hashlib.sha256(q.read_bytes()).hexdigest() == meta.get("sha256")
 
 

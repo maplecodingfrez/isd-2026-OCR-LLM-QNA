@@ -49,12 +49,6 @@ def test_unique_names():
     assert g2.unique_names(placed, "name_en") == {"06016401", "06016403"}
 
 
-def test_v1_info_read_from_v1_files():
-    assert g2.v1_declared("ait") == ("120", "4")
-    assert len(g2.v1_codes("dsba_no_coop")) > 5
-    assert g2.v1_keyword("dsba_no_coop") == "เทคโนโลยี"
-
-
 # Break caught: unreadable credits silently counted as 0 in totals.
 def test_all_real_plans_have_readable_credits():
     for plan in g2.PLAN_NAMES:
@@ -224,3 +218,9 @@ def test_prerequisite_questions_ask_different_courses():
     for plan, (qs, _) in BUILT.items():
         fwd_subjects = [q["about_codes"][0] for q in qs if q.get("direction") == "forward"]
         assert len(fwd_subjects) == len(set(fwd_subjects)), plan
+
+
+# Review finding: a missing frozen.json raised a raw FileNotFoundError instead of refusing to run.
+def test_missing_frozen_file_is_not_frozen(tmp_path):
+    (tmp_path / "ait_gold_questions.json").write_bytes(g2.question_path("ait").read_bytes())
+    assert not g2.frozen_ok("ait", tmp_path)
