@@ -24,10 +24,10 @@ def test_nl2sql_metrics_handles_set_exact_and_categories():
     assert m["level_stats"]["none"]["n"] == 1
 
 
-def test_v2_section_empty_without_v2_and_totals_with_it():
+def test_summary_empty_without_results_and_totals_with_them():
     r = ev.RunMetrics(name="ait", path="x")
-    assert ev.v2_section({"ait": r}) == []
-    r.v2 = ev.nl2sql_metrics(ROWS, [])
-    r.n_questions, r.execution_accuracy = 30, 0.8
-    text = "\n".join(ev.v2_section({"ait": r}))
-    assert "2/3" in text and "ชุดคำถามทอง v2" in text
+    assert ev.nl2sql_summary({"ait": r}) == []
+    nl = ev.nl2sql_metrics(ROWS, [])
+    r.n_questions, r.n_correct, r.category_stats = nl["n"], nl["n_correct"], nl["category_stats"]
+    text = "\n".join(ev.nl2sql_summary({"ait": r}))
+    assert "2/3" in text and "| E ชื่อ → ข้อมูลวิชา | 1 | 0/1 |" in text

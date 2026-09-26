@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "Lab9_evaluation" / "gold_questions"))
-import build_gold_questions_v2 as g2  # noqa: E402
+import build_gold_questions as g2  # noqa: E402
 
 
 def row(code, y, s, credits="3(3-0-6)", name_th=None, name_en=None, prerequisite="ไม่มี", note=None):
@@ -168,11 +168,23 @@ import hashlib  # noqa: E402
 
 # Break caught: frozen files drifting from the generator, or edited by hand after freezing.
 def test_frozen_files_match_generator_and_hash():
+    frozen = json.loads(g2.FROZEN.read_text(encoding="utf-8"))
+    assert sorted(frozen) == sorted(g2.PLAN_NAMES)
     for plan in g2.PLAN_NAMES:
-        path = g2.OUT_DIR / f"{plan}_gold_questions_v2.json"
-        meta = json.loads((g2.OUT_DIR / f"{plan}_meta.json").read_text(encoding="utf-8"))
+        path = g2.question_path(plan)
         assert path.read_bytes() == g2.render(BUILT[plan][0]), plan
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == meta["sha256"], plan
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == frozen[plan]["sha256"], plan
+        assert {k: v for k, v in frozen[plan].items() if k != "sha256"} == BUILT[plan][1], plan
+        assert g2.frozen_ok(plan), plan
+
+
+# Break caught: running an edited (unfrozen) question file and reporting it as the locked set.
+def test_edited_question_file_is_not_frozen(tmp_path):
+    import shutil
+    shutil.copy(g2.FROZEN, tmp_path / "frozen.json")
+    q = tmp_path / "ait_gold_questions.json"
+    q.write_bytes(g2.question_path("ait").read_bytes().replace("หน่วยกิต".encode(), "หน่วยกิจ".encode(), 1))
+    assert not g2.frozen_ok("ait", tmp_path)
 
 
 # Break caught: a name wrapped over two lines in the ground truth ("...AND\nCYBERSECURITY") used verbatim.

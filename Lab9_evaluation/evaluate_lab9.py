@@ -25,24 +25,18 @@ Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ J
 
   3. Overfitting / stability check (หน้า "สัญญาณที่บอกว่ากำลัง overfit"):
      ระบบนี้ไม่ได้เทรนโมเดลเอง (ใช้ LLM พร้อมใช้ + prompt) จึงไม่มี train/val loss ให้ดู
-     สัญญาณที่ใช้แทนได้ตามสไลด์คือ "ผลแกว่งมากเมื่อรันซ้ำ" — สคริปต์นี้เทียบสอง run ที่ใช้ชุด
-     เอกสารเดียวกัน (input_ours_coop กับ input_ours_coop_retry) แล้วรายงานส่วนต่างของตัวเลข
-     โครงสร้าง (จำนวนวิชา/หน่วยกิตรวม) และ execution_accuracy ว่าห่างกันแค่ไหน ถ้าห่างเกิน
-     threshold ที่กำหนด จะติดธง "ไม่เสถียร" ให้ในรายงาน
+     สัญญาณที่ใช้แทนได้ตามสไลด์คือ "ผลแกว่งมากเมื่อรันซ้ำ" — เทียบ run หลักกับรอบรันซ้ำของเอกสารชุดเดียวกัน
+     (STABILITY_PAIRS) ถ้าตัวเลขห่างเกิน threshold จะติดธง "ไม่เสถียร" — รอบรันซ้ำไม่อยู่ใน repo
+     (ผลที่วัดไว้อยู่ใน reports/lab9_overfit_underfit_summary.md) ส่งเข้ามาเองได้ด้วย --runs
 
 การใช้งาน
 ---------
-    python evaluate_lab9.py
-    python evaluate_lab9.py --runs <path1> <path2> ...   # ระบุ run directory เอง
+    python evaluate_lab9.py                                   # 7 แผนหลัก
+    python evaluate_lab9.py --runs ait=<dir> ait_retry=<dir>  # ระบุ run directory เอง (เช่น รอบรันซ้ำ)
 
-ค่า default ของ --runs คือ 8 run ที่มีอยู่แล้ว (อัปเดต 2026-09-16 — ครบ 4 คณะ AIT/BIT/DSBA/IT
-ตามขอบเขตที่อาจารย์ขอให้ประเมิน ไม่ใช่แค่ DSBA-coop เหมือนตอนแรกสุด):
-    ait, bit_no_coop, bit_coop, dsba_no_coop, dsba_coop, it_no_coop, it_coop
-        — ../Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/
-    dsba_coop_retry — ../Lab7B_Lab8B_ocr_system/runs/DSBA/coop_retry/lab8b_output/
-    bit_coop_retry  — ../Lab7B_Lab8B_ocr_system/runs/BIT/coop_retry/lab8b_output/  (สร้างด้วย run_lab8b_bit_coop_retry.py)
-    it_coop_retry   — ../Lab7B_Lab8B_ocr_system/runs/IT/coop_retry/lab8b_output/   (สร้างด้วย run_lab8b_it_coop_retry.py)
-        (รันซ้ำรอบสองของเอกสารชุดเดียวกับ dsba_coop — ใช้เฉพาะเช็คความเสถียร/overfitting เท่านั้น)
+ค่า default คือ 7 แผนหลัก (ait, bit_no_coop, bit_coop, dsba_no_coop, dsba_coop, it_no_coop, it_coop)
+ที่ ../Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/ — ผล NL→SQL มาจาก eval_result.json
+ที่ run_lab8b.py รันด้วยชุดคำถามทอง ../Lab9_evaluation/gold_questions/<แผน>_gold_questions.json
 
 ผลลัพธ์
 -------
@@ -74,11 +68,9 @@ import levels  # noqa: E402  ระดับคำถาม ch1 + หน้า�
 DEFAULT_LAB8B = HERE.parent / "Lab7B_Lab8B_ocr_system"
 DEFAULT_LAB8B_RUNS = DEFAULT_LAB8B / "runs"
 
-# อัปเดต 2026-09-16: เดิม hardcode 3 run ที่ชี้ไปที่ Lab7B_Lab8B_ocr_system/work/lab8b_run_ours_coop(_retry)
-# ซึ่งถูกย้ายออกไปตอนจัดระเบียบโฟลเดอร์ (ดู Lab7B_Lab8B_ocr_system/PROGRESS.md หัวข้อ "จัดระเบียบโฟลเดอร์
-# 2026-09-16") ทำให้ 2 ใน 3 path เดิมหายไปจริง ("[ข้าม] ไม่พบ run directory" ถ้ารันเฉยๆ) — เปลี่ยนมา
-# ชี้ครบทั้ง 7 run ตามชื่อหลักสูตร/แผนใน Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/ แทน
-# (ครบทุกคณะที่อาจารย์ขอให้ประเมิน AIT/BIT/DSBA/IT — ไม่ใช่แค่ DSBA-coop เหมือนตอนแรกสุด)
+GOLD_DIR = HERE / "gold_questions"
+
+# 7 แผนหลัก ครบทุกคณะที่อาจารย์ขอให้ประเมิน (AIT/BIT/DSBA/IT)
 DEFAULT_RUNS = [
     ("ait", DEFAULT_LAB8B_RUNS / "AIT" / "lab8b_output"),
     ("bit_no_coop", DEFAULT_LAB8B_RUNS / "BIT" / "no_coop" / "lab8b_output"),
@@ -87,26 +79,12 @@ DEFAULT_RUNS = [
     ("dsba_coop", DEFAULT_LAB8B_RUNS / "DSBA" / "coop" / "lab8b_output"),
     ("it_no_coop", DEFAULT_LAB8B_RUNS / "IT" / "no_coop" / "lab8b_output"),
     ("it_coop", DEFAULT_LAB8B_RUNS / "IT" / "coop" / "lab8b_output"),
-    # เก็บไว้เฉพาะสำหรับเช็คความเสถียร/overfitting (checklist ข้อ 3) — เอกสารชุดเดียวกับ dsba_coop
-    # เป๊ะ รันซ้ำรอบสอง (ของเดิมอยู่ที่ runs/DSBA/coop_retry/lab8b_output/ หลังจัดโฟลเดอร์)
-    ("dsba_coop_retry", DEFAULT_LAB8B_RUNS / "DSBA" / "coop_retry" / "lab8b_output"),
-    # รันซ้ำของ bit_coop (สร้างด้วย Lab7B_Lab8B_ocr_system/run_lab8b_bit_coop_retry.py) — ถ้ายังไม่ได้รัน
-    # จะขึ้น "[ข้าม] ไม่พบ run directory" และข้ามคู่นี้ในหัวข้อความเสถียรไปเฉยๆ
-    ("bit_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "coop_retry" / "lab8b_output"),
-    # รันซ้ำของ it_coop (สร้างด้วย Lab7B_Lab8B_ocr_system/run_lab8b_it_coop_retry.py)
-    ("it_coop_retry", DEFAULT_LAB8B_RUNS / "IT" / "coop_retry" / "lab8b_output"),
-    # รันซ้ำของอีก 4 หลักสูตร/แผน (สร้างด้วย run_all_stability_retries.py หรือ run_lab8b_<name>_retry.py)
-    ("ait_retry", DEFAULT_LAB8B_RUNS / "AIT_retry" / "lab8b_output"),
-    ("ait_retry2", DEFAULT_LAB8B_RUNS / "AIT_retry2" / "lab8b_output"),   # run_lab8b_ait_retry.py --tag 2
-    ("ait_retry3", DEFAULT_LAB8B_RUNS / "AIT_retry3" / "lab8b_output"),   # run_lab8b_ait_retry.py --tag 3
-    ("bit_no_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "no_coop_retry" / "lab8b_output"),
-    ("dsba_no_coop_retry", DEFAULT_LAB8B_RUNS / "DSBA" / "no_coop_retry" / "lab8b_output"),
-    ("it_no_coop_retry", DEFAULT_LAB8B_RUNS / "IT" / "no_coop_retry" / "lab8b_output"),
 ]
 
 # คู่ run ที่ใช้เอกสารชุดเดียวกันจริง ๆ (สำหรับเช็คความเสถียร/overfitting เท่านั้น
 # ห้ามเอา run อื่นมาเทียบด้วย เพราะเป็นเอกสารคนละชุด ตัวเลขต่างกันเป็นปกติ)
-# แต่ละคู่ = (รันเดิม, รันซ้ำ) — เพิ่มคู่ใหม่ที่นี่ + เพิ่ม run ซ้ำใน DEFAULT_RUNS ด้านบน
+# แต่ละคู่ = (รันเดิม, รันซ้ำ) — รอบรันซ้ำส่งเข้ามาด้วย --runs <ชื่อ>=<dir> (ไม่อยู่ใน repo)
+# เทียบ execution_accuracy ได้เฉพาะเมื่อทั้งคู่รัน eval ด้วยชุดคำถามเดียวกัน
 STABILITY_PAIRS = [
     ("dsba_coop", "dsba_coop_retry"),
     ("bit_coop", "bit_coop_retry"),
@@ -184,7 +162,8 @@ class RunMetrics:
     avg_seconds: float | None = None
     sql_ok_text_wrong: list[str] = field(default_factory=list)  # ตรง gap ที่สไลด์เตือน
     level_stats: dict = field(default_factory=dict)   # ระดับคำถาม ch1 -> n/correct/citation (levels.py)
-    v2: dict = field(default_factory=dict)   # ชุดคำถามทอง v2 (eval_result_v2.json) — nl2sql_metrics()
+    n_correct: int | None = None
+    category_stats: dict = field(default_factory=dict)   # หมวดคำถาม A–H -> n/correct
 
 
 def nl2sql_metrics(eval_result: list[dict], mapping: list[dict]) -> dict:
@@ -315,19 +294,16 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
     prog = name.split("_")[0]
     mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
     if eval_result:
-        v1 = nl2sql_metrics(eval_result, mapping)
-        m.n_questions = v1["n"]
-        m.valid_sql_rate = v1["valid_sql_rate"]
-        m.execution_accuracy = v1["execution_accuracy"]
-        m.answer_text_accuracy = v1["answer_text_accuracy"]
-        m.avg_seconds = v1["avg_seconds"]
-        m.sql_ok_text_wrong = v1["sql_ok_text_wrong"]
-        m.level_stats = v1["level_stats"]
-
-    eval_v2 = load_json(run_dir / "eval_result_v2.json")
-    m.found["eval_result_v2.json"] = eval_v2 is not None
-    if eval_v2:
-        m.v2 = nl2sql_metrics(eval_v2, mapping)
+        nl = nl2sql_metrics(eval_result, mapping)
+        m.n_questions = nl["n"]
+        m.n_correct = nl["n_correct"]
+        m.valid_sql_rate = nl["valid_sql_rate"]
+        m.execution_accuracy = nl["execution_accuracy"]
+        m.answer_text_accuracy = nl["answer_text_accuracy"]
+        m.avg_seconds = nl["avg_seconds"]
+        m.sql_ok_text_wrong = nl["sql_ok_text_wrong"]
+        m.level_stats = nl["level_stats"]
+        m.category_stats = nl["category_stats"]
 
     return m
 
@@ -351,8 +327,6 @@ def check_stability(runs: dict[str, RunMetrics]) -> list[str]:
     ]
     for first, second in STABILITY_PAIRS:
         if first not in runs or second not in runs:
-            missing = [n for n in (first, second) if n not in runs]
-            notes.append(f"**{first} vs {second}** — ข้าม: ยังไม่มี run {', '.join(missing)}")
             continue
         a, b = runs[first], runs[second]
         notes.append(f"**{first} vs {second}**")
@@ -363,6 +337,9 @@ def check_stability(runs: dict[str, RunMetrics]) -> list[str]:
                 continue
             flag = "⚠️ ไม่เสถียร (เกิน threshold)" if d > STABILITY_THRESHOLD else "โอเค"
             notes.append(f"  - {label}: {a.name}={va}  vs  {b.name}={vb}  (ต่างกัน {d*100:.1f}%) -> {flag}")
+    if not notes:
+        notes.append("ไม่มีรอบรันซ้ำในรอบนี้ (ไม่อยู่ใน repo) — ผลที่วัดไว้ดู `reports/lab9_overfit_underfit_summary.md`; "
+                     "วัดใหม่ด้วย `--runs <แผน>=<dir> <แผน>_retry=<dir>` ตามคู่ใน `STABILITY_PAIRS`")
     return notes
 
 
@@ -387,40 +364,22 @@ CATEGORY_TH = {"A": "หลักสูตร", "B": "รายเทอม", "C
                "F": "วิชาบังคับก่อน", "G": "ภาพรวม", "H": "ไม่มีในเล่ม (ต้องตอบไม่พบ)"}
 
 
-def v2_section(runs: dict[str, RunMetrics]) -> list[str]:
-    have = [r for r in runs.values() if r.v2]
+def nl2sql_summary(runs: dict[str, RunMetrics]) -> list[str]:
+    """ยอดรวมทุกแผน + แยกตามหมวดคำถาม A–H (ชุดคำถามทอง gold_questions/)"""
+    have = [r for r in runs.values() if r.n_questions]
     if not have:
         return []
-    lines = ["## 2b. NL→SQL ชุดคำถามทอง v2 (eval_result_v2.json)", "",
-             "ชุดใหม่ 30 ข้อ/แผน สร้างด้วยสคริปต์จากเฉลย scoped (seed ตายตัว) และล็อก sha256 ก่อนรัน — "
-             "ระบบไม่เคยถูกปรับตามชุดนี้ (v1 = ชุดที่ใช้พัฒนาระบบ แสดงคู่ไว้เทียบ)", "",
-             "| run | n | valid_sql_rate | execution_accuracy (v2) | answer_text_accuracy (v2) | execution_accuracy (v1) |",
-             "|---|---|---|---|---|---|"]
-    for r in have:
-        v = r.v2
-        lines.append(f"| {r.name} | {v['n']} | {v['valid_sql_rate']} | {v['execution_accuracy']} | "
-                     f"{v['answer_text_accuracy']} | {r.execution_accuracy} |")
-    n2, c2 = sum(r.v2["n"] for r in have), sum(r.v2["n_correct"] for r in have)
-    n1 = sum(r.n_questions or 0 for r in have)
-    c1 = sum(round((r.execution_accuracy or 0) * (r.n_questions or 0)) for r in have)
-    lines += ["", f"**รวม:** v2 ตอบถูก {c2}/{n2} = {c2 / n2:.1%} · v1 ตอบถูก {c1}/{n1} = "
-              f"{(c1 / n1 if n1 else 0):.1%}", "", "| หมวด | n | ตอบถูก | accuracy |", "|---|---|---|---|"]
+    n, c = sum(r.n_questions for r in have), sum(r.n_correct or 0 for r in have)
+    lines = [f"**รวม:** ตอบถูก {c}/{n} = {c / n:.1%}", "", "| หมวด | n | ตอบถูก | accuracy |", "|---|---|---|---|"]
     cats: dict[str, list[int]] = {}
     for r in have:
-        for k, s in r.v2["category_stats"].items():
+        for k, st in r.category_stats.items():
             cats.setdefault(k, [0, 0])
-            cats[k][0] += s["n"]
-            cats[k][1] += s["correct"]
+            cats[k][0] += st["n"]
+            cats[k][1] += st["correct"]
     for k in sorted(cats):
-        n, c = cats[k]
-        lines.append(f"| {k} {CATEGORY_TH.get(k, '')} | {n} | {c}/{n} | {c / n:.1%} |")
-    lines += ["", "| level | n | ตอบถูก | อ้างหน้าถูก (ตรวจได้) |", "|---|---|---|---|"]
-    for lvl in ("1", "2", "none"):
-        rows = [r.v2["level_stats"][lvl] for r in have if lvl in r.v2["level_stats"]]
-        if rows:
-            n, c = sum(s["n"] for s in rows), sum(s["correct"] for s in rows)
-            ch, cc = sum(s["cite_hit"] for s in rows), sum(s["cite_checkable"] for s in rows)
-            lines.append(f"| {lvl} | {n} | {c}/{n} | {f'{ch}/{cc}' if cc else '-'} |")
+        kn, kc = cats[k]
+        lines.append(f"| {k} {CATEGORY_TH.get(k, '')} | {kn} | {kc}/{kn} | {kc / kn:.1%} |")
     lines.append("")
     return lines
 
@@ -484,6 +443,9 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
 
     lines.append("## 2. NL→SQL metrics (eval_result.json)")
     lines.append("")
+    lines.append("ชุดคำถามทอง `gold_questions/<แผน>_gold_questions.json` 30 ข้อ/แผน สร้างด้วยสคริปต์จากเฉลย scoped "
+                 "(seed ตายตัว) และล็อก sha256 ก่อนรัน (`frozen.json`) — ตรงเกณฑ์ ch8: ข้อ \"ไม่รู้\" 5 ข้อ, ให้คะแนนจากผล SQL")
+    lines.append("")
     lines.append("| run | n_questions | valid_sql_rate | execution_accuracy | answer_text_accuracy | avg_seconds |")
     lines.append("|---|---|---|---|---|---|")
     for r in runs.values():
@@ -530,7 +492,7 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
             cite = f"{s['cite_hit']}/{s['cite_checkable']}" if s["cite_checkable"] else "-"
             lines.append(f"| {r.name} | {lvl} | {s['n']} | {acc} | {s['with_citation']}/{s['n']} | {cite} |")
     lines.append("")
-    lines.extend(v2_section(runs))
+    lines.extend(nl2sql_summary(runs))
     lines.append("## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)")
     lines.append("")
     for note in stability_notes:
@@ -607,7 +569,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
         "--runs", nargs="*", metavar="NAME=PATH",
-        help="ระบุ run เอง เช่น --runs my_run=work/lab8b_run  (ถ้าไม่ระบุ ใช้ค่า default สาม run)",
+        help="ระบุ run เอง เช่น --runs ait_retry=../Lab7B_Lab8B_ocr_system/runs/AIT_retry/lab8b_output (ไม่ระบุ = 7 แผนหลัก)",
     )
     ap.add_argument("--list-levels", action="store_true",
                     help="พิมพ์ระดับคำถาม + หน้าที่คาดหวังของทุกคำถามทอง ให้ตรวจก่อนใช้ในรายงาน แล้วจบ")
@@ -615,8 +577,8 @@ def main() -> None:
 
     if args.list_levels:
         for name, path in DEFAULT_RUNS:
-            gold = path / "gold_questions.json"
-            if not gold.exists():   # run ที่ไม่มีบนเครื่อง (เช่น dsba_coop_retry) — ข้าม
+            gold = GOLD_DIR / f"{name}_gold_questions.json"
+            if not gold.exists():
                 continue
             prog = name.split("_")[0]
             mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
@@ -645,7 +607,7 @@ def main() -> None:
         runs[name] = evaluate_run(name, path)
 
     if not runs:
-        print("ไม่พบ run ใดเลย ตรวจสอบ path ของ Lab7B_Lab8B_ocr_system/work/ ก่อน", file=sys.stderr)
+        print("ไม่พบ run ใดเลย — รัน ../Lab7B_Lab8B_ocr_system/run_lab8b.py --plan all ก่อน", file=sys.stderr)
         sys.exit(1)
 
     stability_notes = check_stability(runs)
