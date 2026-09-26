@@ -26,24 +26,24 @@ output ของ Lab 8B และเช็คสัญญาณ "ไม่เส
 
 **อัปเดต (เดิมส่วนนี้เคยเขียนว่า "รันจริงแค่ DSBA-coop เล่มเดียว" — ตอนนี้ครบทั้ง 7 run แล้ว):**
 pipeline Lab7B→Lab8B รันจบครบทุกเล่ม/ทุกแผนตามขอบเขตที่อาจารย์ขอ ("ประเมินครบทุกเล่มหลักสูตร") —
-AIT (แผนเดียว), BIT coop/no-coop, DSBA coop/no-coop, IT coop/no-coop รวม 7 run จริง +
-run ซ้ำเอกสารชุดเดียวกันอีก 9 ชุด ไว้เช็คความเสถียรโดยเฉพาะ (`*_retry` ของทั้ง 7 แผน และ `ait_retry2`, `ait_retry3`
-— ดูหัวข้อ "ความเสถียร / overfitting" ด้านล่าง)
+AIT (แผนเดียว), BIT coop/no-coop, DSBA coop/no-coop, IT coop/no-coop รวม 7 run จริง (เคยรันซ้ำเอกสารชุดเดียวกันอีก 9 ชุดไว้เช็คความเสถียร — ดูหัวข้อ "ความเสถียร / overfitting" ด้านล่าง)
 
-โฟลเดอร์ `gold_questions/` มี `gold_questions.json` ของทั้ง 7 run แล้ว (คำนวณจาก ground truth
-อัตโนมัติ ไม่ใช่เดามือ — ดู `gold_questions/build_gold_questions.py`) และ
-`ground_truth_scoped/*.json` (กรอง `year >= 1` จาก `data/ground_truth/*.json` เต็มชุด) ที่ใช้เทียบ
-P/R/F1/CER/WER ของ Lab7B ก็มีครบทั้ง 7 ไฟล์เช่นกัน — รายละเอียดวิธีสร้างและ caveat ของแต่ละไฟล์
-อยู่ในบันทึกการทำงานละเอียด (dev log) ของผู้พัฒนา — เก็บไว้ในเครื่อง ไม่อยู่ใน git
+ชุดคำถามทอง `gold_questions/<แผน>_gold_questions.json` (30 ข้อ/แผน × 7 แผน) สร้างด้วย
+`gold_questions/build_gold_questions.py` จากเฉลย `ground_truth_scoped/*.json` (seed ตายตัว ไม่อ่าน DB)
+และล็อก sha256 ไว้ใน `gold_questions/frozen.json` ก่อนรัน — `run_lab8b.py` ไม่รัน eval ถ้าไฟล์ไม่ตรงที่ล็อก
+(ชุดนี้คือ "v2"; ชุดแรกที่ใช้พัฒนาระบบ (v1) อยู่ที่ git tag `gold-v1`: `git checkout gold-v1 -- Lab9_evaluation/gold_questions`)
+`ground_truth_scoped/*.json` (กรอง `year >= 1` จาก `data/ground_truth/*.json` เต็มชุด) ใช้เทียบ P/R/F1/CER/WER ของ Lab7B
 
 ## วิธีรัน
 
 ```bash
-cd Lab9_evaluation
-python evaluate_lab9.py
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan all --skip-lab7   # สร้าง eval_result.json ของ 7 แผน (ต้องเปิด Ollama)
+cd ../Lab9_evaluation
+python evaluate_lab9.py                      # อ่านผลของ 7 แผนหลัก -> reports/lab9_metrics_latest.md/.json
 ```
 
-ค่า default อ่านครบทั้ง 16 run ที่มีอยู่แล้วใน `../Lab7B_Lab8B_ocr_system/runs/` (7 run หลัก + 9 run ซ้ำ):
+ค่า default อ่าน 7 แผนหลักใน `../Lab7B_Lab8B_ocr_system/runs/`:
 
 | run name | โฟลเดอร์ | ใช้ทำอะไร |
 |---|---|---|
@@ -51,18 +51,12 @@ python evaluate_lab9.py
 | `bit_no_coop` / `bit_coop` | `runs/BIT/no_coop\|coop/lab8b_output` | หลักสูตร BIT ทั้งสองแผน |
 | `dsba_no_coop` / `dsba_coop` | `runs/DSBA/no_coop\|coop/lab8b_output` | หลักสูตร DSBA ทั้งสองแผน |
 | `it_no_coop` / `it_coop` | `runs/IT/no_coop\|coop/lab8b_output` | หลักสูตร IT ทั้งสองแผน |
-| `dsba_coop_retry` | `archive/lab8b_run_ours_coop_retry` | รันซ้ำเอกสารชุดเดียวกับ `dsba_coop` — ใช้เทียบความเสถียร (checklist ข้อ 3) เท่านั้น |
-| `bit_coop_retry`, `it_coop_retry` | `runs/BIT/coop_retry`, `runs/IT/coop_retry` | รันซ้ำของ `bit_coop`, `it_coop` (สร้างด้วย `run_lab8b_<name>_retry.py`) |
-| `ait_retry`, `ait_retry2`, `ait_retry3` | `runs/AIT_retry`, `AIT_retry2`, `AIT_retry3` | รันซ้ำของ `ait` 3 รอบ (`run_lab8b_ait_retry.py [--tag N]`) |
-| `bit_no_coop_retry`, `dsba_no_coop_retry`, `it_no_coop_retry` | `runs/<BIT\|DSBA\|IT>/no_coop_retry` | รันซ้ำของแผนไม่สหกิจ |
 
-รันซ้ำทุกแผนที่ยังไม่มีผลรวดเดียวได้ด้วย `python run_all_stability_retries.py` (ในโฟลเดอร์ `Lab7B_Lab8B_ocr_system`
-ต้อง activate `.venv` และเปิด Ollama) ผลแต่ละชุดเขียนลงโฟลเดอร์ `*_retry` ของตัวเอง ไม่ทับ run หลัก
-
-จะระบุ run เองก็ได้ เช่น
+รอบรันซ้ำสำหรับเช็คความเสถียร (`*_retry`) ไม่อยู่ใน repo — ผลที่วัดไว้อยู่ในหัวข้อ "ความเสถียร" ด้านล่างและในสรุป overfit
+ถ้ามีรอบรันซ้ำในเครื่อง ส่งเข้ามาเองได้ (คู่ที่เทียบกันอยู่ใน `STABILITY_PAIRS`):
 
 ```bash
-python evaluate_lab9.py --runs my_run=path/to/run_dir
+python evaluate_lab9.py --runs ait=../Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output ait_retry=<dir>
 ```
 
 ## ผลลัพธ์

@@ -19,6 +19,31 @@
 * 67070185 - 17decc
 * 67070195 - zvacia
 
+## Quick start — รันระบบถาม-ตอบหลักสูตร (Lab 7B → 8B → 9)
+
+ต้องมี Python 3.10+ และ [Ollama](https://ollama.com) ในเครื่อง (`ollama pull qwen3:4b`) — ข้อมูลที่สกัดแล้ว
+(ภาพหน้าแผน, ผล OCR, `curriculum.db` ทั้ง 7 แผน) อยู่ใน repo แล้ว ไม่ต้องมี PDF และไม่ต้อง OCR ใหม่
+
+```bash
+python -m venv .venv && .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest tests -q                                # เทสทั้งหมด (ไม่ต้องใช้ Ollama)
+
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan it_coop --skip-lab7           # 1 แผน: ซ่อมข้อมูลจากเล่ม -> SQLite -> ตรวจ -> ถาม 30 ข้อ
+python run_lab8b.py --plan all --skip-lab7               # ครบ 7 แผน (~15 นาที)
+python src/ocr_system/lab8b_curriculum_db.py ask -d runs/IT/coop/lab8b_output/curriculum.db -q "ปี 1 เทอม 1 เรียนอะไรบ้าง"
+
+cd ../Lab9_evaluation
+python evaluate_lab9.py                                  # รายงาน metric -> reports/lab9_metrics_latest.md
+```
+
+- แผนที่มี: `ait`, `bit_no_coop`, `bit_coop`, `dsba_no_coop`, `dsba_coop`, `it_no_coop`, `it_coop`
+- ชุดคำถามทอง: `Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` (30 ข้อ/แผน, ล็อก sha256 ใน `frozen.json`)
+  — ชุดแรก (v1) ดูย้อนหลังได้ที่ git tag `gold-v1`
+- `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ลองรันแล้วไม่อยากเก็บ: `git restore Lab7B_Lab8B_ocr_system/runs`
+- เว็บ/API ถาม-ตอบ (Lab 10): ดู `lab10_fastapi/README.md`
+
 ---
 # Thai-English OCR System
 
@@ -52,7 +77,7 @@ git pull --ff-only          # รวมเข้ามาเฉพาะกร�
 - ถ้า `git pull --ff-only` ไม่ผ่าน = ประวัติแยกกัน → **หยุดและดูก่อน** ว่าเพื่อนแก้อะไร อย่าสั่ง `git push --force` (ถ้าจะใช้ ต้องตกลงกันในทีมก่อน)
 - ก่อน push: `git pull --rebase` อีกครั้ง แล้วค่อย `git push`
 - `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
-- สคริปต์ `run_lab8b_*.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังรัน
+- สคริปต์ `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังรัน
 - แค่ใช้ระบบโดยไม่แก้โค้ด: ไม่ต้อง pull ทุกครั้ง แต่ควร pull เมื่อทีมแจ้งว่ามีอัปเดต (โค้ด/เฉลยชุดใหม่)
 
 ## Project Structure
@@ -1211,7 +1236,7 @@ Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไ�
 
 ```bash
 cd Lab7B_Lab8B_ocr_system
-python run_lab8b_ait.py --skip-lab7
+python run_lab8b.py --plan ait --skip-lab7
 ```
 
 ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
@@ -1220,7 +1245,7 @@ python run_lab8b_ait.py --skip-lab7
 `python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
 หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
 
-**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+**OCR ใหม่เต็มรอบ:** `python run_lab8b.py --plan <แผน>` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
 สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี (มีใน `main` / `Lab-9`);
 ถ้าไม่พบ (เช่นบน branch `Lab-8`) สคริปต์จะ**ข้ามการเทียบเฉลย** โดย OCR และ Lab 8B ยังรันตามปกติ
 ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังลองรัน
@@ -1232,16 +1257,16 @@ pred_vlm.json (จาก Lab 7B)
     → import-lab7b (convert_lab7b) — แปล schema เป็น curriculum.json
     → schema + load — สร้าง curriculum.db (SQLite)
     → verify — เช็ค CHK1-CHK7 (ไม่พึ่งเฉลย)
-    → eval — ถาม-ตอบ NL→SQL เทียบ gold_questions.json (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
+    → eval — ถาม-ตอบ NL→SQL เทียบชุดคำถามทอง (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
 ```
 
-รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ผ่าน
-`run_lab8b_<curriculum>.py` แต่ละไฟล์ (มีคอมเมนต์ "วิธีรัน" พร้อมคำสั่งจริงในตัว):
+รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ด้วยสคริปต์เดียว `run_lab8b.py`
+(ค่าของแต่ละแผนอยู่ในตาราง `PLANS` ในไฟล์):
 
 ```bash
 cd Lab7B_Lab8B_ocr_system
-python run_lab8b_ait.py                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
-python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ
+python run_lab8b.py --plan ait                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
+python run_lab8b.py --plan all --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ ครบ 7 แผน
 ```
 
 ### Known Limitations (อัปเดต 2026-09-22)
@@ -1370,16 +1395,12 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 
 **ปัญหา:** หน้าตารางแผนบางแถวเขียนสองรหัสวิชาไว้ด้วยกัน ("A หรือ B" เช่น สหกิจศึกษาในประเทศ/ต่างประเทศ) พร้อมชื่อสองชื่อ แต่ตอนแปลง Markdown → JSON (qwen3) จับคู่รหัสกับชื่อแบบไขว้กัน (สร้างทุกคู่ผสม) พอ Lab 8B เลือกเก็บชื่อเดียวต่อรหัส ทั้งสองรหัสเลยได้ชื่อซ้ำกัน — **ต่างจากปัญหาที่ตาราง `plan_slot` (ข้อ 3) ตรงที่จุดนี้อยู่ในตาราง `course` ที่ NL2SQL ใช้ตอบจริง** ถ้ามีคนถามชื่อของรหัสที่สอง ระบบจะตอบชื่อผิด
 
-**แก้ (`src/ocr_system/or_course_names.py`, `apply_or_course_names.py`):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
+**แก้ (`src/ocr_system/or_course_names.py` — ตั้งแต่ 2026-09-27 ทำในขั้น `import-lab7b` ทุกครั้งที่รัน):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
 
 **ผล:** พบ 2 จุดใน 7 แผนหลัก — BIT coop `06036147`/`06036148`, DSBA coop `06026259`/`06026260` แก้แล้ว (สำรองไฟล์เดิมเป็น `.before_or_names.json`) P/R/F1/CER เท่าเดิมทุกตัว (เทียบแค่รหัส ไม่เทียบชื่อ) ตอบถูก NL2SQL เท่าเดิม (ชุดคำถามทอง 30 ข้อไม่ได้ถามตรงจุดนี้พอดี แต่ข้อมูลจริงถูกแล้วสำหรับคำถามอื่นที่อาจถามถึง)
 
-```bash
-cd Lab7B_Lab8B_ocr_system
-python apply_or_course_names.py            # dry-run
-python apply_or_course_names.py --apply    # เขียนจริง
-python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุดทดสอบ 9 ข้อ
-```
+เดิมเป็นสคริปต์แยก (`apply_or_course_names.py`) จึงถูกทับทุกครั้งที่รัน Lab 8B ใหม่ (DSBA coop กลับมาผิด) —
+ย้ายเข้า `convert_lab7b()` แล้ว และแก้ `name_en` ของคู่ที่ได้ชื่ออังกฤษซ้ำกันด้วย (เทสใน `tests/test_md_plan_slots.py`)
 
 รายละเอียดเต็มอยู่ที่ `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
@@ -1452,13 +1473,11 @@ python evaluate_lab9.py
   ติดป้ายด้วยกฎ — ดูรายการด้วย `python evaluate_lab9.py --list-levels`), ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
   matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
 - `reports/lab9_overfit_underfit_summary.md` — สรุป overfit/underfit (เขียนเอง ไม่ถูกเขียนทับ)
-- **ชุดคำถามทอง v2** (หัวข้อ 2b ในรายงาน): 30 ข้อ/แผน ที่สร้างด้วยสคริปต์จากเฉลย scoped และล็อก sha256 ก่อนรัน
-  ใช้วัดกับคำถามแบบที่ระบบไม่เคยถูกปรับตาม — v1 ตอบถูก 188/210 = 89.5%, v2 ตอบถูก 189/210 = 90.0%
-  (จุดอ่อน: ถามด้วยชื่ออังกฤษ 14/21, วิชาบังคับก่อน 21/27 — ดูสรุป overfit)
-  หลังแก้ข้อมูล Lab 7B จากเล่ม (2026-09-27: ชื่อไทยด้วยฉันทามติ, `name_en` จากเล่ม, วิชาบังคับก่อนที่หัวรายวิชาหน่วยกิตหาย)
-  v1 190/210, v2 194/210 ไม่มีข้อที่ถูกแล้วกลายเป็นผิด — v2 หลังแก้ไม่ใช่ held-out บริสุทธิ์ (ดูสรุป overfit)
-  สร้างใหม่: `python gold_questions/build_gold_questions_v2.py` (ได้ไฟล์เดิมทุกไบต์) ·
-  รัน eval (ต้องมี Ollama): `python run_gold_v2.py --plan ait` → `runs/**/lab8b_output/eval_result_v2.json`
+- **ชุดคำถามทอง** `gold_questions/<แผน>_gold_questions.json`: 30 ข้อ/แผน สร้างด้วยสคริปต์จากเฉลย scoped (seed ตายตัว)
+  ล็อก sha256 ใน `frozen.json` ก่อนรัน — `run_lab8b.py` ไม่ยอมรัน eval ถ้าไฟล์ไม่ตรงที่ล็อก
+  ผลล่าสุด (2026-09-27): ตอบถูก 194/210 = 92.4% (ก่อนแก้ข้อมูล Lab 7B จากเล่ม 189/210 — ตัวเลข held-out ของระบบ)
+  สร้างใหม่: `python gold_questions/build_gold_questions.py` (ได้ไฟล์เดิมทุกไบต์) ·
+  ชุดแรก (v1, ใช้พัฒนาระบบ, 190/210) อยู่ที่ git tag `gold-v1` — เทียบ v1/v2 ดูสรุป overfit
 - `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
