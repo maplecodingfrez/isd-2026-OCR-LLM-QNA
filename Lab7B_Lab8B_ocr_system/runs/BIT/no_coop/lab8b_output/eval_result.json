@@ -15,7 +15,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 2.0
   },
   {
     "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
@@ -33,7 +33,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.1
+    "seconds": 1.3
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
@@ -41,10 +41,10 @@
       "type": "value",
       "value": "7"
     },
-    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
+    "sql": "SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 LIMIT 200",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1\"}",
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1\"}",
     "answer_model_output": "{\"answer\": \"7 วิชา\"}",
     "answer": "7 วิชา",
     "citations": [
@@ -118,7 +118,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 233 (PDF 238), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 3.0
+    "seconds": 3.1
   },
   {
     "question": "รหัสวิชา 06036100 มีชื่อภาษาไทยว่าอะไร",
@@ -180,7 +180,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 233 (PDF 238), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06036118 มีชื่อภาษาไทยว่าอะไร",
@@ -242,7 +242,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 138 (PDF 143), หน้า 15 (PDF 20))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 96641003 มีชื่อภาษาไทยว่าอะไร",
@@ -273,7 +273,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 15 (PDF 20), หน้า 26 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.4
   },
   {
     "question": "รหัสวิชา 96644007 มีชื่อภาษาไทยว่าอะไร",
@@ -304,7 +304,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 15 (PDF 20), หน้า 26 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.6
   },
   {
     "question": "วิชา 'การสื่อสารและการนำเสนออย่างมืออาชีพ' มีรหัสวิชาอะไร",
@@ -335,7 +335,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 16 (PDF 21), หน้า 26 (PDF 31))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.5
   },
   {
     "question": "วิชา 'บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ' มีรหัสวิชาอะไร",
@@ -366,7 +366,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 234 (PDF 239), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.4
   },
   {
     "question": "วิชา 'องค์กรและการจัดการ' มีรหัสวิชาอะไร",
@@ -397,7 +397,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 235 (PDF 240), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.7
+    "seconds": 2.2
   },
   {
     "question": "รหัสวิชา 06036107 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
@@ -428,7 +428,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 236 (PDF 241), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "รหัสวิชา 06036107 มีกี่หน่วยกิต",
@@ -459,7 +459,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 236 (PDF 241), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 2.0
   },
   {
     "question": "ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
@@ -477,7 +477,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.9
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
@@ -513,7 +513,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 25 (ได้ ['24'])",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "รายวิชาในหลักสูตรนี้มีชั่วโมงปฏิบัติการต่อสัปดาห์มากที่สุดกี่ชั่วโมง",
@@ -531,7 +531,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
@@ -549,7 +549,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 0 (ได้ ['1'])",
-    "seconds": 1.2
+    "seconds": 1.4
   },
   {
     "question": "รหัสวิชา 06036100 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
@@ -611,7 +611,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 233 (PDF 238), หน้า 16 (PDF 21))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.2
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีคำว่า 'เทคโนโลยี' อยู่ในชื่อภาษาไทย",
@@ -629,7 +629,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีกี่วิชาที่มีหน่วยกิตมากกว่า 2",
@@ -652,7 +652,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.6
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี 2 หน่วยกิต",
@@ -683,7 +683,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 26), หน้า 138 (PDF 143), หน้า 15 (PDF 20))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",
@@ -737,7 +737,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.6
   },
   {
     "question": "รหัสวิชา 99999999 เป็นรายวิชาอะไร และมีกี่หน่วยกิต",
@@ -755,6 +755,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.9
   }
 ]
