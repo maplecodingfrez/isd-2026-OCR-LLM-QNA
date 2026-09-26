@@ -35,7 +35,7 @@ OCR engines ที่มีให้:
 
 > **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
 > **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
-> ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab7B_Lab8B_ocr_system/`, `Lab9_evaluation/`
+> ระดับเดียวกับ root นี้: `Lab7B_Lab8B_ocr_system/`, `Lab9_evaluation/`
 
 ## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
 
@@ -62,7 +62,6 @@ ocr_system/
 ├── README.md
 ├── requirements.txt
 ├── pyproject.toml
-├── Lab7B_curriculum/           # Lab 7B (เวอร์ชันต้นแบบ) — แทนที่ด้วย Lab7B_Lab8B_ocr_system/ ด้านล่าง
 ├── Lab7B_Lab8B_ocr_system/           # Lab 7B→8B: OCR ด้วย local VLM → JSON → SQLite → NL2SQL Q&A
 │                                 # (ดูภาพรวมที่ Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md)
 ├── Lab9_evaluation/            # Lab 9: Evaluation & Overfitting — อ่านผล Lab 8B มาคำนวณ metric
@@ -1313,7 +1312,7 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 รวมบรรทัดต่อ ("หรือ/และ") ตรวจซ้ำกับบรรทัด PREREQUISITE ภาษาอังกฤษ แต่ละวิชาได้สถานะ `found` / `none` / `not_found` / `unreadable`
 (`not_found`/`unreadable` = ไม่ทราบ ไม่ใช่ "ไม่มี" จึงไม่มีแถวในตาราง)
 
-**ตรวจความถูกต้องของ Ground Truth (ขั้นที่ทำโดยตั้งใจ):** ใบงาน Lab 7B (`Lab7B_curriculum/Lab7B_Curriculum_LocalLLM1.pdf` หน้า 1 หัวข้อ "วัตถุประสงค์การเรียนรู้") ระบุให้ "ตรวจสอบคุณภาพของ ground truth ก่อนนำมาใช้วัดผล" และ "ออกแบบกฎตรวจสอบความถูกต้องเชิงโครงสร้าง เช่น referential integrity ของวิชาบังคับก่อน" (คือ CHK5 + ตาราง `prerequisite` ที่ทำในส่วนนี้) ก่อนเชื่อเฉลย เราเทียบเฉลยกับตัวสกัดแล้วเปิด **ภาพเล่มจริง** ตรวจทุกแถวที่ไม่ตรงกัน (6 แถวที่เฉลยเดิมบอก "ไม่มี" แต่เล่มมีวิชาบังคับก่อน)
+**ตรวจความถูกต้องของ Ground Truth (ขั้นที่ทำโดยตั้งใจ):** ใบงาน Lab 7B (`Lab7B_Curriculum_LocalLLM1.pdf` หน้า 1 หัวข้อ "วัตถุประสงค์การเรียนรู้") ระบุให้ "ตรวจสอบคุณภาพของ ground truth ก่อนนำมาใช้วัดผล" และ "ออกแบบกฎตรวจสอบความถูกต้องเชิงโครงสร้าง เช่น referential integrity ของวิชาบังคับก่อน" (คือ CHK5 + ตาราง `prerequisite` ที่ทำในส่วนนี้) ก่อนเชื่อเฉลย เราเทียบเฉลยกับตัวสกัดแล้วเปิด **ภาพเล่มจริง** ตรวจทุกแถวที่ไม่ตรงกัน (6 แถวที่เฉลยเดิมบอก "ไม่มี" แต่เล่มมีวิชาบังคับก่อน)
 พบว่าเฉลยเดิมผิด จึงแก้ใน `Lab9_evaluation/ground_truth_scoped/` (AIT 2, IT no-coop 2, IT coop 2 แถว; ใส่ `_scoping_note` ต่อท้ายไฟล์ที่แก้) โดยไม่ได้แก้ตามตัวสกัดอย่างเดียว
 ต้นฉบับก่อนแก้เก็บไว้ที่ `Lab7B_Lab8B_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/` (ย้อนกลับได้) ส่วนกรณีที่เฉลยถูกอยู่แล้วก็คงไว้ (BIT `06036114` ต้นแบบเดิมอ่านผิด ไม่ใช่เฉลย)
 
