@@ -182,3 +182,33 @@ def test_names_in_questions_and_answers_have_no_line_breaks():
             assert "\n" not in q["question"] and "  " not in q["question"], (plan, q["id"])
             if isinstance(q["expect"]["value"], str):
                 assert "\n" not in q["expect"]["value"], (plan, q["id"])
+
+
+# Break caught (review #1): "how many courses..." counted over plan courses while the DB course table also
+# holds elective-menu / co-op courses the ground truth does not list -> a correct SQL scored wrong.
+def test_overview_questions_scoped_to_years_1_2_and_recomputed():
+    for plan, (qs, _) in BUILT.items():
+        rows = g2.load_scoped(plan)
+        early = {r["code"]: r for r in rows if re.fullmatch(r"\d{8}", r.get("code") or "")
+                 and str(r.get("year")) in ("1", "2") and str(r.get("semester")) in ("1", "2")}
+        cr = {c: int(re.match(r"\s*(\d+)", r["credits"]).group(1)) for c, r in early.items()}
+        lec = {c: int(re.search(r"\(\s*(\d+)", r["credits"]).group(1)) for c, r in early.items()}
+        for q in (q for q in qs if q["category"] == "G"):
+            assert "ปี 1" in q["question"] or "ชั้นปีที่ 1" in q["question"], (plan, q["id"])
+            m_x = re.search(r"เท่ากับ (\d+)|ได้ (\d+) หน่วยกิต", q["question"])
+            m_kw = re.search(r"'([^']+)'", q["question"])
+            if m_x:
+                x = int(m_x.group(1) or m_x.group(2))
+                assert q["expect"]["value"] == str(sum(v == x for v in cr.values())), (plan, q["id"])
+            elif m_kw:
+                n = sum(m_kw.group(1) in r["name_th"] for r in early.values())
+                assert q["expect"]["value"] == str(n), (plan, q["id"])
+            else:
+                assert q["expect"]["value"] == str(max(lec.values())), (plan, q["id"])
+
+
+# Break caught (review #2): F1 and F2 asking the same course (one fact weighted twice).
+def test_prerequisite_questions_ask_different_courses():
+    for plan, (qs, _) in BUILT.items():
+        fwd_subjects = [q["about_codes"][0] for q in qs if q.get("direction") == "forward"]
+        assert len(fwd_subjects) == len(set(fwd_subjects)), plan

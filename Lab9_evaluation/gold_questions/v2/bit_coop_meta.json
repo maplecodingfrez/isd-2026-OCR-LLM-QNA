@@ -13,6 +13,8 @@
   ],
   "terms_relaxed": true,
   "fallback_v1_codes": [],
-  "replaced": [],
-  "sha256": "8194460868904b881de2db8efec4bc736fdfac45e58250df2ff79e427a970bf3"
+  "replaced": [
+    "F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)"
+  ],
+  "sha256": "ff12a3f993669ca5ea54c3497e21de9079e180c67670aa63f5f5a9e69cb25784"
 }

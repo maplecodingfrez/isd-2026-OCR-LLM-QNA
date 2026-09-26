@@ -156,9 +156,13 @@ T = {   # แม่แบบคำถาม — หลายแบบต่อ�
     "f_name": ["ถ้าจะลงเรียน{name} ต้องผ่านวิชาอะไรมาก่อน", "{name} ต้องเรียนวิชาอะไรก่อน"],
     "f_rev": ["วิชาใดบ้างที่มี {code} เป็นวิชาบังคับก่อน", "ผ่านวิชา {code} แล้วจะลงวิชาไหนต่อได้บ้าง"],
     "f_pairs": ["ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่"],
-    "g_credit": ["มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ {x}", "วิชาที่ได้ {x} หน่วยกิตมีกี่วิชา"],
-    "g_lec": ["วิชาที่มีชั่วโมงบรรยายต่อสัปดาห์มากที่สุดมีกี่ชั่วโมง", "ชั่วโมงบรรยายต่อสัปดาห์สูงสุดของรายวิชาในหลักสูตรนี้คือเท่าไร"],
-    "g_kw": ["มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่า '{kw}'", "ชื่อวิชาที่มีคำว่า '{kw}' มีกี่วิชา"],
+    # หมวด G จำกัดแค่แผนปี 1–2: เฉลย scoped ไม่มีวิชาในเมนูวิชาเลือก/คู่สหกิจ (ปี 3–4) ที่ตาราง course มี
+    "g_credit": ["ในแผนการศึกษาชั้นปีที่ 1–2 มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ {x}",
+                 "ปี 1 กับปี 2 มีวิชาที่ได้ {x} หน่วยกิตกี่วิชา"],
+    "g_lec": ["ในแผนการศึกษาชั้นปีที่ 1–2 วิชาที่มีชั่วโมงบรรยายต่อสัปดาห์มากที่สุดมีกี่ชั่วโมง",
+              "ปี 1 กับปี 2 วิชาที่บรรยายนานที่สุดสัปดาห์ละกี่ชั่วโมง"],
+    "g_kw": ["ในแผนการศึกษาชั้นปีที่ 1–2 มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่า '{kw}'",
+             "ปี 1 กับปี 2 มีวิชาที่ชื่อมีคำว่า '{kw}' กี่วิชา"],
     "h_fee": ["ค่าเทอมของหลักสูตรนี้เท่าไร", "ค่าธรรมเนียมการศึกษาต่อภาคการศึกษาของหลักสูตรนี้คือเท่าไร"],
     "h_teacher": ["ใครเป็นอาจารย์ผู้สอนวิชา {code}", "วิชา {code} อาจารย์ประจำวิชาชื่ออะไร"],
     "h_code": ["รหัสวิชา {code} คือวิชาอะไร", "วิชา {code} มีกี่หน่วยกิต"],
@@ -264,14 +268,14 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
         s1 = rng.choice(sorted(fwd))
         add("F", "1", tmpl("f_code", code=s1), {"type": "set_exact", "value": sorted(fwd[s1]), "ignore": [s1]},
             about_codes=[s1], direction="forward")
-        by_name = sorted(k for k in fwd if k in th_ok and k != s1) or sorted(k for k in fwd if k in th_ok)
+        by_name = sorted(k for k in fwd if k in th_ok and k != s1)      # ห้ามถามวิชาเดียวกับ F1 ซ้ำ
         if by_name:
             s2 = rng.choice(by_name)
             add("F", "1", tmpl("f_name", name=named(s2, "name_th")),
                 {"type": "set_exact", "value": sorted(fwd[s2]), "ignore": [s2]}, about_codes=[s2], name_key="name_th",
                 direction="forward")
         else:
-            meta["replaced"].append("F2 -> E (ไม่มีวิชาที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)")
+            meta["replaced"].append("F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)")
             extra_e()
         r = rng.choice(sorted(rev))
         add("F", "1", tmpl("f_rev", code=r), {"type": "set_exact", "value": sorted(rev[r]), "ignore": [r]},
@@ -283,12 +287,13 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
     add("F", "2", tmpl("f_pairs"), {"type": "value", "value": str(expected_prerequisite_pairs(rows))})
 
     # G — ภาพรวม
-    catalog = [placed[c] for c in sorted(placed)]
+    catalog = [placed[c] for c in sorted(placed) if _term_of(placed[c])[0] in (1, 2)]
     credit_values = [hours(c)[0] for c in catalog]
     x = rng.choice(sorted(set(credit_values)))
     add("G", "2", tmpl("g_credit", x=x), {"type": "value", "value": str(credit_values.count(x))})
     add("G", "2", tmpl("g_lec"), {"type": "value", "value": str(max(hours(c)[1] for c in catalog))})
-    kws = [k for k in KEYWORDS if k != v1_keyword(plan) and sum(k in c["name_th"] for c in catalog) >= 2]
+    kw_count = {k: sum(k in c["name_th"] for c in catalog) for k in KEYWORDS if k != v1_keyword(plan)}
+    kws = [k for k, n in kw_count.items() if n >= 2] or [k for k, n in kw_count.items() if n >= 1]
     if not kws:
         raise ValueError(f"{plan}: ไม่มีคำค้นที่ใช้ได้")
     kw = rng.choice(kws)
