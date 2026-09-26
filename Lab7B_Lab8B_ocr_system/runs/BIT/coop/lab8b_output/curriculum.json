@@ -351,7 +351,7 @@
     {
       "code": "06036147",
       "name_th": "สหกิจศึกษา",
-      "name_en": null,
+      "name_en": "COOPERATIVE EDUCATION",
       "credits": 6,
       "lecture_h": 0,
       "lab_h": 35,
@@ -360,8 +360,8 @@
     },
     {
       "code": "06036148",
-      "name_th": "สหกิจศึกษา",
-      "name_en": null,
+      "name_th": "สหกิจศึกษาต่างประเทศ",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION",
       "credits": 6,
       "lecture_h": 0,
       "lab_h": 35,

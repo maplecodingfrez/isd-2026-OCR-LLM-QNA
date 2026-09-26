@@ -585,6 +585,18 @@ def cmd_extract(args) -> None:
 
 # ── นำ JSON จาก Lab 7B มาใช้ต่อโดยไม่เรียก LLM ซ้ำ ─────────────────────────
 
+REPO_ROOT = Path(__file__).resolve().parents[3]      # ocr_system/ (src/ocr_system/ -> Lab7B_Lab8B_ocr_system/ -> repo)
+
+
+def repo_relative(path: str | Path) -> str:
+    """path ที่เขียนลงรายงาน: ถ้าอยู่ใน repo ใช้แบบ relative (a/b/c) — ไฟล์ที่ commit ไว้จึงไม่เปลี่ยนตามเครื่องที่รัน
+    และไม่มี path ในเครื่องหลุดไป; อยู่นอก repo คงค่าเดิม"""
+    try:
+        return Path(path).resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def _credit_parts(value: Any) -> tuple[int, int | None, int | None, int | None]:
     """แปล 3(2-2-5) ของ Lab 7B เป็นคอลัมน์ตัวเลขของ Lab 8B"""
     text = str(value or "").strip()
@@ -859,6 +871,14 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
                          "ระบุ --total-credits จากเล่มหลักสูตร")
 
     pid = str(program_id or data.get("program") or "curriculum").strip()
+    or_pairs: list[dict] = []
+    if markdown:
+        # คู่ "A หรือ B" ที่ qwen จับชื่อไขว้/ซ้ำ -> ชื่อตามลำดับที่ Markdown เขียนไว้ (or_course_names.py)
+        # ทำตรงนี้ทุกครั้งที่ import (เดิมเป็นสคริปต์แยก apply_or_course_names.py จึงถูกทับเมื่อรัน Lab 8B ใหม่)
+        from or_course_names import apply_to_courses, or_pair_names
+        or_pairs = apply_to_courses(list(course_by_code.values()), or_pair_names(markdown))
+        for f in or_pairs:
+            warnings.append(f"{f['code']}: {f['field']} {f['from']!r} -> {f['to']!r} (คู่ 'A หรือ B' ตามลำดับใน Markdown)")
     result = {
         "program": {
             "program_id": pid,
@@ -882,6 +902,7 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
         "skipped_wildcards": skipped_wildcards,
         "skipped_flexible_plan_items": skipped_flexible,
         "terms_recovered_from_markdown": recovered_terms,
+        "or_pair_names": or_pairs,
         "warnings": warnings,
     }
     return result, report
@@ -1070,7 +1091,7 @@ def cmd_load_prerequisites(args) -> None:
     if counts["not_found"] or counts["unreadable"]:
         print("  (หาไม่เจอ/อ่านไม่ออก = ไม่ทราบ ไม่ใช่ 'ไม่มี' — ไม่มีแถวในตาราง prerequisite สำหรับวิชาเหล่านี้)")
     if args.output:
-        report = {"source_text": str(args.text), "courses": len(codes), "counts": counts,
+        report = {"source_text": repo_relative(args.text), "courses": len(codes), "counts": counts,
                   "pairs_inserted": pairs, "or_groups": or_groups, "per_course": res}
         Path(args.output).write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  บันทึกรายงานที่ {args.output}")
@@ -1104,6 +1125,31 @@ def _citations_module():
         sys.path.insert(0, here)
     import citations
     return citations
+
+
+def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
+    """บรรทัด "ชื่อวิชา = รหัส" สำหรับ prompt (course_names.py) จากตาราง course ของ DB นี้ — ไม่มีตาราง/ไม่เจอชื่อ = "" """
+    _citations_module()                          # ให้โฟลเดอร์นี้อยู่ใน sys.path (ครั้งเดียว)
+    import course_names
+    try:
+        rows = conn.execute("SELECT code, name_th, name_en FROM course").fetchall()
+    except sqlite3.OperationalError:
+        return ""
+    courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in rows]
+    return course_names.hint_block(course_names.course_hints(question, courses))
+
+
+def _with_course_names(conn: sqlite3.Connection, answer: str | None, rows: list[dict]) -> str | None:
+    """เติมชื่อวิชาหลังรหัสในคำตอบ (course_names.with_course_names) — ไม่มีคำตอบ/ไม่มีตาราง course = คืนเดิม"""
+    if not answer:
+        return answer
+    _citations_module()
+    import course_names
+    try:
+        names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course") if r[1]}
+    except sqlite3.OperationalError:
+        return answer
+    return course_names.with_course_names(answer, rows, names)
 
 
 def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
@@ -1207,7 +1253,7 @@ def cmd_load_plan_slots_md(args) -> None:
                     if codes - in_db.get((y, sm), set())}
     unexplained = [(r["year"], r["semester"], r["unexplained"]) for r in term_report
                    if r["unexplained"]]
-    report = {"source": str(args.markdown), "slots": len(slots), "members": n_members,
+    report = {"source": repo_relative(args.markdown), "slots": len(slots), "members": n_members,
               "plan_item_credits": base, "with_slots_credits": full,
               "declared_total_credits": declared, "terms": term_report,
               "md_codes_missing_in_plan_item": lost_in_json}
@@ -1643,7 +1689,14 @@ def ask(conn: sqlite3.Connection, question: str,
         "citations": [], "citation_text": "",
     }
     ddl = DDL.strip()
-    prompt = SQL_PROMPT.format(ddl=ddl, question=question)
+    # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
+    # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
+    base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
+    hints = _course_name_hint_text(conn, question)
+    if hints:
+        tail = f"คำถาม: {question}\nSQL:"
+        base_prompt = base_prompt[: -len(tail)] + hints + tail
+    prompt = base_prompt
 
     for attempt in range(2):
         try:
@@ -1674,7 +1727,7 @@ def ask(conn: sqlite3.Connection, question: str,
             if attempt == 1:
                 result["answer"] = "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง"
                 return result
-            prompt = (SQL_PROMPT.format(ddl=ddl, question=question)
+            prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
@@ -1721,6 +1774,8 @@ def ask(conn: sqlite3.Connection, question: str,
         pattern = rf"(?<!\d){re.escape(value)}(?!\d)" if re.fullmatch(r"-?\d+(\.\d+)?", value) else re.escape(value)
         if not re.search(pattern, result["answer"] or ""):
             result["answer"] = value
+    # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
+    result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
     citations = _citations_module()
@@ -1769,14 +1824,19 @@ def _values_of(rows: list[dict]) -> set[str]:
     return out
 
 
-def score_one(expect: dict, got: dict) -> tuple[bool, str]:
+_SCORE_CODE_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
+
+
+def score_one(expect: dict, got: dict, question: str = "") -> tuple[bool, str]:
     """
     ให้คะแนนหนึ่งข้อ ตามชนิดของคำถาม
 
-    value  — ต้องมีค่านี้อยู่ในผลลัพธ์
-    set    — ชุดคำตอบต้องตรงกันทั้งหมด (ใช้กับคำถาม "มีวิชาอะไรบ้าง")
-    count  — จำนวนแถวต้องเท่ากับที่คาด
-    none   — ต้องตอบว่าไม่พบ (ใช้ทดสอบว่าระบบยอมรับได้ว่าไม่รู้)
+    value     — ต้องมีค่านี้อยู่ในผลลัพธ์
+    set       — ชุดคำตอบต้องตรงกันทั้งหมด (ใช้กับคำถาม "มีวิชาอะไรบ้าง")
+    set_exact — ชุดรหัสวิชา 8 หลักในผลลัพธ์ต้องเท่ากับที่คาดพอดี (ไม่ขาด ไม่เกิน) — ไม่นับรหัสที่อยู่ในคำถาม
+                และรหัสใน expect["ignore"] (วิชาที่ถูกถามเอง ซึ่ง SQL มักคืนมาคู่กับคำตอบ)
+    count     — จำนวนแถวต้องเท่ากับที่คาด
+    none      — ต้องตอบว่าไม่พบ (ใช้ทดสอบว่าระบบยอมรับได้ว่าไม่รู้)
     """
     kind = expect.get("type", "value")
     rows = got.get("rows") or []
@@ -1789,6 +1849,15 @@ def score_one(expect: dict, got: dict) -> tuple[bool, str]:
     if kind == "count":
         ok = (len(rows) == int(expect["value"]))
         return ok, f"ได้ {len(rows)} แถว คาด {expect['value']}"
+
+    if kind == "set_exact":
+        want = {str(x).strip() for x in expect["value"]}
+        skip = set(_SCORE_CODE_RE.findall(question)) | {str(x) for x in expect.get("ignore") or []}
+        have = {c for v in vals for c in _SCORE_CODE_RE.findall(v)} - skip
+        ok = bool(want) and have == want
+        if ok:
+            return True, "ครบพอดี"
+        return False, f"ขาด {', '.join(sorted(want - have)[:5]) or '-'} เกิน {', '.join(sorted(have - want)[:5]) or '-'}"
 
     if kind == "set":
         want = {str(x).strip() for x in expect["value"]}
@@ -1812,7 +1881,7 @@ def cmd_eval(args) -> None:
     for i, q in enumerate(questions, 1):
         t0 = time.time()
         got = ask(conn, q["question"], verbose=False)
-        ok, why = score_one(q["expect"], got)
+        ok, why = score_one(q["expect"], got, question=q["question"])
         sql_ok = got["error"] is None
         n_ok += ok
         n_sql_ok += sql_ok

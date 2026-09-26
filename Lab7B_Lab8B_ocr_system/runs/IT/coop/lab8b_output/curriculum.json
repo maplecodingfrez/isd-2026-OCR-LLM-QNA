@@ -240,8 +240,8 @@
     },
     {
       "code": "06016414",
-      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแวล",
-      "name_en": null,
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
+      "name_en": "NOSQL DATABASE SYSTEMS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -251,7 +251,7 @@
     {
       "code": "06016415",
       "name_th": "การเขียนโปรแกรมเชิงฟังก์ชัน",
-      "name_en": null,
+      "name_en": "FUNCTIONAL PROGRAMMING",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -260,8 +260,8 @@
     },
     {
       "code": "06016419",
-      "name_th": "โครงสร้างพื้นฐานและภารบริการ",
-      "name_en": null,
+      "name_th": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร",
+      "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -270,7 +270,7 @@
     },
     {
       "code": "06016420",
-      "name_th": "ระบบโครงสร้างพื้นฐานและภารบริการ",
+      "name_th": "ระบบโครงสร้างพื้นฐานและการบริการ",
       "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
       "credits": 3,
       "lecture_h": 2,
@@ -291,7 +291,7 @@
     {
       "code": "06016425",
       "name_th": "พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์",
-      "name_en": null,
+      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -351,7 +351,7 @@
     {
       "code": "06016423",
       "name_th": "การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้",
-      "name_en": null,
+      "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -361,7 +361,7 @@
     {
       "code": "06016426",
       "name_th": "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน",
-      "name_en": null,
+      "name_en": "COMPUTER GRAPHICS AND ANIMATION",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -371,7 +371,7 @@
     {
       "code": "06016427",
       "name_th": "การออกแบบและพัฒนาเกมเบื้องต้น",
-      "name_en": null,
+      "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -381,7 +381,7 @@
     {
       "code": "06016481",
       "name_th": "สหกิจศึกษา",
-      "name_en": null,
+      "name_en": "COOPERATIVE EDUCATION",
       "credits": 6,
       "lecture_h": 0,
       "lab_h": 36,
@@ -391,7 +391,7 @@
     {
       "code": "06016482",
       "name_th": "สหกิจศึกษาต่างประเทศ",
-      "name_en": null,
+      "name_en": "OVERSEA COOPERATIVE EDUCATION",
       "credits": 6,
       "lecture_h": 0,
       "lab_h": 36,
@@ -451,7 +451,7 @@
     {
       "code": "90644042",
       "name_th": "การสื่อสารและการนำเสนออย่างมืออาชีพ",
-      "name_en": null,
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -461,7 +461,7 @@
     {
       "code": "06016421",
       "name_th": "ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ",
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -471,7 +471,7 @@
     {
       "code": "06016422",
       "name_th": "อินเทอร์เน็ตของสรรพสิ่ง",
-      "name_en": null,
+      "name_en": "INTERNET OF THINGS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,
@@ -866,6 +866,11 @@
     {
       "code": "06016420",
       "requires": "06016413",
+      "kind": "pre"
+    },
+    {
+      "code": "06066102",
+      "requires": "06066101",
       "kind": "pre"
     },
     {

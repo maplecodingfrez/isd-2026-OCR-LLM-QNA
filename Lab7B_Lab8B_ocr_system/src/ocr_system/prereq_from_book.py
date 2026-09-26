@@ -25,7 +25,8 @@ from typing import Iterable
 
 CODE8 = re.compile(r"(?<![0-9])(\d{8})(?![0-9])")
 _HDR = re.compile(r"^\s*(\d{8})\b")
-_CRED = re.compile(r"\d\s*\(\s*\d\s*-\s*\d\s*-\s*\d+\s*\)")
+# เลขหน่วยกิตหน้าวงเล็บเป็นทางเลือก: Tesseract ทำหายบางบรรทัด ("06066102 ... (3-0-6)" ในเล่ม IT)
+_CRED = re.compile(r"(?:\d\s*)?\(\s*\d\s*-\s*\d\s*-\s*\d+\s*\)")
 _PRE_TH = re.compile(r"บังคับก่อน\s*[):;]?\s*(.*)$")
 _PRE_EN = re.compile(r"PRE[\s-]?REQ\w*\s*[):;]?\s*(.*)$", re.I)
 _NONE_TH = re.compile(r"ไม่มี")

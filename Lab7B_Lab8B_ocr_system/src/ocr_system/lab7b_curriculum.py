@@ -1705,7 +1705,7 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
         "dpi": DPI, "pages_per_chunk": PAGES_PER_CHUNK,
     }
     if prereq_counts is not None:
-        data["_meta"]["prerequisite_from_book"] = {"source": book_ocr, **prereq_counts}
+        data["_meta"]["prerequisite_from_book"] = {"source": _repo_relative(book_ocr), **prereq_counts}
     path = outdir / f"pred_{name}.json"
     # ผลใหม่ของ LLM -> สำเนา "ก่อนแก้" ของขั้นหลังประมวลผล (--fill-prerequisites/--fill-missing-rows/
     # --recover-codes) เป็นของรอบ LLM เก่าแล้ว — ลบทิ้ง ขั้นเหล่านั้นจะเขียนสำเนาใหม่ที่ตรงกับผลรอบนี้เอง
@@ -1717,6 +1717,14 @@ def run_pipeline(name: str, pages: list[bytes], outdir: Path,
           f"{data['_meta']['elapsed_sec']} วิ)")
     return data
 
+
+
+def _repo_relative(path: str | Path) -> str:
+    """path ที่บันทึกใน pred_vlm.json: relative จาก repo (ไม่เปลี่ยนตามเครื่องที่รัน) — ดู lab8b_curriculum_db.repo_relative"""
+    try:
+        return Path(path).resolve().relative_to(Path(__file__).resolve().parents[3]).as_posix()
+    except ValueError:
+        return str(path)
 
 def main() -> None:
     ap = argparse.ArgumentParser(
@@ -1790,6 +1798,29 @@ def main() -> None:
         courses = pred.setdefault("courses", [])
         # รหัสหายในแถว -> แยกรหัสที่ LLM รวม -> ชื่อที่อยู่ในตารางแต่รหัสหาย -> ชื่อว่าง/ป้ายวิชาเลือกบนรหัสจริง
         done = recover_codes(md_text, courses, book_text) + repair_with_book(md_text, courses, book_text)
+        # ชื่อไทยสะกดเพี้ยน: ฉันทามติของ 7 แผนหลัก (อ่านอย่างเดียว) + เล่มทั้ง 4 หลักสูตร เล่มละ 1 เสียง — แก้เฉพาะแผนนี้
+        # ทุกครั้งที่รัน (เดิมเป็นสคริปต์แยก apply_name_consensus.py จึงถูกทับทุกครั้งที่รัน Lab 8B ใหม่)
+        # เสียงชุดเดียวกันทุกแผน ไม่ขึ้นกับลำดับที่รัน; รอบทดลอง (retry ฯลฯ) ไม่ถูกแก้ชื่อ
+        from name_consensus import MAIN_RUNS, fix_plan_names
+        runs_root = next((p for p in target.resolve().parents if p.name == "runs"), None)
+        run_name = (target.resolve().parent.parent.relative_to(runs_root).as_posix()
+                    if runs_root is not None else None)
+        if run_name in MAIN_RUNS:
+            from code_from_book import book_index
+            others = {}
+            for r in MAIN_RUNS:
+                p = runs_root / r / "lab7b_output" / "pred_vlm.json"
+                if r != run_name and p.exists():
+                    others[r] = json.loads(p.read_text(encoding="utf-8")).get("courses") or []
+            # เล่มของหลักสูตรอื่นอยู่ข้างเล่มนี้: outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt
+            books = {}
+            for prog in sorted({r.split("/")[0] for r in MAIN_RUNS}):
+                b = Path(args.book_ocr).resolve().parent.parent / prog.lower() / f"{prog.lower()}_curriculum_ocr.txt"
+                if b.exists():
+                    books[prog] = book_index(b.read_text(encoding="utf-8"))
+                else:
+                    print(f"  ⚠ ไม่พบเล่ม {b} — เล่ม {prog} ไม่ได้ร่วมโหวตชื่อ")
+            done += fix_plan_names(run_name, courses, others, books)
         # รันซ้ำได้ (รหัสที่กู้แล้วอยู่ใน courses จะไม่ถูกทำซ้ำ) — สะสมรายการ ไม่ทับของรอบก่อน
         pred.setdefault("_meta", {}).setdefault("code_from_book", []).extend(done)
         target.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -1808,7 +1839,7 @@ def main() -> None:
         counts = apply_book_prerequisites(pred, args.book_ocr)
         if counts is None:
             raise SystemExit(1)
-        pred.setdefault("_meta", {})["prerequisite_from_book"] = {"source": args.book_ocr, **counts}
+        pred.setdefault("_meta", {})["prerequisite_from_book"] = {"source": _repo_relative(args.book_ocr), **counts}
         target.write_text(json.dumps(pred, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  ✓ เขียน {target} (สำเนาก่อนแก้: {backup.name})")
         return

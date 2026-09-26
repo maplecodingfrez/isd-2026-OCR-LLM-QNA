@@ -230,14 +230,15 @@
     },
     {
       "code": "06026207",
-      "name_th": "ระบบฐานข้อมูลแบบโนนอสควิวแอล",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3 (2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "name_en": "NOSQL DATABASE SYSTEMS",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "_name_th_from": "ระบบฐานข้อมูลแบบโนนอสควิวแอล"
     },
     {
       "code": "06026208",
@@ -560,7 +561,7 @@
     "dpi": 150,
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
-      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\dsba\\dsba_curriculum_ocr.txt",
+      "source": "outputs/dsba/dsba_curriculum_ocr.txt",
       "found": 5,
       "none": 24,
       "not_found": 4,
@@ -575,6 +576,13 @@
         "credits": "3 (3-0-6)"
       }
     ],
-    "code_from_book": []
+    "code_from_book": [
+      {
+        "action": "name_th",
+        "code": "06026207",
+        "from": "ระบบฐานข้อมูลแบบโนนอสควิวแอล",
+        "to": "ระบบฐานข้อมูลแบบโนเอสคิวแอล"
+      }
+    ]
   }
 }

@@ -45,11 +45,11 @@
       "name_th": {
         "label": "ชื่อวิชา (ไทย) ⭐",
         "n_items": 53,
-        "cer": 0.093728,
-        "wer": 0.110048,
-        "exact_match_acc": 0.830189,
-        "n_sub": 10,
-        "n_del": 123,
+        "cer": 0.081748,
+        "wer": 0.086124,
+        "exact_match_acc": 0.886792,
+        "n_sub": 0,
+        "n_del": 116,
         "n_ins": 0,
         "n_missing": 5,
         "n_hallucinated": 0,
@@ -61,23 +61,23 @@
             "pred": "การประมวลทางกายภาพ"
           },
           {
-            "key": "06016414",
-            "gt": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "pred": "ระบบฐานข้อมูลแบบโนเอสคิวแวล"
-          },
-          {
-            "key": "06016419",
-            "gt": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร",
-            "pred": "โครงสร้างพื้นฐานและภารบริการ"
-          },
-          {
-            "key": "06016420",
-            "gt": "ระบบโครงสร้างพื้นฐานและการบริการ",
-            "pred": "ระบบโครงสร้างพื้นฐานและภารบริการ"
-          },
-          {
             "key": "06016418 [ตกแถว]",
             "gt": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์",
+            "pred": ""
+          },
+          {
+            "key": "06016481\nหรือ\n06016482 [ตกแถว]",
+            "gt": "สหกิจศึกษา\nหรือ\nสหกิจศึกษาต่างประเทศ",
+            "pred": ""
+          },
+          {
+            "key": "9064xxxx [ตกแถว]",
+            "gt": "วิชาเลือกหมวดศึกษาทั่วไป 1",
+            "pred": ""
+          },
+          {
+            "key": "xxxxxxxx [ตกแถว]",
+            "gt": "วิชาเลือกเสรี 1",
             "pred": ""
           }
         ]
@@ -85,30 +85,20 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 53,
-        "cer": 0.3756,
-        "wer": 0.397906,
-        "exact_match_acc": 0.660377,
+        "cer": 0.152844,
+        "wer": 0.193717,
+        "exact_match_acc": 0.849057,
         "n_sub": 32,
-        "n_del": 487,
+        "n_del": 162,
         "n_ins": 29,
-        "n_missing": 15,
+        "n_missing": 5,
         "n_hallucinated": 0,
         "n_ref_chars": 1459,
         "error_samples": [
           {
-            "key": "06016415",
-            "gt": "FUNCTIONAL PROGRAMMING",
-            "pred": "None"
-          },
-          {
             "key": "06016424",
             "gt": "HUMAN INTERFACE DESIGN",
             "pred": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA"
-          },
-          {
-            "key": "06016425",
-            "gt": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
-            "pred": "None"
           },
           {
             "key": "06016416",
@@ -119,6 +109,16 @@
             "key": "06016417",
             "gt": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
             "pred": "SERVER-SIDE WEB DEVELOPMENT"
+          },
+          {
+            "key": "06016418 [ตกแถว]",
+            "gt": "SERVER-SIDE WEB DEVELOPMENT",
+            "pred": ""
+          },
+          {
+            "key": "06016481\nหรือ\n06016482 [ตกแถว]",
+            "gt": "COOPERATIVE EDUCATION\nOR\nOVERSEA COOPERATIVE EDUCATION",
+            "pred": ""
           }
         ]
       },
@@ -285,13 +285,13 @@
       "prereq": {
         "label": "วิชาบังคับก่อน",
         "n_items": 48,
-        "cer": 0.238636,
+        "cer": 0.208333,
         "wer": null,
-        "exact_match_acc": 0.75,
+        "exact_match_acc": 0.770833,
         "n_sub": 0,
-        "n_del": 63,
+        "n_del": 55,
         "n_ins": 0,
-        "n_missing": 12,
+        "n_missing": 11,
         "n_hallucinated": 0,
         "n_ref_chars": 264,
         "error_samples": [
@@ -337,7 +337,7 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.242765,
+    "overall_micro_cer": 0.176123,
     "alignment": {
       "matched": 48,
       "missed": 5,

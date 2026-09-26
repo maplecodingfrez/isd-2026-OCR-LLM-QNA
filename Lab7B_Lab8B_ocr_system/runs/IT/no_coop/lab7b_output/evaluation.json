@@ -40,10 +40,10 @@
       "name_th": {
         "label": "ชื่อวิชา (ไทย) ⭐",
         "n_items": 54,
-        "cer": 0.042215,
-        "wer": 0.056338,
-        "exact_match_acc": 0.925926,
-        "n_sub": 2,
+        "cer": 0.04083,
+        "wer": 0.042254,
+        "exact_match_acc": 0.944444,
+        "n_sub": 0,
         "n_del": 59,
         "n_ins": 0,
         "n_missing": 2,
@@ -54,11 +54,6 @@
             "key": "06016409",
             "gt": "การประมวลผลทางกายภาพ",
             "pred": "การประมวลทางกายภาพ"
-          },
-          {
-            "key": "06066000",
-            "gt": "คณิตศาสตร์ไม่ต่อเนื่อง",
-            "pred": "คณิตศาสตร์โมโต่อเนื่อง"
           },
           {
             "key": "06016418 [ตกแถว]",
@@ -75,26 +70,16 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 54,
-        "cer": 0.265814,
-        "wer": 0.279188,
-        "exact_match_acc": 0.740741,
+        "cer": 0.098923,
+        "wer": 0.126904,
+        "exact_match_acc": 0.888889,
         "n_sub": 27,
-        "n_del": 364,
+        "n_del": 116,
         "n_ins": 4,
-        "n_missing": 12,
+        "n_missing": 4,
         "n_hallucinated": 0,
         "n_ref_chars": 1486,
         "error_samples": [
-          {
-            "key": "06016414",
-            "gt": "NOSQL DATABASE SYSTEMS",
-            "pred": "None"
-          },
-          {
-            "key": "06016415",
-            "gt": "FUNCTIONAL PROGRAMMING",
-            "pred": "None"
-          },
           {
             "key": "06016416",
             "gt": "REQUIREMENT ENGINEERING",
@@ -106,9 +91,19 @@
             "pred": "SERVER-SIDE WEB DEVELOPMENT"
           },
           {
-            "key": "06016421",
-            "gt": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
+            "key": "xxxxxxxx",
+            "gt": "FREE ELECTIVE COURSE 1",
             "pred": "None"
+          },
+          {
+            "key": "xxxxxxxx",
+            "gt": "FREE ELECTIVE COURSE 2",
+            "pred": "None"
+          },
+          {
+            "key": "06016418 [ตกแถว]",
+            "gt": "SERVER-SIDE WEB DEVELOPMENT",
+            "pred": ""
           }
         ]
       },
@@ -255,13 +250,13 @@
       "prereq": {
         "label": "วิชาบังคับก่อน",
         "n_items": 52,
-        "cer": 0.292254,
+        "cer": 0.264085,
         "wer": null,
-        "exact_match_acc": 0.692308,
+        "exact_match_acc": 0.711538,
         "n_sub": 0,
-        "n_del": 83,
+        "n_del": 75,
         "n_ins": 0,
-        "n_missing": 16,
+        "n_missing": 15,
         "n_hallucinated": 0,
         "n_ref_chars": 284,
         "error_samples": [
@@ -307,7 +302,7 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.178207,
+    "overall_micro_cer": 0.130314,
     "alignment": {
       "matched": 52,
       "missed": 2,

@@ -445,7 +445,7 @@
     "internal_check": {
       "ok": false,
       "n_courses": 44,
-      "n_duplicate_keys": 0,
+      "n_duplicate_keys": 2,
       "credits_by_term": {
         "1/1": 18,
         "1/2": 18,

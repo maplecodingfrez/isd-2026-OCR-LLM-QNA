@@ -389,11 +389,69 @@ def fix_malformed_credits(courses: list[dict], credits: dict[str, str]) -> list[
     return done
 
 
+EN_LINE_RE = re.compile(r"^\(?[A-Z0-9][A-Z0-9 ,&/()\-.:']*$")
+EN_WRAP_RE = re.compile(r"\b(AND|OF|FOR|IN|TO|THE|WITH|ON)$")   # ชื่ออังกฤษที่ตัดบรรทัดกลางวลี
+
+
+def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
+    """{รหัส: {ชื่ออังกฤษ: จำนวนจุดในเล่ม}} — บรรทัดตัวพิมพ์ใหญ่ใต้หัว "<รหัส> <ชื่อไทย> <หน่วยกิต>"
+    ต่อบรรทัดที่สองเฉพาะเมื่อบรรทัดแรกจบด้วยคำเชื่อม (AND/OF/...) ซึ่งแปลว่าชื่อถูกตัดบรรทัด"""
+    lines = book_text.splitlines()
+    out: dict[str, dict[str, int]] = {}
+    for i, line in enumerate(lines):
+        m = BOOK_LINE_RE.search(line)
+        if not m or not re.search(r"[฀-๿]", m.group(2)):
+            continue
+        parts: list[str] = []
+        for nxt in lines[i + 1:i + 3]:
+            nxt = nxt.strip()
+            if not EN_LINE_RE.match(nxt) or CODE8.search(nxt) or re.match(r"PRE[\s-]?REQ", nxt, re.I):
+                break
+            parts.append(nxt)
+            if not EN_WRAP_RE.search(nxt):
+                break
+        name = re.sub(r"\s+", " ", " ".join(parts)).strip(" ()")
+        if len(name) >= 4:
+            counts = out.setdefault(m.group(1), {})
+            counts[name] = counts.get(name, 0) + 1
+    return out
+
+
+def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dict]:
+    """กฎ 5: วิชารหัสจริงที่ name_en ว่าง -> ชื่ออังกฤษที่เล่มพิมพ์ (ไม่ทับค่าที่มีอยู่แล้ว)
+    เลือกแบบที่พบ >= 2 จุดและมากกว่าแบบอื่นชัดเจน; ถ้าเสมอ/พบจุดเดียว ใช้ได้เฉพาะแบบเดียวที่ Typhoon (Markdown)
+    ก็อ่านได้ตรงกัน (เล่ม "NOSQL" 2 ครั้ง / "NOSOL" 2 ครั้ง -> Markdown มี NOSQL) ไม่งั้นปล่อยว่าง ไม่เดา"""
+    names = book_english_names(book_text)
+    md_key = re.sub(r"\s+", "", re.sub(r"<[^>]+>", " ", md)).upper()
+    done: list[dict] = []
+    for c in courses:
+        code = str(c.get("code") or "").strip()
+        if not re.fullmatch(r"\d{8}", code) or str(c.get("name_en") or "").strip() or code not in names:
+            continue
+        if str(c.get("name_th") or "").strip().startswith(SKIP_PREFIXES):
+            continue                      # ช่องวิชาเลือกที่ LLM ประทับรหัสจริง — ไม่ใช่วิชานั้น (เหมือนกฎ 3)
+        ranked = sorted(names[code].items(), key=lambda kv: -kv[1])
+        top_n = ranked[0][1]
+        second = ranked[1][1] if len(ranked) > 1 else 0
+        if top_n >= 2 and top_n > second:
+            name = ranked[0][0]
+        else:
+            in_md = [n for n, k in ranked if k == top_n and re.sub(r"\s+", "", n).upper() in md_key]
+            if len(in_md) != 1:
+                continue
+            name = in_md[0]
+        c["name_en"] = name
+        done.append({"action": "name_en", "to": code, "name_en": name})
+    return done
+
+
 def repair_with_book(md: str, courses: list[dict], book_text: str) -> list[dict]:
-    """กฎ 1-4 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย -> แก้หน่วยกิตหลายแบบ) รันซ้ำได้"""
+    """กฎ 1-5 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย -> แก้หน่วยกิตหลายแบบ
+    -> เติมชื่ออังกฤษที่ว่าง) รันซ้ำได้"""
     idx = book_index(book_text)
     credits = book_credits(book_text)
     return (split_merged_codes(courses, idx)
             + add_names_found_in_term(md, courses, idx, book_variants(book_text), credits)
             + fix_placeholder_names(courses, idx)
-            + fix_malformed_credits(courses, credits))
+            + fix_malformed_credits(courses, credits)
+            + fill_english_names(md, courses, book_text))

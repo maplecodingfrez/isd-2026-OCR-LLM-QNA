@@ -1,0 +1,130 @@
+{
+  "ait": {
+    "plan": "ait",
+    "seed": "gold-v2:ait",
+    "terms": [
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "terms_relaxed": false,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "d52c37b32af659aeb7b60cf8e58e9a3f1e38db16aa7240319325e4a9865f2df7"
+  },
+  "bit_coop": {
+    "plan": "bit_coop",
+    "seed": "gold-v2:bit_coop",
+    "terms": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [
+      "F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)"
+    ],
+    "sha256": "ff12a3f993669ca5ea54c3497e21de9079e180c67670aa63f5f5a9e69cb25784"
+  },
+  "bit_no_coop": {
+    "plan": "bit_no_coop",
+    "seed": "gold-v2:bit_no_coop",
+    "terms": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "81642622affbdeb629cd5c575b5f4434b3bdaa1996ef0d3528d70783707f1e8c"
+  },
+  "dsba_coop": {
+    "plan": "dsba_coop",
+    "seed": "gold-v2:dsba_coop",
+    "terms": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "da0d3055c5d88888337b7d5da9f5acb8651a06e14c73dd9fa7a6c9d7049b9a49"
+  },
+  "dsba_no_coop": {
+    "plan": "dsba_no_coop",
+    "seed": "gold-v2:dsba_no_coop",
+    "terms": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "969daaff62df56e2d3feb57dbd8e521ee776d9b20c5bf4666cc735f16ef120a6"
+  },
+  "it_coop": {
+    "plan": "it_coop",
+    "seed": "gold-v2:it_coop",
+    "terms": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "12ae9aba81383c2bc3d5af65f9dfa5a95e25f2abdf4a1c1f7b4f294e29ebaa5b"
+  },
+  "it_no_coop": {
+    "plan": "it_no_coop",
+    "seed": "gold-v2:it_no_coop",
+    "terms": [
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        1
+      ]
+    ],
+    "terms_relaxed": true,
+    "fallback_v1_codes": [],
+    "replaced": [],
+    "sha256": "df81c744e36386a5e9bbe7a4fa0a6f4bae3e68143c1b59c0cd344912bf51997a"
+  }
+}

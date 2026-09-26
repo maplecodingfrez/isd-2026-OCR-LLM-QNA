@@ -2,10 +2,11 @@
   "source_courses": 55,
   "converted_courses": 47,
   "plan_items": 47,
-  "prerequisites": 7,
+  "prerequisites": 8,
   "skipped_wildcards": 6,
   "skipped_flexible_plan_items": 0,
   "terms_recovered_from_markdown": [],
+  "or_pair_names": [],
   "warnings": [
     "courses[31] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '90644xxx'",
     "courses[39] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'หรือ'",

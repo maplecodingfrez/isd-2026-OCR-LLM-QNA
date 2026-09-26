@@ -19,6 +19,42 @@
 * 67070185 - 17decc
 * 67070195 - zvacia
 
+## Quick start — รันระบบถาม-ตอบหลักสูตร (Lab 7B → 8B → 9)
+
+ต้องมี Python 3.10+ และ [Ollama](https://ollama.com) ในเครื่อง (`ollama pull qwen3:4b`) — ข้อมูลที่สกัดแล้ว
+(ภาพหน้าแผน, ผล OCR, `curriculum.db` ทั้ง 7 แผน) อยู่ใน repo แล้ว ไม่ต้องมี PDF และไม่ต้อง OCR ใหม่
+
+1) สร้าง venv แล้ว activate (เลือกตามเชลล์ที่ใช้):
+
+```text
+python -m venv .venv
+.venv\Scripts\Activate.ps1        # Windows PowerShell
+.venv\Scripts\activate.bat        # Windows cmd
+source .venv/Scripts/activate     # Windows Git Bash
+source .venv/bin/activate         # macOS / Linux
+```
+
+2) ติดตั้งเฉพาะที่ Lab 7B–9 ใช้ (ไม่ต้องลง torch/paddle ของ Lab 3–6 ใน `requirements.txt`) แล้วรัน:
+
+```bash
+pip install pydantic requests pillow opencv-python numpy pytesseract pythainlp pytest
+python -m pytest tests -q                                # เทสทั้งหมด (ไม่ต้องใช้ Ollama)
+
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan it_coop --skip-lab7           # 1 แผน: ซ่อมข้อมูลจากเล่ม -> SQLite -> ตรวจ -> ถาม 30 ข้อ
+python run_lab8b.py --plan all --skip-lab7               # ครบ 7 แผน (~15 นาที)
+python src/ocr_system/lab8b_curriculum_db.py ask -d runs/IT/coop/lab8b_output/curriculum.db -q "ปี 1 เทอม 1 เรียนอะไรบ้าง"
+
+cd ../Lab9_evaluation
+python evaluate_lab9.py                                  # รายงาน metric -> reports/lab9_metrics_latest.md
+```
+
+- แผนที่มี: `ait`, `bit_no_coop`, `bit_coop`, `dsba_no_coop`, `dsba_coop`, `it_no_coop`, `it_coop`
+- ชุดคำถามทอง (30 ข้อ/แผน): `Lab9_evaluation/gold_questions/` — ทำไมทำใหม่และเลี่ยง overfit อย่างไร ดูหัวข้อ
+  "ชุดคำถามทอง" ในส่วน Evaluation & Overfitting (Lab 9)
+- `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ลองรันแล้วไม่อยากเก็บ: `git restore Lab7B_Lab8B_ocr_system/runs`
+- เว็บ/API ถาม-ตอบ (Lab 10): ดู `lab10_fastapi/README.md`
+
 ---
 # Thai-English OCR System
 
@@ -52,7 +88,7 @@ git pull --ff-only          # รวมเข้ามาเฉพาะกร�
 - ถ้า `git pull --ff-only` ไม่ผ่าน = ประวัติแยกกัน → **หยุดและดูก่อน** ว่าเพื่อนแก้อะไร อย่าสั่ง `git push --force` (ถ้าจะใช้ ต้องตกลงกันในทีมก่อน)
 - ก่อน push: `git pull --rebase` อีกครั้ง แล้วค่อย `git push`
 - `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
-- สคริปต์ `run_lab8b_*.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังรัน
+- สคริปต์ `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังรัน
 - แค่ใช้ระบบโดยไม่แก้โค้ด: ไม่ต้อง pull ทุกครั้ง แต่ควร pull เมื่อทีมแจ้งว่ามีอัปเดต (โค้ด/เฉลยชุดใหม่)
 
 ## Project Structure
@@ -1211,7 +1247,7 @@ Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไ�
 
 ```bash
 cd Lab7B_Lab8B_ocr_system
-python run_lab8b_ait.py --skip-lab7
+python run_lab8b.py --plan ait --skip-lab7
 ```
 
 ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
@@ -1220,7 +1256,7 @@ python run_lab8b_ait.py --skip-lab7
 `python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
 หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
 
-**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+**OCR ใหม่เต็มรอบ:** `python run_lab8b.py --plan <แผน>` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
 สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี (มีใน `main` / `Lab-9`);
 ถ้าไม่พบ (เช่นบน branch `Lab-8`) สคริปต์จะ**ข้ามการเทียบเฉลย** โดย OCR และ Lab 8B ยังรันตามปกติ
 ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังลองรัน
@@ -1232,16 +1268,16 @@ pred_vlm.json (จาก Lab 7B)
     → import-lab7b (convert_lab7b) — แปล schema เป็น curriculum.json
     → schema + load — สร้าง curriculum.db (SQLite)
     → verify — เช็ค CHK1-CHK7 (ไม่พึ่งเฉลย)
-    → eval — ถาม-ตอบ NL→SQL เทียบ gold_questions.json (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
+    → eval — ถาม-ตอบ NL→SQL เทียบชุดคำถามทอง (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
 ```
 
-รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ผ่าน
-`run_lab8b_<curriculum>.py` แต่ละไฟล์ (มีคอมเมนต์ "วิธีรัน" พร้อมคำสั่งจริงในตัว):
+รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ด้วยสคริปต์เดียว `run_lab8b.py`
+(ค่าของแต่ละแผนอยู่ในตาราง `PLANS` ในไฟล์):
 
 ```bash
 cd Lab7B_Lab8B_ocr_system
-python run_lab8b_ait.py                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
-python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ
+python run_lab8b.py --plan ait                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
+python run_lab8b.py --plan all --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ ครบ 7 แผน
 ```
 
 ### Known Limitations (อัปเดต 2026-09-22)
@@ -1370,16 +1406,12 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 
 **ปัญหา:** หน้าตารางแผนบางแถวเขียนสองรหัสวิชาไว้ด้วยกัน ("A หรือ B" เช่น สหกิจศึกษาในประเทศ/ต่างประเทศ) พร้อมชื่อสองชื่อ แต่ตอนแปลง Markdown → JSON (qwen3) จับคู่รหัสกับชื่อแบบไขว้กัน (สร้างทุกคู่ผสม) พอ Lab 8B เลือกเก็บชื่อเดียวต่อรหัส ทั้งสองรหัสเลยได้ชื่อซ้ำกัน — **ต่างจากปัญหาที่ตาราง `plan_slot` (ข้อ 3) ตรงที่จุดนี้อยู่ในตาราง `course` ที่ NL2SQL ใช้ตอบจริง** ถ้ามีคนถามชื่อของรหัสที่สอง ระบบจะตอบชื่อผิด
 
-**แก้ (`src/ocr_system/or_course_names.py`, `apply_or_course_names.py`):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
+**แก้ (`src/ocr_system/or_course_names.py` — ตั้งแต่ 2026-09-27 ทำในขั้น `import-lab7b` ทุกครั้งที่รัน):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
 
 **ผล:** พบ 2 จุดใน 7 แผนหลัก — BIT coop `06036147`/`06036148`, DSBA coop `06026259`/`06026260` แก้แล้ว (สำรองไฟล์เดิมเป็น `.before_or_names.json`) P/R/F1/CER เท่าเดิมทุกตัว (เทียบแค่รหัส ไม่เทียบชื่อ) ตอบถูก NL2SQL เท่าเดิม (ชุดคำถามทอง 30 ข้อไม่ได้ถามตรงจุดนี้พอดี แต่ข้อมูลจริงถูกแล้วสำหรับคำถามอื่นที่อาจถามถึง)
 
-```bash
-cd Lab7B_Lab8B_ocr_system
-python apply_or_course_names.py            # dry-run
-python apply_or_course_names.py --apply    # เขียนจริง
-python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุดทดสอบ 9 ข้อ
-```
+เดิมเป็นสคริปต์แยก (`apply_or_course_names.py`) จึงถูกทับทุกครั้งที่รัน Lab 8B ใหม่ (DSBA coop กลับมาผิด) —
+ย้ายเข้า `convert_lab7b()` แล้ว และแก้ `name_en` ของคู่ที่ได้ชื่ออังกฤษซ้ำกันด้วย (เทสใน `tests/test_md_plan_slots.py`)
 
 รายละเอียดเต็มอยู่ที่ `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
@@ -1430,11 +1462,11 @@ python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุ
 - ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
 - **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
 - ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab7B_Lab8B_ocr_system/runs/` (7 แผน), `Lab9_evaluation/ground_truth_scoped/`,
-  `Lab9_evaluation/gold_questions/` — รันซ้ำ (`*_retry*`) ของวันที่ 2026-09-20 ถูกลบตอนจัดโฟลเดอร์แล้ว หัวข้อความเสถียรในรายงาน
-  จึงขึ้นว่า "ข้าม" ผลรันซ้ำเดิมสรุปไว้ที่ `reports/lab9_overfit_underfit_summary.md`
+  `Lab9_evaluation/gold_questions/` — รอบรันซ้ำ (`*_retry*`) ไม่อยู่ใน repo หัวข้อความเสถียรในรายงานจึงแสดงหมายเหตุแทน
+  ผลรันซ้ำที่วัดไว้สรุปที่ `reports/lab9_overfit_underfit_summary.md`
 - ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`
 - ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
-  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+  (ต่างเฉพาะวันเวลาในรายงาน — path ในรายงานเป็นแบบ relative จาก repo) และไม่มีรันไหนถูกข้าม
 - สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
 - คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab7B_Lab8B_ocr_system/regenerate_evaluation.py`
 
@@ -1456,3 +1488,23 @@ python evaluate_lab9.py
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
 matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
+
+### ชุดคำถามทอง (gold questions) — ทำใหม่ทำไม และเลี่ยง overfit อย่างไร
+
+`Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` — 30 ข้อ/แผน × 7 แผน ใช้วัดส่วนถาม-ตอบ (NL→SQL)
+
+**ทำไมทำชุดใหม่:** ชุดแรก (v1) คือชุดที่ใช้ระหว่างพัฒนาระบบ — ระบบถูกปรับแก้จนตอบชุดนี้ได้ดี คะแนนจากชุดนี้จึงบอกไม่ได้ว่า
+ระบบเก่งจริงหรือแค่ "จำข้อสอบ" และ v1 แคบเกินไป: ถามด้วยรหัสวิชาเป็นหลัก, แผนการเรียนมีแค่ปี 1 ภาค 1, ไม่มีคำถามด้วยชื่อวิชา
+ชื่อภาษาอังกฤษ หรือวิชาบังคับก่อนรายวิชา — ปัญหาจริงที่ผู้ใช้เจอ (ถามวิชาบังคับก่อนด้วยชื่อวิชาแล้วตอบผิด) ชุด v1 วัดไม่เจอเลย
+ชุดใหม่ยังตรงเกณฑ์ ch8 (30 ข้อ, มีข้อที่ต้องตอบ "ไม่พบ", ให้คะแนนจากผล SQL) และเพิ่มคำถามแบบที่ v1 ไม่มี: ปี 1–2 เทอมอื่น,
+ถามด้วยชื่อไทย/อังกฤษ, ภาษาพูด, วิชาบังคับก่อน (ถามตรง / ถามด้วยชื่อ / ถามย้อนกลับ) และข้อรายการต้องตอบครบพอดี (`set_exact`)
+
+**เลี่ยง overfit อย่างไร:**
+- **เฉลยไม่มาจากระบบ:** คำนวณจากเฉลยที่ตรวจกับเล่มแล้ว (`ground_truth_scoped/`) ด้วยสคริปต์ ไม่อ่าน `curriculum.db` ที่ระบบสร้าง
+- **ไม่เลือกข้อเอง:** สุ่มวิชา/เทอมด้วย seed ตายตัว และเลี่ยงวิชา/เทอมที่ v1 เคยถาม เพื่อให้เป็นคำถามที่ระบบไม่เคยถูกปรับตาม
+- **ล็อกก่อนรัน:** เก็บ sha256 ของทุกไฟล์ใน `frozen.json` ก่อนรันครั้งแรก — `run_lab8b.py` ไม่ยอมรัน eval ถ้าไฟล์ไม่ตรง
+  และ `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับที่สคริปต์สร้างทุกไบต์ จึงแก้คำถามหลังเห็นผลไม่ได้
+- **ไม่แก้ระบบตามผลของชุดนี้:** จุดอ่อนที่ชุดนี้เผย จะแก้ได้เฉพาะเมื่อพบสาเหตุจากตัวเล่ม/ข้อมูล ไม่ใช่ปรับให้ตอบข้อสอบข้อนั้นได้
+  และรายงานตัวเลขก่อนแก้ข้อมูล (189/210) เป็นตัวเลข held-out ของระบบ แยกจากตัวเลขหลังแก้ (194/210)
+- **เทียบกับ v1:** ภาพรวมห่างกันไม่ถึง 1 จุด (v1 188 vs ชุดใหม่ 189 จาก 210) — ไม่พบสัญญาณว่าระบบจำ v1
+  (รายละเอียด `Lab9_evaluation/reports/lab9_overfit_underfit_summary.md`; v1 เก็บไว้ที่ git tag `gold-v1`)

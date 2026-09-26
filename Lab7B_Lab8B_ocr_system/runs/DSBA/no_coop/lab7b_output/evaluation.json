@@ -30,21 +30,16 @@
       "name_th": {
         "label": "ชื่อวิชา (ไทย) ⭐",
         "n_items": 45,
-        "cer": 0.182706,
-        "wer": 0.211864,
-        "exact_match_acc": 0.888889,
-        "n_sub": 1,
+        "cer": 0.181311,
+        "wer": 0.199153,
+        "exact_match_acc": 0.911111,
+        "n_sub": 0,
         "n_del": 260,
-        "n_ins": 1,
+        "n_ins": 0,
         "n_missing": 0,
         "n_hallucinated": 0,
         "n_ref_chars": 1434,
         "error_samples": [
-          {
-            "key": "06026207",
-            "gt": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
-            "pred": "ระบบฐานข้อมูลแบบโนนอสควิวแอล"
-          },
           {
             "key": "06026xxx",
             "gt": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1\nวิชาเลือกกลุ่มการวิเคราะห์เชิงสถิติ 1\nวิชาเลือกกลุ่มวิศวกรรมข้อมูล 1",
@@ -286,7 +281,7 @@
         "error_samples": []
       }
     },
-    "overall_micro_cer": 0.17828,
+    "overall_micro_cer": 0.177873,
     "alignment": {
       "matched": 45,
       "missed": 0,

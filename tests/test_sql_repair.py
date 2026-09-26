@@ -199,3 +199,54 @@ def test_ask_single_value_answer_kept_when_it_states_the_value(monkeypatch):
     assert lab8b.ask(_count_db(), "q", verbose=False)["answer"] == "มีทั้งหมด 2 วิชา"
     monkeypatch.setattr(lab8b, "ollama_generate", _answering("12 วิชา"))
     assert lab8b.ask(_count_db(), "q", verbose=False)["answer"] != "12 วิชา"
+
+
+def _prompt_capture(prompts):
+    def fake(prompt, fmt=None, **kwargs):
+        prompts.append(prompt)
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT NULL WHERE 0"}'
+        return '{"answer": "ไม่พบข้อมูล"}'
+    return fake
+
+
+def _named_course_db():
+    conn = _citation_db()
+    conn.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES "
+                 "('06026212', 'การสร้างคลังข้อมูล', 'DATA WAREHOUSING', 3)")
+    return conn
+
+
+# Break caught: ask() not telling the model which code a course name in the question refers to (it invented codes).
+def test_ask_sql_prompt_carries_course_name_hint(monkeypatch):
+    prompts: list[str] = []
+    monkeypatch.setattr(lab8b, "ollama_generate", _prompt_capture(prompts))
+    lab8b.ask(_named_course_db(), "ต้องเรียนวิชาอะไรก่อน ถึงจะเรียนการสร้างคลังข้อมูลได้", verbose=False)
+    assert '"การสร้างคลังข้อมูล" = 06026212' in prompts[0]
+
+
+# Break caught: the hint changing the prompt of questions without a course name (would move the 188/210 answers).
+def test_ask_sql_prompt_unchanged_without_course_name(monkeypatch):
+    prompts: list[str] = []
+    monkeypatch.setattr(lab8b, "ollama_generate", _prompt_capture(prompts))
+    question = "ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต"
+    lab8b.ask(_named_course_db(), question, verbose=False)
+    # ask() appends the JSON-format instruction after the prompt; everything before it must be byte-identical
+    assert prompts[0].startswith(lab8b.SQL_PROMPT.format(ddl=lab8b.DDL.strip(), question=question))
+    assert "ชื่อวิชาที่พบในคำถาม" not in prompts[0]
+
+
+# Break caught: ask() answering a prerequisite question with a bare code instead of naming the course.
+def test_ask_answer_names_the_courses_it_returns(monkeypatch):
+    conn = _citation_db()
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06026200', 'แคลคูลัส 1', 3)")
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06026201', 'แคลคูลัส 2', 3)")
+    conn.execute("INSERT INTO prerequisite (code, requires, kind) VALUES ('06026201', '06026200', 'pre')")
+
+    def fake(prompt, fmt=None, **kwargs):
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT requires FROM prerequisite WHERE code=\'06026201\' AND kind=\'pre\'"}'
+        return '{"answer": "06026200"}'
+    monkeypatch.setattr(lab8b, "ollama_generate", fake)
+    got = lab8b.ask(conn, "วิชาแคลคูลัส 2 ต้องผ่านวิชาอะไรมาก่อน", verbose=False)
+    assert got["answer"] == "06026200 (แคลคูลัส 1)"

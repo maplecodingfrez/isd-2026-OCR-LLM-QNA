@@ -59,3 +59,27 @@ def test_expected_pages_falls_back_to_other_pages():
     only_other = [{"code": "06016499", "name_th": "x", "year": "", "semester": "",
                    "primary_pages": "", "other_pages": "77;78"}]
     assert levels.expected_pages("รหัสวิชา 06016499 มีกี่หน่วยกิต", "3", only_other) == {77, 78}
+
+
+# Break caught: colloquial v2 wording ("ปี 2 เทอม 1") mis-levelled by the regex — the question's own level wins.
+def test_level_field_overrides_regex():
+    assert levels.question_level("ปี 2 เทอม 1 ต้องลงเรียนกี่วิชา", "value", "2") == "2"
+    assert levels.question_level("ปี 2 เทอม 1 ต้องลงเรียนกี่วิชา", "value") == "1"   # v1 behaviour kept
+
+
+# Break caught: name-based / colloquial questions getting no expected page (or pages of the answer codes).
+def test_expected_pages_for_uses_about_codes_and_term():
+    about = {"question": "แคลคูลัส เรียนตอนปีไหน", "expect": {"type": "value", "value": "1"},
+             "about_codes": ["06016402"]}
+    assert levels.expected_pages_for(about, MAP) == {23, 38}
+    term = {"question": "ปี 1 เทอม 1 เรียนรวมกี่หน่วยกิต", "expect": {"type": "value", "value": "18"}, "term": [1, 1]}
+    assert levels.expected_pages_for(term, MAP) == {23, 38}
+    v1 = {"question": "รหัสวิชา 06016402 มีชื่อภาษาไทยว่าอะไร", "expect": {"type": "value", "value": "x"}}
+    assert levels.expected_pages_for(v1, MAP) == {23, 38}
+
+
+def test_level_stats_reads_level_field():
+    rows = [{"question": "ปี 1 เทอม 1 เรียนรวมกี่หน่วยกิต", "expect": {"type": "value", "value": "18"},
+             "level": "2", "term": [1, 1], "correct": True, "citations": [{"pdf_page": 23}]}]
+    s = levels.level_stats(rows, MAP)["2"]
+    assert (s["n"], s["correct"], s["cite_checkable"], s["cite_hit"]) == (1, 1, 1, 1)

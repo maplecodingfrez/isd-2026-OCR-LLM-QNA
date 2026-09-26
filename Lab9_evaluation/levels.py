@@ -19,7 +19,9 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", "", (text or "").replace("ํา", "ำ"))
 
 
-def question_level(question: str, expect_type: str) -> str:
+def question_level(question: str, expect_type: str, level: str | None = None) -> str:
+    if level:
+        return level
     if expect_type == "none":
         return "none"
     if LEVEL2_RE.search(question):
@@ -47,12 +49,27 @@ def expected_pages(question: str, expect_value, mapping: list[dict]) -> set[int]
     term = TERM_RE.search(question)
     if term:
         y, s = term.groups()
-        counts = Counter(p for r in mapping if r["year"] == y and r["semester"] == s for p in _pages(r))
-        if not counts:
-            return None
-        top = max(counts.values())
-        return {p for p, n in counts.items() if n == top}
+        return _term_pages(y, s, mapping)
     return None
+
+
+def _term_pages(y: str, s: str, mapping: list[dict]) -> set[int] | None:
+    counts = Counter(p for r in mapping if r["year"] == y and r["semester"] == s for p in _pages(r))
+    if not counts:
+        return None
+    top = max(counts.values())
+    return {p for p, n in counts.items() if n == top}
+
+
+def expected_pages_for(row: dict, mapping: list[dict]) -> set[int] | None:
+    """หน้าที่คาด — คำถาม v2 บอกเองว่าถามถึงวิชาไหน (about_codes) / เทอมไหน (term); v1 ใช้กฎจากข้อความเดิม"""
+    if row.get("term"):
+        y, s = row["term"]
+        return _term_pages(str(y), str(s), mapping)
+    if row.get("about_codes"):
+        pages = set().union(*(_pages(r) for r in mapping if r["code"] in row["about_codes"]))
+        return pages or None
+    return expected_pages(row["question"], (row.get("expect") or {}).get("value"), mapping)
 
 
 def load_mapping(path: Path) -> list[dict]:
@@ -65,14 +82,14 @@ def level_stats(eval_rows: list[dict], mapping: list[dict]) -> dict[str, dict]:
     stats: dict[str, dict] = {}
     for r in eval_rows:
         expect = r.get("expect") or {}
-        lvl = question_level(r["question"], expect.get("type", "value"))
+        lvl = question_level(r["question"], expect.get("type", "value"), r.get("level"))
         s = stats.setdefault(lvl, {"n": 0, "correct": 0, "with_citation": 0, "cite_checkable": 0, "cite_hit": 0})
         s["n"] += 1
         s["correct"] += bool(r.get("correct"))
         cited = {c["pdf_page"] for c in r.get("citations") or []}
         s["with_citation"] += bool(cited)
         # ระดับ none = เล่มไม่มีคำตอบ ไม่อ้างหน้าคือถูก — ไม่นับในอัตราอ้างอิง
-        want = expected_pages(r["question"], expect.get("value"), mapping) if lvl != "none" else None
+        want = expected_pages_for(r, mapping) if lvl != "none" else None
         if want:
             s["cite_checkable"] += 1
             s["cite_hit"] += bool(cited & want)

@@ -433,25 +433,30 @@
       "year": 4,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "COOPERATIVE EDUCATION"
     },
     {
       "code": "06036148",
-      "name_th": "สหกิจศึกษา",
+      "name_th": "สหกิจศึกษาต่างประเทศ",
       "credits": "6(0-35-0)",
       "year": 4,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION",
+      "_name_th_from": "สหกิจศึกษา"
     },
     {
       "code": "06036147",
-      "name_th": "สหกิจศึกษาต่างประเทศ",
+      "name_th": "สหกิจศึกษา",
       "credits": null,
       "year": 4,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "COOPERATIVE EDUCATION",
+      "_name_th_from": "สหกิจศึกษาต่างประเทศ"
     },
     {
       "code": "06036148",
@@ -460,7 +465,8 @@
       "year": 4,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION"
     }
   ],
   "_meta": {
@@ -473,7 +479,7 @@
     "dpi": 150,
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
-      "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\bit\\bit_curriculum_ocr.txt",
+      "source": "outputs/bit/bit_curriculum_ocr.txt",
       "found": 1,
       "none": 26,
       "not_found": 10,
@@ -481,6 +487,39 @@
       "skipped_non_code": 6
     },
     "filled_from_markdown": [],
-    "code_from_book": []
+    "code_from_book": [
+      {
+        "action": "name_en",
+        "to": "06036147",
+        "name_en": "COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06036148",
+        "name_en": "OVERSEA COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06036147",
+        "name_en": "COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06036148",
+        "name_en": "OVERSEA COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_th",
+        "code": "06036148",
+        "from": "สหกิจศึกษา",
+        "to": "สหกิจศึกษาต่างประเทศ"
+      },
+      {
+        "action": "name_th",
+        "code": "06036147",
+        "from": "สหกิจศึกษาต่างประเทศ",
+        "to": "สหกิจศึกษา"
+      }
+    ]
   }
 }
