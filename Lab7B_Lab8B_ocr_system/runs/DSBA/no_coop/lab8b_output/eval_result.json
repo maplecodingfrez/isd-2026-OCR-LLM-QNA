@@ -15,7 +15,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.4
   },
   {
     "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
@@ -41,10 +41,10 @@
       "type": "value",
       "value": "7"
     },
-    "sql": "SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 LIMIT 200",
+    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1\"}",
+    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1\"}",
     "answer_model_output": "{\"answer\": \"7 วิชา\"}",
     "answer": "7 วิชา",
     "citations": [
@@ -56,7 +56,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.8
   },
   {
     "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต",
@@ -79,7 +79,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.7
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
@@ -100,7 +100,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT p.code FROM v_plan WHERE p.year = 1 AND p.semester = 1\"}",
     "answer_model_output": "{\"answer\": \"06026200, 06026202, 06066101, 06066303, 90641001, 90641003, 90644007\"}",
-    "answer": "06026200, 06026202, 06066101, 06066303, 90641001, 90641003, 90644007",
+    "answer": "06026200 (แคลคูลัส 1), 06026202 (พีชคณิตเชิงเส้น), 06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ), 06066303 (การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์), 90641001 (โรงเรียนสร้างเสน่ห์), 90641003 (กีฬาและนันทนาการ), 90644007 (ภาษาอังกฤษพื้นฐาน 1)",
     "citations": [
       {
         "pdf_page": 23,
@@ -118,7 +118,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 313 (PDF 314), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 3.5
+    "seconds": 3.3
   },
   {
     "question": "รหัสวิชา 06026200 มีชื่อภาษาไทยว่าอะไร",
@@ -149,7 +149,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 313 (PDF 314), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06026202 มีชื่อภาษาไทยว่าอะไร",
@@ -180,7 +180,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 314 (PDF 315), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "question": "รหัสวิชา 06066101 มีชื่อภาษาไทยว่าอะไร",
@@ -211,7 +211,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 316 (PDF 317), หน้า 317 (PDF 318))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.3
   },
   {
     "question": "รหัสวิชา 06066303 มีชื่อภาษาไทยว่าอะไร",
@@ -242,7 +242,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 318 (PDF 319), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 2.2
   },
   {
     "question": "รหัสวิชา 90641001 มีชื่อภาษาไทยว่าอะไร",
@@ -273,7 +273,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 150 (PDF 151), หน้า 15 (PDF 16))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 90641003 มีชื่อภาษาไทยว่าอะไร",
@@ -304,7 +304,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 150 (PDF 151), หน้า 15 (PDF 16))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "วิชา 'ภาษาอังกฤษพื้นฐาน 1' มีรหัสวิชาอะไร",
@@ -317,7 +317,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'ภาษาอังกฤษพื้นฐาน 1'\" }",
     "answer_model_output": "{\"answer\": \"90644007\"}",
-    "answer": "90644007",
+    "answer": "90644007 (ภาษาอังกฤษพื้นฐาน 1)",
     "citations": [
       {
         "pdf_page": 23,
@@ -348,7 +348,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'การวิเคราะห์ข้อมูลและการโปรแกรม'\" }",
     "answer_model_output": "{\"answer\": \"06026206\"}",
-    "answer": "06026206",
+    "answer": "06026206 (การวิเคราะห์ข้อมูลและการโปรแกรม)",
     "citations": [
       {
         "pdf_page": 25,
@@ -366,7 +366,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 24 (PDF 25), หน้า 320 (PDF 321), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "question": "วิชา 'คณิตศาสตร์ไม่ต่อเนื่อง' มีรหัสวิชาอะไร",
@@ -379,7 +379,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'คณิตศาสตร์ไม่ต่อเนื่อง'\" }",
     "answer_model_output": "{\"answer\": \"06066000\"}",
-    "answer": "06066000",
+    "answer": "06066000 (คณิตศาสตร์ไม่ต่อเนื่อง)",
     "citations": [
       {
         "pdf_page": 25,
@@ -397,7 +397,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 24 (PDF 25), หน้า 314 (PDF 315), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 2.3
   },
   {
     "question": "รหัสวิชา 06066102 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
@@ -477,7 +477,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.9
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
@@ -513,7 +513,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "รายวิชาในหลักสูตรนี้มีชั่วโมงปฏิบัติการต่อสัปดาห์มากที่สุดกี่ชั่วโมง",
@@ -531,7 +531,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 2.1
   },
   {
     "question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
@@ -549,7 +549,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.6
   },
   {
     "question": "รหัสวิชา 06066303 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
@@ -580,7 +580,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 318 (PDF 319), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.6
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06026200 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง",
@@ -611,7 +611,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 313 (PDF 314), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 2.1
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีคำว่า 'เทคโนโลยี' อยู่ในชื่อภาษาไทย",
@@ -629,7 +629,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีกี่วิชาที่มีหน่วยกิตมากกว่า 2",
@@ -652,7 +652,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.6
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี 2 หน่วยกิต",
@@ -665,7 +665,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE year = 1 AND semester = 1 AND credits = 2\"}",
     "answer_model_output": "{\"answer\": \"90641001\"}",
-    "answer": "90641001",
+    "answer": "90641001 (โรงเรียนสร้างเสน่ห์)",
     "citations": [
       {
         "pdf_page": 23,
@@ -719,7 +719,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.6
   },
   {
     "question": "รายวิชา 06026200 มีอาจารย์ผู้สอนประจำวิชาชื่อว่าอะไร",
@@ -737,7 +737,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 0.5
   },
   {
     "question": "รหัสวิชา 99999999 เป็นรายวิชาอะไร และมีกี่หน่วยกิต",

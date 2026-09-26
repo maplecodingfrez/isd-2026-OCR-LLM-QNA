@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-27 01:26
+# Lab9 evaluation report — 2026-09-27 01:47
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -59,13 +59,13 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 
 | run | n_questions | valid_sql_rate | execution_accuracy | answer_text_accuracy | avg_seconds |
 |---|---|---|---|---|---|
-| ait | 30 | 1.0 | 0.7333 | 0.7333 | 1.86 |
-| bit_no_coop | 30 | 1.0 | 0.9 | 0.9 | 1.93 |
+| ait | 30 | 1.0 | 0.7333 | 0.7333 | 1.85 |
+| bit_no_coop | 30 | 1.0 | 0.9 | 0.9 | 2.02 |
 | bit_coop | 30 | 1.0 | 0.9 | 0.9 | 1.59 |
-| dsba_no_coop | 30 | 1.0 | 1.0 | 1.0 | 1.99 |
-| dsba_coop | 30 | 1.0 | 0.9667 | 0.9667 | 1.95 |
-| it_no_coop | 30 | 1.0 | 0.9333 | 0.9333 | 1.88 |
-| it_coop | 30 | 1.0 | 0.8333 | 0.8333 | 1.5 |
+| dsba_no_coop | 30 | 1.0 | 1.0 | 1.0 | 1.92 |
+| dsba_coop | 30 | 1.0 | 0.9667 | 0.9667 | 1.88 |
+| it_no_coop | 30 | 1.0 | 0.9333 | 0.9333 | 1.86 |
+| it_coop | 30 | 1.0 | 0.8333 | 0.8333 | 1.61 |
 | dsba_coop_retry | 30 | 1.0 | 0.9667 | 0.9667 | 6.39 |
 | bit_coop_retry | 30 | 1.0 | 0.9 | 0.9 | 3.12 |
 | it_coop_retry | 30 | 1.0 | 0.8667 | 0.8667 | 2.58 |
