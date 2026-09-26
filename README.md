@@ -24,9 +24,20 @@
 ต้องมี Python 3.10+ และ [Ollama](https://ollama.com) ในเครื่อง (`ollama pull qwen3:4b`) — ข้อมูลที่สกัดแล้ว
 (ภาพหน้าแผน, ผล OCR, `curriculum.db` ทั้ง 7 แผน) อยู่ใน repo แล้ว ไม่ต้องมี PDF และไม่ต้อง OCR ใหม่
 
+1) สร้าง venv แล้ว activate (เลือกตามเชลล์ที่ใช้):
+
+```text
+python -m venv .venv
+.venv\Scripts\Activate.ps1        # Windows PowerShell
+.venv\Scripts\activate.bat        # Windows cmd
+source .venv/Scripts/activate     # Windows Git Bash
+source .venv/bin/activate         # macOS / Linux
+```
+
+2) ติดตั้งเฉพาะที่ Lab 7B–9 ใช้ (ไม่ต้องลง torch/paddle ของ Lab 3–6 ใน `requirements.txt`) แล้วรัน:
+
 ```bash
-python -m venv .venv && .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
+pip install pydantic requests pillow opencv-python numpy pytesseract pythainlp pytest
 python -m pytest tests -q                                # เทสทั้งหมด (ไม่ต้องใช้ Ollama)
 
 cd Lab7B_Lab8B_ocr_system
@@ -40,7 +51,8 @@ python evaluate_lab9.py                                  # รายงาน me
 
 - แผนที่มี: `ait`, `bit_no_coop`, `bit_coop`, `dsba_no_coop`, `dsba_coop`, `it_no_coop`, `it_coop`
 - ชุดคำถามทอง: `Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` (30 ข้อ/แผน, ล็อก sha256 ใน `frozen.json`)
-  — ชุดแรก (v1) ดูย้อนหลังได้ที่ git tag `gold-v1`
+  — ชุดแรก (v1) ดูย้อนหลังได้ที่ git tag `gold-v1` (`git fetch --tags` แล้ว
+  `git show gold-v1:Lab9_evaluation/gold_questions/ait_gold_questions.json` — ไม่ทับไฟล์ปัจจุบัน)
 - `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ลองรันแล้วไม่อยากเก็บ: `git restore Lab7B_Lab8B_ocr_system/runs`
 - เว็บ/API ถาม-ตอบ (Lab 10): ดู `lab10_fastapi/README.md`
 

@@ -31,7 +31,8 @@ AIT (แผนเดียว), BIT coop/no-coop, DSBA coop/no-coop, IT coop/no-
 ชุดคำถามทอง `gold_questions/<แผน>_gold_questions.json` (30 ข้อ/แผน × 7 แผน) สร้างด้วย
 `gold_questions/build_gold_questions.py` จากเฉลย `ground_truth_scoped/*.json` (seed ตายตัว ไม่อ่าน DB)
 และล็อก sha256 ไว้ใน `gold_questions/frozen.json` ก่อนรัน — `run_lab8b.py` ไม่รัน eval ถ้าไฟล์ไม่ตรงที่ล็อก
-(ชุดนี้คือ "v2"; ชุดแรกที่ใช้พัฒนาระบบ (v1) อยู่ที่ git tag `gold-v1`: `git checkout gold-v1 -- Lab9_evaluation/gold_questions`)
+(ชุดนี้คือ "v2"; ชุดแรกที่ใช้พัฒนาระบบ (v1) อยู่ที่ git tag `gold-v1` — ดูโดยไม่ทับไฟล์ปัจจุบัน:
+`git show gold-v1:Lab9_evaluation/gold_questions/<แผน>_gold_questions.json`)
 `ground_truth_scoped/*.json` (กรอง `year >= 1` จาก `data/ground_truth/*.json` เต็มชุด) ใช้เทียบ P/R/F1/CER/WER ของ Lab7B
 
 ## วิธีรัน
