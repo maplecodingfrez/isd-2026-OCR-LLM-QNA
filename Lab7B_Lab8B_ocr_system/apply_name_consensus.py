@@ -1,5 +1,8 @@
 """ฉันทามติชื่อวิชาข้ามทุก run (ขั้นหลังรันครบทุกแผน) — ดู src/ocr_system/name_consensus.py
 
+หมายเหตุ (2026-09-27): pipeline แก้ชื่อเองแล้วในขั้น --recover-codes (fix_plan_names) ทุกครั้งที่รัน —
+สคริปต์นี้เหลือไว้ดูรายงานเสียงข้ามทุก run (dry-run) ไม่จำเป็นต้อง --apply อีก
+
 python apply_name_consensus.py           # dry-run: แสดงสิ่งที่จะแก้ ไม่เขียนไฟล์
 python apply_name_consensus.py --apply   # แก้ course.name_th ใน curriculum.json (สำรอง .before_names.json)
                                          # และในตาราง course ของ curriculum.db แล้วเขียน runs/name_consensus_report.json
@@ -14,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src" / "ocr_system"))
-from name_consensus import consensus  # noqa: E402
+from name_consensus import MAIN_RUNS, consensus  # noqa: E402
 
 APPLY = "--apply" in sys.argv
 runs = {}
@@ -34,7 +37,6 @@ for u in res["unresolved"]:
 
 # --only-main: ใช้ทุกรันเป็น "ผู้โหวต" เหมือนเดิม แต่ เขียนแก้เฉพาะ 7 แผนหลัก (งานส่ง) — รอบทดลอง (retry / dewm / ctrl)
 # เป็นหลักฐานของการทดลอง ไม่ควรถูกแก้ชื่อย้อนหลัง (ไม่งั้นเทียบผลรอบทดลองกับรอบหลักไม่ได้)
-MAIN_RUNS = {"AIT", "BIT/no_coop", "BIT/coop", "DSBA/no_coop", "DSBA/coop", "IT/no_coop", "IT/coop"}
 ONLY_MAIN = "--only-main" in sys.argv
 if ONLY_MAIN:
     kept = [ch for ch in res["changes"] if ch["run"] in MAIN_RUNS]
