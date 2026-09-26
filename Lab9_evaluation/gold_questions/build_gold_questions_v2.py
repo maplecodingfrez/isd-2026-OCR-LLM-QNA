@@ -129,3 +129,182 @@ def v1_keyword(plan: str) -> str | None:
         if m:
             return m.group(1)
     return None
+
+
+ALL_CODES: set[str] = {c.get("code") or "" for p in PLAN_NAMES for c in load_scoped(p)}
+ALL_NAMES_TH: set[str] = {norm_th(c.get("name_th")) for p in PLAN_NAMES for c in load_scoped(p)}
+
+KEYWORDS = ["ระบบ", "ข้อมูล", "เทคโนโลยี", "คอมพิวเตอร์", "ธุรกิจ", "สารสนเทศ", "ปัญญาประดิษฐ์", "ภาษา", "การจัดการ"]
+FAKE_NAMES = ["การเล่นหมากรุกสากลขั้นสูง", "ดาราศาสตร์วิทยุเบื้องต้น", "การทำอาหารไทยเชิงพาณิชย์"]
+
+T = {   # แม่แบบคำถาม — หลายแบบต่อหมวด (ทางการ / ภาษาพูด) สุ่มด้วย seed ของแผน
+    "total": ["หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "เรียนจบหลักสูตรนี้ต้องเก็บหน่วยกิตทั้งหมดกี่หน่วยกิต"],
+    "years": ["หลักสูตรนี้เรียนกี่ปี", "ระยะเวลาการศึกษาตามแผนของหลักสูตรนี้กี่ปี"],
+    "t_count": ["ปี {y} เทอม {s} ต้องลงเรียนกี่วิชา", "ในแผนการศึกษา ชั้นปีที่ {y} ภาคการศึกษาที่ {s} มีรายวิชาทั้งหมดกี่วิชา"],
+    "t_sum": ["ปี {y} เทอม {s} เรียนรวมกี่หน่วยกิต", "ชั้นปีที่ {y} ภาคการศึกษาที่ {s} มีหน่วยกิตรวมเท่าไร"],
+    "t_set": ["ปี {y} เทอม {s} เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ชั้นปีที่ {y} ภาคการศึกษาที่ {s} ประกอบด้วยรายวิชารหัสใดบ้าง"],
+    "c_th": ["รหัสวิชา {code} ชื่อวิชาภาษาไทยว่าอะไร", "วิชา {code} คือวิชาอะไร (ชื่อภาษาไทย)"],
+    "c_en": ["รหัสวิชา {code} มีชื่อภาษาอังกฤษว่าอะไร", "วิชา {code} ชื่อภาษาอังกฤษคืออะไร"],
+    "d_th": ["วิชา{name}มีรหัสวิชาอะไร"],
+    "d_talk": ["{name} รหัสวิชาอะไรนะ", "ขอรหัสวิชาของ{name}หน่อย"],
+    "d_en": ["วิชา {name} รหัสอะไร", "What is the course code of {name}"],
+    "e_year": ["วิชา{name}อยู่ในแผนการศึกษาชั้นปีที่เท่าไร", "{name} เรียนตอนปีไหน"],
+    "e_credit": ["วิชา{name}มีกี่หน่วยกิต", "{name} กี่หน่วยกิต"],
+    "e_lab": ["วิชา{name}มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง", "{name} แล็บสัปดาห์ละกี่ชั่วโมง"],
+    "e_lec_en": ["วิชา {name} มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง", "{name} lecture สัปดาห์ละกี่ชั่วโมง"],
+    "f_code": ["รหัสวิชา {code} มีวิชาบังคับก่อนคือวิชาใด", "ก่อนลงวิชา {code} ต้องผ่านวิชาอะไรมาก่อน"],
+    "f_name": ["ถ้าจะลงเรียน{name} ต้องผ่านวิชาอะไรมาก่อน", "{name} ต้องเรียนวิชาอะไรก่อน"],
+    "f_rev": ["วิชาใดบ้างที่มี {code} เป็นวิชาบังคับก่อน", "ผ่านวิชา {code} แล้วจะลงวิชาไหนต่อได้บ้าง"],
+    "f_pairs": ["ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่"],
+    "g_credit": ["มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ {x}", "วิชาที่ได้ {x} หน่วยกิตมีกี่วิชา"],
+    "g_lec": ["วิชาที่มีชั่วโมงบรรยายต่อสัปดาห์มากที่สุดมีกี่ชั่วโมง", "ชั่วโมงบรรยายต่อสัปดาห์สูงสุดของรายวิชาในหลักสูตรนี้คือเท่าไร"],
+    "g_kw": ["มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่า '{kw}'", "ชื่อวิชาที่มีคำว่า '{kw}' มีกี่วิชา"],
+    "h_fee": ["ค่าเทอมของหลักสูตรนี้เท่าไร", "ค่าธรรมเนียมการศึกษาต่อภาคการศึกษาของหลักสูตรนี้คือเท่าไร"],
+    "h_teacher": ["ใครเป็นอาจารย์ผู้สอนวิชา {code}", "วิชา {code} อาจารย์ประจำวิชาชื่ออะไร"],
+    "h_code": ["รหัสวิชา {code} คือวิชาอะไร", "วิชา {code} มีกี่หน่วยกิต"],
+    "h_year7": ["ปี 7 เทอม 1 ต้องเรียนวิชาอะไรบ้าง", "ชั้นปีที่ 7 ภาคการศึกษาที่ 1 มีรายวิชาอะไรบ้าง"],
+    "h_name": ["วิชา{name}มีกี่หน่วยกิต"],
+}
+
+
+def build_plan(plan: str) -> tuple[list[dict], dict]:
+    seed = f"gold-v2:{plan}"
+    rng = random.Random(seed)
+    rows = load_scoped(plan)
+    placed = placed_courses(rows)
+    for c in placed.values():
+        hours(c)                                     # หน่วยกิตอ่านไม่ได้ = หยุด ไม่เดา
+    v1 = v1_codes(plan)
+    total, years = v1_declared(plan)
+    th_ok, en_ok = unique_names(placed, "name_th"), unique_names(placed, "name_en")
+    meta = {"plan": plan, "seed": seed, "terms": [], "terms_relaxed": False, "fallback_v1_codes": [], "replaced": []}
+    qs: list[dict] = []
+    used: set[str] = set()
+
+    def add(cat, level, text, expect, **extra):
+        n = sum(1 for q in qs if q["category"] == cat) + 1
+        qs.append({"id": f"{cat}{n}", "category": cat, "level": level, "question": text, "expect": expect, **extra})
+
+    def tmpl(key, **kw):
+        return rng.choice(T[key]).format(**kw)
+
+    def pick(allowed: set[str]) -> str:
+        fresh = sorted(c for c in allowed if c not in used and c not in v1)
+        if fresh:
+            code = rng.choice(fresh)
+        else:
+            code = rng.choice(sorted(c for c in allowed if c not in used))   # ไม่มีตัวใหม่แล้ว -> ใช้วิชาที่ v1 เคยถาม
+            meta["fallback_v1_codes"].append(code)
+        used.add(code)
+        return code
+
+    def named(code, key):
+        return placed[code][key].strip()
+
+    def extra_e():   # ใช้แทนข้อ F เมื่อแผนไม่มีวิชาบังคับก่อนพอ
+        code = pick(th_ok)
+        add("E", "1", tmpl("e_credit", name=named(code, "name_th")),
+            {"type": "value", "value": str(hours(placed[code])[0])}, about_codes=[code], name_key="name_th")
+
+    # A — ระดับหลักสูตร
+    add("A", "1", tmpl("total"), {"type": "value", "value": total})
+    add("A", "1", tmpl("years"), {"type": "value", "value": years})
+
+    # B — รายเทอม (ปี 2–4)
+    terms = eligible_terms(rows, placed)
+    if len(terms) < 2:
+        terms = eligible_terms(rows, placed, allow_year1=True)
+        meta["terms_relaxed"] = True
+        if len([t for t in terms if t != (1, 1)]) >= 2:     # ปี 1 ภาค 1 = เทอมที่ v1 ถามแล้ว เลี่ยงถ้าเลี่ยงได้
+            terms = [t for t in terms if t != (1, 1)]
+    if len(terms) < 2:
+        raise ValueError(f"{plan}: เทอมที่ใช้ได้ไม่ถึง 2")
+    chosen = sorted(rng.sample(terms, 2))
+    meta["terms"] = [list(t) for t in chosen]
+    for y, s in chosen:
+        codes = term_codes(rows, y, s)
+        add("B", "2", tmpl("t_count", y=y, s=s), {"type": "value", "value": str(len(codes))}, term=[y, s])
+        add("B", "2", tmpl("t_sum", y=y, s=s),
+            {"type": "value", "value": str(sum(hours(placed[c])[0] for c in codes))}, term=[y, s])
+        add("B", "2", tmpl("t_set", y=y, s=s), {"type": "set_exact", "value": codes}, term=[y, s])
+
+    # C — รหัส -> ชื่อ
+    for _ in range(2):
+        code = pick(set(placed))
+        add("C", "1", tmpl("c_th", code=code), {"type": "value", "value": named(code, "name_th")}, about_codes=[code])
+    code = pick(en_ok)
+    add("C", "1", tmpl("c_en", code=code), {"type": "value", "value": named(code, "name_en")}, about_codes=[code])
+
+    # D — ชื่อ -> รหัส
+    for key in ("d_th", "d_talk"):
+        code = pick(th_ok)
+        add("D", "1", tmpl(key, name=named(code, "name_th")), {"type": "value", "value": code},
+            about_codes=[code], name_key="name_th")
+    code = pick(en_ok)
+    add("D", "1", tmpl("d_en", name=named(code, "name_en")), {"type": "value", "value": code},
+        about_codes=[code], name_key="name_en")
+
+    # E — ชื่อ -> ข้อมูลของวิชา
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_year", name=named(code, "name_th")),
+        {"type": "value", "value": str(int(placed[code]["year"]))}, about_codes=[code], name_key="name_th")
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_credit", name=named(code, "name_th")),
+        {"type": "value", "value": str(hours(placed[code])[0])}, about_codes=[code], name_key="name_th")
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_lab", name=named(code, "name_th")),
+        {"type": "value", "value": str(hours(placed[code])[2])}, about_codes=[code], name_key="name_th")
+    code = pick(en_ok)
+    add("E", "1", tmpl("e_lec_en", name=named(code, "name_en")),
+        {"type": "value", "value": str(hours(placed[code])[1])}, about_codes=[code], name_key="name_en")
+
+    # F — วิชาบังคับก่อน
+    fwd, rev = prereq_maps(placed)
+    if fwd:
+        s1 = rng.choice(sorted(fwd))
+        add("F", "1", tmpl("f_code", code=s1), {"type": "set_exact", "value": sorted(fwd[s1]), "ignore": [s1]},
+            about_codes=[s1], direction="forward")
+        by_name = sorted(k for k in fwd if k in th_ok and k != s1) or sorted(k for k in fwd if k in th_ok)
+        if by_name:
+            s2 = rng.choice(by_name)
+            add("F", "1", tmpl("f_name", name=named(s2, "name_th")),
+                {"type": "set_exact", "value": sorted(fwd[s2]), "ignore": [s2]}, about_codes=[s2], name_key="name_th",
+                direction="forward")
+        else:
+            meta["replaced"].append("F2 -> E (ไม่มีวิชาที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)")
+            extra_e()
+        r = rng.choice(sorted(rev))
+        add("F", "1", tmpl("f_rev", code=r), {"type": "set_exact", "value": sorted(rev[r]), "ignore": [r]},
+            about_codes=[r], direction="reverse")
+    else:
+        meta["replaced"].append("F1-F3 -> E (แผนนี้ไม่มีคู่วิชาบังคับก่อนในแผน)")
+        for _ in range(3):
+            extra_e()
+    add("F", "2", tmpl("f_pairs"), {"type": "value", "value": str(expected_prerequisite_pairs(rows))})
+
+    # G — ภาพรวม
+    catalog = [placed[c] for c in sorted(placed)]
+    credit_values = [hours(c)[0] for c in catalog]
+    x = rng.choice(sorted(set(credit_values)))
+    add("G", "2", tmpl("g_credit", x=x), {"type": "value", "value": str(credit_values.count(x))})
+    add("G", "2", tmpl("g_lec"), {"type": "value", "value": str(max(hours(c)[1] for c in catalog))})
+    kws = [k for k in KEYWORDS if k != v1_keyword(plan) and sum(k in c["name_th"] for c in catalog) >= 2]
+    if not kws:
+        raise ValueError(f"{plan}: ไม่มีคำค้นที่ใช้ได้")
+    kw = rng.choice(kws)
+    add("G", "2", tmpl("g_kw", kw=kw), {"type": "value", "value": str(sum(kw in c["name_th"] for c in catalog))})
+
+    # H — ข้อที่ต้องตอบว่าไม่รู้ (ch8: ระบบที่ตอบทุกคำถามได้เสมอ คือระบบที่แต่งคำตอบ)
+    none = {"type": "none", "value": None}
+    add("H", "none", tmpl("h_fee"), none)
+    add("H", "none", tmpl("h_teacher", code=rng.choice(sorted(placed))), none)
+    prefix = Counter(c[:4] for c in placed).most_common(1)[0][0]
+    fake = next(f"{prefix}{n:04d}" for n in rng.sample(range(10000), 10000) if f"{prefix}{n:04d}" not in ALL_CODES)
+    add("H", "none", tmpl("h_code", code=fake), none)
+    add("H", "none", tmpl("h_year7"), none)
+    fake_name = rng.choice([n for n in FAKE_NAMES if not any(norm_th(n) in a for a in ALL_NAMES_TH)])
+    add("H", "none", tmpl("h_name", name=fake_name), none)
+
+    if len(qs) != 30 or len({q["question"] for q in qs}) != 30:
+        raise ValueError(f"{plan}: ได้ {len(qs)} ข้อ / คำถามซ้ำ")
+    return qs, meta

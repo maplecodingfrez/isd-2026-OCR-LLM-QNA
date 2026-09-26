@@ -60,3 +60,104 @@ def test_all_real_plans_have_readable_credits():
     for plan in g2.PLAN_NAMES:
         for c in g2.placed_courses(g2.load_scoped(plan)).values():
             g2.hours(c)
+
+
+import json  # noqa: E402
+import re  # noqa: E402
+from collections import Counter  # noqa: E402
+
+BUILT = {plan: g2.build_plan(plan) for plan in g2.PLAN_NAMES}
+
+
+def test_build_is_deterministic():
+    assert g2.build_plan("ait") == BUILT["ait"]
+
+
+# Break caught: a plan with fewer/more than 30 questions or a lopsided mix (ch8: 30 ข้อ, none >= 2).
+def test_every_plan_meets_ch8_and_quota():
+    for plan, (qs, _) in BUILT.items():
+        cats = Counter(q["category"] for q in qs)
+        assert len(qs) == 30, plan
+        assert (cats["A"], cats["B"], cats["C"], cats["D"], cats["G"], cats["H"]) == (2, 6, 3, 3, 3, 5), plan
+        assert cats["E"] + cats["F"] == 8, plan
+        assert sum(q["expect"]["type"] == "none" for q in qs) == 5, plan
+        assert len({q["question"] for q in qs}) == 30, plan
+        assert len({q["id"] for q in qs}) == 30, plan
+
+
+# Break caught: term answers that do not match the ground truth when recomputed a different way.
+def test_term_answers_recomputed_independently():
+    for plan, (qs, _) in BUILT.items():
+        rows = g2.load_scoped(plan)
+        for q in (q for q in qs if q["category"] == "B"):
+            y, s = q["term"]
+            mine = {r["code"]: r for r in rows if str(r.get("year")) == str(y) and str(r.get("semester")) == str(s)}
+            if q["expect"]["type"] == "set_exact":
+                assert q["expect"]["value"] == sorted(mine), (plan, q["id"])
+            elif "กี่วิชา" in q["question"]:
+                assert q["expect"]["value"] == str(len(mine)), (plan, q["id"])
+            else:
+                total = sum(int(re.match(r"\s*(\d+)", r["credits"]).group(1)) for r in mine.values())
+                assert q["expect"]["value"] == str(total), (plan, q["id"])
+
+
+# Break caught: BIT coop (one "A หรือ B" prerequisite) producing an empty or wrong prerequisite answer.
+def test_prerequisite_questions_have_real_answers():
+    for plan, (qs, meta) in BUILT.items():
+        fwd, rev = g2.prereq_maps(g2.placed_courses(g2.load_scoped(plan)))
+        for q in (q for q in qs if q["category"] == "F" and q["expect"]["type"] == "set_exact"):
+            subject = q["about_codes"][0]
+            want = sorted(rev[subject]) if q["direction"] == "reverse" else sorted(fwd[subject])
+            assert q["expect"]["value"] == want and want, (plan, q["id"])
+            assert q["expect"]["ignore"] == [subject]
+    bit = [q for q in BUILT["bit_coop"][0] if q["id"] == "F1"][0]
+    assert bit["expect"]["value"] == ["06036119", "06036122"]
+
+
+# Break caught: an "unanswerable" question whose code/name actually exists in some plan.
+def test_none_questions_are_unanswerable_everywhere():
+    for plan, (qs, _) in BUILT.items():
+        for q in (q for q in qs if q["category"] == "H"):
+            for code in re.findall(r"\d{8}", q["question"]):
+                if q["id"] != "H2":                      # H2 asks the instructor of a real course
+                    assert code not in g2.ALL_CODES, (plan, q["id"])
+        h5 = [q for q in qs if q["id"] == "H5"][0]
+        fake = re.search(r"วิชา(.+?)มีกี่หน่วยกิต", h5["question"]).group(1)
+        assert not any(g2.norm_th(fake) in n for n in g2.ALL_NAMES_TH)
+
+
+# Break caught: v2 re-asking the same courses v1 was tuned on when fresh ones exist.
+def test_named_courses_avoid_v1_unless_logged():
+    for plan, (qs, meta) in BUILT.items():
+        v1 = g2.v1_codes(plan)
+        for q in (q for q in qs if q["category"] in "CDE"):
+            code = q["about_codes"][0]
+            assert code not in v1 or code in meta["fallback_v1_codes"], (plan, q["id"])
+
+
+# Break caught: a name-based question using an empty or duplicated name.
+def test_name_questions_use_unique_nonempty_names():
+    for plan, (qs, _) in BUILT.items():
+        placed = g2.placed_courses(g2.load_scoped(plan))
+        th, en = g2.unique_names(placed, "name_th"), g2.unique_names(placed, "name_en")
+        for q in qs:
+            if q.get("name_key") == "name_th":
+                assert q["about_codes"][0] in th, (plan, q["id"])
+            if q.get("name_key") == "name_en":
+                assert q["about_codes"][0] in en, (plan, q["id"])
+
+
+def test_questions_are_json_serialisable_and_levels_set():
+    for plan, (qs, _) in BUILT.items():
+        json.dumps(qs, ensure_ascii=False)
+        assert {q["level"] for q in qs} <= {"1", "2", "none"}
+        assert all(q["level"] == "none" for q in qs if q["category"] == "H")
+
+
+# Break caught: relaxed term choice re-asking year 1 term 1 (the term v1 was tuned on) when others exist.
+def test_relaxed_terms_skip_v1_term_when_possible():
+    for plan, (_, meta) in BUILT.items():
+        rows = g2.load_scoped(plan)
+        others = [t for t in g2.eligible_terms(rows, g2.placed_courses(rows), allow_year1=True) if t != (1, 1)]
+        if len(others) >= 2:
+            assert [1, 1] not in meta["terms"], plan
