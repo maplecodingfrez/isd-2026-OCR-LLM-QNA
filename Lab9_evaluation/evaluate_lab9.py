@@ -7,7 +7,7 @@ Lab9 evaluation script — 06026240 Intelligent System Development
 สคริปต์นี้ทำข้อ 5 ของ checklist บทที่ 9 (ch9_EvaluationAndOverfitting.pdf):
 "รันสคริปต์ประเมินผลกับงานโปรเจคของตัวเอง แล้วเอาตัวเลขไปใส่รายงานได้"
 
-มันอ่านผลลัพธ์ที่ Lab 8B (../Lab8b_ocr_system) รันไว้แล้ว (ไม่รันโมเดลใหม่ ไม่เรียก
+มันอ่านผลลัพธ์ที่ Lab 8B (../Lab7B_Lab8B_ocr_system) รันไว้แล้ว (ไม่รันโมเดลใหม่ ไม่เรียก
 Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ JSON ที่มีอยู่) แล้วสรุปเป็นตัวเลขตาม metric
 ที่สไลด์บทที่ 9 สอน:
 
@@ -38,10 +38,10 @@ Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ J
 ค่า default ของ --runs คือ 8 run ที่มีอยู่แล้ว (อัปเดต 2026-09-16 — ครบ 4 คณะ AIT/BIT/DSBA/IT
 ตามขอบเขตที่อาจารย์ขอให้ประเมิน ไม่ใช่แค่ DSBA-coop เหมือนตอนแรกสุด):
     ait, bit_no_coop, bit_coop, dsba_no_coop, dsba_coop, it_no_coop, it_coop
-        — ../Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/
-    dsba_coop_retry — ../Lab8b_ocr_system/runs/DSBA/coop_retry/lab8b_output/
-    bit_coop_retry  — ../Lab8b_ocr_system/runs/BIT/coop_retry/lab8b_output/  (สร้างด้วย run_lab8b_bit_coop_retry.py)
-    it_coop_retry   — ../Lab8b_ocr_system/runs/IT/coop_retry/lab8b_output/   (สร้างด้วย run_lab8b_it_coop_retry.py)
+        — ../Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/
+    dsba_coop_retry — ../Lab7B_Lab8B_ocr_system/runs/DSBA/coop_retry/lab8b_output/
+    bit_coop_retry  — ../Lab7B_Lab8B_ocr_system/runs/BIT/coop_retry/lab8b_output/  (สร้างด้วย run_lab8b_bit_coop_retry.py)
+    it_coop_retry   — ../Lab7B_Lab8B_ocr_system/runs/IT/coop_retry/lab8b_output/   (สร้างด้วย run_lab8b_it_coop_retry.py)
         (รันซ้ำรอบสองของเอกสารชุดเดียวกับ dsba_coop — ใช้เฉพาะเช็คความเสถียร/overfitting เท่านั้น)
 
 ผลลัพธ์
@@ -50,7 +50,7 @@ Ollama/LLM ซ้ำ — แค่คำนวณ metric จากไฟล์ J
     reports/lab9_metrics_latest.md    — ตารางพร้อมแปะรายงาน
     reports/lab9_metrics_latest.json  — ตัวเลขดิบทั้งหมด เผื่อทำกราฟ/วิเคราะห์ต่อ
 
-หมายเหตุ: สคริปต์นี้อยู่ในโฟลเดอร์ Lab9_evaluation แยกจาก Lab8b_ocr_system โดยตั้งใจ
+หมายเหตุ: สคริปต์นี้อยู่ในโฟลเดอร์ Lab9_evaluation แยกจาก Lab7B_Lab8B_ocr_system โดยตั้งใจ
 เพื่อให้ Lab9 เป็นงานส่งแยกชิ้น ไม่ปนกับซอร์สของ Lab8B — มันแค่ "อ่าน" ไฟล์ผลลัพธ์ของ
 Lab8B จากภายนอก ไม่แก้ไขหรือรันอะไรในโฟลเดอร์นั้นเลย
 """
@@ -60,6 +60,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sqlite3
 import statistics
 import sys
 from dataclasses import dataclass, field
@@ -68,13 +69,15 @@ from pathlib import Path
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_LAB8B = HERE.parent / "Lab8b_ocr_system"
+sys.path.insert(0, str(HERE))
+import levels  # noqa: E402  ระดับคำถาม ch1 + หน้าอ้างอิงที่คาดหวัง (levels.py ข้างไฟล์นี้)
+DEFAULT_LAB8B = HERE.parent / "Lab7B_Lab8B_ocr_system"
 DEFAULT_LAB8B_RUNS = DEFAULT_LAB8B / "runs"
 
-# อัปเดต 2026-09-16: เดิม hardcode 3 run ที่ชี้ไปที่ Lab8b_ocr_system/work/lab8b_run_ours_coop(_retry)
-# ซึ่งถูกย้ายออกไปตอนจัดระเบียบโฟลเดอร์ (ดู Lab8b_ocr_system/PROGRESS.md หัวข้อ "จัดระเบียบโฟลเดอร์
+# อัปเดต 2026-09-16: เดิม hardcode 3 run ที่ชี้ไปที่ Lab7B_Lab8B_ocr_system/work/lab8b_run_ours_coop(_retry)
+# ซึ่งถูกย้ายออกไปตอนจัดระเบียบโฟลเดอร์ (ดู Lab7B_Lab8B_ocr_system/PROGRESS.md หัวข้อ "จัดระเบียบโฟลเดอร์
 # 2026-09-16") ทำให้ 2 ใน 3 path เดิมหายไปจริง ("[ข้าม] ไม่พบ run directory" ถ้ารันเฉยๆ) — เปลี่ยนมา
-# ชี้ครบทั้ง 7 run ตามชื่อหลักสูตร/แผนใน Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/ แทน
+# ชี้ครบทั้ง 7 run ตามชื่อหลักสูตร/แผนใน Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/ แทน
 # (ครบทุกคณะที่อาจารย์ขอให้ประเมิน AIT/BIT/DSBA/IT — ไม่ใช่แค่ DSBA-coop เหมือนตอนแรกสุด)
 DEFAULT_RUNS = [
     ("ait", DEFAULT_LAB8B_RUNS / "AIT" / "lab8b_output"),
@@ -87,10 +90,10 @@ DEFAULT_RUNS = [
     # เก็บไว้เฉพาะสำหรับเช็คความเสถียร/overfitting (checklist ข้อ 3) — เอกสารชุดเดียวกับ dsba_coop
     # เป๊ะ รันซ้ำรอบสอง (ของเดิมอยู่ที่ runs/DSBA/coop_retry/lab8b_output/ หลังจัดโฟลเดอร์)
     ("dsba_coop_retry", DEFAULT_LAB8B_RUNS / "DSBA" / "coop_retry" / "lab8b_output"),
-    # รันซ้ำของ bit_coop (สร้างด้วย Lab8b_ocr_system/run_lab8b_bit_coop_retry.py) — ถ้ายังไม่ได้รัน
+    # รันซ้ำของ bit_coop (สร้างด้วย Lab7B_Lab8B_ocr_system/run_lab8b_bit_coop_retry.py) — ถ้ายังไม่ได้รัน
     # จะขึ้น "[ข้าม] ไม่พบ run directory" และข้ามคู่นี้ในหัวข้อความเสถียรไปเฉยๆ
     ("bit_coop_retry", DEFAULT_LAB8B_RUNS / "BIT" / "coop_retry" / "lab8b_output"),
-    # รันซ้ำของ it_coop (สร้างด้วย Lab8b_ocr_system/run_lab8b_it_coop_retry.py)
+    # รันซ้ำของ it_coop (สร้างด้วย Lab7B_Lab8B_ocr_system/run_lab8b_it_coop_retry.py)
     ("it_coop_retry", DEFAULT_LAB8B_RUNS / "IT" / "coop_retry" / "lab8b_output"),
     # รันซ้ำของอีก 4 หลักสูตร/แผน (สร้างด้วย run_all_stability_retries.py หรือ run_lab8b_<name>_retry.py)
     ("ait_retry", DEFAULT_LAB8B_RUNS / "AIT_retry" / "lab8b_output"),
@@ -151,6 +154,16 @@ class RunMetrics:
     credits_abs_error: int | None = None    # MAE-style: |plan - declared| หน่วยกิต
     credits_pct_error: float | None = None  # MAPE-style: abs_error / declared * 100
 
+    # หน่วยกิตรวม "นับช่องตามเล่ม" (plan_item + plan_slot ผ่าน v_semester_credits_full ของ Lab 8B)
+    # plan_slot สกัดจาก Markdown ของ OCR ด้วยกฎล้วน (md_plan_slots.py ไม่อ่านเฉลย) — รายงาน
+    # คู่กับตัวเลขเดิมด้านบน ไม่ได้แทนที่ เพื่อให้เทียบก่อน/หลังได้
+    plan_total_credits_full: int | None = None
+    credits_abs_error_full: int | None = None
+    credits_pct_error_full: float | None = None
+    full_failed_ids: list[str] = field(default_factory=list)   # CHK1F/CHK7F ที่ไม่ผ่าน
+    gap_extraction: int | None = None       # declared − full: ยังอธิบายไม่ได้ (สกัด/OCR ตก)
+    gap_book_as_written: int | None = None  # full − plan_item: อธิบายได้ด้วยช่องตามเล่ม (wildcard/หรือ/เลือกกลุ่ม)
+
     verify_checks_total: int | None = None
     verify_checks_passed: int | None = None
     verify_pass_rate: float | None = None
@@ -170,6 +183,7 @@ class RunMetrics:
     answer_text_accuracy: float | None = None
     avg_seconds: float | None = None
     sql_ok_text_wrong: list[str] = field(default_factory=list)  # ตรง gap ที่สไลด์เตือน
+    level_stats: dict = field(default_factory=dict)   # ระดับคำถาม ch1 -> n/correct/citation (levels.py)
 
 
 def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
@@ -200,6 +214,31 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
             m.credits_abs_error = abs(m.plan_total_credits - m.declared_total_credits)
             m.credits_pct_error = round(
                 m.credits_abs_error / m.declared_total_credits * 100, 2)
+
+    db_path = run_dir / "curriculum.db"
+    m.found["curriculum.db"] = db_path.exists()
+    if db_path.exists():
+        conn = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
+        try:
+            m.plan_total_credits_full = sum(
+                row[0] or 0 for row in conn.execute("SELECT credits FROM v_semester_credits_full"))
+        except sqlite3.Error:   # DB เก่าที่ยังไม่มี plan_slot/view นี้
+            m.plan_total_credits_full = None
+        finally:
+            conn.close()
+        if m.plan_total_credits_full is not None and m.declared_total_credits:
+            m.credits_abs_error_full = abs(m.plan_total_credits_full - m.declared_total_credits)
+            m.credits_pct_error_full = round(
+                m.credits_abs_error_full / m.declared_total_credits * 100, 2)
+
+    verify_full = load_json(run_dir / "verify_full.json")
+    m.found["verify_full.json"] = verify_full is not None
+    if verify_full:
+        m.full_failed_ids = [c["id"] for c in verify_full if not c.get("ok")]
+        chk1f = next((c for c in verify_full if c.get("id") == "CHK1F"), None)
+        if chk1f and isinstance(chk1f.get("cause"), dict):
+            m.gap_extraction = chk1f["cause"].get("a_extraction")
+            m.gap_book_as_written = chk1f["cause"].get("b_book_as_written")
 
     # confusion matrix ของ ctype (บังคับ/เลือก) คำนวณไว้แล้วใน Lab7B (lab7_metrics.py
     # ::classification_report) — อ่านมาจาก evaluation.json ของ lab7b_output ที่เป็นโฟลเดอร์
@@ -238,6 +277,9 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
         m.execution_accuracy = round(exec_correct / n, 4) if n else None
         secs = [r.get("seconds") for r in eval_result if isinstance(r.get("seconds"), (int, float))]
         m.avg_seconds = round(statistics.mean(secs), 2) if secs else None
+        prog = name.split("_")[0]
+        mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
+        m.level_stats = levels.level_stats(eval_result, mapping)
 
         # answer_text_accuracy: เช็คว่า "ข้อความคำตอบ" จริง ๆ ที่โมเดลพิมพ์ มีค่าที่ถูกต้องอยู่ไหม
         # ต่างจาก execution_accuracy ที่เช็คแค่แถว SQL — จุดนี้จับบั๊ก "SQL ถูกแต่ตอบเป็นข้อความผิด"
@@ -298,17 +340,20 @@ def check_stability(runs: dict[str, RunMetrics]) -> list[str]:
     return notes
 
 
-def credits_mae_mape(runs: dict[str, RunMetrics]) -> dict:
+def credits_mae_mape(runs: dict[str, RunMetrics], suffix: str = "") -> dict:
     """MAE/MAPE ของหน่วยกิตรวม รวมทุก run — สไลด์ ch9 บอกว่าค่าต่อเนื่องยิ่งต่ำยิ่งดี
-    (ยกเว้น R square) ต่างจาก CHK1 ที่บอกแค่ผ่าน/ไม่ผ่าน ไม่บอกว่าคลาดเคลื่อนแค่ไหน"""
-    errs = [r.credits_abs_error for r in runs.values() if r.credits_abs_error is not None]
-    pcts = [r.credits_pct_error for r in runs.values() if r.credits_pct_error is not None]
+    (ยกเว้น R square) ต่างจาก CHK1 ที่บอกแค่ผ่าน/ไม่ผ่าน ไม่บอกว่าคลาดเคลื่อนแค่ไหน
+    suffix="_full" = ใช้ตัวเลขแบบนับช่องตามเล่ม (credits_abs_error_full ...)"""
+    err_of = lambda r: getattr(r, "credits_abs_error" + suffix)
+    pct_of = lambda r: getattr(r, "credits_pct_error" + suffix)
+    errs = [err_of(r) for r in runs.values() if err_of(r) is not None]
+    pcts = [pct_of(r) for r in runs.values() if pct_of(r) is not None]
     return {
         "n": len(errs),
         "mae": round(statistics.mean(errs), 2) if errs else None,
         "mape": round(statistics.mean(pcts), 2) if pcts else None,
         "max_abs_error": max(errs) if errs else None,
-        "worst_run": max(runs.values(), key=lambda r: r.credits_abs_error or 0).name if errs else None,
+        "worst_run": max(runs.values(), key=lambda r: err_of(r) or 0).name if errs else None,
     }
 
 
@@ -317,7 +362,7 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
     lines.append(f"# Lab9 evaluation report — {datetime.now():%Y-%m-%d %H:%M}")
     lines.append("")
     lines.append("อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`")
-    lines.append("ข้อมูลดิบมาจาก: `Lab8b_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` "
+    lines.append("ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` "
                   "(สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)")
     lines.append("")
 
@@ -344,6 +389,31 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
     lines.append(f"- คลาดเคลื่อนมากสุด: **{cm['worst_run']}** ({cm['max_abs_error']} หน่วยกิต)")
     lines.append("")
 
+    cmf = credits_mae_mape(runs, "_full")
+    lines.append("### หน่วยกิตรวม — นับช่องตามเล่ม (plan_item + plan_slot, CHK1F/CHK7F)")
+    lines.append("")
+    lines.append("ตารางบนนับแค่วิชารหัสจริงใน `plan_item` จึงขาดหน่วยกิตของช่องวิชาเลือกแบบ wildcard "
+                  "(`06026xxx`) และนับซ้ำคู่ \"A หรือ B\" / กลุ่ม \"เลือก 1 กลุ่ม\" — ตารางนี้นับผ่าน "
+                  "`v_semester_credits_full` ของ Lab 8B ซึ่งใช้ `plan_slot` ที่ `md_plan_slots.py` สกัดจาก "
+                  "Markdown ของ OCR ด้วยกฎล้วน (ไม่อ่านเฉลย) · แยกส่วนต่างตาม `verify_full.json`: "
+                  "`slot_adjust` = full − plan_item (ส่วนที่อธิบายได้ด้วยช่องตามเล่ม), "
+                  "`gap_extraction` = declared − full (ส่วนที่ยังอธิบายไม่ได้ ส่วนใหญ่คือ OCR/สกัดตกวิชา)")
+    lines.append("")
+    lines.append("| run | plan_total_credits | plan_total_credits_full | declared | abs_error_full | pct_error_full | slot_adjust | gap_extraction | failed (full) |")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
+    for r in runs.values():
+        lines.append(
+            f"| {r.name} | {r.plan_total_credits} | {r.plan_total_credits_full} | "
+            f"{r.declared_total_credits} | {r.credits_abs_error_full} | {r.credits_pct_error_full} | "
+            f"{r.gap_book_as_written} | {r.gap_extraction} | {', '.join(r.full_failed_ids) or '-'} |"
+        )
+    lines.append("")
+    lines.append(f"- **MAE (นับช่องตามเล่ม)** = {cmf['mae']} หน่วยกิต (จาก {cmf['n']} run) "
+                 f"เทียบกับ {cm['mae']} แบบเดิม")
+    lines.append(f"- **MAPE (นับช่องตามเล่ม)** = {cmf['mape']}% เทียบกับ {cm['mape']}% แบบเดิม")
+    lines.append(f"- คลาดเคลื่อนมากสุด: **{cmf['worst_run']}** ({cmf['max_abs_error']} หน่วยกิต)")
+    lines.append("")
+
     lines.append("## 2. NL→SQL metrics (eval_result.json)")
     lines.append("")
     lines.append("| run | n_questions | valid_sql_rate | execution_accuracy | answer_text_accuracy | avg_seconds |")
@@ -368,6 +438,30 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
         lines.append("ไม่พบในรอบนี้ (execution_accuracy กับ answer_text_accuracy ตรงกันทุกข้อ)")
     lines.append("")
 
+    lines.append("### คำตอบ + อ้างอิงหน้า แยกตามระดับคำถาม (ch1: 1 = ค้นตรง, 2 = อ่านตาราง/รวม; none = ไม่มีในเล่ม)")
+    lines.append("")
+    lines.append("หน้าอ้างอิงแนบด้วยโค้ดจากตาราง `course_page` (ไม่ใช่ LLM) · ถูก = หน้าที่อ้างมีอย่างน้อย 1 หน้าตรงกับหน้าที่ "
+                 "Lab 5 พบวิชา/ตารางเทอมนั้น (เทียบเลขหน้า PDF) · ข้อที่ไม่มีหน้าคาดหวัง (เช่น นับทั้งหลักสูตร) ไม่นับในอัตราอ้างอิง")
+    lines.append("")
+    lines.append("หน้าที่คาด = หน้า primary ของ Lab 5 (มีทั้งรหัสและชื่อวิชา; ไม่มี primary ค่อยใช้หน้าที่แค่เอ่ยรหัส) · "
+                 "คำถามระดับ none ไม่นับในอัตราอ้างอิง (ไม่อ้างหน้าคือถูก)")
+    lines.append("")
+    lines.append("ข้อจำกัดของตัววัดระดับ 2: หน้าที่คาดของคำถามรายเทอม = หน้าที่พบวิชาของเทอมนั้นบ่อยที่สุดในผล Lab 5 "
+                 "ซึ่ง IT no_coop ชี้หน้าแผนสหกิจ PDF 38 (Tesseract อ่านรหัสวิชาหน้า 31 ไม่ออก) — หน้าที่ระบบอ้าง (PDF 31) "
+                 "ตรวจกับหัวเทอมใน OCR ทั้งเล่มแล้วถูก จึงอัตราระดับ 2 ของ IT no_coop ต่ำกว่าจริง · "
+                 "DSBA coop ไม่อ้างหน้าตารางแผน (เลขไฟล์ภาพไม่ตรงเลขหน้า PDF — ยืนยันกับเล่มไม่ได้ จึงไม่อ้าง)")
+    lines.append("")
+    lines.append("| run | level | n | execution_accuracy | answers with citation | citation_accuracy (checkable) |")
+    lines.append("|---|---|---|---|---|---|")
+    for r in runs.values():
+        for lvl in ("1", "2", "none"):
+            s = r.level_stats.get(lvl)
+            if not s:
+                continue
+            acc = round(s["correct"] / s["n"], 4) if s["n"] else None
+            cite = f"{s['cite_hit']}/{s['cite_checkable']}" if s["cite_checkable"] else "-"
+            lines.append(f"| {r.name} | {lvl} | {s['n']} | {acc} | {s['with_citation']}/{s['n']} | {cite} |")
+    lines.append("")
     lines.append("## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)")
     lines.append("")
     for note in stability_notes:
@@ -430,9 +524,9 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
     lines.append("- **LLM-as-a-judge / Cohen kappa** — คำถาม NL→SQL ของโปรเจกต์นี้เป็น closed-form "
                   "(มีคำตอบถูกหนึ่งเดียว ตรวจด้วยกฎ/SQL result ได้ตรง ๆ) ไม่ใช่งานปลายเปิดที่ต้องให้ "
                   "LLM ช่วยตัดสินความ \"ดี\" แบบอัตนัย จึงไม่จำเป็นต้องใช้")
-    lines.append("- **Citation coverage** — คำตอบมาจาก SQL ที่รันจริงกับ DB ที่สกัดมา ไม่ใช่การ "
-                  "generate ข้อความอิสระแบบ RAG ที่ต้องอ้างอิงหน้า/แหล่งที่มา จึงไม่มีขั้นตอน "
-                  "\"citation\" ให้วัดตั้งแต่ต้น")
+    lines.append("- **Citation coverage / accuracy — ใช้แล้ว (อัปเดต 2026-09-26)** — เดิมตัดสินใจไม่ใช้เพราะคำตอบมาจาก "
+                  "SQL ไม่ใช่ RAG; ตอนนี้คำตอบแนบหน้าอ้างอิงในเล่ม (ch1 ส่วน Q&A ต้องอ้างอิงหน้า) จึงวัดทั้ง "
+                  "\"คำตอบที่มีอ้างอิง\" (coverage) และ \"อ้างหน้าถูก\" (accuracy) แยกตามระดับคำถาม — ดูตารางในหัวข้อ 2")
     lines.append("- **Faithfulness/Groundedness** — รับประกันโดยสถาปัตยกรรมเดียวกับข้อบน: คำตอบมาจาก "
                   "SQL execution ต่อฐานข้อมูลจริงเสมอ ไม่มีช่องให้โมเดล \"แต่งเรื่อง\" หลุดจากข้อมูลได้")
     lines.append("")
@@ -446,7 +540,22 @@ def main() -> None:
         "--runs", nargs="*", metavar="NAME=PATH",
         help="ระบุ run เอง เช่น --runs my_run=work/lab8b_run  (ถ้าไม่ระบุ ใช้ค่า default สาม run)",
     )
+    ap.add_argument("--list-levels", action="store_true",
+                    help="พิมพ์ระดับคำถาม + หน้าที่คาดหวังของทุกคำถามทอง ให้ตรวจก่อนใช้ในรายงาน แล้วจบ")
     args = ap.parse_args()
+
+    if args.list_levels:
+        for name, path in DEFAULT_RUNS:
+            gold = path / "gold_questions.json"
+            if not gold.exists():   # run ที่ไม่มีบนเครื่อง (เช่น dsba_coop_retry) — ข้าม
+                continue
+            prog = name.split("_")[0]
+            mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
+            for q in json.loads(gold.read_text(encoding="utf-8")):
+                exp = q["expect"]
+                print(f"{name}\tL{levels.question_level(q['question'], exp['type'])}\t"
+                      f"{sorted(levels.expected_pages(q['question'], exp.get('value'), mapping) or [])}\t{q['question']}")
+        return
 
     if args.runs:
         run_specs = []
@@ -467,7 +576,7 @@ def main() -> None:
         runs[name] = evaluate_run(name, path)
 
     if not runs:
-        print("ไม่พบ run ใดเลย ตรวจสอบ path ของ Lab8b_ocr_system/work/ ก่อน", file=sys.stderr)
+        print("ไม่พบ run ใดเลย ตรวจสอบ path ของ Lab7B_Lab8B_ocr_system/work/ ก่อน", file=sys.stderr)
         sys.exit(1)
 
     stability_notes = check_stability(runs)
