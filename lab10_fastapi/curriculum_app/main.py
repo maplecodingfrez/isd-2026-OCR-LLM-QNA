@@ -11,20 +11,20 @@ from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import PROJECT_ROOT, settings
+from .config import PROJECT_ROOT, settings, PROGRAMS, _project_path, program_db_path
 
 # เชื่อม Lab 10 -> Lab 8B โดยตรง: ใช้ open_db, guard_sql และ ollama_generate เดิม
-SRC_DIR = PROJECT_ROOT / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+LAB8_DIR = PROJECT_ROOT / "Lab7B_Lab8B_ocr_system" / "src" / "ocr_system"
+if str(LAB8_DIR) not in sys.path:
+    sys.path.insert(0, str(LAB8_DIR))
 os.environ["LAB8_OLLAMA_URL"] = settings.ollama_url
 os.environ["LAB8_MODEL_TEXT"] = settings.ollama_model
-from ocr_system import lab8b_curriculum_db as lab8b  # noqa: E402
+import lab8b_curriculum_db as lab8b  # noqa: E402
 
 from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
-    AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse,
+    AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse, ProgramInfo,
 )
 
 
@@ -68,6 +68,21 @@ def get_program() -> dict:
         raise HTTPException(status_code=404, detail="ไม่พบข้อมูลหลักสูตร")
     return program
 
+@app.get("/api/programs", response_model=list[ProgramInfo])     
+def list_programs() -> list[dict]:                                 
+    items = []                                               
+    for program_id, (label, rel_path) in PROGRAMS.items():         
+        path = _project_path(rel_path)                          
+        item = {"id": program_id, "label": label,                 
+                "available": path.exists()}
+        if item["available"]:                                    
+            row = CurriculumDatabase(lab8b, path, settings.max_rows).program()   
+            if row:                                                
+                item["name_th"] = row.get("name_th")
+                item["total_credits"] = row.get("total_credits")
+                item["years"] = row.get("years")
+        items.append(item)                                         
+    return items                                                   
 
 @app.get("/api/courses", response_model=list[CourseResponse])
 def get_courses(
@@ -94,11 +109,19 @@ def post_course(course: CourseCreate) -> dict:
 
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
+    db_path = program_db_path(request.program)
+    if db_path is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{request.program}' - ใช้ได้: {', '.join(PROGRAMS)}")
+    if not db_path.exists():
+        raise HTTPException(status_code=503, detail=f"ไม่พบฐานข้อมูล: {db_path}")
+    conn = lab8b.open_db(str(db_path), readonly=True)
     try:
-        return model.ask(database, request.question)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        result = lab8b.ask(conn, request.question, verbose=False)
     except requests.RequestException as exc:
         raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้") from exc
-    except (ValueError, json.JSONDecodeError, sqlite3.Error) as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        conn.close()
+    if result["error"]:
+        raise HTTPException(status_code=422, detail=result["error"])
+    result["program"] = request.program
+    return result
