@@ -50,9 +50,8 @@ python evaluate_lab9.py                                  # รายงาน me
 ```
 
 - แผนที่มี: `ait`, `bit_no_coop`, `bit_coop`, `dsba_no_coop`, `dsba_coop`, `it_no_coop`, `it_coop`
-- ชุดคำถามทอง: `Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` (30 ข้อ/แผน, ล็อก sha256 ใน `frozen.json`)
-  — ชุดแรก (v1) ดูย้อนหลังได้ที่ git tag `gold-v1` (`git fetch --tags` แล้ว
-  `git show gold-v1:Lab9_evaluation/gold_questions/ait_gold_questions.json` — ไม่ทับไฟล์ปัจจุบัน)
+- ชุดคำถามทอง (30 ข้อ/แผน): `Lab9_evaluation/gold_questions/` — ทำไมทำใหม่และเลี่ยง overfit อย่างไร ดูหัวข้อ
+  "ชุดคำถามทอง" ในส่วน Evaluation & Overfitting (Lab 9)
 - `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ลองรันแล้วไม่อยากเก็บ: `git restore Lab7B_Lab8B_ocr_system/runs`
 - เว็บ/API ถาม-ตอบ (Lab 10): ดู `lab10_fastapi/README.md`
 
@@ -1463,11 +1462,11 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 - ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
 - **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
 - ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab7B_Lab8B_ocr_system/runs/` (7 แผน), `Lab9_evaluation/ground_truth_scoped/`,
-  `Lab9_evaluation/gold_questions/` — รันซ้ำ (`*_retry*`) ของวันที่ 2026-09-20 ถูกลบตอนจัดโฟลเดอร์แล้ว หัวข้อความเสถียรในรายงาน
-  จึงขึ้นว่า "ข้าม" ผลรันซ้ำเดิมสรุปไว้ที่ `reports/lab9_overfit_underfit_summary.md`
+  `Lab9_evaluation/gold_questions/` — รอบรันซ้ำ (`*_retry*`) ไม่อยู่ใน repo หัวข้อความเสถียรในรายงานจึงแสดงหมายเหตุแทน
+  ผลรันซ้ำที่วัดไว้สรุปที่ `reports/lab9_overfit_underfit_summary.md`
 - ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`
 - ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
-  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+  (ต่างเฉพาะวันเวลาในรายงาน — path ในรายงานเป็นแบบ relative จาก repo) และไม่มีรันไหนถูกข้าม
 - สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
 - คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab7B_Lab8B_ocr_system/regenerate_evaluation.py`
 
@@ -1485,12 +1484,27 @@ python evaluate_lab9.py
   ติดป้ายด้วยกฎ — ดูรายการด้วย `python evaluate_lab9.py --list-levels`), ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
   matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
 - `reports/lab9_overfit_underfit_summary.md` — สรุป overfit/underfit (เขียนเอง ไม่ถูกเขียนทับ)
-- **ชุดคำถามทอง** `gold_questions/<แผน>_gold_questions.json`: 30 ข้อ/แผน สร้างด้วยสคริปต์จากเฉลย scoped (seed ตายตัว)
-  ล็อก sha256 ใน `frozen.json` ก่อนรัน — `run_lab8b.py` ไม่ยอมรัน eval ถ้าไฟล์ไม่ตรงที่ล็อก
-  ผลล่าสุด (2026-09-27): ตอบถูก 194/210 = 92.4% (ก่อนแก้ข้อมูล Lab 7B จากเล่ม 189/210 — ตัวเลข held-out ของระบบ)
-  สร้างใหม่: `python gold_questions/build_gold_questions.py` (ได้ไฟล์เดิมทุกไบต์) ·
-  ชุดแรก (v1, ใช้พัฒนาระบบ, 190/210) อยู่ที่ git tag `gold-v1` — เทียบ v1/v2 ดูสรุป overfit
 - `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
 matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
+
+### ชุดคำถามทอง (gold questions) — ทำใหม่ทำไม และเลี่ยง overfit อย่างไร
+
+`Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` — 30 ข้อ/แผน × 7 แผน ใช้วัดส่วนถาม-ตอบ (NL→SQL)
+
+**ทำไมทำชุดใหม่:** ชุดแรก (v1) คือชุดที่ใช้ระหว่างพัฒนาระบบ — ระบบถูกปรับแก้จนตอบชุดนี้ได้ดี คะแนนจากชุดนี้จึงบอกไม่ได้ว่า
+ระบบเก่งจริงหรือแค่ "จำข้อสอบ" และ v1 แคบเกินไป: ถามด้วยรหัสวิชาเป็นหลัก, แผนการเรียนมีแค่ปี 1 ภาค 1, ไม่มีคำถามด้วยชื่อวิชา
+ชื่อภาษาอังกฤษ หรือวิชาบังคับก่อนรายวิชา — ปัญหาจริงที่ผู้ใช้เจอ (ถามวิชาบังคับก่อนด้วยชื่อวิชาแล้วตอบผิด) ชุด v1 วัดไม่เจอเลย
+ชุดใหม่ยังตรงเกณฑ์ ch8 (30 ข้อ, มีข้อที่ต้องตอบ "ไม่พบ", ให้คะแนนจากผล SQL) และเพิ่มคำถามแบบที่ v1 ไม่มี: ปี 1–2 เทอมอื่น,
+ถามด้วยชื่อไทย/อังกฤษ, ภาษาพูด, วิชาบังคับก่อน (ถามตรง / ถามด้วยชื่อ / ถามย้อนกลับ) และข้อรายการต้องตอบครบพอดี (`set_exact`)
+
+**เลี่ยง overfit อย่างไร:**
+- **เฉลยไม่มาจากระบบ:** คำนวณจากเฉลยที่ตรวจกับเล่มแล้ว (`ground_truth_scoped/`) ด้วยสคริปต์ ไม่อ่าน `curriculum.db` ที่ระบบสร้าง
+- **ไม่เลือกข้อเอง:** สุ่มวิชา/เทอมด้วย seed ตายตัว และเลี่ยงวิชา/เทอมที่ v1 เคยถาม เพื่อให้เป็นคำถามที่ระบบไม่เคยถูกปรับตาม
+- **ล็อกก่อนรัน:** เก็บ sha256 ของทุกไฟล์ใน `frozen.json` ก่อนรันครั้งแรก — `run_lab8b.py` ไม่ยอมรัน eval ถ้าไฟล์ไม่ตรง
+  และ `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับที่สคริปต์สร้างทุกไบต์ จึงแก้คำถามหลังเห็นผลไม่ได้
+- **ไม่แก้ระบบตามผลของชุดนี้:** จุดอ่อนที่ชุดนี้เผย จะแก้ได้เฉพาะเมื่อพบสาเหตุจากตัวเล่ม/ข้อมูล ไม่ใช่ปรับให้ตอบข้อสอบข้อนั้นได้
+  และรายงานตัวเลขก่อนแก้ข้อมูล (189/210) เป็นตัวเลข held-out ของระบบ แยกจากตัวเลขหลังแก้ (194/210)
+- **เทียบกับ v1:** ภาพรวมห่างกันไม่ถึง 1 จุด (v1 188 vs ชุดใหม่ 189 จาก 210) — ไม่พบสัญญาณว่าระบบจำ v1
+  (รายละเอียด `Lab9_evaluation/reports/lab9_overfit_underfit_summary.md`; v1 เก็บไว้ที่ git tag `gold-v1`)
