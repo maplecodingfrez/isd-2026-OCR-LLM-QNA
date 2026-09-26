@@ -1106,6 +1106,18 @@ def _citations_module():
     return citations
 
 
+def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
+    """บรรทัด "ชื่อวิชา = รหัส" สำหรับ prompt (course_names.py) จากตาราง course ของ DB นี้ — ไม่มีตาราง/ไม่เจอชื่อ = "" """
+    _citations_module()                          # ให้โฟลเดอร์นี้อยู่ใน sys.path (ครั้งเดียว)
+    import course_names
+    try:
+        rows = conn.execute("SELECT code, name_th, name_en FROM course").fetchall()
+    except sqlite3.OperationalError:
+        return ""
+    courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in rows]
+    return course_names.hint_block(course_names.course_hints(question, courses))
+
+
 def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
                       image_names: list[str], md_text: str) -> dict[str, int]:
     """เติมตาราง course_page (ลบของเดิมก่อน รันซ้ำได้): หน้าที่มีรหัสวิชา (primary/other) จาก OCR ทั้งเล่ม
@@ -1643,7 +1655,14 @@ def ask(conn: sqlite3.Connection, question: str,
         "citations": [], "citation_text": "",
     }
     ddl = DDL.strip()
-    prompt = SQL_PROMPT.format(ddl=ddl, question=question)
+    # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
+    # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
+    base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
+    hints = _course_name_hint_text(conn, question)
+    if hints:
+        tail = f"คำถาม: {question}\nSQL:"
+        base_prompt = base_prompt[: -len(tail)] + hints + tail
+    prompt = base_prompt
 
     for attempt in range(2):
         try:
@@ -1674,7 +1693,7 @@ def ask(conn: sqlite3.Connection, question: str,
             if attempt == 1:
                 result["answer"] = "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง"
                 return result
-            prompt = (SQL_PROMPT.format(ddl=ddl, question=question)
+            prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
