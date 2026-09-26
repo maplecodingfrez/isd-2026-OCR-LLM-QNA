@@ -1180,7 +1180,7 @@ docstring ของ `Lab7B_Lab8B_ocr_system/src/ocr_system/lab7b_curriculum.py` 
   `exact_match_acc` เดิมมองไม่เห็น บันทึกไว้เป็นข้อสังเกต ยังไม่ได้แก้
 
 รายละเอียดประวัติแก้บั๊กทั้งหมด (session-by-session) อยู่ที่
-`Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md` และ `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+`Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
 ---
 
@@ -1261,7 +1261,7 @@ python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.
 
 ### อัปเดต 2026-09-22 — งานต่อยอด Lab 7B/8B (branch `Lab-8b-prereq`)
 
-แก้บั๊กจริงที่พบระหว่างตรวจงาน + เพิ่มข้อตรวจเสริม ทั้งหมดเป็นกฎเชิงกำหนด ไม่เรียก LLM ซ้ำ ไม่ใช้เฉลยสร้างผล (ตรวจแล้วว่า Lab 7B บันทึกผลก่อนโหลดเฉลยเสมอ) รายละเอียดทุกขั้นตอนอยู่ใน `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+แก้บั๊กจริงที่พบระหว่างตรวจงาน + เพิ่มข้อตรวจเสริม ทั้งหมดเป็นกฎเชิงกำหนด ไม่เรียก LLM ซ้ำ ไม่ใช้เฉลยสร้างผล (ตรวจแล้วว่า Lab 7B บันทึกผลก่อนโหลดเฉลยเสมอ) สรุปอยู่ใน `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
 > **หมายเหตุ:** คำสั่ง `python experiments/...` ในหัวข้อนี้เป็นชุดทดสอบ/หลักฐานประกอบการอ้างอิงของงานวันนี้ **ไม่ได้ถูกแทร็กใน git แล้ว** (`Lab7B_Lab8B_ocr_system/experiments/` ถูกใส่ใน `.gitignore` โดยตั้งใจ เพื่อให้ระบบที่ `git pull` มาเหลือแค่ของที่ใช้งานจริง) จึง**ใช้งานไม่ได้ทันทีหลัง clone ใหม่** — เก็บไว้บนเครื่องของผู้พัฒนาเป็นหลักฐานย้อนกลับเท่านั้น
 
@@ -1389,7 +1389,7 @@ python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุ
 ### อัปเดต 2026-09-26 — กู้วิชาที่หาย, แก้ SQL, อ้างอิงหน้าในคำตอบ (branch `feature/page-citations`)
 
 ทุกข้อเป็นกฎเชิงกำหนด (deterministic) ไม่แก้ผลด้วยมือ ไม่ใช้เฉลยสร้างผล (เฉลยใช้วัดผลอย่างเดียว) และลองแบบ dry-run กับทั้ง 7 แผน
-ก่อนใช้จริงทุกครั้ง รายละเอียดทีละขั้นอยู่ที่ `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+ก่อนใช้จริงทุกครั้ง สรุปอยู่ใน `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
 **Lab 7B — กู้แถว/รหัสวิชาที่ OCR ทำหาย** (`lab7b_curriculum.py --fill-missing-rows --recover-codes --book-ocr ...`, run scripts เรียกให้แล้ว)
 

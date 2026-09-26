@@ -33,7 +33,7 @@ run ซ้ำเอกสารชุดเดียวกันอีก 9 ช�
 อัตโนมัติ ไม่ใช่เดามือ — ดู `gold_questions/build_gold_questions.py`) และ
 `ground_truth_scoped/*.json` (กรอง `year >= 1` จาก `data/ground_truth/*.json` เต็มชุด) ที่ใช้เทียบ
 P/R/F1/CER/WER ของ Lab7B ก็มีครบทั้ง 7 ไฟล์เช่นกัน — รายละเอียดวิธีสร้างและ caveat ของแต่ละไฟล์
-อยู่ใน `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+อยู่ในบันทึกการทำงานละเอียด (dev log) ของผู้พัฒนา — เก็บไว้ในเครื่อง ไม่อยู่ใน git
 
 ## วิธีรัน
 
@@ -109,7 +109,7 @@ confusion matrix + per-class precision/recall/F1 + MCC (`lab7_metrics.py::classi
 `plan_item` ที่ MAE นับ เคยลองแก้โดยบวกหน่วยกิตจาก `elective_group.credits_required` กลับเข้าไป
 แต่พบว่าจะทำให้ตัวเลขเฟ้อผิดทิศทางแทน (ค่าถูกก็อปปี้ซ้ำทุกกลุ่มย่อยในเมนู + catalog กับตำแหน่งจริง
 ในแผนไม่ผูกกัน 1:1) — สรุปว่า MAE/MAPE ที่รายงานนี้เป็น **upper bound ที่ถูกต้อง** ไม่ใช่ตัวชี้วัด
-คุณภาพการสกัดที่แย่ รายละเอียดเต็มอยู่ใน `Lab7B_Lab8B_ocr_system/PROGRESS.md`
+คุณภาพการสกัดที่แย่ รายละเอียดเต็มอยู่ในบันทึกการทำงานละเอียด (dev log) ของผู้พัฒนา — เก็บไว้ในเครื่อง ไม่อยู่ใน git
 
 ## ความเสถียร / overfitting
 
