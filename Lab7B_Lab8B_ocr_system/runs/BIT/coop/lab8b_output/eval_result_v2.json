@@ -18,7 +18,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.4
   },
   {
     "id": "A2",
@@ -39,7 +39,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.4
+    "seconds": 1.5
   },
   {
     "id": "B1",
@@ -69,7 +69,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.4
   },
   {
     "id": "B2",
@@ -99,7 +99,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "id": "B3",
@@ -174,7 +174,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.6
   },
   {
     "id": "B5",
@@ -204,7 +204,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 1.5
   },
   {
     "id": "B6",
@@ -323,7 +323,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 235 (PDF 240), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 1.8
   },
   {
     "id": "C3",
@@ -360,7 +360,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.2
   },
   {
     "id": "D1",
@@ -398,7 +398,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 2.5
   },
   {
     "id": "D2",
@@ -436,7 +436,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 239 (PDF 244), หน้า 241 (PDF 246))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "D3",
@@ -461,7 +461,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 96644008 (ได้ [])",
-    "seconds": 0.9
+    "seconds": 0.8
   },
   {
     "id": "E1",
@@ -524,7 +524,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 237 (PDF 242), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "E3",
@@ -562,7 +562,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 238 (PDF 243), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "E4",
@@ -600,7 +600,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 238 (PDF 243), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.6
+    "seconds": 2.1
   },
   {
     "id": "F1",
@@ -644,7 +644,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.5
+    "seconds": 2.3
   },
   {
     "id": "E5",
@@ -682,7 +682,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "F2",
@@ -725,7 +725,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 239 (PDF 244), หน้า 242 (PDF 247))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "id": "F3",
@@ -746,7 +746,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.9
   },
   {
     "id": "G1",
@@ -788,7 +788,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.8
   },
   {
     "id": "G3",
@@ -872,7 +872,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.6
   },
   {
     "id": "H4",
@@ -914,6 +914,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.8
   }
 ]

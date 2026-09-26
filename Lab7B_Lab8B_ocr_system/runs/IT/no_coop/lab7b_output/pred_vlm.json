@@ -175,14 +175,15 @@
     },
     {
       "code": "06066000",
-      "name_th": "คณิตศาสตร์โมโต่อเนื่อง",
+      "name_th": "คณิตศาสตร์ไม่ต่อเนื่อง",
       "credits": "3(3-0-6)",
       "year": 2,
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
       "name_en": "DISCRETE MATHEMATICS",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "_name_th_from": "คณิตศาสตร์โมโต่อเนื่อง"
     },
     {
       "code": "06066300",
@@ -313,7 +314,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "MANAGEMENT INFORMATION SYSTEMS"
+      "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+      "prerequisite": "06066101"
     },
     {
       "code": "90644xxx",
@@ -369,7 +371,8 @@
       "prerequisite": "06016413",
       "_name_from_book": {
         "from": null
-      }
+      },
+      "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION"
     },
     {
       "code": "06016426",
@@ -382,7 +385,8 @@
       "prerequisite": "ไม่มี",
       "_name_from_book": {
         "from": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1"
-      }
+      },
+      "name_en": "COMPUTER GRAPHICS AND ANIMATION"
     },
     {
       "code": "06016427",
@@ -395,7 +399,8 @@
       "prerequisite": "ไม่มี",
       "_name_from_book": {
         "from": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2"
-      }
+      },
+      "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT"
     },
     {
       "code": "060164xx",
@@ -452,7 +457,8 @@
       "flexible_year_semester": null,
       "_code_from_book": {
         "from": "90642033"
-      }
+      },
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
     },
     {
       "code": "06016406",
@@ -546,7 +552,7 @@
       "code": "06016414",
       "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3(2-2-5)",
-      "name_en": null,
+      "name_en": "NOSQL DATABASE SYSTEMS",
       "_code_from_book": {
         "split_from": "06016414, 06016415"
       }
@@ -560,7 +566,7 @@
       "code": "06016415",
       "name_th": "การเขียนโปรแกรมเชิงฟังก์ชัน",
       "credits": "3(2-2-5)",
-      "name_en": null,
+      "name_en": "FUNCTIONAL PROGRAMMING",
       "_code_from_book": {
         "split_from": "06016414, 06016415"
       }
@@ -573,7 +579,7 @@
       "semester": 1,
       "category": null,
       "type": null,
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
       "_code_from_book": {
         "from": null,
         "via": "name_in_term"
@@ -588,7 +594,7 @@
       "semester": 1,
       "category": null,
       "type": null,
-      "name_en": null,
+      "name_en": "INTERNET OF THINGS",
       "_code_from_book": {
         "from": null,
         "via": "name_in_term"
@@ -607,9 +613,9 @@
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
       "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
-      "found": 7,
+      "found": 8,
       "none": 29,
-      "not_found": 9,
+      "not_found": 8,
       "unreadable": 0,
       "skipped_non_code": 8
     },
@@ -672,6 +678,52 @@
         "code": "06016407",
         "from": "3(3-0-6) หรือ 3(x-x-x)",
         "to": "3(0-9-0)"
+      },
+      {
+        "action": "name_en",
+        "to": "06016423",
+        "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016426",
+        "name_en": "COMPUTER GRAPHICS AND ANIMATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016427",
+        "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT"
+      },
+      {
+        "action": "name_en",
+        "to": "90644042",
+        "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016414",
+        "name_en": "NOSQL DATABASE SYSTEMS"
+      },
+      {
+        "action": "name_en",
+        "to": "06016415",
+        "name_en": "FUNCTIONAL PROGRAMMING"
+      },
+      {
+        "action": "name_en",
+        "to": "06016421",
+        "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY"
+      },
+      {
+        "action": "name_en",
+        "to": "06016422",
+        "name_en": "INTERNET OF THINGS"
+      },
+      {
+        "action": "name_th",
+        "code": "06066000",
+        "from": "คณิตศาสตร์โมโต่อเนื่อง",
+        "to": "คณิตศาสตร์ไม่ต่อเนื่อง"
       }
     ]
   }

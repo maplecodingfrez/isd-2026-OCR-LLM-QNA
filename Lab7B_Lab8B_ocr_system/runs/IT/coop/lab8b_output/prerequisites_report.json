@@ -2,12 +2,12 @@
   "source_text": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
   "courses": 47,
   "counts": {
-    "found": 7,
+    "found": 8,
     "none": 29,
-    "not_found": 11,
+    "not_found": 10,
     "unreadable": 0
   },
-  "pairs_inserted": 7,
+  "pairs_inserted": 8,
   "or_groups": 0,
   "per_course": {
     "06016401": {
@@ -289,11 +289,13 @@
       "dropped": []
     },
     "06066102": {
-      "status": "not_found",
-      "requires": [],
+      "status": "found",
+      "requires": [
+        "06066101"
+      ],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "06066300": {

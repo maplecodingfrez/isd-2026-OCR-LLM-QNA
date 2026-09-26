@@ -10,8 +10,8 @@
   "courses": [
     {
       "code": "06026243",
-      "name_th": "ระบบฐานข้อมูลชั้นสูง",
-      "name_en": null,
+      "name_th": "ระบบฐานข้อมูลขั้นสูง",
+      "name_en": "ADVANCED DATABASE SYSTEMS",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -21,7 +21,7 @@
     {
       "code": "06026244",
       "name_th": "การดูแลและบำรุงรักษาระบบฐานข้อมูล",
-      "name_en": null,
+      "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -31,7 +31,7 @@
     {
       "code": "06026245",
       "name_th": "ระบบฐานข้อมูลแบบกระจาย",
-      "name_en": null,
+      "name_en": "DISTRIBUTED DATABASE SYSTEMS",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -41,7 +41,7 @@
     {
       "code": "06026246",
       "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 1",
-      "name_en": null,
+      "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 1",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -51,7 +51,7 @@
     {
       "code": "06026247",
       "name_th": "หัวข้อพิเศษทางวิศวกรรมข้อมูล 2",
-      "name_en": null,
+      "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 2",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -61,7 +61,7 @@
     {
       "code": "06026248",
       "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1",
-      "name_en": null,
+      "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 1",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -71,7 +71,7 @@
     {
       "code": "06026249",
       "name_th": "ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2",
-      "name_en": null,
+      "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 2",
       "credits": 3,
       "lecture_h": null,
       "lab_h": null,
@@ -350,7 +350,7 @@
     },
     {
       "code": "06026207",
-      "name_th": "ระบบฐานข้อมูลแบบโนเวสคิวแอล",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "name_en": "NOSQL DATABASE SYSTEMS",
       "credits": 3,
       "lecture_h": 2,

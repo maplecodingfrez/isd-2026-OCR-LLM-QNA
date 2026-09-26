@@ -4,14 +4,16 @@
   "courses": [
     {
       "code": "06026243",
-      "name_th": "ระบบฐานข้อมูลชั้นสูง",
+      "name_th": "ระบบฐานข้อมูลขั้นสูง",
       "credits": "3(0-6)",
       "year": null,
       "semester": null,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "ADVANCED DATABASE SYSTEMS",
+      "_name_th_from": "ระบบฐานข้อมูลชั้นสูง"
     },
     {
       "code": "06026244",
@@ -22,7 +24,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
     },
     {
       "code": "06026245",
@@ -33,7 +36,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "DISTRIBUTED DATABASE SYSTEMS"
     },
     {
       "code": "06026246",
@@ -44,7 +48,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 1"
     },
     {
       "code": "06026247",
@@ -55,7 +60,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 2"
     },
     {
       "code": "06026248",
@@ -66,7 +72,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 1"
     },
     {
       "code": "06026249",
@@ -77,7 +84,8 @@
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "flexible_year_semester": null,
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 2"
     },
     {
       "code": "06026250",
@@ -391,14 +399,15 @@
     },
     {
       "code": "06026207",
-      "name_th": "ระบบฐานข้อมูลแบบโนเวสคิวแอล",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3 (2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "name_en": "NOSQL DATABASE SYSTEMS",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "_name_th_from": "ระบบฐานข้อมูลแบบโนเวสคิวแอล"
     },
     {
       "code": "06026208",
@@ -683,6 +692,54 @@
       "skipped_non_code": 14
     },
     "filled_from_markdown": [],
-    "code_from_book": []
+    "code_from_book": [
+      {
+        "action": "name_en",
+        "to": "06026243",
+        "name_en": "ADVANCED DATABASE SYSTEMS"
+      },
+      {
+        "action": "name_en",
+        "to": "06026244",
+        "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06026245",
+        "name_en": "DISTRIBUTED DATABASE SYSTEMS"
+      },
+      {
+        "action": "name_en",
+        "to": "06026246",
+        "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 1"
+      },
+      {
+        "action": "name_en",
+        "to": "06026247",
+        "name_en": "SPECIAL TOPICS IN DATA ENGINEERING 2"
+      },
+      {
+        "action": "name_en",
+        "to": "06026248",
+        "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 1"
+      },
+      {
+        "action": "name_en",
+        "to": "06026249",
+        "name_en": "SPECIAL WORKSHOP IN DATA ENGINEERING 2"
+      },
+      {
+        "action": "name_th",
+        "code": "06026207",
+        "from": "ระบบฐานข้อมูลแบบโนเวสคิวแอล",
+        "to": "ระบบฐานข้อมูลแบบโนเอสคิวแอล"
+      },
+      {
+        "action": "name_th",
+        "code": "06026243",
+        "from": "ระบบฐานข้อมูลชั้นสูง",
+        "to": "ระบบฐานข้อมูลขั้นสูง"
+      }
+    ]
   }
 }

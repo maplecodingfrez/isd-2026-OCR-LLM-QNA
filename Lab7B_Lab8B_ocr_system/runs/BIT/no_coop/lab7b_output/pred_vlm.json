@@ -451,7 +451,7 @@
       "code": "06036146",
       "name_th": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
       "credits": "3(0-9-0)",
-      "name_en": null,
+      "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
       "_code_from_book": {
         "split_from": "06036146 96642033"
       }
@@ -464,7 +464,7 @@
       "code": "96642033",
       "name_th": "กฎหมายสำหรับคนรุ่นใหม่",
       "credits": "3(3-0-6)",
-      "name_en": null,
+      "name_en": "LAW FOR NEW GENERATION",
       "_code_from_book": {
         "split_from": "06036146 96642033"
       }
@@ -497,6 +497,16 @@
           "96642033"
         ],
         "term": "4/1"
+      },
+      {
+        "action": "name_en",
+        "to": "06036146",
+        "name_en": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2"
+      },
+      {
+        "action": "name_en",
+        "to": "96642033",
+        "name_en": "LAW FOR NEW GENERATION"
       }
     ]
   }

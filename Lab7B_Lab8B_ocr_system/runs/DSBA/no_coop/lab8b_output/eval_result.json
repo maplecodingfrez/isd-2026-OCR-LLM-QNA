@@ -15,7 +15,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 2.0
   },
   {
     "question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
@@ -33,7 +33,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.2
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
@@ -41,10 +41,10 @@
       "type": "value",
       "value": "7"
     },
-    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
+    "sql": "SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 LIMIT 200",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=1\"}",
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1\"}",
     "answer_model_output": "{\"answer\": \"7 วิชา\"}",
     "answer": "7 วิชา",
     "citations": [
@@ -56,7 +56,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.5
   },
   {
     "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต",
@@ -79,7 +79,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 1.5
   },
   {
     "question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
@@ -118,7 +118,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 313 (PDF 314), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ครบ",
-    "seconds": 3.3
+    "seconds": 3.2
   },
   {
     "question": "รหัสวิชา 06026200 มีชื่อภาษาไทยว่าอะไร",
@@ -180,7 +180,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 314 (PDF 315), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06066101 มีชื่อภาษาไทยว่าอะไร",
@@ -211,7 +211,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 316 (PDF 317), หน้า 317 (PDF 318))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "question": "รหัสวิชา 06066303 มีชื่อภาษาไทยว่าอะไร",
@@ -242,7 +242,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 318 (PDF 319), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.4
   },
   {
     "question": "รหัสวิชา 90641001 มีชื่อภาษาไทยว่าอะไร",
@@ -304,7 +304,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 150 (PDF 151), หน้า 15 (PDF 16))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.2
   },
   {
     "question": "วิชา 'ภาษาอังกฤษพื้นฐาน 1' มีรหัสวิชาอะไร",
@@ -335,7 +335,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 208 (PDF 209), หน้า 15 (PDF 16))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.5
   },
   {
     "question": "วิชา 'การวิเคราะห์ข้อมูลและการโปรแกรม' มีรหัสวิชาอะไร",
@@ -366,7 +366,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 24 (PDF 25), หน้า 320 (PDF 321), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.6
   },
   {
     "question": "วิชา 'คณิตศาสตร์ไม่ต่อเนื่อง' มีรหัสวิชาอะไร",
@@ -397,7 +397,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 24 (PDF 25), หน้า 314 (PDF 315), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.6
   },
   {
     "question": "รหัสวิชา 06066102 อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
@@ -428,7 +428,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 25 (PDF 26), หน้า 317 (PDF 318), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "question": "รหัสวิชา 06066102 มีกี่หน่วยกิต",
@@ -459,7 +459,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 25 (PDF 26), หน้า 317 (PDF 318), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "question": "ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
@@ -477,7 +477,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.0
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
@@ -531,7 +531,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.7
   },
   {
     "question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
@@ -580,7 +580,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 318 (PDF 319), หน้า 17 (PDF 18))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 1.8
   },
   {
     "question": "รหัสวิชา 06026200 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง",
@@ -611,7 +611,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 313 (PDF 314), หน้า 16 (PDF 17))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "question": "มีรายวิชากี่วิชาที่มีคำว่า 'เทคโนโลยี' อยู่ในชื่อภาษาไทย",
@@ -629,7 +629,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.9
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีกี่วิชาที่มีหน่วยกิตมากกว่า 2",
@@ -652,7 +652,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 1.7
   },
   {
     "question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี 2 หน่วยกิต",
@@ -683,7 +683,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 23), หน้า 150 (PDF 151), หน้า 15 (PDF 16))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",

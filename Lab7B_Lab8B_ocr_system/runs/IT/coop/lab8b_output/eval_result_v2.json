@@ -39,7 +39,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.8
+    "seconds": 1.7
   },
   {
     "id": "B1",
@@ -174,7 +174,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 35 (PDF 40))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 1.5
   },
   {
     "id": "B5",
@@ -204,7 +204,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 35 (PDF 40))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 1.4
   },
   {
     "id": "B6",
@@ -286,7 +286,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 36 (PDF 41), หน้า 328 (PDF 329), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "id": "C2",
@@ -304,17 +304,25 @@
     "n_rows": 1,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06016419'\" }",
-    "answer_model_output": "{\"answer\": \"โครงสร้างพื้นฐานและภารบริการ\"}",
-    "answer": "โครงสร้างพื้นฐานและภารบริการ",
+    "answer_model_output": "{\"answer\": \"โครงสร้างพื้นฐานเครือข่ายการสื่อสาร\"}",
+    "answer": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร",
     "citations": [
       {
         "pdf_page": 41,
         "printed_page": "36"
+      },
+      {
+        "pdf_page": 331,
+        "printed_page": "330"
+      },
+      {
+        "pdf_page": 25,
+        "printed_page": "20"
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 36 (PDF 41))",
-    "correct": false,
-    "why": "ไม่พบค่า โครงสร้างพื้นฐานเครือข่ายการสื่อสาร (ได้ ['โครงสร้างพื้นฐานและภารบริการ'])",
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 36 (PDF 41), หน้า 330 (PDF 331), หน้า 20 (PDF 25))",
+    "correct": true,
+    "why": "ตรง",
     "seconds": 2.2
   },
   {
@@ -352,7 +360,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 35 (PDF 40), หน้า 336 (PDF 337), หน้า 359 (PDF 360))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "id": "D1",
@@ -390,7 +398,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 38 (PDF 43), หน้า 17 (PDF 22), หน้า 32 (PDF 37))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.4
   },
   {
     "id": "D2",
@@ -405,12 +413,12 @@
       "06016420"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM v_plan WHERE name_th LIKE '%โครงสร้างพื้นฐาน%' OR name_th LIKE '%การบริการ%' LIMIT 200",
-    "n_rows": 4,
+    "sql": "SELECT code FROM course WHERE name_th = 'ระบบโครงสร้างพื้นฐานและการบริการ' LIMIT 200",
+    "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE name_th LIKE '%โครงสร้างพื้นฐาน%' OR name_th LIKE '%การบริการ%'\" }",
-    "answer_model_output": "{\"answer\": \"06016419, 06016420, 06016421, 06016423\"}",
-    "answer": "06016419 (โครงสร้างพื้นฐานและภารบริการ), 06016420 (ระบบโครงสร้างพื้นฐานและภารบริการ), 06016421 (ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ), 06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้)",
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'ระบบโครงสร้างพื้นฐานและการบริการ'\"}",
+    "answer_model_output": "{\"answer\": \"06016420\"}",
+    "answer": "06016420 (ระบบโครงสร้างพื้นฐานและการบริการ)",
     "citations": [
       {
         "pdf_page": 41,
@@ -428,7 +436,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 36 (PDF 41), หน้า 331 (PDF 332), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 3.1
+    "seconds": 2.6
   },
   {
     "id": "D3",
@@ -453,7 +461,7 @@
     "citation_text": "",
     "correct": false,
     "why": "ไม่พบค่า 90641002 (ได้ [])",
-    "seconds": 1.0
+    "seconds": 1.1
   },
   {
     "id": "E1",
@@ -491,7 +499,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 34 (PDF 39), หน้า 356 (PDF 357), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "E2",
@@ -529,7 +537,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 36 (PDF 41), หน้า 327 (PDF 328), หน้า 19 (PDF 24))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "id": "E3",
@@ -713,16 +721,29 @@
     ],
     "direction": "reverse",
     "sql": "SELECT code FROM prerequisite WHERE requires='06066101' AND kind='pre' LIMIT 200",
-    "n_rows": 0,
+    "n_rows": 1,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06066101' AND kind='pre'\" }",
-    "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ขาด 06066102 เกิน -",
-    "seconds": 0.9
+    "answer_model_output": "{\"answer\": \"ไม่พบข้อมูลนี้ในเล่มหลักสูตร\"}",
+    "answer": "06066102 (ระบบสารสนเทศเพื่อการจัดการ)",
+    "citations": [
+      {
+        "pdf_page": 39,
+        "printed_page": "34"
+      },
+      {
+        "pdf_page": 346,
+        "printed_page": "345"
+      },
+      {
+        "pdf_page": 357,
+        "printed_page": "356"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 34 (PDF 39), หน้า 345 (PDF 346), หน้า 356 (PDF 357))",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.3
   },
   {
     "id": "F4",
@@ -737,13 +758,13 @@
     "n_rows": 1,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
-    "answer_model_output": "{\"answer\": \"7 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
-    "answer": "7 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "answer_model_output": "{\"answer\": \"8 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
+    "answer": "8 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
     "citations": [],
     "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 8 (ได้ ['7'])",
-    "seconds": 1.5
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.7
   },
   {
     "id": "G1",
@@ -806,7 +827,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "id": "H1",

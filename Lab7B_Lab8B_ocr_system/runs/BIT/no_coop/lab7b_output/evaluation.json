@@ -49,26 +49,16 @@
       "name_en": {
         "label": "ชื่อวิชา (อังกฤษ) ⭐",
         "n_items": 43,
-        "cer": 0.104276,
-        "wer": 0.163934,
-        "exact_match_acc": 0.906977,
+        "cer": 0.060765,
+        "wer": 0.10929,
+        "exact_match_acc": 0.953488,
         "n_sub": 0,
-        "n_del": 139,
+        "n_del": 81,
         "n_ins": 0,
-        "n_missing": 4,
+        "n_missing": 2,
         "n_hallucinated": 0,
         "n_ref_chars": 1333,
         "error_samples": [
-          {
-            "key": "06036146",
-            "gt": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
-            "pred": "None"
-          },
-          {
-            "key": "96642033",
-            "gt": "LAW FOR NEW GENERATION",
-            "pred": "None"
-          },
           {
             "key": "06036xxx",
             "gt": "ELECTIVE COURSE IN BUSINESS INFORMATION TECHNOLOGY 2\nOR\nCOURSE GROUP1-4",
@@ -240,7 +230,7 @@
         ]
       }
     },
-    "overall_micro_cer": 0.090751,
+    "overall_micro_cer": 0.078159,
     "alignment": {
       "matched": 43,
       "missed": 0,

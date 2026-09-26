@@ -18,7 +18,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 1.9
   },
   {
     "id": "A2",
@@ -39,7 +39,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 1.2
   },
   {
     "id": "B1",
@@ -69,7 +69,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "B2",
@@ -144,7 +144,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 325 (PDF 326), หน้า 330 (PDF 331))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.9
+    "seconds": 2.8
   },
   {
     "id": "B4",
@@ -174,7 +174,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "B5",
@@ -231,7 +231,7 @@
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE year=2 AND semester=1\"}",
     "answer_model_output": "{\"answer\": \"06016403, 06016409, 06016413, 06066000, 0606630 06066304\"}",
-    "answer": "06016403 (เทคโนโลยีสื่อประสม), 06016409 (การประมวลทางกายภาพ), 06016413 (ระบบเครือข่ายเบื้องต้น), 06066000 (คณิตศาสตร์โมโต่อเนื่อง), 06066300 (แนวคิดระบบฐานข้อมูล), 06066304 (การวิเคราะห์และออกแบบระบบสารสนเทศ)",
+    "answer": "06016403 (เทคโนโลยีสื่อประสม), 06016409 (การประมวลทางกายภาพ), 06016413 (ระบบเครือข่ายเบื้องต้น), 06066000 (คณิตศาสตร์ไม่ต่อเนื่อง), 06066300 (แนวคิดระบบฐานข้อมูล), 06066304 (การวิเคราะห์และออกแบบระบบสารสนเทศ)",
     "citations": [
       {
         "pdf_page": 33,
@@ -398,7 +398,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 27 (PDF 32), หน้า 356 (PDF 357), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "id": "D2",
@@ -454,7 +454,7 @@
     "sql": "SELECT code FROM course WHERE name_th = 'INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION' LIMIT 200",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION'\"}",
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION'\" }",
     "answer_model_output": null,
     "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
     "citations": [],
@@ -476,10 +476,10 @@
       "90643021"
     ],
     "name_key": "name_th",
-    "sql": "SELECT p.year FROM plan_item p JOIN program pr ON p.program_id = pr.program_id WHERE p.code = '90643021' LIMIT 200",
+    "sql": "SELECT p.year FROM plan_item p JOIN program q ON p.program_id = q.program_id WHERE p.code = '90643021' LIMIT 200",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT p.year FROM plan_item p JOIN program pr ON p.program_id = pr.program_id WHERE p.code = '90643021'\"}",
+    "sql_model_output": "{\"sql\": \"SELECT p.year FROM plan_item p JOIN program q ON p.program_id = q.program_id WHERE p.code = '90643021'\"}",
     "answer_model_output": "{\"answer\": \"ปีที่ 4\"}",
     "answer": "ปีที่ 4",
     "citations": [
@@ -575,7 +575,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 31 (PDF 36), หน้า 356 (PDF 357))",
     "correct": false,
     "why": "ไม่พบค่า 0 (ได้ ['3'])",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "E4",
@@ -656,7 +656,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 32 (PDF 37), หน้า 325 (PDF 326), หน้า 18 (PDF 23))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.0
+    "seconds": 2.1
   },
   {
     "id": "F2",
@@ -700,7 +700,7 @@
     "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 30 (PDF 35), หน้า 332 (PDF 333), หน้า 20 (PDF 25))",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 2.2
   },
   {
     "id": "F3",
@@ -745,13 +745,13 @@
     "n_rows": 1,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
-    "answer_model_output": "{\"answer\": \"7 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
-    "answer": "7 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "answer_model_output": "{\"answer\": \"8 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
+    "answer": "8 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
     "citations": [],
     "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 8 (ได้ ['7'])",
-    "seconds": 2.0
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
   },
   {
     "id": "G1",
@@ -772,7 +772,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.3
   },
   {
     "id": "G2",
@@ -793,7 +793,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 1.6
   },
   {
     "id": "G3",
@@ -835,7 +835,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 0.7
   },
   {
     "id": "H2",
@@ -919,6 +919,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.9
   }
 ]

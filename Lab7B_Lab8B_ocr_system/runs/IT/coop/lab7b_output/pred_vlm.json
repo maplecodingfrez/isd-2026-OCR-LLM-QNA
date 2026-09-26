@@ -252,13 +252,15 @@
     },
     {
       "code": "06016414",
-      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแวล",
+      "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
       "credits": "3(2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "NOSQL DATABASE SYSTEMS",
+      "_name_th_from": "ระบบฐานข้อมูลแบบโนเอสคิวแวล"
     },
     {
       "code": "06016415",
@@ -268,28 +270,32 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "FUNCTIONAL PROGRAMMING"
     },
     {
       "code": "06016419",
-      "name_th": "โครงสร้างพื้นฐานและภารบริการ",
+      "name_th": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร",
       "credits": "3(2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "06016413"
+      "prerequisite": "06016413",
+      "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE",
+      "_name_th_from": "โครงสร้างพื้นฐานและภารบริการ"
     },
     {
       "code": "06016420",
-      "name_th": "ระบบโครงสร้างพื้นฐานและภารบริการ",
+      "name_th": "ระบบโครงสร้างพื้นฐานและการบริการ",
       "credits": "3(2-2-5)",
       "year": 2,
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
       "name_en": "INFRASTRUCTURE SYSTEMS AND SERVICES",
-      "prerequisite": "06016413"
+      "prerequisite": "06016413",
+      "_name_th_from": "ระบบโครงสร้างพื้นฐานและภารบริการ"
     },
     {
       "code": "06016424",
@@ -310,7 +316,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "prerequisite": "ไม่มี"
+      "prerequisite": "ไม่มี",
+      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA"
     },
     {
       "code": "06016404",
@@ -331,7 +338,8 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "MANAGEMENT INFORMATION SYSTEMS"
+      "name_en": "MANAGEMENT INFORMATION SYSTEMS",
+      "prerequisite": "06066101"
     },
     {
       "code": "90644xxx",
@@ -387,7 +395,8 @@
       "prerequisite": "06016413",
       "_name_from_book": {
         "from": null
-      }
+      },
+      "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION"
     },
     {
       "code": "06016426",
@@ -400,7 +409,8 @@
       "prerequisite": "ไม่มี",
       "_name_from_book": {
         "from": "วิชาเลือกกลุ่มวิทยาการข้อมูล 1"
-      }
+      },
+      "name_en": "COMPUTER GRAPHICS AND ANIMATION"
     },
     {
       "code": "06016427",
@@ -413,7 +423,8 @@
       "prerequisite": "ไม่มี",
       "_name_from_book": {
         "from": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2"
-      }
+      },
+      "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT"
     },
     {
       "code": "06016481",
@@ -422,7 +433,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาเลือกเสรี",
-      "type": "บังคับ"
+      "type": "บังคับ",
+      "name_en": "COOPERATIVE EDUCATION"
     },
     {
       "code": "หรือ",
@@ -440,7 +452,8 @@
       "year": 3,
       "semester": 2,
       "category": "หมวดวิชาศึกษาทั่วไป",
-      "type": "เลือก"
+      "type": "เลือก",
+      "name_en": "OVERSEA COOPERATIVE EDUCATION"
     },
     {
       "code": "06016406",
@@ -552,7 +565,8 @@
       "type": "บังคับ",
       "_code_from_book": {
         "from": "90642033"
-      }
+      },
+      "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
     },
     {
       "code": "9064xxxxx",
@@ -572,7 +586,7 @@
       "semester": 1,
       "category": null,
       "type": null,
-      "name_en": null,
+      "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY",
       "_code_from_book": {
         "from": null,
         "via": "name_in_term"
@@ -587,7 +601,7 @@
       "semester": 1,
       "category": null,
       "type": null,
-      "name_en": null,
+      "name_en": "INTERNET OF THINGS",
       "_code_from_book": {
         "from": null,
         "via": "name_in_term"
@@ -606,9 +620,9 @@
     "pages_per_chunk": 1,
     "prerequisite_from_book": {
       "source": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\it\\it_curriculum_ocr.txt",
-      "found": 7,
+      "found": 8,
       "none": 29,
-      "not_found": 13,
+      "not_found": 12,
       "unreadable": 0,
       "skipped_non_code": 6
     },
@@ -650,6 +664,84 @@
         "code": "06016427",
         "from": "วิชาเลือกกลุ่มวิทยาการข้อมูล 2",
         "to": "การออกแบบและพัฒนาเกมเบื้องต้น"
+      },
+      {
+        "action": "name_en",
+        "to": "06016414",
+        "name_en": "NOSQL DATABASE SYSTEMS"
+      },
+      {
+        "action": "name_en",
+        "to": "06016415",
+        "name_en": "FUNCTIONAL PROGRAMMING"
+      },
+      {
+        "action": "name_en",
+        "to": "06016419",
+        "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE"
+      },
+      {
+        "action": "name_en",
+        "to": "06016425",
+        "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA"
+      },
+      {
+        "action": "name_en",
+        "to": "06016423",
+        "name_en": "INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016426",
+        "name_en": "COMPUTER GRAPHICS AND ANIMATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016427",
+        "name_en": "INTRODUCTION TO GAME DESIGN AND DEVELOPMENT"
+      },
+      {
+        "action": "name_en",
+        "to": "06016481",
+        "name_en": "COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016482",
+        "name_en": "OVERSEA COOPERATIVE EDUCATION"
+      },
+      {
+        "action": "name_en",
+        "to": "90644042",
+        "name_en": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+      },
+      {
+        "action": "name_en",
+        "to": "06016421",
+        "name_en": "INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY"
+      },
+      {
+        "action": "name_en",
+        "to": "06016422",
+        "name_en": "INTERNET OF THINGS"
+      },
+      {
+        "action": "name_th",
+        "code": "06016419",
+        "from": "โครงสร้างพื้นฐานและภารบริการ",
+        "to": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร"
+      },
+      {
+        "action": "name_th",
+        "code": "06016420",
+        "from": "ระบบโครงสร้างพื้นฐานและภารบริการ",
+        "to": "ระบบโครงสร้างพื้นฐานและการบริการ"
+      },
+      {
+        "action": "name_th",
+        "code": "06016414",
+        "from": "ระบบฐานข้อมูลแบบโนเอสคิวแวล",
+        "to": "ระบบฐานข้อมูลแบบโนเอสคิวแอล"
       }
     ]
   }
