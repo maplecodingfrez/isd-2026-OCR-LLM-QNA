@@ -54,3 +54,6 @@ Lab7B_Lab8B_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/
 # scattered inside Lab7B_Lab8B_ocr_system/ was consolidated on disk into this one folder
 # for reference. Not shipped via git pull; each dev's copy may differ or be empty.
 Lab7B_Lab8B_ocr_system/_local_reference/
+
+# สำเนาอัตโนมัติก่อนซ่อมข้อมูล (lab7b_curriculum.py เขียนเก็บทุกครั้ง) — ไม่ใช่ผลที่ใช้ อยู่ใน git history แล้ว
+Lab7B_Lab8B_ocr_system/runs/**/*.before_*.json
