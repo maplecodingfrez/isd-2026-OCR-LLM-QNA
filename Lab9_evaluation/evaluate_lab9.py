@@ -184,6 +184,50 @@ class RunMetrics:
     avg_seconds: float | None = None
     sql_ok_text_wrong: list[str] = field(default_factory=list)  # ตรง gap ที่สไลด์เตือน
     level_stats: dict = field(default_factory=dict)   # ระดับคำถาม ch1 -> n/correct/citation (levels.py)
+    v2: dict = field(default_factory=dict)   # ชุดคำถามทอง v2 (eval_result_v2.json) — nl2sql_metrics()
+
+
+def nl2sql_metrics(eval_result: list[dict], mapping: list[dict]) -> dict:
+    n = len(eval_result)
+    correct = sum(1 for r in eval_result if r.get("correct"))
+    sql_ok = sum(1 for r in eval_result if r.get("error") is None)
+    secs = [r.get("seconds") for r in eval_result if isinstance(r.get("seconds"), (int, float))]
+    # answer_text_accuracy: เช็คว่า "ข้อความคำตอบ" จริง ๆ ที่โมเดลพิมพ์ มีค่าที่ถูกต้องอยู่ไหม
+    # ต่างจาก execution_accuracy ที่เช็คแค่แถว SQL — จุดนี้จับบั๊ก "SQL ถูกแต่ตอบเป็นข้อความผิด"
+    text_correct = 0
+    text_wrong: list[str] = []
+    categories: dict[str, dict] = {}
+    for r in eval_result:
+        expect = r.get("expect", {})
+        answer_text = normalize_text(r.get("answer") or "")
+        kind = expect.get("type", "value")
+        if kind == "none":
+            ok = answer_text == "" or "ไม่พบ" in (r.get("answer") or "") or "ไม่มี" in (r.get("answer") or "")
+        elif kind in ("set", "set_exact"):
+            want_values = [normalize_text(str(x)) for x in expect.get("value", [])]
+            ok = all(v in answer_text for v in want_values)
+        else:
+            want_value = normalize_text(str(expect.get("value", "")))
+            ok = want_value != "" and want_value in answer_text
+        if ok:
+            text_correct += 1
+        elif r.get("correct") and not ok:
+            # SQL ถูก (correct=True) แต่ข้อความคำตอบไม่มีค่าที่ถูกต้อง -> gap ตรงที่สไลด์เตือน
+            text_wrong.append(r.get("question", "")[:60])
+        if r.get("category"):
+            c = categories.setdefault(r["category"], {"n": 0, "correct": 0})
+            c["n"] += 1
+            c["correct"] += bool(r.get("correct"))
+    return {
+        "n": n, "n_correct": correct,
+        "valid_sql_rate": round(sql_ok / n, 4) if n else None,
+        "execution_accuracy": round(correct / n, 4) if n else None,
+        "answer_text_accuracy": round(text_correct / n, 4) if n else None,
+        "avg_seconds": round(statistics.mean(secs), 2) if secs else None,
+        "sql_ok_text_wrong": text_wrong,
+        "level_stats": levels.level_stats(eval_result, mapping),
+        "category_stats": categories,
+    }
 
 
 def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
@@ -268,40 +312,22 @@ def evaluate_run(name: str, run_dir: Path) -> RunMetrics:
 
     eval_result = load_json(run_dir / "eval_result.json")
     m.found["eval_result.json"] = eval_result is not None
+    prog = name.split("_")[0]
+    mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
     if eval_result:
-        n = len(eval_result)
-        m.n_questions = n
-        sql_ok = sum(1 for r in eval_result if r.get("error") is None)
-        exec_correct = sum(1 for r in eval_result if r.get("correct"))
-        m.valid_sql_rate = round(sql_ok / n, 4) if n else None
-        m.execution_accuracy = round(exec_correct / n, 4) if n else None
-        secs = [r.get("seconds") for r in eval_result if isinstance(r.get("seconds"), (int, float))]
-        m.avg_seconds = round(statistics.mean(secs), 2) if secs else None
-        prog = name.split("_")[0]
-        mapping = levels.load_mapping(HERE.parent / "outputs" / prog / f"{name}_course_page_mapping.csv")
-        m.level_stats = levels.level_stats(eval_result, mapping)
+        v1 = nl2sql_metrics(eval_result, mapping)
+        m.n_questions = v1["n"]
+        m.valid_sql_rate = v1["valid_sql_rate"]
+        m.execution_accuracy = v1["execution_accuracy"]
+        m.answer_text_accuracy = v1["answer_text_accuracy"]
+        m.avg_seconds = v1["avg_seconds"]
+        m.sql_ok_text_wrong = v1["sql_ok_text_wrong"]
+        m.level_stats = v1["level_stats"]
 
-        # answer_text_accuracy: เช็คว่า "ข้อความคำตอบ" จริง ๆ ที่โมเดลพิมพ์ มีค่าที่ถูกต้องอยู่ไหม
-        # ต่างจาก execution_accuracy ที่เช็คแค่แถว SQL — จุดนี้จับบั๊ก "SQL ถูกแต่ตอบเป็นข้อความผิด"
-        text_correct = 0
-        for r in eval_result:
-            expect = r.get("expect", {})
-            answer_text = normalize_text(r.get("answer") or "")
-            kind = expect.get("type", "value")
-            if kind == "none":
-                ok = answer_text == "" or "ไม่พบ" in (r.get("answer") or "") or "ไม่มี" in (r.get("answer") or "")
-            elif kind == "set":
-                want_values = [normalize_text(str(x)) for x in expect.get("value", [])]
-                ok = all(v in answer_text for v in want_values)
-            else:
-                want_value = normalize_text(str(expect.get("value", "")))
-                ok = want_value != "" and want_value in answer_text
-            if ok:
-                text_correct += 1
-            elif r.get("correct") and not ok:
-                # SQL ถูก (correct=True) แต่ข้อความคำตอบไม่มีค่าที่ถูกต้อง -> gap ตรงที่สไลด์เตือน
-                m.sql_ok_text_wrong.append(r.get("question", "")[:60])
-        m.answer_text_accuracy = round(text_correct / n, 4) if n else None
+    eval_v2 = load_json(run_dir / "eval_result_v2.json")
+    m.found["eval_result_v2.json"] = eval_v2 is not None
+    if eval_v2:
+        m.v2 = nl2sql_metrics(eval_v2, mapping)
 
     return m
 
@@ -355,6 +381,48 @@ def credits_mae_mape(runs: dict[str, RunMetrics], suffix: str = "") -> dict:
         "max_abs_error": max(errs) if errs else None,
         "worst_run": max(runs.values(), key=lambda r: err_of(r) or 0).name if errs else None,
     }
+
+
+CATEGORY_TH = {"A": "หลักสูตร", "B": "รายเทอม", "C": "รหัส → ชื่อ", "D": "ชื่อ → รหัส", "E": "ชื่อ → ข้อมูลวิชา",
+               "F": "วิชาบังคับก่อน", "G": "ภาพรวม", "H": "ไม่มีในเล่ม (ต้องตอบไม่พบ)"}
+
+
+def v2_section(runs: dict[str, RunMetrics]) -> list[str]:
+    have = [r for r in runs.values() if r.v2]
+    if not have:
+        return []
+    lines = ["## 2b. NL→SQL ชุดคำถามทอง v2 (eval_result_v2.json)", "",
+             "ชุดใหม่ 30 ข้อ/แผน สร้างด้วยสคริปต์จากเฉลย scoped (seed ตายตัว) และล็อก sha256 ก่อนรัน — "
+             "ระบบไม่เคยถูกปรับตามชุดนี้ (v1 = ชุดที่ใช้พัฒนาระบบ แสดงคู่ไว้เทียบ)", "",
+             "| run | n | valid_sql_rate | execution_accuracy (v2) | answer_text_accuracy (v2) | execution_accuracy (v1) |",
+             "|---|---|---|---|---|---|"]
+    for r in have:
+        v = r.v2
+        lines.append(f"| {r.name} | {v['n']} | {v['valid_sql_rate']} | {v['execution_accuracy']} | "
+                     f"{v['answer_text_accuracy']} | {r.execution_accuracy} |")
+    n2, c2 = sum(r.v2["n"] for r in have), sum(r.v2["n_correct"] for r in have)
+    n1 = sum(r.n_questions or 0 for r in have)
+    c1 = sum(round((r.execution_accuracy or 0) * (r.n_questions or 0)) for r in have)
+    lines += ["", f"**รวม:** v2 ตอบถูก {c2}/{n2} = {c2 / n2:.1%} · v1 ตอบถูก {c1}/{n1} = "
+              f"{(c1 / n1 if n1 else 0):.1%}", "", "| หมวด | n | ตอบถูก | accuracy |", "|---|---|---|---|"]
+    cats: dict[str, list[int]] = {}
+    for r in have:
+        for k, s in r.v2["category_stats"].items():
+            cats.setdefault(k, [0, 0])
+            cats[k][0] += s["n"]
+            cats[k][1] += s["correct"]
+    for k in sorted(cats):
+        n, c = cats[k]
+        lines.append(f"| {k} {CATEGORY_TH.get(k, '')} | {n} | {c}/{n} | {c / n:.1%} |")
+    lines += ["", "| level | n | ตอบถูก | อ้างหน้าถูก (ตรวจได้) |", "|---|---|---|---|"]
+    for lvl in ("1", "2", "none"):
+        rows = [r.v2["level_stats"][lvl] for r in have if lvl in r.v2["level_stats"]]
+        if rows:
+            n, c = sum(s["n"] for s in rows), sum(s["correct"] for s in rows)
+            ch, cc = sum(s["cite_hit"] for s in rows), sum(s["cite_checkable"] for s in rows)
+            lines.append(f"| {lvl} | {n} | {c}/{n} | {f'{ch}/{cc}' if cc else '-'} |")
+    lines.append("")
+    return lines
 
 
 def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
@@ -462,6 +530,7 @@ def to_markdown(runs: dict[str, RunMetrics], stability_notes: list[str]) -> str:
             cite = f"{s['cite_hit']}/{s['cite_checkable']}" if s["cite_checkable"] else "-"
             lines.append(f"| {r.name} | {lvl} | {s['n']} | {acc} | {s['with_citation']}/{s['n']} | {cite} |")
     lines.append("")
+    lines.extend(v2_section(runs))
     lines.append("## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)")
     lines.append("")
     for note in stability_notes:
