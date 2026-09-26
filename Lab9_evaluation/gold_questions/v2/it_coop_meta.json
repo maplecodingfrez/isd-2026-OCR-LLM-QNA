@@ -1,0 +1,18 @@
+{
+  "plan": "it_coop",
+  "seed": "gold-v2:it_coop",
+  "terms": [
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "terms_relaxed": true,
+  "fallback_v1_codes": [],
+  "replaced": [],
+  "sha256": "eb429c9e9383ebcc89d2ccbe119dd3b2ac6906b4ed25e91180d9a86960e70c8f"
+}

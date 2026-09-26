@@ -1,0 +1,18 @@
+{
+  "plan": "bit_no_coop",
+  "seed": "gold-v2:bit_no_coop",
+  "terms": [
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "terms_relaxed": true,
+  "fallback_v1_codes": [],
+  "replaced": [],
+  "sha256": "a810d6c4651543ae56a4e4b6634822ee03f9e0457bf380c45d20c78da94ed657"
+}

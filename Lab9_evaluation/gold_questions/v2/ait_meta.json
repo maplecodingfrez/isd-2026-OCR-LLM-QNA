@@ -1,0 +1,18 @@
+{
+  "plan": "ait",
+  "seed": "gold-v2:ait",
+  "terms": [
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      2
+    ]
+  ],
+  "terms_relaxed": false,
+  "fallback_v1_codes": [],
+  "replaced": [],
+  "sha256": "43d0ea5c75a381a7d23b5264d53cdedd77dcc14285b4f87afa47679ef6dc4078"
+}

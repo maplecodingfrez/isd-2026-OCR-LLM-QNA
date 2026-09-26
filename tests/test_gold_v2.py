@@ -161,3 +161,24 @@ def test_relaxed_terms_skip_v1_term_when_possible():
         others = [t for t in g2.eligible_terms(rows, g2.placed_courses(rows), allow_year1=True) if t != (1, 1)]
         if len(others) >= 2:
             assert [1, 1] not in meta["terms"], plan
+
+
+import hashlib  # noqa: E402
+
+
+# Break caught: frozen files drifting from the generator, or edited by hand after freezing.
+def test_frozen_files_match_generator_and_hash():
+    for plan in g2.PLAN_NAMES:
+        path = g2.OUT_DIR / f"{plan}_gold_questions_v2.json"
+        meta = json.loads((g2.OUT_DIR / f"{plan}_meta.json").read_text(encoding="utf-8"))
+        assert path.read_bytes() == g2.render(BUILT[plan][0]), plan
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == meta["sha256"], plan
+
+
+# Break caught: a name wrapped over two lines in the ground truth ("...AND\nCYBERSECURITY") used verbatim.
+def test_names_in_questions_and_answers_have_no_line_breaks():
+    for plan, (qs, _) in BUILT.items():
+        for q in qs:
+            assert "\n" not in q["question"] and "  " not in q["question"], (plan, q["id"])
+            if isinstance(q["expect"]["value"], str):
+                assert "\n" not in q["expect"]["value"], (plan, q["id"])

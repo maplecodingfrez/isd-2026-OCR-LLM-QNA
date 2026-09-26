@@ -1,0 +1,406 @@
+[
+  {
+    "id": "A1",
+    "category": "A",
+    "level": "1",
+    "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "126"
+    }
+  },
+  {
+    "id": "A2",
+    "category": "A",
+    "level": "1",
+    "question": "ระยะเวลาการศึกษาตามแผนของหลักสูตรนี้กี่ปี",
+    "expect": {
+      "type": "value",
+      "value": "4"
+    }
+  },
+  {
+    "id": "B1",
+    "category": "B",
+    "level": "2",
+    "question": "ปี 1 เทอม 2 ต้องลงเรียนกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "term": [
+      1,
+      2
+    ]
+  },
+  {
+    "id": "B2",
+    "category": "B",
+    "level": "2",
+    "question": "ปี 1 เทอม 2 เรียนรวมกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "18"
+    },
+    "term": [
+      1,
+      2
+    ]
+  },
+  {
+    "id": "B3",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 2 ประกอบด้วยรายวิชารหัสใดบ้าง",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036102",
+        "06036109",
+        "06036119",
+        "06036125",
+        "96641002",
+        "96644008"
+      ]
+    },
+    "term": [
+      1,
+      2
+    ]
+  },
+  {
+    "id": "B4",
+    "category": "B",
+    "level": "2",
+    "question": "ปี 2 เทอม 1 ต้องลงเรียนกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "term": [
+      2,
+      1
+    ]
+  },
+  {
+    "id": "B5",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีหน่วยกิตรวมเท่าไร",
+    "expect": {
+      "type": "value",
+      "value": "18"
+    },
+    "term": [
+      2,
+      1
+    ]
+  },
+  {
+    "id": "B6",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036103",
+        "06036104",
+        "06036105",
+        "06036117",
+        "06036120",
+        "06036122"
+      ]
+    },
+    "term": [
+      2,
+      1
+    ]
+  },
+  {
+    "id": "C1",
+    "category": "C",
+    "level": "1",
+    "question": "วิชา 06036105 คือวิชาอะไร (ชื่อภาษาไทย)",
+    "expect": {
+      "type": "value",
+      "value": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
+    },
+    "about_codes": [
+      "06036105"
+    ]
+  },
+  {
+    "id": "C2",
+    "category": "C",
+    "level": "1",
+    "question": "รหัสวิชา 06036113 ชื่อวิชาภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "การออกแบบส่วนต่อประสานกับมนุษย์"
+    },
+    "about_codes": [
+      "06036113"
+    ]
+  },
+  {
+    "id": "C3",
+    "category": "C",
+    "level": "1",
+    "question": "วิชา 06036110 ชื่อภาษาอังกฤษคืออะไร",
+    "expect": {
+      "type": "value",
+      "value": "ENTERPRISE RESOURCE PLANNING"
+    },
+    "about_codes": [
+      "06036110"
+    ]
+  },
+  {
+    "id": "D1",
+    "category": "D",
+    "level": "1",
+    "question": "วิชาแนวคิดระบบฐานข้อมูลมีรหัสวิชาอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06036112"
+    },
+    "about_codes": [
+      "06036112"
+    ],
+    "name_key": "name_th"
+  },
+  {
+    "id": "D2",
+    "category": "D",
+    "level": "1",
+    "question": "ขอรหัสวิชาของเครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้นหน่อย",
+    "expect": {
+      "type": "value",
+      "value": "06036124"
+    },
+    "about_codes": [
+      "06036124"
+    ],
+    "name_key": "name_th"
+  },
+  {
+    "id": "D3",
+    "category": "D",
+    "level": "1",
+    "question": "วิชา MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES รหัสอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06036106"
+    },
+    "about_codes": [
+      "06036106"
+    ],
+    "name_key": "name_en"
+  },
+  {
+    "id": "E1",
+    "category": "E",
+    "level": "1",
+    "question": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ เรียนตอนปีไหน",
+    "expect": {
+      "type": "value",
+      "value": "2"
+    },
+    "about_codes": [
+      "06036117"
+    ],
+    "name_key": "name_th"
+  },
+  {
+    "id": "E2",
+    "category": "E",
+    "level": "1",
+    "question": "กระบวนการและโมเดลทางธุรกิจ กี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "about_codes": [
+      "06036109"
+    ],
+    "name_key": "name_th"
+  },
+  {
+    "id": "E3",
+    "category": "E",
+    "level": "1",
+    "question": "เทคโนโลยีกลุ่มเมฆ แล็บสัปดาห์ละกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "0"
+    },
+    "about_codes": [
+      "06036123"
+    ],
+    "name_key": "name_th"
+  },
+  {
+    "id": "E4",
+    "category": "E",
+    "level": "1",
+    "question": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM lecture สัปดาห์ละกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "2"
+    },
+    "about_codes": [
+      "06036125"
+    ],
+    "name_key": "name_en"
+  },
+  {
+    "id": "F1",
+    "category": "F",
+    "level": "1",
+    "question": "ก่อนลงวิชา 06036146 ต้องผ่านวิชาอะไรมาก่อน",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036145"
+      ],
+      "ignore": [
+        "06036146"
+      ]
+    },
+    "about_codes": [
+      "06036146"
+    ],
+    "direction": "forward"
+  },
+  {
+    "id": "F2",
+    "category": "F",
+    "level": "1",
+    "question": "ถ้าจะลงเรียนการพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก ต้องผ่านวิชาอะไรมาก่อน",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036119",
+        "06036122"
+      ],
+      "ignore": [
+        "06036114"
+      ]
+    },
+    "about_codes": [
+      "06036114"
+    ],
+    "name_key": "name_th",
+    "direction": "forward"
+  },
+  {
+    "id": "F3",
+    "category": "F",
+    "level": "1",
+    "question": "ผ่านวิชา 06036122 แล้วจะลงวิชาไหนต่อได้บ้าง",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036114"
+      ],
+      "ignore": [
+        "06036122"
+      ]
+    },
+    "about_codes": [
+      "06036122"
+    ],
+    "direction": "reverse"
+  },
+  {
+    "id": "F4",
+    "category": "F",
+    "level": "2",
+    "question": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    }
+  },
+  {
+    "id": "G1",
+    "category": "G",
+    "level": "2",
+    "question": "วิชาที่ได้ 3 หน่วยกิตมีกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "34"
+    }
+  },
+  {
+    "id": "G2",
+    "category": "G",
+    "level": "2",
+    "question": "ชั่วโมงบรรยายต่อสัปดาห์สูงสุดของรายวิชาในหลักสูตรนี้คือเท่าไร",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    }
+  },
+  {
+    "id": "G3",
+    "category": "G",
+    "level": "2",
+    "question": "ชื่อวิชาที่มีคำว่า 'ข้อมูล' มีกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "4"
+    }
+  },
+  {
+    "id": "H1",
+    "category": "H",
+    "level": "none",
+    "question": "ค่าเทอมของหลักสูตรนี้เท่าไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    }
+  },
+  {
+    "id": "H2",
+    "category": "H",
+    "level": "none",
+    "question": "วิชา 06036100 อาจารย์ประจำวิชาชื่ออะไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    }
+  },
+  {
+    "id": "H3",
+    "category": "H",
+    "level": "none",
+    "question": "รหัสวิชา 06033437 คือวิชาอะไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    }
+  },
+  {
+    "id": "H4",
+    "category": "H",
+    "level": "none",
+    "question": "ชั้นปีที่ 7 ภาคการศึกษาที่ 1 มีรายวิชาอะไรบ้าง",
+    "expect": {
+      "type": "none",
+      "value": null
+    }
+  },
+  {
+    "id": "H5",
+    "category": "H",
+    "level": "none",
+    "question": "วิชาดาราศาสตร์วิทยุเบื้องต้นมีกี่หน่วยกิต",
+    "expect": {
+      "type": "none",
+      "value": null
+    }
+  }
+]

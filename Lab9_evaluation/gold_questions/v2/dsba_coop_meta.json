@@ -1,0 +1,18 @@
+{
+  "plan": "dsba_coop",
+  "seed": "gold-v2:dsba_coop",
+  "terms": [
+    [
+      1,
+      1
+    ],
+    [
+      2,
+      2
+    ]
+  ],
+  "terms_relaxed": true,
+  "fallback_v1_codes": [],
+  "replaced": [],
+  "sha256": "09e14c76798e6d9c1106de85bc1ad51be806fc5fc9cdd851d3ea7433f2bda9ae"
+}

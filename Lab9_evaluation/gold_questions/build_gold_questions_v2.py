@@ -198,8 +198,8 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
         used.add(code)
         return code
 
-    def named(code, key):
-        return placed[code][key].strip()
+    def named(code, key):   # ชื่อที่ขึ้นบรรทัดใหม่ในเฉลย (ตัดบรรทัดตามหน้ากระดาษ) = เว้นวรรคเดียว
+        return " ".join(placed[code][key].split())
 
     def extra_e():   # ใช้แทนข้อ F เมื่อแผนไม่มีวิชาบังคับก่อนพอ
         code = pick(th_ok)
@@ -308,3 +308,29 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
     if len(qs) != 30 or len({q["question"] for q in qs}) != 30:
         raise ValueError(f"{plan}: ได้ {len(qs)} ข้อ / คำถามซ้ำ")
     return qs, meta
+
+
+def render(qs: list[dict]) -> bytes:
+    return (json.dumps(qs, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+def write_plan(plan: str) -> Path:
+    qs, meta = build_plan(plan)
+    OUT_DIR.mkdir(exist_ok=True)
+    path = OUT_DIR / f"{plan}_gold_questions_v2.json"
+    data = render(qs)
+    path.write_bytes(data)
+    meta["sha256"] = hashlib.sha256(data).hexdigest()
+    (OUT_DIR / f"{plan}_meta.json").write_bytes(
+        (json.dumps(meta, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+    return path
+
+
+def main() -> None:
+    for plan in PLAN_NAMES:
+        path = write_plan(plan)
+        print(f"{plan}: 30 ข้อ -> {path.relative_to(HERE)}")
+
+
+if __name__ == "__main__":
+    main()
