@@ -4,13 +4,23 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+# ช่องที่มาจาก DB ต้องให้เป็น None ได้ เพราะถ้าไม่มีไฟล์ DB จะอ่านค่าพวกนี้ไม่ได้
+class ProgramInfo(BaseModel):
+    id: str                             # คีย์ใน PROGRAMS dict
+    label: str                          # ชื่อที่โชว์ใน dropdown
+    name_th: str | None = None          # จากตาราง program ใน DB
+    total_credits: int | None = None    # จากตาราง program ใน DB
+    years: int | None = None            # จากตาราง program ใน DB
+    available: bool                     # มีไฟล์ DB หรือไม่
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
+    program: str | None = None
 
 
 class AskResponse(BaseModel):
     question: str
+    program: str | None = None
     sql: str | None = None
     rows: list[dict[str, Any]]
     answer: str

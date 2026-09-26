@@ -19,6 +19,8 @@
   <p class="muted">ตัวอย่าง: “ปี 1 เทอม 1 เรียนกี่หน่วยกิต”</p>
 
   <form id="ask-form">
+    <label for="program">หลักสูตร/แผน</label>
+    <select id="program"><option value="">กำลังโหลด..</option></select>
     <textarea id="question" required>หลักสูตรนี้มีหน่วยกิตรวมทั้งหมดเท่าไร</textarea>
     <button type="submit">ถาม</button>
   </form>
@@ -32,6 +34,24 @@
   </section>
 
   <script>
+    async function loadPrograms() {
+      const select = document.getElementById("program");
+      try {
+        const response = await fetch("/api/programs");            // GET เป็นค่าเริ่มต้นของ fetch
+        const programs = await response.json();
+        select.innerHTML = "";                                     // ล้าง "กำลังโหลด..."
+        for (const p of programs) {
+          const option = document.createElement("option");
+          option.value = p.id;                                     // ค่าที่จะส่งไป API เช่น "it_no_coop"
+          option.textContent = `${p.label} (${p.total_credits ?? "?"} หน่วยกิต)`;  // ข้อความที่ผู้ใช้เห็น
+          option.disabled = !p.available;                          // ไม่มีไฟล์ DB = กดไม่ได้
+          select.appendChild(option);
+        }
+      } catch (error) {
+        select.innerHTML = '<option value="">โหลดรายชื่อหลักสูตรไม่ได้</option>';
+      }
+    }
+    loadPrograms();
     document.getElementById("ask-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const answer = document.getElementById("answer");
@@ -41,13 +61,16 @@
         const t0 = performance.now();
         const response = await fetch("/api/ask", {
           method: "POST", headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({question: document.getElementById("question").value})
+          body: JSON.stringify({question: document.getElementById("question").value, program: document.getElementById("program").value || null})
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || "เกิดข้อผิดพลาด");
         answer.textContent = data.answer;
+        const select = document.getElementById("program");
+        const label = select.selectedOptions[0]?.textContent || "ค่าเริ่มต้น (.env)";
+        document.getElementById("citations").textContent =
+          `ตอบจาก: ${label}` + (data.citation_text ? `  ${data.citation_text}` : "");
         document.getElementById("elapsed").textContent = `${((performance.now() - t0) / 1000).toFixed(1)} วินาที`;
-        document.getElementById("citations").textContent = data.citation_text || "";
         document.getElementById("rows").textContent = JSON.stringify(data.rows, null, 2);
         document.getElementById("sql").textContent = data.sql;
       } catch (error) {
