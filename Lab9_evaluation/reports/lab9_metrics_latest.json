@@ -487,5 +487,496 @@
         "cite_hit": 0
       }
     }
+  },
+  "dsba_coop_retry": {
+    "name": "dsba_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 67,
+    "converted_courses": 50,
+    "conversion_rate": 0.7463,
+    "skipped_wildcards": 18,
+    "skipped_flexible_plan_items": 14,
+    "skipped_rate": 0.4776,
+    "plan_items": 36,
+    "declared_total_credits": 132,
+    "plan_total_credits": 111,
+    "credits_abs_error": 21,
+    "credits_pct_error": 15.91,
+    "plan_total_credits_full": 132,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": 27,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.8182,
+    "ctype_recall_mandatory": 0.7714,
+    "ctype_recall_elective": 1.0,
+    "ctype_mcc": 0.6391,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9667,
+    "answer_text_accuracy": 0.9667,
+    "avg_seconds": 6.39,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 12,
+        "correct": 12,
+        "with_citation": 10,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 2,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "bit_coop_retry": {
+    "name": "bit_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\BIT\\coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 46,
+    "converted_courses": 36,
+    "conversion_rate": 0.7826,
+    "skipped_wildcards": 8,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.1739,
+    "plan_items": 36,
+    "declared_total_credits": 126,
+    "plan_total_credits": 111,
+    "credits_abs_error": 15,
+    "credits_pct_error": 11.9,
+    "plan_total_credits_full": 126,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": 15,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.9286,
+    "ctype_recall_mandatory": 0.9429,
+    "ctype_recall_elective": 0.8571,
+    "ctype_mcc": 1.0,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 3.12,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 9,
+        "with_citation": 5,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "it_coop_retry": {
+    "name": "it_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\IT\\coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 55,
+    "converted_courses": 47,
+    "conversion_rate": 0.8545,
+    "skipped_wildcards": 6,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.1091,
+    "plan_items": 47,
+    "declared_total_credits": 129,
+    "plan_total_credits": 144,
+    "credits_abs_error": 15,
+    "credits_pct_error": 11.63,
+    "plan_total_credits_full": 129,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": -15,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.7925,
+    "ctype_recall_mandatory": 0.8298,
+    "ctype_recall_elective": 0.5,
+    "ctype_mcc": 0.6814,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.8667,
+    "answer_text_accuracy": 0.8667,
+    "avg_seconds": 2.58,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 12,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 9,
+        "with_citation": 5,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "ait_retry": {
+    "name": "ait_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\AIT_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 38,
+    "converted_courses": 33,
+    "conversion_rate": 0.8684,
+    "skipped_wildcards": 5,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.1316,
+    "plan_items": 33,
+    "declared_total_credits": 120,
+    "plan_total_credits": 99,
+    "credits_abs_error": 21,
+    "credits_pct_error": 17.5,
+    "plan_total_credits_full": 120,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": 21,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.875,
+    "ctype_recall_mandatory": 0.9091,
+    "ctype_recall_elective": 0.7143,
+    "ctype_mcc": 1.0,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.7333,
+    "answer_text_accuracy": 0.7333,
+    "avg_seconds": 4.02,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 13,
+        "with_citation": 11,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 6,
+        "with_citation": 4,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "bit_no_coop_retry": {
+    "name": "bit_no_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\BIT\\no_coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 43,
+    "converted_courses": 36,
+    "conversion_rate": 0.8372,
+    "skipped_wildcards": 7,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.1628,
+    "plan_items": 36,
+    "declared_total_credits": 126,
+    "plan_total_credits": 105,
+    "credits_abs_error": 21,
+    "credits_pct_error": 16.67,
+    "plan_total_credits_full": 126,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": 21,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 6,
+    "verify_pass_rate": 0.8571,
+    "verify_failed_ids": [
+      "CHK1"
+    ],
+    "ctype_accuracy": 0.9767,
+    "ctype_recall_mandatory": 0.9722,
+    "ctype_recall_elective": 1.0,
+    "ctype_mcc": 0.9223,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 2.76,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 9,
+        "with_citation": 5,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "dsba_no_coop_retry": {
+    "name": "dsba_no_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 52,
+    "converted_courses": 34,
+    "conversion_rate": 0.6538,
+    "skipped_wildcards": 18,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.3462,
+    "plan_items": 34,
+    "declared_total_credits": 132,
+    "plan_total_credits": 99,
+    "credits_abs_error": 33,
+    "credits_pct_error": 25.0,
+    "plan_total_credits_full": 132,
+    "credits_abs_error_full": 0,
+    "credits_pct_error_full": 0.0,
+    "full_failed_ids": [],
+    "gap_extraction": 0,
+    "gap_book_as_written": 33,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.9111,
+    "ctype_recall_mandatory": 0.8824,
+    "ctype_recall_elective": 1.0,
+    "ctype_mcc": 0.8452,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 1.0,
+    "answer_text_accuracy": 1.0,
+    "avg_seconds": 2.43,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 15,
+        "with_citation": 13,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 12,
+        "with_citation": 5,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
+  },
+  "it_no_coop_retry": {
+    "name": "it_no_coop_retry",
+    "path": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop_retry\\lab8b_output",
+    "found": {
+      "curriculum.conversion.json": true,
+      "curriculum.json": true,
+      "curriculum.db": true,
+      "verify_full.json": true,
+      "lab7b_output/evaluation.json": true,
+      "verify.json": true,
+      "eval_result.json": true
+    },
+    "source_courses": 53,
+    "converted_courses": 45,
+    "conversion_rate": 0.8491,
+    "skipped_wildcards": 8,
+    "skipped_flexible_plan_items": 0,
+    "skipped_rate": 0.1509,
+    "plan_items": 45,
+    "declared_total_credits": 129,
+    "plan_total_credits": 132,
+    "credits_abs_error": 3,
+    "credits_pct_error": 2.33,
+    "plan_total_credits_full": 132,
+    "credits_abs_error_full": 3,
+    "credits_pct_error_full": 2.33,
+    "full_failed_ids": [
+      "CHK1F"
+    ],
+    "gap_extraction": -3,
+    "gap_book_as_written": 0,
+    "verify_checks_total": 7,
+    "verify_checks_passed": 5,
+    "verify_pass_rate": 0.7143,
+    "verify_failed_ids": [
+      "CHK1",
+      "CHK7"
+    ],
+    "ctype_accuracy": 0.9259,
+    "ctype_recall_mandatory": 0.9348,
+    "ctype_recall_elective": 0.875,
+    "ctype_mcc": 1.0,
+    "n_questions": 30,
+    "valid_sql_rate": 1.0,
+    "execution_accuracy": 0.9,
+    "answer_text_accuracy": 0.9,
+    "avg_seconds": 2.45,
+    "sql_ok_text_wrong": [],
+    "level_stats": {
+      "1": {
+        "n": 15,
+        "correct": 14,
+        "with_citation": 12,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "2": {
+        "n": 12,
+        "correct": 10,
+        "with_citation": 5,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      },
+      "none": {
+        "n": 3,
+        "correct": 3,
+        "with_citation": 0,
+        "cite_checkable": 0,
+        "cite_hit": 0
+      }
+    }
   }
 }

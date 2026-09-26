@@ -1,4 +1,4 @@
-# Lab9 evaluation report — 2026-09-26 13:42
+# Lab9 evaluation report — 2026-09-26 17:59
 
 อ้างอิงเนื้อหา: `ISD/Learning Slides/ch9_EvaluationAndOverfitting.pdf`
 ข้อมูลดิบมาจาก: `Lab7B_Lab8B_ocr_system/runs/<CURRICULUM>/<plan>/lab8b_output/` (สคริปต์นี้แค่คำนวณ ไม่ได้รันโมเดลใหม่)
@@ -14,12 +14,19 @@
 | dsba_coop | 0.8065 | 0.4355 | 111 | 132 | 21 | 15.91 | 0.7143 | CHK1, CHK7 |
 | it_no_coop | 0.8491 | 0.1509 | 132 | 129 | 3 | 2.33 | 0.7143 | CHK1, CHK7 |
 | it_coop | 0.8545 | 0.1091 | 144 | 129 | 15 | 11.63 | 0.7143 | CHK1, CHK7 |
+| dsba_coop_retry | 0.7463 | 0.4776 | 111 | 132 | 21 | 15.91 | 0.7143 | CHK1, CHK7 |
+| bit_coop_retry | 0.7826 | 0.1739 | 111 | 126 | 15 | 11.9 | 0.7143 | CHK1, CHK7 |
+| it_coop_retry | 0.8545 | 0.1091 | 144 | 129 | 15 | 11.63 | 0.7143 | CHK1, CHK7 |
+| ait_retry | 0.8684 | 0.1316 | 99 | 120 | 21 | 17.5 | 0.7143 | CHK1, CHK7 |
+| bit_no_coop_retry | 0.8372 | 0.1628 | 105 | 126 | 21 | 16.67 | 0.8571 | CHK1 |
+| dsba_no_coop_retry | 0.6538 | 0.3462 | 99 | 132 | 33 | 25.0 | 0.7143 | CHK1, CHK7 |
+| it_no_coop_retry | 0.8491 | 0.1509 | 132 | 129 | 3 | 2.33 | 0.7143 | CHK1, CHK7 |
 
 ### หน่วยกิตรวม — MAE/MAPE ข้ามหลักสูตร (สไลด์ ch9 ส่วนที่ 2 "งานทำนายค่าต่อเนื่อง")
 
 CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`total == declared` เป๊ะ) ไม่บอกว่าคลาดเคลื่อนไปแค่ไหน — MAE/MAPE ตรงนี้วัดขนาดความคลาดเคลื่อนแทน (ยิ่งต่ำยิ่งดี ตามสไลด์)
 
-- **MAE** = 18.43 หน่วยกิต (เฉลี่ยจาก 7 run ที่มีข้อมูลครบ)
+- **MAE** = 18.43 หน่วยกิต (เฉลี่ยจาก 14 run ที่มีข้อมูลครบ)
 - **MAPE** = 14.42%
 - คลาดเคลื่อนมากสุด: **dsba_no_coop** (33 หน่วยกิต)
 
@@ -36,10 +43,17 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 | dsba_coop | 111 | 132 | 132 | 0 | 0.0 | 27 | 0 | - |
 | it_no_coop | 132 | 129 | 129 | 0 | 0.0 | -3 | 0 | - |
 | it_coop | 144 | 129 | 129 | 0 | 0.0 | -15 | 0 | - |
+| dsba_coop_retry | 111 | 132 | 132 | 0 | 0.0 | 27 | 0 | - |
+| bit_coop_retry | 111 | 126 | 126 | 0 | 0.0 | 15 | 0 | - |
+| it_coop_retry | 144 | 129 | 129 | 0 | 0.0 | -15 | 0 | - |
+| ait_retry | 99 | 120 | 120 | 0 | 0.0 | 21 | 0 | - |
+| bit_no_coop_retry | 105 | 126 | 126 | 0 | 0.0 | 21 | 0 | - |
+| dsba_no_coop_retry | 99 | 132 | 132 | 0 | 0.0 | 33 | 0 | - |
+| it_no_coop_retry | 132 | 132 | 129 | 3 | 2.33 | 0 | -3 | CHK1F |
 
-- **MAE (นับช่องตามเล่ม)** = 0 หน่วยกิต (จาก 7 run) เทียบกับ 18.43 แบบเดิม
-- **MAPE (นับช่องตามเล่ม)** = 0.0% เทียบกับ 14.42% แบบเดิม
-- คลาดเคลื่อนมากสุด: **ait** (0 หน่วยกิต)
+- **MAE (นับช่องตามเล่ม)** = 0.21 หน่วยกิต (จาก 14 run) เทียบกับ 18.43 แบบเดิม
+- **MAPE (นับช่องตามเล่ม)** = 0.17% เทียบกับ 14.42% แบบเดิม
+- คลาดเคลื่อนมากสุด: **it_no_coop_retry** (3 หน่วยกิต)
 
 ## 2. NL→SQL metrics (eval_result.json)
 
@@ -52,6 +66,13 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 | dsba_coop | 30 | 1.0 | 0.9667 | 0.9667 | 1.78 |
 | it_no_coop | 30 | 1.0 | 0.9333 | 0.9333 | 1.66 |
 | it_coop | 30 | 1.0 | 0.8333 | 0.8333 | 1.36 |
+| dsba_coop_retry | 30 | 1.0 | 0.9667 | 0.9667 | 6.39 |
+| bit_coop_retry | 30 | 1.0 | 0.9 | 0.9 | 3.12 |
+| it_coop_retry | 30 | 1.0 | 0.8667 | 0.8667 | 2.58 |
+| ait_retry | 30 | 1.0 | 0.7333 | 0.7333 | 4.02 |
+| bit_no_coop_retry | 30 | 1.0 | 0.9 | 0.9 | 2.76 |
+| dsba_no_coop_retry | 30 | 1.0 | 1.0 | 1.0 | 2.43 |
+| it_no_coop_retry | 30 | 1.0 | 0.9 | 0.9 | 2.45 |
 
 ### บั๊ก "SQL ถูกแต่ข้อความคำตอบผิด" (execution_accuracy สูงแต่ answer_text_accuracy ต่ำกว่า)
 
@@ -88,18 +109,67 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 | it_coop | 1 | 15 | 0.9333 | 12/15 | 12/13 |
 | it_coop | 2 | 12 | 0.6667 | 5/12 | 5/5 |
 | it_coop | none | 3 | 1.0 | 0/3 | - |
+| dsba_coop_retry | 1 | 12 | 1.0 | 10/12 | - |
+| dsba_coop_retry | 2 | 15 | 0.9333 | 2/15 | - |
+| dsba_coop_retry | none | 3 | 1.0 | 0/3 | - |
+| bit_coop_retry | 1 | 15 | 1.0 | 13/15 | - |
+| bit_coop_retry | 2 | 12 | 0.75 | 5/12 | - |
+| bit_coop_retry | none | 3 | 1.0 | 0/3 | - |
+| it_coop_retry | 1 | 15 | 0.9333 | 12/15 | - |
+| it_coop_retry | 2 | 12 | 0.75 | 5/12 | - |
+| it_coop_retry | none | 3 | 1.0 | 0/3 | - |
+| ait_retry | 1 | 15 | 0.8667 | 11/15 | - |
+| ait_retry | 2 | 12 | 0.5 | 4/12 | - |
+| ait_retry | none | 3 | 1.0 | 0/3 | - |
+| bit_no_coop_retry | 1 | 15 | 1.0 | 13/15 | - |
+| bit_no_coop_retry | 2 | 12 | 0.75 | 5/12 | - |
+| bit_no_coop_retry | none | 3 | 1.0 | 0/3 | - |
+| dsba_no_coop_retry | 1 | 15 | 1.0 | 13/15 | - |
+| dsba_no_coop_retry | 2 | 12 | 1.0 | 5/12 | - |
+| dsba_no_coop_retry | none | 3 | 1.0 | 0/3 | - |
+| it_no_coop_retry | 1 | 15 | 0.9333 | 12/15 | - |
+| it_no_coop_retry | 2 | 12 | 0.8333 | 5/12 | - |
+| it_no_coop_retry | none | 3 | 1.0 | 0/3 | - |
 
 ## 3. ความเสถียร / สัญญาณ overfitting (รันซ้ำเอกสารชุดเดียวกัน)
 
-- **dsba_coop vs dsba_coop_retry** — ข้าม: ยังไม่มี run dsba_coop_retry
-- **bit_coop vs bit_coop_retry** — ข้าม: ยังไม่มี run bit_coop_retry
-- **it_coop vs it_coop_retry** — ข้าม: ยังไม่มี run it_coop_retry
-- **ait vs ait_retry** — ข้าม: ยังไม่มี run ait_retry
+- **dsba_coop vs dsba_coop_retry**
+  - หน่วยกิตรวมในแผน: dsba_coop=111  vs  dsba_coop_retry=111  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: dsba_coop=50  vs  dsba_coop_retry=50  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): dsba_coop=0.9667  vs  dsba_coop_retry=0.9667  (ต่างกัน 0.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: dsba_coop=0.9667  vs  dsba_coop_retry=0.9667  (ต่างกัน 0.0%) -> โอเค
+- **bit_coop vs bit_coop_retry**
+  - หน่วยกิตรวมในแผน: bit_coop=111  vs  bit_coop_retry=111  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: bit_coop=36  vs  bit_coop_retry=36  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): bit_coop=0.9  vs  bit_coop_retry=0.9  (ต่างกัน 0.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: bit_coop=0.9  vs  bit_coop_retry=0.9  (ต่างกัน 0.0%) -> โอเค
+- **it_coop vs it_coop_retry**
+  - หน่วยกิตรวมในแผน: it_coop=144  vs  it_coop_retry=144  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: it_coop=47  vs  it_coop_retry=47  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): it_coop=0.8333  vs  it_coop_retry=0.8667  (ต่างกัน 3.9%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: it_coop=0.8333  vs  it_coop_retry=0.8667  (ต่างกัน 3.9%) -> โอเค
+- **ait vs ait_retry**
+  - หน่วยกิตรวมในแผน: ait=99  vs  ait_retry=99  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: ait=33  vs  ait_retry=33  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): ait=0.7333  vs  ait_retry=0.7333  (ต่างกัน 0.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: ait=0.7333  vs  ait_retry=0.7333  (ต่างกัน 0.0%) -> โอเค
 - **ait vs ait_retry2** — ข้าม: ยังไม่มี run ait_retry2
 - **ait vs ait_retry3** — ข้าม: ยังไม่มี run ait_retry3
-- **bit_no_coop vs bit_no_coop_retry** — ข้าม: ยังไม่มี run bit_no_coop_retry
-- **dsba_no_coop vs dsba_no_coop_retry** — ข้าม: ยังไม่มี run dsba_no_coop_retry
-- **it_no_coop vs it_no_coop_retry** — ข้าม: ยังไม่มี run it_no_coop_retry
+- **bit_no_coop vs bit_no_coop_retry**
+  - หน่วยกิตรวมในแผน: bit_no_coop=105  vs  bit_no_coop_retry=105  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: bit_no_coop=36  vs  bit_no_coop_retry=36  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): bit_no_coop=0.9  vs  bit_no_coop_retry=0.9  (ต่างกัน 0.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: bit_no_coop=0.9  vs  bit_no_coop_retry=0.9  (ต่างกัน 0.0%) -> โอเค
+- **dsba_no_coop vs dsba_no_coop_retry**
+  - หน่วยกิตรวมในแผน: dsba_no_coop=99  vs  dsba_no_coop_retry=99  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: dsba_no_coop=34  vs  dsba_no_coop_retry=34  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): dsba_no_coop=1.0  vs  dsba_no_coop_retry=1.0  (ต่างกัน 0.0%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: dsba_no_coop=1.0  vs  dsba_no_coop_retry=1.0  (ต่างกัน 0.0%) -> โอเค
+- **it_no_coop vs it_no_coop_retry**
+  - หน่วยกิตรวมในแผน: it_no_coop=132  vs  it_no_coop_retry=132  (ต่างกัน 0.0%) -> โอเค
+  - จำนวนวิชาที่แปลงได้: it_no_coop=45  vs  it_no_coop_retry=45  (ต่างกัน 0.0%) -> โอเค
+  - Execution accuracy (SQL): it_no_coop=0.9333  vs  it_no_coop_retry=0.9  (ต่างกัน 3.6%) -> โอเค
+  - ความถูกต้องของข้อความคำตอบ: it_no_coop=0.9333  vs  it_no_coop_retry=0.9  (ต่างกัน 3.6%) -> โอเค
 
 ## 4. Metric ที่วิชานี้ไม่ได้ใช้ + ทำไม (checklist ch9 ข้อ 4)
 
@@ -116,6 +186,13 @@ CHK1 ข้างบนบอกแค่ผ่าน/ไม่ผ่าน (`to
 | dsba_coop | 0.8864 | 0.8571 | 1.0 | 0.7423 |
 | it_no_coop | 0.8704 | 0.8696 | 0.875 | 0.8607 |
 | it_coop | 0.7925 | 0.8298 | 0.5 | 0.6814 |
+| dsba_coop_retry | 0.8182 | 0.7714 | 1.0 | 0.6391 |
+| bit_coop_retry | 0.9286 | 0.9429 | 0.8571 | 1.0 |
+| it_coop_retry | 0.7925 | 0.8298 | 0.5 | 0.6814 |
+| ait_retry | 0.875 | 0.9091 | 0.7143 | 1.0 |
+| bit_no_coop_retry | 0.9767 | 0.9722 | 1.0 | 0.9223 |
+| dsba_no_coop_retry | 0.9111 | 0.8824 | 1.0 | 0.8452 |
+| it_no_coop_retry | 0.9259 | 0.9348 | 0.875 | 1.0 |
 
 ตัวเลข `exact_match_acc` เดิม (60-86%, ดูพอใช้ได้) บังตาปัญหานี้ไว้ทั้งหมด — เป็นตัวอย่าง accuracy paradox ตรงตามที่สไลด์เตือนจริง
 
