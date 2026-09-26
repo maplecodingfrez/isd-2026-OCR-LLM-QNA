@@ -1452,6 +1452,11 @@ python evaluate_lab9.py
   ติดป้ายด้วยกฎ — ดูรายการด้วย `python evaluate_lab9.py --list-levels`), ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
   matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
 - `reports/lab9_overfit_underfit_summary.md` — สรุป overfit/underfit (เขียนเอง ไม่ถูกเขียนทับ)
+- **ชุดคำถามทอง v2** (หัวข้อ 2b ในรายงาน): 30 ข้อ/แผน ที่สร้างด้วยสคริปต์จากเฉลย scoped และล็อก sha256 ก่อนรัน
+  ใช้วัดกับคำถามแบบที่ระบบไม่เคยถูกปรับตาม — v1 ตอบถูก 188/210 = 89.5%, v2 ตอบถูก 189/210 = 90.0%
+  (จุดอ่อน: ถามด้วยชื่ออังกฤษ 14/21, วิชาบังคับก่อน 21/27 — ดูสรุป overfit)
+  สร้างใหม่: `python gold_questions/build_gold_questions_v2.py` (ได้ไฟล์เดิมทุกไบต์) ·
+  รัน eval (ต้องมี Ollama): `python run_gold_v2.py --plan ait` → `runs/**/lab8b_output/eval_result_v2.json`
 - `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
