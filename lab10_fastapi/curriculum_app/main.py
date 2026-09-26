@@ -14,12 +14,12 @@ from fastapi.staticfiles import StaticFiles
 from .config import PROJECT_ROOT, settings
 
 # เชื่อม Lab 10 -> Lab 8B โดยตรง: ใช้ open_db, guard_sql และ ollama_generate เดิม
-SRC_DIR = PROJECT_ROOT / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+LAB8_DIR = PROJECT_ROOT / "Lab7B_Lab8B_ocr_system" / "src" / "ocr_system"
+if str(LAB8_DIR) not in sys.path:
+    sys.path.insert(0, str(LAB8_DIR))
 os.environ["LAB8_OLLAMA_URL"] = settings.ollama_url
 os.environ["LAB8_MODEL_TEXT"] = settings.ollama_model
-from ocr_system import lab8b_curriculum_db as lab8b  # noqa: E402
+import lab8b_curriculum_db as lab8b  # noqa: E402
 
 from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
@@ -94,11 +94,15 @@ def post_course(course: CourseCreate) -> dict:
 
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
+    if not settings.db_path.exists():
+        raise HTTPException(status_code=503, detail=f"ไม่พบฐานข้อมูล: {settings.db_path}")
+    conn = lab8b.open_db(str(settings.db_path), readonly=True)
     try:
-        return model.ask(database, request.question)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        result = lab8b.ask(conn, request.question, verbose=False)
     except requests.RequestException as exc:
         raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้") from exc
-    except (ValueError, json.JSONDecodeError, sqlite3.Error) as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    finally:
+        conn.close()
+    if result["error"]:
+        raise HTTPException(status_code=422, detail=result["error"])
+    return result

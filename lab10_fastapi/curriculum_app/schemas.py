@@ -11,9 +11,11 @@ class AskRequest(BaseModel):
 
 class AskResponse(BaseModel):
     question: str
-    sql: str
+    sql: str | None = None
     rows: list[dict[str, Any]]
     answer: str
+    citations: list[dict[str, Any]] = []
+    citation_text: str = ""
 
 
 class CourseCreate(BaseModel):

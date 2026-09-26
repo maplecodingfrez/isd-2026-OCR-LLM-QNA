@@ -25,8 +25,10 @@
 
   <section>
     <h2>คำตอบ</h2><div id="answer">รอคำถาม...</div>
+    <div class="muted" id="citations"></div>
     <h3>ค่าที่ได้จากฐานข้อมูล</h3><pre id="rows">-</pre>
     <h3>SQL ที่ใช้</h3><pre id="sql">-</pre>
+    <h3>เวลาที่ใช้</h3><pre id="elapsed">-</pre>
   </section>
 
   <script>
@@ -34,7 +36,9 @@
       event.preventDefault();
       const answer = document.getElementById("answer");
       answer.textContent = "กำลังประมวลผล...";
+      document.getElementById("citations").textContent = "";
       try {
+        const t0 = performance.now();
         const response = await fetch("/api/ask", {
           method: "POST", headers: {"Content-Type": "application/json"},
           body: JSON.stringify({question: document.getElementById("question").value})
@@ -42,6 +46,8 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || "เกิดข้อผิดพลาด");
         answer.textContent = data.answer;
+        document.getElementById("elapsed").textContent = `${((performance.now() - t0) / 1000).toFixed(1)} วินาที`;
+        document.getElementById("citations").textContent = data.citation_text || "";
         document.getElementById("rows").textContent = JSON.stringify(data.rows, null, 2);
         document.getElementById("sql").textContent = data.sql;
       } catch (error) {
