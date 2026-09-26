@@ -6,6 +6,7 @@
   "skipped_wildcards": 6,
   "skipped_flexible_plan_items": 0,
   "terms_recovered_from_markdown": [],
+  "or_pair_names": [],
   "warnings": [
     "courses[24] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",
     "courses[30] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",
