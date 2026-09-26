@@ -234,3 +234,19 @@ def test_ask_sql_prompt_unchanged_without_course_name(monkeypatch):
     # ask() appends the JSON-format instruction after the prompt; everything before it must be byte-identical
     assert prompts[0].startswith(lab8b.SQL_PROMPT.format(ddl=lab8b.DDL.strip(), question=question))
     assert "ชื่อวิชาที่พบในคำถาม" not in prompts[0]
+
+
+# Break caught: ask() answering a prerequisite question with a bare code instead of naming the course.
+def test_ask_answer_names_the_courses_it_returns(monkeypatch):
+    conn = _citation_db()
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06026200', 'แคลคูลัส 1', 3)")
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06026201', 'แคลคูลัส 2', 3)")
+    conn.execute("INSERT INTO prerequisite (code, requires, kind) VALUES ('06026201', '06026200', 'pre')")
+
+    def fake(prompt, fmt=None, **kwargs):
+        if "sql" in (fmt or {}).get("properties", {}):
+            return '{"sql": "SELECT requires FROM prerequisite WHERE code=\'06026201\' AND kind=\'pre\'"}'
+        return '{"answer": "06026200"}'
+    monkeypatch.setattr(lab8b, "ollama_generate", fake)
+    got = lab8b.ask(conn, "วิชาแคลคูลัส 2 ต้องผ่านวิชาอะไรมาก่อน", verbose=False)
+    assert got["answer"] == "06026200 (แคลคูลัส 1)"

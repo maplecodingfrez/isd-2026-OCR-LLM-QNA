@@ -1118,6 +1118,19 @@ def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
     return course_names.hint_block(course_names.course_hints(question, courses))
 
 
+def _with_course_names(conn: sqlite3.Connection, answer: str | None, rows: list[dict]) -> str | None:
+    """เติมชื่อวิชาหลังรหัสในคำตอบ (course_names.with_course_names) — ไม่มีคำตอบ/ไม่มีตาราง course = คืนเดิม"""
+    if not answer:
+        return answer
+    _citations_module()
+    import course_names
+    try:
+        names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course") if r[1]}
+    except sqlite3.OperationalError:
+        return answer
+    return course_names.with_course_names(answer, rows, names)
+
+
 def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
                       image_names: list[str], md_text: str) -> dict[str, int]:
     """เติมตาราง course_page (ลบของเดิมก่อน รันซ้ำได้): หน้าที่มีรหัสวิชา (primary/other) จาก OCR ทั้งเล่ม
@@ -1740,6 +1753,8 @@ def ask(conn: sqlite3.Connection, question: str,
         pattern = rf"(?<!\d){re.escape(value)}(?!\d)" if re.fullmatch(r"-?\d+(\.\d+)?", value) else re.escape(value)
         if not re.search(pattern, result["answer"] or ""):
             result["answer"] = value
+    # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
+    result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
     citations = _citations_module()

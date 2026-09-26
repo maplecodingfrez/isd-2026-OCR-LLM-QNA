@@ -59,6 +59,21 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     return out
 
 
+def with_course_names(answer: str, rows: list[dict], names: dict[str, str]) -> str:
+    """เติมชื่อวิชาหลังรหัสในคำตอบ ("06026200" -> "06026200 (แคลคูลัส 1)") — เฉพาะรหัสที่มาจากผล SQL,
+    ชื่อจากตาราง course; ชื่อนั้นอยู่ในคำตอบแล้ว / ไม่รู้จักรหัส = ไม่แตะ"""
+    from_rows = {c for r in rows for v in r.values() for c in CODE_RE.findall(str(v))}
+
+    def name_it(m: re.Match) -> str:
+        code = m.group(0)
+        name = names.get(code)
+        if code not in from_rows or not name or name in answer:
+            return code
+        return f"{code} ({name})"
+
+    return CODE_RE.sub(name_it, answer or "")
+
+
 def hint_block(hints: list[tuple[str, str]]) -> str:
     """ข้อความแนบใน prompt — ว่างเมื่อไม่เจอชื่อวิชา"""
     if not hints:

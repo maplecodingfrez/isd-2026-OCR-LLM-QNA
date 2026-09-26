@@ -68,3 +68,34 @@ def test_hint_block_lists_name_and_code():
     block = cn.hint_block([("การสร้างคลังข้อมูล", "06026212")])
     assert '"การสร้างคลังข้อมูล" = 06026212' in block
     assert cn.hint_block([]) == ""
+
+
+NAMES = {"06026200": "แคลคูลัส 1", "06066300": "การโปรแกรมคอมพิวเตอร์", "06026212": "การสร้างคลังข้อมูล"}
+
+
+# Break caught: a prerequisite answer that is only a code ("06026200") — the user cannot tell which course it is.
+def test_answer_codes_get_course_names():
+    rows = [{"requires": "06026200"}]
+    assert cn.with_course_names("06026200", rows, NAMES) == "06026200 (แคลคูลัส 1)"
+
+
+def test_every_code_from_the_rows_is_named():
+    rows = [{"code": "06026200"}, {"code": "06066300"}]
+    assert cn.with_course_names("06026200, 06066300", rows, NAMES) == (
+        "06026200 (แคลคูลัส 1), 06066300 (การโปรแกรมคอมพิวเตอร์)")
+
+
+# Break caught: naming a course twice when the model already wrote its name.
+def test_code_already_followed_by_its_name_is_left_alone():
+    rows = [{"requires": "06026200"}]
+    assert cn.with_course_names("แคลคูลัส 1 (06026200)", rows, NAMES) == "แคลคูลัส 1 (06026200)"
+
+
+# Break caught: naming a code that did not come from the database result (e.g. echoed from the question).
+def test_only_codes_from_the_rows_are_named():
+    assert cn.with_course_names("06026212 ไม่มีวิชาบังคับก่อน", [], NAMES) == "06026212 ไม่มีวิชาบังคับก่อน"
+
+
+def test_unknown_code_is_left_alone():
+    rows = [{"requires": "99999999"}]
+    assert cn.with_course_names("99999999", rows, NAMES) == "99999999"
