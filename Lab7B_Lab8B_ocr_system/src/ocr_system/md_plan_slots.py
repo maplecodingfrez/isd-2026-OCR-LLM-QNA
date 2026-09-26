@@ -80,6 +80,7 @@ def parse_terms(md: str, inherit_span: bool = False,
     span_mixed = False                         # เซลล์ผสม "รหัสจริง+wildcard": wildcard ให้แถวแรกที่ตามมาเท่านั้น
     or_pending: dict | None = None             # แถวที่ชื่อมี "หรือ" รอคู่ทางเลือกถัดไป
     pending: dict | None = None                # wildcard ที่หน่วยกิตว่าง รอเติมจากแถวถัดไป
+    nocode_open: dict | None = None            # กลุ่ม "กลุ่มวิชาด้าน…" ที่ไม่มีรหัส — แถวไม่มีรหัสที่ตามมาเป็นชื่อสมาชิก
 
     def term() -> dict[str, Any]:
         return terms.setdefault(cur, {
@@ -98,7 +99,7 @@ def parse_terms(md: str, inherit_span: bool = False,
     for _, kind, payload in events:
         if kind == "heading":
             cur = payload
-            span_left, pending = 0, None
+            span_left, pending, nocode_open = 0, None, None
             continue
         if cur is None:
             continue
@@ -109,12 +110,14 @@ def parse_terms(md: str, inherit_span: bool = False,
         if HEADING_RE.search(row_text):        # แถวที่เป็นหัวเทอมฝังในตาราง — ไม่ใช่วิชา
             m = HEADING_RE.search(row_text)
             cur = (int(m.group(1)), int(m.group(2)))
+            nocode_open = None
             continue
         t = term()
         t["group_headings"] += row_text.count(GROUP_HEADING)
 
         # แถว "รวม": ยอดหน่วยกิตของเทอม (เล่มพิมพ์เอง)
         if any(re.fullmatch(r"รวม\s*\d*", txt.strip()) for _, txt in cells):
+            nocode_open = None
             # "รวม" กับตัวเลขอยู่คนละเซลล์ หรือเซลล์เดียวกัน ("รวม 15") — OCR เขียนได้ทั้งสองแบบ
             nums = [int(x) for _, txt in cells
                     for x in re.findall(r"^(?:รวม\s*)?(\d+)$", txt.strip())]
@@ -131,6 +134,14 @@ def parse_terms(md: str, inherit_span: bool = False,
         name = _thai_name(" ".join(txt for _, txt in cells[1:]) if len(cells) > 1 else "")
         if not name and wilds:                  # colspan: รหัสกับชื่ออยู่เซลล์เดียวกัน
             name = _thai_name(WILD_RE.sub("", code_cell))
+
+        # ชื่อสมาชิกของกลุ่มที่ไม่มีรหัสอาจอยู่คนละแถวกับหัวกลุ่ม (พบจริง: IT ไม่สหกิจ ปี 2/2 รอบ OCR ซ้ำ — หัวกลุ่ม
+        # ไม่มี rowspan แถวถัดไปคือ "ระบบโครงสร้างพื้นฐานและการบริการ" ของ 06016420) — เก็บข้อความแถวที่ไม่มีรหัส
+        # ต่อท้ายกลุ่มไว้ให้ derive_slots ค้นชื่อ จนกว่าจะเจอแถวที่มีรหัส/หัวกลุ่มใหม่/แถวรวม/หัวเทอม
+        if reals or wilds:
+            nocode_open = None
+        elif nocode_open is not None and not code_cell.lstrip().startswith(GROUP_HEADING):
+            nocode_open["text"] += " " + row_text
 
         # แถวต่อของ rowspan ที่เซลล์รหัสรวมหลายวิชา (span_kind == "merged") บางครั้งเล่ม/OCR ไม่แยกคอลัมน์
         # ให้แถวต่อ แต่ยำรหัสวิชาไว้ในเซลล์บรรยายเดียว (พบจริง: IT ปี 2/2 — แถว "06016419 กลุ่มวิชาด้าน...")
@@ -167,6 +178,7 @@ def parse_terms(md: str, inherit_span: bool = False,
             m_span = re.search(r'rowspan="(\d+)"', cells[0][0])
             span_left = int(m_span.group(1)) - 1 if m_span else 0
             span_code, span_mixed, span_kind, merged_ref, pending = None, False, "nocode_group", entry, None
+            nocode_open = entry
             continue
         if span_left > 0 and span_kind == "nocode_group":
             if len(reals) == 1 and not wilds and merged_ref is not None:
