@@ -859,6 +859,14 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
                          "ระบุ --total-credits จากเล่มหลักสูตร")
 
     pid = str(program_id or data.get("program") or "curriculum").strip()
+    or_pairs: list[dict] = []
+    if markdown:
+        # คู่ "A หรือ B" ที่ qwen จับชื่อไขว้/ซ้ำ -> ชื่อตามลำดับที่ Markdown เขียนไว้ (or_course_names.py)
+        # ทำตรงนี้ทุกครั้งที่ import (เดิมเป็นสคริปต์แยก apply_or_course_names.py จึงถูกทับเมื่อรัน Lab 8B ใหม่)
+        from or_course_names import apply_to_courses, or_pair_names
+        or_pairs = apply_to_courses(list(course_by_code.values()), or_pair_names(markdown))
+        for f in or_pairs:
+            warnings.append(f"{f['code']}: {f['field']} {f['from']!r} -> {f['to']!r} (คู่ 'A หรือ B' ตามลำดับใน Markdown)")
     result = {
         "program": {
             "program_id": pid,
@@ -882,6 +890,7 @@ def convert_lab7b(data: dict, *, program_id: str | None = None,
         "skipped_wildcards": skipped_wildcards,
         "skipped_flexible_plan_items": skipped_flexible,
         "terms_recovered_from_markdown": recovered_terms,
+        "or_pair_names": or_pairs,
         "warnings": warnings,
     }
     return result, report

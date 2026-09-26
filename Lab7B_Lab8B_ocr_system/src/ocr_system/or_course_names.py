@@ -46,21 +46,27 @@ def _thai_first_name(line: str) -> str:
     return re.split(r"\s[A-Z]{2,}", line, maxsplit=1)[0].strip()
 
 
-def _split_packed_names(cell_html: str, n: int) -> list[str] | None:
+def _english_tail(line: str) -> str | None:
+    """ส่วนภาษาอังกฤษตัวพิมพ์ใหญ่ที่ตามหลังชื่อไทยในบรรทัดเดียวกัน (ถ้ามี)"""
+    m = re.search(r"\s([A-Z]{2,}[A-Z0-9 \-,./()&]*)$", line)
+    return m.group(1).strip() if m else None
+
+
+def _split_packed_names(cell_html: str, n: int) -> list[tuple[str, str | None]] | None:
     """รูปแบบ 1: เซลล์เดียวมีชื่อของทุกรหัสคั่นด้วย <br/> — จับคู่ (ไทย, อังกฤษ) เรียงเป็นชุด ๆ"""
     lines = [_clean(x) for x in re.split(r"<br\s*/?>", cell_html)]
     lines = [x for x in lines if x]
-    pairs: list[str] = []
+    pairs: list[tuple[str, str | None]] = []
     i = 0
     while i < len(lines):
         thai = lines[i]
         if _ALLCAPS_EN.match(thai):            # เริ่มด้วยบรรทัดอังกฤษ — รูปแบบไม่ตรงที่คาดไว้
             return None
         if i + 1 < len(lines) and _ALLCAPS_EN.match(lines[i + 1]):
-            pairs.append(thai)
+            pairs.append((thai, lines[i + 1]))
             i += 2
         else:
-            pairs.append(thai)                  # ไม่มีบรรทัดอังกฤษคู่ — เอาแค่ไทย
+            pairs.append((thai, None))          # ไม่มีบรรทัดอังกฤษคู่ — เอาแค่ไทย
             i += 1
     if len(pairs) != n:
         return None
@@ -69,13 +75,19 @@ def _split_packed_names(cell_html: str, n: int) -> list[str] | None:
 
 def fix_or_pair_names(md: str) -> dict[str, str]:
     """คืน {รหัส: ชื่อไทยที่ถูกต้อง} เฉพาะคู่ "A หรือ B" ที่จับคู่ได้ชัดเจน (จำนวนชื่อ = จำนวนรหัสเป๊ะ)"""
-    out: dict[str, str] = {}
+    return {code: th for code, (th, _en) in or_pair_names(md).items()}
+
+
+def or_pair_names(md: str) -> dict[str, tuple[str, str | None]]:
+    """เหมือน fix_or_pair_names แต่คืน (ชื่อไทย, ชื่ออังกฤษหรือ None) ตามลำดับที่ Markdown เขียนไว้"""
+    out: dict[str, tuple[str, str | None]] = {}
 
     # รูปแบบ 2: rowspan ครอบชื่อคนละแถว
     for m in _ROWSPAN_OR.finditer(md):
         rowspan, c1, c2, first_name_cell = m.groups()
         codes = [c1, c2]
-        names = [_thai_first_name(_clean(first_name_cell))]
+        first = _clean(first_name_cell)
+        names = [(_thai_first_name(first), _english_tail(first))]
         # แถวถัดไปในเอกสาร (แถวต่อของ rowspan) แต่ละแถวคือชื่ออีกรหัสหนึ่ง
         tail = md[m.end():]
         for row_m in _ROW.finditer(tail):
@@ -87,10 +99,10 @@ def fix_or_pair_names(md: str) -> dict[str, str]:
             row_text = _clean(cells[0])
             if not row_text or re.fullmatch(r"รวม\s*\d*", row_text):
                 break
-            names.append(_thai_first_name(row_text))
+            names.append((_thai_first_name(row_text), _english_tail(row_text)))
             if row_m.start() > 400:             # กันเผลอไล่ไกลเกินไปถ้ารูปแบบไม่ตรงคาด
                 break
-        if len(names) == len(codes) and all(names):
+        if len(names) == len(codes) and all(th for th, _en in names):
             for code, name in zip(codes, names):
                 out[code] = name
 
@@ -106,12 +118,22 @@ def fix_or_pair_names(md: str) -> dict[str, str]:
     return out
 
 
-def apply_to_courses(courses: list[dict[str, Any]], fixes: dict[str, str]) -> int:
-    """แก้ course["name_th"] ในที่เดิมตาม fixes คืนจำนวนแถวที่แก้"""
-    n = 0
-    for c in courses:
-        code = c.get("code")
-        if code in fixes and c.get("name_th") != fixes[code]:
-            c["name_th"] = fixes[code]
-            n += 1
-    return n
+def apply_to_courses(courses: list[dict[str, Any]], pairs: dict[str, tuple[str, str | None]]) -> list[dict]:
+    """แก้ course ในที่เดิม: name_th ตามลำดับใน Markdown; name_en เฉพาะเมื่อรหัสในคู่ได้ชื่ออังกฤษ "ซ้ำกัน"
+    (อาการเดียวกับชื่อไทยซ้ำ) — ชื่ออังกฤษที่ต่างกันอยู่แล้วไม่ทับ เพราะบรรทัดใน Markdown อาจสะกดผิด ("COOPERPIENT")
+    คืนรายการที่แก้"""
+    by_code = {c.get("code"): c for c in courses}
+    en_now = [str(by_code[k].get("name_en") or "") for k in pairs if k in by_code]
+    shared = {e for e in en_now if e and en_now.count(e) > 1}
+    done: list[dict] = []
+    for code, (th, en) in pairs.items():
+        c = by_code.get(code)
+        if c is None:
+            continue
+        if c.get("name_th") != th:
+            done.append({"code": code, "field": "name_th", "from": c.get("name_th"), "to": th})
+            c["name_th"] = th
+        if en and str(c.get("name_en") or "") in shared and c.get("name_en") != en:
+            done.append({"code": code, "field": "name_en", "from": c.get("name_en"), "to": en})
+            c["name_en"] = en
+    return done

@@ -245,3 +245,47 @@ def test_recover_codes_uses_every_program_book_and_skips_retry_runs(tmp_path):
             f"{code} {NOSQL}   3(2-2-5)\n{code} {NOSQL}   3(2-2-5)\n", encoding="utf-8")
     assert _recover(tmp_path, "IT/coop") == NOSQL              # IT book + DSBA book (sibling folder) outvote 1 VLM read
     assert _recover(tmp_path, "IT/coop_retry") == "ระบบฐานข้อมูลแบบโนเอสคิวแวล"
+
+
+# ─── "A หรือ B" pairs: names fixed inside import-lab7b (was the separate apply_or_course_names.py) ───
+import lab8b_curriculum_db as lab8b
+
+DSBA_OR_MD = ("<tr><td>06026259<br/>หรือ 06026260</td><td>สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ<br/>"
+              "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS<br/>"
+              "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ<br/>"
+              "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS</td><td>6 (0-35-0)</td></tr>")
+BIT_OR_MD = ('<tr><td rowspan="3">06036147<br/>หรือ 06036148</td><td>สหกิจศึกษา<br/>COOPERATIVE EDUCATION</td>'
+             '<td>6(0-35-0)</td></tr><tr><td>สหกิจศึกษาต่างประเทศ<br/>OVERSEA COOPERPIENT EDUCATION</td><td></td></tr>'
+             '<tr><td colspan="2">รวม</td><td>6</td></tr></table>')
+
+
+def _convert(courses, md):
+    out, _ = lab8b.convert_lab7b({"courses": courses}, program_id="X", program_name="x", total_credits=120,
+                                 years=4, markdown=md)
+    return {c["code"]: c for c in out["courses"]}
+
+
+# Break caught (2026-09-27): the committed DSBA coop DB still had both 06026259/06026260 named "สหกิจศึกษาทาง…"
+# because the fix lived in a separate script that a Lab 8B rerun silently undid.
+def test_or_pair_names_are_fixed_during_import():
+    row = {"code": "06026259 หรือ 06026260", "name_th": "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+           "name_en": "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+           "credits": "6 (0-35-0)", "year": 4, "semester": 2, "category": "x", "type": "เลือก"}
+    got = _convert([row], DSBA_OR_MD)
+    assert got["06026259"]["name_th"] == "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
+    assert got["06026260"]["name_th"] == "สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ"
+    # both codes carried the same (second) English name -> each gets its own line from the same cell
+    assert got["06026259"]["name_en"] == "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+    assert got["06026260"]["name_en"] == "OVERSEA COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS"
+
+
+# English names that already differ are left alone: the Markdown line can carry an OCR typo ("COOPERPIENT").
+def test_or_pair_keeps_distinct_english_names():
+    rows = [{"code": "06036147", "name_th": "สหกิจศึกษาต่างประเทศ", "name_en": "COOPERATIVE EDUCATION",
+             "credits": "6(0-35-0)", "year": 4, "semester": 1, "category": "x", "type": "เลือก"},
+            {"code": "06036148", "name_th": "สหกิจศึกษาต่างประเทศ", "name_en": "OVERSEA COOPERATIVE EDUCATION",
+             "credits": "6(0-35-0)", "year": 4, "semester": 1, "category": "x", "type": "เลือก"}]
+    got = _convert(rows, BIT_OR_MD)
+    assert got["06036147"]["name_th"] == "สหกิจศึกษา"
+    assert got["06036148"]["name_th"] == "สหกิจศึกษาต่างประเทศ"
+    assert got["06036148"]["name_en"] == "OVERSEA COOPERATIVE EDUCATION"
