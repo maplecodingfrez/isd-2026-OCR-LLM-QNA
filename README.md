@@ -16,36 +16,25 @@ OCR engines ที่มีให้:
 
 ## Project Structure
 
+> แสดงเฉพาะไฟล์ที่ Lab 5 เพิ่ม/แก้ — ไฟล์ OCR พื้นฐาน (`engines/`, `pipeline.py`, `cli.py` ฯลฯ) มาจาก Lab 3
+> (ดู branch `Lab-3`) ส่วนโครงสร้างเต็มของทุก Lab ดูที่ branch `main`
+
 ```text
 ocr_system/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
 ├── data/
-│   ├── input/                 # ใส่ไฟล์ภาพหรือ PDF ที่ต้องการ OCR
-│   └── ground_truth/          # ไฟล์เฉลยสำหรับ evaluate
-├── outputs/                   # ผลลัพธ์ OCR และ evaluation
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4)
-        ├── evaluate_curriculum.py   # วัดผล recall + field-level agreement (Lab 4)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+│   ├── input/dsba_curriculum.pdf        # เล่มหลักสูตร DSBA (จาก Lab 4)
+│   └── ground_truth/
+│       └── DSBA_academic_plan_coop.json # GT ที่ใช้แมพหน้า (DSBA coop)
+├── outputs/
+│   ├── dsba_curriculum_ocr.json         # ผล OCR ทั้งเล่ม (input — มีอยู่แล้วจาก Lab 4)
+│   ├── course_page_mapping.csv          # (ใหม่) 80 วิชา + primary_pages / other_pages
+│   └── qa_pairs.csv                     # (ใหม่) 15 คำถาม-คำตอบ อ้างอิงเลขหน้า (10 รายวิชา + 5 ข้อบังคับ)
+├── scripts/
+│   ├── build_page_mapping.py            # (ใหม่) รัน pipeline สร้าง course_page_mapping.csv
+│   └── build_qa_pairs.py                # (ใหม่) สร้าง qa_pairs.csv
+└── src/ocr_system/
+    ├── gt_page_mapping.py               # (ใหม่) group_by_code / classify_pages / write_csv
+    └── curriculum_extraction.py         # (แก้) เก็บเลขหน้าต่อ occurrence + แก้บั๊ก footer "มคอ"
 ```
 
 ---
