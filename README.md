@@ -16,36 +16,29 @@ OCR engines ที่มีให้:
 
 ## Project Structure
 
+> แสดงเฉพาะไฟล์ที่ Lab 4 เพิ่ม/แก้ — ไฟล์ OCR พื้นฐาน (`engines/`, `pipeline.py`, `cli.py` ฯลฯ) มาจาก Lab 3
+> (ดู branch `Lab-3`) ส่วนโครงสร้างเต็มของทุก Lab ดูที่ branch `main`
+
 ```text
 ocr_system/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
 ├── data/
-│   ├── input/                 # ใส่ไฟล์ภาพหรือ PDF ที่ต้องการ OCR
-│   └── ground_truth/          # ไฟล์เฉลยสำหรับ evaluate
-├── outputs/                   # ผลลัพธ์ OCR และ evaluation
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4)
-        ├── evaluate_curriculum.py   # วัดผล recall + field-level agreement (Lab 4)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+│   ├── input/
+│   │   ├── dsba_curriculum.pdf          # (ใหม่) เล่มหลักสูตร DSBA สแกน 403 หน้า
+│   │   └── dsba_curriculum_subset.pdf   # (ใหม่) เล่มตัดบางหน้า ไว้ทดสอบเร็ว
+│   └── ground_truth/
+│       └── DSBA_academic_plan_coop.json # เฉลยรายวิชา DSBA แผนสหกิจ (ใช้เทียบผล)
+├── outputs/
+│   ├── dsba_curriculum_ocr.json / .txt            # ผล OCR ทั้งเล่ม (Tesseract)
+│   ├── dsba_curriculum_courses.json               # รายวิชาที่ดึงได้ทั้งหมด
+│   └── dsba_curriculum_curriculum_evaluation.json # ผลเทียบ GT (recall, name_en/credits agreement)
+└── src/ocr_system/
+    ├── curriculum_extraction.py  # (ใหม่) ดึง code / name_th / name_en / credits จาก OCR text (regex)
+    ├── evaluate_curriculum.py    # (ใหม่) recall + field-level agreement เทียบ GT (merge รหัสซ้ำ)
+    ├── cli.py                    # (แก้) เพิ่ม subcommand `curriculum` = extraction + evaluation
+    ├── pipeline.py               # (แก้) join ข้อความแต่ละหน้าด้วย "\n"
+    └── engines/
+        ├── tesseract_engine.py   # (แก้) ใช้ image_to_string() แทน image_to_data() สำหรับภาษาไทย
+        └── paddle_engine.py      # (แก้) ไม่บังคับ detection model PP-OCRv5_mobile_det
 ```
 
 ---
