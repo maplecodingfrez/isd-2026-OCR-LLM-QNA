@@ -727,7 +727,8 @@ def print_classification_report(report: dict, title: str) -> None:
     print(f"  {title} — confusion matrix")
     print("=" * 96)
     classes = report["classes"]
-    print(f"{'GT \\\\ PRED':<24}" + "".join(f"{c[:12]:>14}" for c in classes))
+    header = 'GT \\ PRED'
+    print(f"{header:<24}" + "".join(f"{c[:12]:>14}" for c in classes))
     for g in classes:
         row = report["confusion_matrix"].get(g, {})
         print(f"{g[:22]:<24}" + "".join(f"{row.get(c, 0):>14}" for c in classes))

@@ -25,6 +25,7 @@ from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
     AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse, ProgramInfo,
+    CoursePrerequisitesResponse,
 )
 
 
@@ -125,3 +126,18 @@ def ask(request: AskRequest) -> dict:
         raise HTTPException(status_code=422, detail=result["error"])
     result["program"] = request.program
     return result
+
+
+@app.get("/api/courses/{code}/prerequisites", response_model=CoursePrerequisitesResponse, tags=["Prerequisites"])
+def get_course_prerequisites(code: str) -> dict:
+    """ตรวจสอบวิชาบังคับก่อน (Prerequisite) และวิชาที่ปลดล็อคให้เรียนต่อได้"""
+    if not code.isdigit() or len(code) != 8:
+        raise HTTPException(status_code=422, detail="รหัสวิชาต้องเป็นตัวเลข 8 หลัก")
+    try:
+        data = database.get_course_prerequisites(code)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    if not data:
+        raise HTTPException(status_code=404, detail=f"ไม่พบรายวิชารหัส {code} ในฐานข้อมูลหลักสูตร")
+    return data

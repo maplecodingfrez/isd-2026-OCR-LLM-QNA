@@ -69,6 +69,51 @@ class CurriculumDatabase:
         finally:
             conn.close()
 
+    def get_course_prerequisites(self, code: str) -> dict | None:
+        """Fetch prerequisite dependencies and unlocked courses for a given course code."""
+        self._require_db()
+        conn = self.lab8b.open_db(self.path, readonly=True)
+        try:
+            course_row = conn.execute(
+                "SELECT code, name_th, name_en, credits FROM course WHERE code = ?",
+                (code,),
+            ).fetchone()
+            if not course_row:
+                return None
+            course_info = dict(course_row)
+
+            # วิชาที่ต้องผ่านก่อนวิชานี้ (requires)
+            req_sql = """
+                SELECT p.requires as code, c.name_th, c.name_en, c.credits, p.kind
+                FROM prerequisite p
+                LEFT JOIN course c ON p.requires = c.code
+                WHERE p.code = ?
+                ORDER BY p.requires
+            """
+            prerequisites_required = [dict(r) for r in conn.execute(req_sql, (code,)).fetchall()]
+
+            # วิชาที่จะปลดล็อคให้ลงเรียนได้หลังจากผ่านวิชานี้ (unlocks)
+            unlock_sql = """
+                SELECT p.code, c.name_th, c.name_en, c.credits, p.kind
+                FROM prerequisite p
+                LEFT JOIN course c ON p.code = c.code
+                WHERE p.requires = ?
+                ORDER BY p.code
+            """
+            unlocked_courses = [dict(r) for r in conn.execute(unlock_sql, (code,)).fetchall()]
+
+            return {
+                "code": course_info["code"],
+                "name_th": course_info["name_th"],
+                "name_en": course_info["name_en"],
+                "credits": course_info["credits"],
+                "prerequisites_required": prerequisites_required,
+                "unlocked_courses": unlocked_courses,
+            }
+        finally:
+            conn.close()
+
+
 
 SQL_SCHEMA_CONTEXT = """
 program(program_id, name_th, name_en, degree, total_credits, years)
