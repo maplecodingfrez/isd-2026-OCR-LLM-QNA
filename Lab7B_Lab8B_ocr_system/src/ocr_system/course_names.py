@@ -74,6 +74,44 @@ def with_course_names(answer: str, rows: list[dict], names: dict[str, str]) -> s
     return CODE_RE.sub(name_it, answer or "")
 
 
+# ทิศทางของวิชาบังคับก่อน — qwen สลับ code/requires เมื่อถ้อยคำไม่เหมือนตัวอย่างใน prompt ("วิชาตัวต่อจากแคลคูลัส 1"
+# ได้ code='X' = ถามว่า X ต้องผ่านอะไร -> 0 แถว -> "ไม่พบ") กฎอ่านจากคำถามที่แทนวิชาด้วย "@" และตัดช่องว่างแล้ว
+_AFTER = [r"ต่อจาก@", r"ตัวต่อ", r"หลัง(?:จาก)?(?:เรียน|ผ่าน)?(?:วิชา)?@", r"@เป็น(?:วิชา)?บังคับก่อน",
+          r"ต้อง(?:เรียน|ผ่าน)(?:วิชา)?@(?:มา)?ก่อน", r"@แล้ว.*(?:ลง|เรียน)(?:วิชา)?(?:อะไร|ไหน|ใด)(?:บ้าง)?ต่อ"]
+_BEFORE = [r"ก่อน(?:จะ)?(?:ลง)?(?:ทะเบียน)?(?:เรียน)?(?:วิชา)?@", r"บังคับก่อน(?:ของ)?(?:วิชา)?@",
+           r"@(?:มี|ต้อง(?:เรียน|ผ่าน))(?:วิชา)?(?:อะไร|ไหน|ใด|บังคับก่อน)",
+           r"(?:ถึง|จึง)จะ(?:ลง)?(?:ทะเบียน)?(?:เรียน)?(?:วิชา)?@"]
+
+
+def prereq_direction(question: str, hints: list[tuple[str, str]]) -> tuple[str, str] | None:
+    """("after", X) = ถามหาวิชาที่ต้องเรียน X มาก่อน (requires=X) · ("before", X) = ถามหาวิชาที่ X ต้องเรียนก่อน (code=X)
+    ใช้เมื่อคำถามอ้างวิชาเดียว (ชื่อจาก hints หรือรหัสที่พิมพ์มา) และเข้ากฎฝั่งเดียว — ไม่ชัด = None (ไม่เดา)"""
+    typed = CODE_RE.findall(question)
+    codes = {code for _, code in hints} | set(typed)
+    if len(codes) != 1:
+        return None
+    q = _norm_th(question).upper()
+    for token in sorted({_norm_th(n).upper() for n, _ in hints} | set(typed), key=len, reverse=True):
+        q = q.replace(token, "@")
+    after = any(re.search(p, q) for p in _AFTER)
+    before = any(re.search(p, q) for p in _BEFORE)
+    if after == before:
+        return None
+    return ("after" if after else "before", codes.pop())
+
+
+def direction_block(direction: tuple[str, str] | None) -> str:
+    """ข้อความแนบใน prompt บอกคอลัมน์ของตาราง prerequisite — ว่างเมื่อไม่รู้ทิศทาง"""
+    if not direction:
+        return ""
+    kind, code = direction
+    if kind == "after":
+        return (f"ทิศทาง: คำถามนี้ถามหาวิชาที่ต้องเรียน {code} มาก่อน (วิชาที่เรียนต่อจาก {code}) "
+                f"ให้ใช้ SELECT code FROM prerequisite WHERE requires='{code}'\n\n")
+    return (f"ทิศทาง: คำถามนี้ถามหาวิชาที่ {code} ต้องเรียนมาก่อน "
+            f"ให้ใช้ SELECT requires FROM prerequisite WHERE code='{code}'\n\n")
+
+
 def hint_block(hints: list[tuple[str, str]]) -> str:
     """ข้อความแนบใน prompt — ว่างเมื่อไม่เจอชื่อวิชา"""
     if not hints:
