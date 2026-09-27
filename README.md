@@ -69,9 +69,9 @@ OCR engines ที่มีให้:
 
 ---
 
-> **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
-> **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
-> ระดับเดียวกับ root นี้: `Lab7B_Lab8B_ocr_system/`, `Lab9_evaluation/`
+> **หมายเหตุ:** โฟลเดอร์ `src/`, `scripts/`, `outputs/`, `data/` ที่ root เป็นงาน **Lab 3-6**
+> (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยก: `Lab7B_Lab8B_ocr_system/`,
+> `Lab9_evaluation/`, `lab10_fastapi/` (เทสอยู่ที่ `tests/`)
 
 ## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
 
@@ -96,48 +96,75 @@ git pull --ff-only          # รวมเข้ามาเฉพาะกร�
 ```text
 ocr_system/
 ├── README.md
-├── requirements.txt
+├── requirements.txt               # แพ็กเกจทั้งหมด (รวม torch/paddle ของ Lab 3–6)
 ├── pyproject.toml
-├── Lab7B_Lab8B_ocr_system/           # Lab 7B→8B: OCR ด้วย local VLM → JSON → SQLite → NL2SQL Q&A
-│                                 # (ดูภาพรวมที่ Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md)
-├── Lab9_evaluation/            # Lab 9: Evaluation & Overfitting — อ่านผล Lab 8B มาคำนวณ metric
-│                                 # (ดู Lab9_evaluation/README.md)
+├── .gitattributes                 # ล็อก LF ให้ไฟล์ชุดคำถามทอง (sha256 ตรงทุกเครื่อง)
+│
+│   ── Lab 3–6: OCR พื้นฐาน → สกัดรายวิชา → จับคู่หน้า → ประเมิน 3 ระดับ ──
 ├── data/
-│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
-│   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
+│   ├── input/                     # PDF เล่มหลักสูตร DSBA/AIT/IT/BIT (ไม่อยู่ใน repo — วางเองก่อนรัน Lab 3–6)
+│   └── ground_truth/              # เฉลยแผนการเรียน DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules, example
 ├── outputs/
-│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
-│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
-│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
+│   ├── dsba/ ait/ it/ bit/        # ผล OCR (Tesseract ทั้งเล่ม), extraction, evaluation, page mapping, Lab 6 (แยกตามหลักสูตร)
+│   ├── qa_pairs.csv               # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
+│   └── pages/                     # ภาพหน้า PDF ที่แปลงตอนรัน (ไม่อยู่ใน repo)
 ├── scripts/
-│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
-│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
-│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
-│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
-│   └── lab6_evaluate.py       # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
-        ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
-        ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
-        ├── evaluate_lab6.py         # evaluate_field_level / evaluate_page_level / evaluate_category_level / write_lab6_outputs (Lab 6)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+│   ├── lab5_page_mapping.py       # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
+│   ├── lab5_qa_pairs.py           # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
+│   ├── supplement_check_rules.py  # เช็ค coverage ของ rules_ground_truth.json ต่อ program
+│   ├── supplement_general_education.py # เทียบวิชาที่ extract ได้กับ general_education_ground_truth.json
+│   └── lab6_evaluate.py           # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
+├── src/
+│   └── ocr_system/
+│       ├── cli.py                 # command line interface
+│       ├── config.py              # config หลักของระบบ
+│       ├── document_loader.py     # โหลดภาพ / แปลง PDF เป็นภาพ
+│       ├── preprocessing.py       # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
+│       ├── pipeline.py            # OCR pipeline หลัก
+│       ├── evaluation.py          # CER, WER, exact match (เอกสารทั่วไป)
+│       ├── field_extraction.py    # ดึง field เช่น email, date, id, phone
+│       ├── curriculum_extraction.py # ดึง course records จากเล่มหลักสูตร (Lab 4)
+│       ├── evaluate_curriculum.py # recall + field-level agreement + CER/WER (Lab 4)
+│       ├── gt_page_mapping.py     # map course code → หน้า PDF จริง (Lab 5)
+│       ├── evaluate_lab6.py       # evaluate Field / Page / Category level (Lab 6)
+│       ├── schemas.py             # dataclass ของผลลัพธ์
+│       ├── engine_factory.py      # เลือก OCR engine
+│       ├── engines/               # base, paddle, tesseract, trocr, ensemble
+│       └── utils/io.py
+│
+│   ── Lab 7B–10: local VLM → SQLite → ถาม-ตอบ → ประเมิน → เว็บ ──
+├── Lab7B_Lab8B_ocr_system/        # ภาพรวม: LAB7B_LAB8B_OVERVIEW.md
+│   ├── run_lab8b.py               # รันทั้ง workflow: --plan <แผน|all> [--skip-lab7]
+│   ├── regenerate_evaluation.py   # คำนวณ evaluation.json/comparison.csv ใหม่จาก pred_vlm.json (ไม่เรียก VLM)
+│   ├── OCR_VS_BOOK_DIFF.md        # ผล OCR/DB เทียบกับเล่มจริงทีละแถว (ตรวจด้วยตา)
+│   ├── src/
+│   │   ├── lab7_metrics.py        # CER / WER ของ Lab 7
+│   │   └── ocr_system/
+│   │       ├── lab7b_curriculum.py      # Lab 7B: ภาพหน้าแผน → Typhoon-OCR (Markdown) → qwen3 (JSON)
+│   │       ├── lab8b_curriculum_db.py   # Lab 8B: JSON → SQLite + NL2SQL (import-lab7b / load / ask / eval ...)
+│   │       ├── code_from_book.py        # กู้รหัสวิชาที่ OCR ทำหายจากข้อความทั้งเล่ม
+│   │       ├── prereq_from_book.py      # สกัดวิชาบังคับก่อนจากหน้าคำอธิบายรายวิชา
+│   │       ├── extract_elective_catalog.py # ดึงกลุ่มวิชาเลือกจากหน้า catalog (→ runs/<หลักสูตร>/electives.json)
+│   │       ├── md_plan_slots.py         # ช่องตามเล่ม (wildcard / "หรือ" / เลือก 1 กลุ่ม) ให้หน่วยกิตรวมตรงเล่ม
+│   │       ├── or_course_names.py       # แก้ชื่อคู่ "A หรือ B" ที่สลับ/ซ้ำกัน
+│   │       ├── name_consensus.py        # ฉันทามติชื่อวิชาข้ามแผน แก้ typo ของ OCR
+│   │       ├── course_names.py          # ชื่อวิชาในคำถาม → รหัสวิชา (ก่อนส่งให้ LLM)
+│   │       ├── citations.py             # อ้างอิงเลขหน้าในคำตอบ
+│   │       └── schemas.py               # dataclass ผลลัพธ์ OCR (แบบเดียวกับ src/ocr_system/schemas.py)
+│   └── runs/                      # ผลที่ commit ไว้ของ 7 แผน: AIT/, BIT|DSBA|IT/{coop,no_coop}/
+│       └── <แผน>/
+│           ├── data_input/        # ภาพหน้าตารางแผนการศึกษา (input ของ Lab 7B)
+│           ├── lab7b_output/      # intermediate_vlm.md, pred_vlm.json, evaluation.json, comparison.csv
+│           └── lab8b_output/      # curriculum.db, curriculum.json, eval_result.json, verify*.json, report ต่างๆ
+├── Lab9_evaluation/               # อ่านผล Lab 8B มาคำนวณ metric เท่านั้น (ดู Lab9_evaluation/README.md)
+│   ├── evaluate_lab9.py           # รายงาน metric ทุกแผน → reports/
+│   ├── levels.py                  # ระดับความยากของคำถาม + หน้าที่ควรอ้างอิง
+│   ├── gold_questions/            # ชุดคำถามทอง 30 ข้อ × 7 แผน + build_gold_questions.py + frozen.json (sha256)
+│   ├── ground_truth_scoped/       # เฉลยเต็มชุดที่กรองเหลือวิชาในแผน (year >= 1) ใช้เทียบ P/R/F1/CER/WER
+│   └── reports/                   # lab9_metrics_latest.md/.json, สรุป overfit/underfit, P/R/F1 + CER/WER ของ Lab 7B
+├── lab10_fastapi/                 # Lab 10: เว็บ/API ถาม-ตอบหลักสูตร (ดู lab10_fastapi/README.md)
+│   └── curriculum_app/            # main.py (FastAPI), database.py + model_service.py (ใช้ lab8b ซ้ำ), static/index.html
+└── tests/                         # pytest ของ Lab 7B–9 (python -m pytest tests -q, ไม่ต้องใช้ Ollama)
 ```
 
 ---
