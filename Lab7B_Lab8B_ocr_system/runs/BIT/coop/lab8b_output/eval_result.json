@@ -1,0 +1,919 @@
+[
+  {
+    "id": "A1",
+    "category": "A",
+    "level": "1",
+    "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "126"
+    },
+    "sql": "SELECT total_credits FROM program LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT total_credits FROM program\"}",
+    "answer_model_output": "{\"answer\": \"126 หน่วยกิต\"}",
+    "answer": "126 หน่วยกิต",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.4
+  },
+  {
+    "id": "A2",
+    "category": "A",
+    "level": "1",
+    "question": "หลักสูตรนี้เรียนกี่ปี",
+    "expect": {
+      "type": "value",
+      "value": "4"
+    },
+    "sql": "SELECT years FROM program LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT years FROM program\"}",
+    "answer_model_output": "{\"answer\": \"4 ปี\"}",
+    "answer": "4 ปี",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.6
+  },
+  {
+    "id": "B1",
+    "category": "B",
+    "level": "2",
+    "question": "ปี 1 เทอม 2 ต้องลงเรียนกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "term": [
+      1,
+      2
+    ],
+    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=2 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=1 AND semester=2\"}",
+    "answer_model_output": "{\"answer\": \"6 วิชา\"}",
+    "answer": "6 วิชา",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.5
+  },
+  {
+    "id": "B2",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 2 มีหน่วยกิตรวมเท่าไร",
+    "expect": {
+      "type": "value",
+      "value": "18"
+    },
+    "term": [
+      1,
+      2
+    ],
+    "sql": "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2\"}",
+    "answer_model_output": "{\"answer\": \"18 หน่วยกิจ\"}",
+    "answer": "18 หน่วยกิจ",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "id": "B3",
+    "category": "B",
+    "level": "2",
+    "question": "ปี 1 เทอม 2 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036102",
+        "06036109",
+        "06036119",
+        "06036125",
+        "96641002",
+        "96644008"
+      ]
+    },
+    "term": [
+      1,
+      2
+    ],
+    "sql": "SELECT code FROM v_plan WHERE year=1 AND semester=2 LIMIT 200",
+    "n_rows": 6,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE year=1 AND semester=2\"}",
+    "answer_model_output": "{\"answer\": \"06036102, 06036109, 06036119, 06036125, 96644008, 96641002\"}",
+    "answer": "06036102 (การวิเคราะห์เชิงสถิติสำหรับธุรกิจ), 06036109 (กระบวนการและโมเดลทางธุรกิจ), 06036119 (พื้นฐานการเขียนโปรแกรม), 06036125 (สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ), 96644008 (ภาษาอังกฤษพื้นฐาน 2), 96641002 (ความฉลาดทางดิจิทัล)",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 239,
+        "printed_page": "234"
+      },
+      {
+        "pdf_page": 21,
+        "printed_page": "16"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 234 (PDF 239), หน้า 16 (PDF 21))",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.9
+  },
+  {
+    "id": "B4",
+    "category": "B",
+    "level": "2",
+    "question": "ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "6"
+    },
+    "term": [
+      2,
+      1
+    ],
+    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=1 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=1\"}",
+    "answer_model_output": "{\"answer\": \"6 วิชา\"}",
+    "answer": "6 วิชา",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.6
+  },
+  {
+    "id": "B5",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีหน่วยกิตรวมเท่าไร",
+    "expect": {
+      "type": "value",
+      "value": "18"
+    },
+    "term": [
+      2,
+      1
+    ],
+    "sql": "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1\"}",
+    "answer_model_output": "{\"answer\": \"18 หน่วยกิจ\"}",
+    "answer": "18 หน่วยกิจ",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32)",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.4
+  },
+  {
+    "id": "B6",
+    "category": "B",
+    "level": "2",
+    "question": "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036103",
+        "06036104",
+        "06036105",
+        "06036117",
+        "06036120",
+        "06036122"
+      ]
+    },
+    "term": [
+      2,
+      1
+    ],
+    "sql": "SELECT code FROM v_plan WHERE year=2 AND semester=1 LIMIT 200",
+    "n_rows": 6,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE year=2 AND semester=1\"}",
+    "answer_model_output": "{\"answer\": \"06036103, 06036104, 06036105, 06036117, 06036120, 06036122\"}",
+    "answer": "06036103 (บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ), 06036104 (องค์กรและการจัดการ), 06036105 (บัญชีการเงินสำหรับผู้มิใช่นักบัญชี), 06036117 (อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่), 06036120 (หลักการโครงสร้างข้อมูลและอัลกอริทึม), 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ)",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 239,
+        "printed_page": "234"
+      },
+      {
+        "pdf_page": 21,
+        "printed_page": "16"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 234 (PDF 239), หน้า 16 (PDF 21))",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.3
+  },
+  {
+    "id": "C1",
+    "category": "C",
+    "level": "1",
+    "question": "รหัสวิชา 06036117 ชื่อวิชาภาษาไทยว่าอะไร",
+    "expect": {
+      "type": "value",
+      "value": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่"
+    },
+    "about_codes": [
+      "06036117"
+    ],
+    "sql": "SELECT name_th FROM course WHERE code = '06036117' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06036117'\" }",
+    "answer_model_output": "{\"answer\": \"อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่\"}",
+    "answer": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 245,
+        "printed_page": "240"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 240 (PDF 245), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.2
+  },
+  {
+    "id": "C2",
+    "category": "C",
+    "level": "1",
+    "question": "วิชา 06036105 คือวิชาอะไร (ชื่อภาษาไทย)",
+    "expect": {
+      "type": "value",
+      "value": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
+    },
+    "about_codes": [
+      "06036105"
+    ],
+    "sql": "SELECT name_th FROM course WHERE code = '06036105' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06036105'\" }",
+    "answer_model_output": "{\"answer\": \"บัญชีการเงินสำหรับผู้มิใช่นักบัญชี\"}",
+    "answer": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 240,
+        "printed_page": "235"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 235 (PDF 240), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.7
+  },
+  {
+    "id": "C3",
+    "category": "C",
+    "level": "1",
+    "question": "วิชา 06036124 ชื่อภาษาอังกฤษคืออะไร",
+    "expect": {
+      "type": "value",
+      "value": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
+    },
+    "about_codes": [
+      "06036124"
+    ],
+    "sql": "SELECT name_en FROM course WHERE code = '06036124' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT name_en FROM course WHERE code = '06036124'\" }",
+    "answer_model_output": "{\"answer\": \"INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY\"}",
+    "answer": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 248,
+        "printed_page": "243"
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.2
+  },
+  {
+    "id": "D1",
+    "category": "D",
+    "level": "1",
+    "question": "วิชาการพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์กมีรหัสวิชาอะไร",
+    "expect": {
+      "type": "value",
+      "value": "06036114"
+    },
+    "about_codes": [
+      "06036114"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT code FROM course WHERE name_th = 'การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก'\" }",
+    "answer_model_output": "{\"answer\": \"06036114\"}",
+    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.6
+  },
+  {
+    "id": "D2",
+    "category": "D",
+    "level": "1",
+    "question": "พื้นฐานการเขียนโปรแกรม รหัสวิชาอะไรนะ",
+    "expect": {
+      "type": "value",
+      "value": "06036119"
+    },
+    "about_codes": [
+      "06036119"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT code FROM course WHERE name_th = 'พื้นฐานการเขียนโปรแกรม' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'พื้นฐานการเขียนโปรแกรม'\" }",
+    "answer_model_output": "{\"answer\": \"06036119\"}",
+    "answer": "06036119 (พื้นฐานการเขียนโปรแกรม)",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239"
+      },
+      {
+        "pdf_page": 246,
+        "printed_page": "241"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 239 (PDF 244), หน้า 241 (PDF 246))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.4
+  },
+  {
+    "id": "D3",
+    "category": "D",
+    "level": "1",
+    "question": "What is the course code of FOUNDATION ENGLISH 2",
+    "expect": {
+      "type": "value",
+      "value": "96644008"
+    },
+    "about_codes": [
+      "96644008"
+    ],
+    "name_key": "name_en",
+    "sql": "SELECT code FROM course WHERE name_th = 'FOUNDATION ENGLISH 2' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'FOUNDATION ENGLISH 2'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": false,
+    "why": "ไม่พบค่า 96644008 (ได้ [])",
+    "seconds": 0.9
+  },
+  {
+    "id": "E1",
+    "category": "E",
+    "level": "1",
+    "question": "ผู้ประกอบการสมัยใหม่ เรียนตอนปีไหน",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "about_codes": [
+      "96643021"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT p.year FROM v_plan p WHERE p.name_th = 'ผู้ประกอบการสมัยใหม่' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT p.year FROM v_plan p WHERE p.name_th = 'ผู้ประกอบการสมัยใหม่'\"}",
+    "answer_model_output": "{\"answer\": \"ปีที่ 3\"}",
+    "answer": "ปีที่ 3",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 3.2
+  },
+  {
+    "id": "E2",
+    "category": "E",
+    "level": "1",
+    "question": "วิชาเศรษฐศาสตร์เทคโนโลยีสารสนเทศมีกี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "about_codes": [
+      "06036108"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT credits FROM course WHERE code = '06036108' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE code = '06036108'\" }",
+    "answer_model_output": "{\"answer\": \"3 หน่วยกิต\"}",
+    "answer": "3 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 242,
+        "printed_page": "237"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 237 (PDF 242), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.1
+  },
+  {
+    "id": "E3",
+    "category": "E",
+    "level": "1",
+    "question": "การวางแผนทรัพยากรองค์กร แล็บสัปดาห์ละกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "0"
+    },
+    "about_codes": [
+      "06036110"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT lab_h FROM course WHERE code = '06036110' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT lab_h FROM course WHERE code = '06036110'\" }",
+    "answer_model_output": "{\"answer\": \"0 ชั่วโมง\"}",
+    "answer": "0 ชั่วโมง",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 243,
+        "printed_page": "238"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 238 (PDF 243), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.2
+  },
+  {
+    "id": "E4",
+    "category": "E",
+    "level": "1",
+    "question": "DIGITAL TECHNOLOGY FOR BUSINESS lecture สัปดาห์ละกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "about_codes": [
+      "06036111"
+    ],
+    "name_key": "name_en",
+    "sql": "SELECT lecture_h FROM course WHERE code = '06036111' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT lecture_h FROM course WHERE code = '06036111'\" }",
+    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
+    "answer": "3 ชั่วโมง",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 243,
+        "printed_page": "238"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 238 (PDF 243), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.2
+  },
+  {
+    "id": "F1",
+    "category": "F",
+    "level": "1",
+    "question": "รหัสวิชา 06036114 มีวิชาบังคับก่อนคือวิชาใด",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036119",
+        "06036122"
+      ],
+      "ignore": [
+        "06036114"
+      ]
+    },
+    "about_codes": [
+      "06036114"
+    ],
+    "direction": "forward",
+    "sql": "SELECT requires FROM prerequisite WHERE code='06036114' AND kind='pre' LIMIT 200",
+    "n_rows": 2,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06036114' AND kind='pre'\" }",
+    "answer_model_output": "{\"answer\": \"06036119, 06036122\"}",
+    "answer": "06036119 (พื้นฐานการเขียนโปรแกรม), 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ)",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239"
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.3
+  },
+  {
+    "id": "E5",
+    "category": "E",
+    "level": "1",
+    "question": "เทคโนโลยีกลุ่มเมฆ กี่หน่วยกิต",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "about_codes": [
+      "06036123"
+    ],
+    "name_key": "name_th",
+    "sql": "SELECT credits FROM v_plan WHERE code = '06036123' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_plan WHERE code = '06036123'\" }",
+    "answer_model_output": "{\"answer\": \"3 หน่วยกิต\"}",
+    "answer": "3 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "28"
+      },
+      {
+        "pdf_page": 248,
+        "printed_page": "243"
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 28 (PDF 33), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.0
+  },
+  {
+    "id": "F2",
+    "category": "F",
+    "level": "1",
+    "question": "วิชาใดบ้างที่มี 06036122 เป็นวิชาบังคับก่อน",
+    "expect": {
+      "type": "set_exact",
+      "value": [
+        "06036114"
+      ],
+      "ignore": [
+        "06036122"
+      ]
+    },
+    "about_codes": [
+      "06036122"
+    ],
+    "direction": "reverse",
+    "sql": "SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre' LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre'\" }",
+    "answer_model_output": "{\"answer\": \"06036114\"}",
+    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
+    "citations": [
+      {
+        "pdf_page": 32,
+        "printed_page": null
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239"
+      },
+      {
+        "pdf_page": 247,
+        "printed_page": "242"
+      }
+    ],
+    "citation_text": "(อ้างอิง: เล่มหลักสูตร PDF 32, หน้า 239 (PDF 244), หน้า 242 (PDF 247))",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.0
+  },
+  {
+    "id": "F3",
+    "category": "F",
+    "level": "2",
+    "question": "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่",
+    "expect": {
+      "type": "value",
+      "value": "2"
+    },
+    "sql": "SELECT COUNT(*) FROM prerequisite LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
+    "answer_model_output": "{\"answer\": \"2 คู่\"}",
+    "answer": "2 คู่",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.9
+  },
+  {
+    "id": "G1",
+    "category": "G",
+    "level": "2",
+    "question": "ปี 1 กับปี 2 มีวิชาที่ได้ 3 หน่วยกิตกี่วิชา",
+    "expect": {
+      "type": "value",
+      "value": "22"
+    },
+    "sql": "SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND credits = 3 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND credits = 3\"}",
+    "answer_model_output": "{\"answer\": \"22 วิชา\"}",
+    "answer": "22 วิชา",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 1.6
+  },
+  {
+    "id": "G2",
+    "category": "G",
+    "level": "2",
+    "question": "ในแผนการศึกษาชั้นปีที่ 1–2 วิชาที่มีชั่วโมงบรรยายต่อสัปดาห์มากที่สุดมีกี่ชั่วโมง",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "sql": "SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12\"}",
+    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
+    "answer": "3 ชั่วโมง",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.4
+  },
+  {
+    "id": "G3",
+    "category": "G",
+    "level": "2",
+    "question": "ในแผนการศึกษาชั้นปีที่ 1–2 มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่า 'ธุรกิจ'",
+    "expect": {
+      "type": "value",
+      "value": "7"
+    },
+    "sql": "SELECT COUNT(*) FROM v_plan WHERE name_th LIKE '%ธุรกิจ%' AND year BETWEEN 1 AND 2 LIMIT 200",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE name_th LIKE '%ธุรกิจ%' AND year BETWEEN 1 AND 2\"}",
+    "answer_model_output": "{\"answer\": \"7 วิชา\"}",
+    "answer": "7 วิชา",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 2.3
+  },
+  {
+    "id": "H1",
+    "category": "H",
+    "level": "none",
+    "question": "ค่าธรรมเนียมการศึกษาต่อภาคการศึกษาของหลักสูตรนี้คือเท่าไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT NULL WHERE 0 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT NULL WHERE 0\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.8
+  },
+  {
+    "id": "H2",
+    "category": "H",
+    "level": "none",
+    "question": "วิชา 06036119 อาจารย์ประจำวิชาชื่ออะไร",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT NULL WHERE 0 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT NULL WHERE 0\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.5
+  },
+  {
+    "id": "H3",
+    "category": "H",
+    "level": "none",
+    "question": "วิชา 06039430 มีกี่หน่วยกิต",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT credits FROM course WHERE code='06039430' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE code='06039430'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.6
+  },
+  {
+    "id": "H4",
+    "category": "H",
+    "level": "none",
+    "question": "ชั้นปีที่ 7 ภาคการศึกษาที่ 1 มีรายวิชาอะไรบ้าง",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT p.code, c.name_th, c.name_en, p.credits, p.alt_group, p.note FROM v_plan p JOIN course c ON c.code = p.code WHERE p.year = 7 AND p.semester = 1 LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT p.code, c.name_th, c.name_en, p.credits, p.alt_group, p.note FROM v_plan p JOIN course c ON c.code = p.code WHERE p.year = 7 AND p.semester = 1\"}",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 1.3
+  },
+  {
+    "id": "H5",
+    "category": "H",
+    "level": "none",
+    "question": "วิชาการทำอาหารไทยเชิงพาณิชย์มีกี่หน่วยกิต",
+    "expect": {
+      "type": "none",
+      "value": null
+    },
+    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาการทำอาหารไทยเชิงพาณิชย์' LIMIT 200",
+    "n_rows": 0,
+    "error": null,
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาการทำอาหารไทยเชิงพาณิชย์'\" }",
+    "answer_model_output": null,
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "citations": [],
+    "citation_text": "",
+    "correct": true,
+    "why": "ตอบว่าไม่พบตามที่ควร",
+    "seconds": 0.8
+  }
+]

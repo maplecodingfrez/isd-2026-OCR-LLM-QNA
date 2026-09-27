@@ -1,61 +1,30 @@
+"""ชุดคำถามทอง (gold questions) — 30 ข้อต่อแผน × 7 แผน ตรงเกณฑ์ ch8 (30 ข้อ, ข้อ "ไม่รู้" >= 2, ให้คะแนนจากผล SQL)
+
+เฉลยคำนวณจาก ground_truth_scoped (แก้ให้ตรงเล่มแล้ว) + หน่วยกิตรวม/จำนวนปีที่เล่มประกาศ — ไม่อ่าน DB
+สุ่มด้วย seed ตายตัว "gold-v2:<แผน>" รันซ้ำได้ไฟล์เดิมทุกไบต์ — ไฟล์ที่สร้างแล้วถูกล็อก (sha256 ใน frozen.json)
+ห้ามแก้หลังเห็นผล; `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับตัวสร้างและ sha256
+
+ประวัติ: ชุดนี้คือ "v2" ที่ออกแบบมาแทนชุดแรก (v1) — ชุด v1 อยู่ใน git tag `gold-v1`
+(ดูโดยไม่ทับไฟล์ปัจจุบัน: `git show gold-v1:Lab9_evaluation/gold_questions/ait_gold_questions.json`) ค่าที่ v2 ใช้จาก v1 (วิชาที่ v1 ถามแล้ว ให้เลี่ยง,
+หน่วยกิตรวม/ปีที่ประกาศ, คำค้นที่ v1 ใช้) ฝังไว้เป็นค่าคงที่ `V1` ด้านล่าง ไฟล์ที่สร้างจึงเหมือนเดิมทุกไบต์
+
+    python build_gold_questions.py        # เขียน <แผน>_gold_questions.json ×7 + frozen.json
 """
-สร้าง gold_questions.json ล่วงหน้าสำหรับ AIT / BIT / IT (ก่อนที่ Lab7B->Lab8B จะถูกรันจริง)
-================================================================================
-
-ทำไมต้องมีสคริปต์นี้
---------------------
-`Lab9_evaluation` ต้องการวัดผล NL->SQL ให้ครบทุกเล่มหลักสูตร (ไม่ใช่แค่ DSBA-coop) แต่ตอนนี้ยังไม่ได้
-รัน Lab7B/8B กับ AIT/BIT/IT จริง (ดู `lab9_progress.md`ข้อ "ยังไม่ได้ทำ") สคริปต์นี้เตรียม
-`gold_questions.json` ของแต่ละเล่มไว้ล่วงหน้า โดยคำนวณคำตอบที่ถูกต้องจาก **ground truth ที่มีอยู่แล้ว**
-(`data/ground_truth/*.json`) ไม่ใช่เดามือ — พอรัน pipeline จริงเสร็จเมื่อไร เอาไฟล์พวกนี้ไปวาง
-เป็น `gold_questions.json` ในโฟลเดอร์ run แล้วรัน `cmd_eval` ของ Lab8B ได้เลย เหมือนที่ DSBA-coop ทำ
-
-ที่มาของคำตอบแต่ละกลุ่มคำถาม
-----------------------------
-- คำถามระดับหลักสูตร (หน่วยกิตรวม/จำนวนปี) — ใส่ตรงจากตัวเลขที่อ่านได้จากหน้าสุดท้ายของตารางแผน
-  ("รวมตลอดหลักสูตร") ยืนยันด้วยตาแล้วตอนหา page range ("รวมตลอดหลักสูตร120/126/129" ตามเล่ม)
-- คำถามเจาะจงชั้นปีที่ 1 ภาคการศึกษาที่ 1 (จำนวนวิชา/หน่วยกิตรวม/ชุดรหัสวิชา) — คำนวณจาก
-  ground truth กรองเฉพาะแถวที่ปี=1 และภาค=1 (ตรวจแล้วว่าไม่มีวิชาเลือกแบบ "หรือ" ปนในภาคนี้ทุกเล่ม
-  จึงบวกหน่วยกิตตรงๆ ได้ไม่ต้องกัน alt_group ซ้ำ)
-- คำถามค้นชื่อ/รหัสวิชา และหน่วยกิต/ชั่วโมงบรรยาย-ปฏิบัติการ — ดึงจาก ground truth โดยตรง
-  (แยกฟิลด์ "credits" รูปแบบ "3(3-0-6)" เป็นหน่วยกิต/บรรยาย/ปฏิบัติ/ศึกษาด้วยตนเอง)
-- คำถามสรุปภาพรวมตาราง course (จำนวนวิชาทั้งหมด, หน่วยกิตต่ำสุด, ชั่วโมงปฏิบัติการสูงสุด ฯลฯ) —
-  นับจากวิชาที่ "ระบุได้ชัด" เท่านั้น คือ (1) รหัสเป็นตัวเลขล้วน 8 หลัก ไม่ใช่ code คลุมเครือแบบ 06026xxx
-  (2) มีปี/ภาคเรียนระบุแน่นอน ไม่ใช่วิชาเลือกแบบยืดหยุ่น (flexible_year_semester) — กติกาเดียวกับที่
-  Lab8B เดิมใช้ตอนแปลง DSBA-coop (มันข้าม wildcard/flexible ไปเหมือนกัน ดู curriculum.conversion.json)
-  เพราะพวกนี้ไม่มีทางกลายเป็นแถวใน `course`/`plan_item` ที่ระบุแน่นอนได้
-- คำถามวิชาบังคับก่อน (prerequisite) — จำนวนคู่ (วิชา, วิชาบังคับก่อน) ที่ตาราง prerequisite ควรมี คำนวณจากเฉลย scoped
-  (`ground_truth_scoped/<แผน>_scoped.json` ที่แก้ให้ตรงเล่มแล้ว) ผ่าน `expected_prerequisite_pairs()`
-  (เดิม (ก่อน 2026-09-21) ตอบ 0 เสมอ เพราะ Lab 8B ยังไม่สกัดวิชาบังคับก่อน — ตอนนี้ขั้น `load-prerequisites`
-  สกัดจากข้อความ OCR ของภาคผนวกคำอธิบายรายวิชา วิชาที่หาช่องนี้ไม่เจอจะไม่มีแถว จึงอาจทำให้ตอบต่ำกว่าเฉลย)
-- คำถามแบบ "none" (ค่าธรรมเนียม/ชื่ออาจารย์/รหัสวิชาที่ไม่มีจริง) — เหมือน DSBA-coop ทุกเล่ม
-  ไม่ต้องใช้ข้อมูลอะไรเพิ่ม เป็นการเช็คว่าระบบยอมรับได้ว่า "ไม่รู้" แทนที่จะเดามั่ว
-
-ข้อควรระวังก่อนใช้จริง
-----------------------
-ไฟล์พวกนี้เป็น "เฉลยที่คำนวณล่วงหน้า" จาก ground truth ที่มีอยู่ ไม่ใช่ผลจากการรัน pipeline จริง
-เมื่อรัน Lab7B->Lab8B กับหน้าที่เลือกไว้จริงแล้ว **ควรสุ่มตรวจ 3-5 ข้อเทียบกับ curriculum.db ที่ได้
-อีกรอบ** ก่อนใช้รายงานผลจริง เผื่อกรณี OCR อ่านตัวเลขผิดหรือ LLM ตัดวิชาบางตัวออกไปโดยไม่ตั้งใจ
-(เช่นเดียวกับที่เจอใน DSBA-coop ตอน CHK1/CHK7 ไม่ผ่าน)
-
-การใช้งาน
----------
-    python build_gold_questions.py
-
-อ่าน ground truth จาก ../../data/ground_truth/*.json (relative จากไฟล์นี้) เขียนผลลัพธ์ทับไฟล์ใน
-โฟลเดอร์เดียวกัน: ait_gold_questions.json, bit_coop_gold_questions.json,
-bit_no_coop_gold_questions.json, it_coop_gold_questions.json, it_no_coop_gold_questions.json
-"""
-
 from __future__ import annotations
 
+import hashlib
 import json
+import random
 import re
+from collections import Counter
 from pathlib import Path
-from typing import Any
 
 HERE = Path(__file__).resolve().parent
-GT_DIR = HERE.parent.parent / "data" / "ground_truth"
+SCOPED_DIR = HERE.parent / "ground_truth_scoped"
+OUT_DIR = HERE
+PLAN_NAMES = ["ait", "bit_coop", "bit_no_coop", "dsba_coop", "dsba_no_coop", "it_coop", "it_no_coop"]
+CODE_RE = re.compile(r"(?<!\d)\d{8}(?!\d)")
+
 
 CREDIT_RE = re.compile(r"^\s*(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)\s*$")
 
@@ -66,20 +35,6 @@ def parse_credits(s: str) -> tuple[int, int, int, int] | None:
         return None
     credits, lec, lab, self_ = (int(x) for x in m.groups())
     return credits, lec, lab, self_
-
-
-def is_concrete_code(code: str, valid_prefixes: set[str]) -> bool:
-    """รหัสวิชาที่ระบุได้ชัด = ตัวเลขล้วน 8 หลัก ไม่ใช่ 06026xxx / xxxxxxxx
-    และรหัส 4 ตัวแรกต้องอยู่ในกลุ่มที่หลักสูตรนี้ใช้จริง (สาขาตัวเอง + วิชาเรียนรวม + GE)
-
-    เหตุผลที่ต้องกรองด้วย prefix: ground truth (GT_Template) มีแถวหลงเหลือข้ามหลักสูตรอยู่บ้าง
-    เช่น AIT_academic_plan.json มีแถว 06016401 (รหัส 0601 = ของ IT ไม่ใช่ 0604 ของ AIT) ปนอยู่
-    ทั้งที่หน้าแผนการเรียนจริงของ AIT (ตรวจด้วยตาแล้ว) ไม่มีวิชานี้ — DSBA_academic_plan_coop.json
-    ก็มีแถวเดียวกันนี้หลงมาเหมือนกัน แต่ gold_questions.json ตัวจริงของ DSBA (ที่ใช้รันจริงแล้ว)
-    ก็ไม่ได้นับรวมมันด้วยเช่นกัน ยืนยันว่าต้องกรองทิ้ง"""
-    if not re.fullmatch(r"\d{8}", code or ""):
-        return False
-    return code[:4] in valid_prefixes
 
 
 def is_placed(course: dict) -> bool:
@@ -95,42 +50,6 @@ def is_placed(course: dict) -> bool:
     except (TypeError, ValueError):
         return False
     return True
-
-
-def load_courses(path: Path) -> list[dict]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return data["courses"]
-
-
-def _gt_course(code: str, name_th: str, credits: str, year: int, semester: int) -> dict:
-    return {"code": code, "name_th": name_th, "name_en": None, "credits": credits,
-            "year": year, "semester": semester, "category": "หมวดวิชาเฉพาะ", "type": "บังคับ",
-            "prerequisite": "ไม่มี", "flexible_year_semester": None, "note": None}
-
-
-# วิชาสหกิจศึกษา (คู่ "ในประเทศ/ต่างประเทศ") หายไปจาก ground truth ทั้งคู่แบบไม่มีร่องรอยเลย
-# (ไม่ใช่แค่ tag ปี/ภาคผิดแบบที่ BIT เจอตอนแรก — ค้นด้วยรหัสแล้วไม่มีแถวนี้ในไฟล์ GT เลย)
-# ทั้งที่หน้าตารางแผนจริงมีวิชานี้ชัดเจน (ยืนยันด้วยตาแล้วตอนหา page range) ผลคือถ้าไม่เติมเอง
-# ตัวเลขสรุปภาพรวม (จำนวนวิชารวม, ชั่วโมงปฏิบัติการสูงสุด, จำนวนวิชาที่มีคำว่า "เทคโนโลยี") จะผิด
-# เพราะวิชาสหกิจมักมีชั่วโมงปฏิบัติการสูงผิดปกติ (0-45-0) และชื่อมักมีคำเฉพาะทางของหลักสูตรอยู่ด้วย
-# ยืนยันตัวเลขที่เพิ่มตรงนี้จากการรัน AIT จริงแล้ว (ตาราง course ได้ 34 วิชา ตรงกับ 32 (placed จาก GT)
-# + 2 (สหกิจคู่นี้) เป๊ะ, ชั่วโมงปฏิบัติการสูงสุดจริง = 45 ตรงกับ (0-45-0) เป๊ะ)
-# ของ BIT ตรวจแล้วเช่นกัน (หน้า 035) ส่วน IT ยังไม่ได้รันจริงเพื่อยืนยัน — ต้องเช็คซ้ำตอนรัน IT จริง
-MANUAL_GT_GAPS: dict[str, list[dict]] = {
-    "ait": [
-        _gt_course("06046443", "สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์", "6(0-45-0)", 4, 2),
-        _gt_course("06046444", "สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์", "6(0-45-0)", 4, 2),
-    ],
-    "bit_coop": [
-        _gt_course("06036147", "สหกิจศึกษา", "6(0-35-0)", 4, 2),
-        _gt_course("06036148", "สหกิจศึกษาต่างประเทศ", "6(0-35-0)", 4, 2),
-    ],
-    # bit_no_coop / it_coop / it_no_coop: ยังไม่ได้ตรวจว่า GT ขาดคู่สหกิจแบบเดียวกันหรือไม่
-    # (ต้องรัน pipeline จริงก่อนถึงจะยืนยันได้แน่ชัดเหมือนที่ทำกับ AIT/BIT — ดู lab9_progress.md)
-}
-
-
-SCOPED_DIR = HERE.parent / "ground_truth_scoped"
 
 
 def expected_prerequisite_pairs(scoped_courses: list[dict]) -> int:
@@ -150,201 +69,337 @@ def expected_prerequisite_pairs(scoped_courses: list[dict]) -> int:
     return len(pairs)
 
 
-def patch_prerequisite_question(questions: list[dict], n_pairs: int) -> bool:
-    """แก้ค่าคาดหวังของคำถาม 'มีคู่ prerequisite กี่คู่' ในไฟล์คำถามที่มีอยู่แล้ว (ใช้กับ dsba_coop ที่ไม่ได้สร้างจากสคริปต์นี้)"""
-    for q in questions:
-        if "prerequisite" in q["question"] and q["expect"].get("type") == "value":
-            q["expect"]["value"] = str(n_pairs)
-            return True
-    return False
+def norm_th(s: str | None) -> str:
+    return re.sub(r"\s+", "", (s or "").replace("ํา", "ำ"))
 
 
-def build_questions(courses: list[dict], declared_total_credits: int, years: int,
-                     valid_prefixes: set[str], prereq_pairs: int = 0) -> list[dict]:
-    concrete = [c for c in courses if is_concrete_code(c["code"], valid_prefixes)]
-    placed = [c for c in concrete if is_placed(c)]
+def norm_en(s: str | None) -> str:
+    return re.sub(r"\s+", " ", (s or "").upper()).strip()
 
-    # dedup by code (แถวเดียวกันอาจถูกอ้างซ้ำ เช่น ปรากฏทั้งใน source_courses/plan)
-    #
-    # ใช้ "placed" ไม่ใช่ "concrete" ตรงนี้ — เจอบั๊กจริงตอนรัน AIT จริง: ตอนแรกเผลอ dedup
-    # จาก concrete ทั้งหมด (รวมวิชาในหมวดเลือกที่ catalog มีแต่ไม่เคยถูกพิมพ์ในตารางแผน
-    # ปีที่ N ภาคที่ M เลย เช่น "หัวข้อคัดสรรด้านปัญญาประดิษฐ์" ของ AIT) ได้ตัวเลข 48 วิชา
-    # แต่หน้าที่เราป้อนเข้า Lab7B จริงคือหน้าตารางแผนล้วนๆ ไม่มีหน้า catalog เลย ตาราง
-    # course ที่ extraction ผลิตได้จริงจึงมีแค่วิชาที่ "placed" (ปรากฏในตารางแผนจริง) เท่านั้น
-    # — รันจริงได้ 34 วิชา ตรงกับ placed (32) มากกว่า concrete (48) มาก ยืนยันว่าต้องใช้ placed
-    catalog: dict[str, dict] = {}
-    for c in placed:
-        catalog.setdefault(c["code"], c)
 
-    y1s1 = [c for c in placed if int(c["year"]) == 1 and int(c["semester"]) == 1]
-    y1s1_sorted = sorted(y1s1, key=lambda c: c["code"])
-    y1s1_credit_sum = 0
-    for c in y1s1:
-        parsed = parse_credits(c["credits"])
-        y1s1_credit_sum += parsed[0] if parsed else 0
+def load_scoped(plan: str) -> list[dict]:
+    return json.loads((SCOPED_DIR / f"{plan}_scoped.json").read_text(encoding="utf-8"))["courses"]
 
-    def credits_of(course: dict) -> int:
-        parsed = parse_credits(course["credits"])
-        return parsed[0] if parsed else 0
 
-    def hours_of(course: dict) -> tuple[int, int, int]:
-        parsed = parse_credits(course["credits"])
-        return (parsed[1], parsed[2], parsed[3]) if parsed else (0, 0, 0)
+def placed_courses(rows: list[dict]) -> dict[str, dict]:
+    """วิชาที่ระบุตัวชัด = รหัสตัวเลข 8 หลัก + ปี/ภาคแน่นอน (กติกาเดียวกับ v1) — รหัสซ้ำเก็บแถวแรก"""
+    out: dict[str, dict] = {}
+    for c in rows:
+        if re.fullmatch(r"\d{8}", c.get("code") or "") and is_placed(c):
+            out.setdefault(c["code"], c)
+    return out
 
-    # เลือกวิชาตัวอย่างสำหรับคำถามเจาะจง — เอาวิชาที่ "placed" และมีชื่อไทยไม่ซ้ำกัน
-    sample_lookup = []
-    seen_names = set()
-    for c in y1s1_sorted:
-        if c["name_th"] not in seen_names:
-            sample_lookup.append(c)
-            seen_names.add(c["name_th"])
-    # เติมอีก 2-3 ตัวจากปีหลังๆ เพื่อความหลากหลาย (ไม่เอาปี 1 ซ้ำ)
-    later = [c for c in placed if int(c["year"]) > 1 and c["name_th"] not in seen_names]
-    later_sorted = sorted(later, key=lambda c: (int(c["year"]), int(c["semester"]), c["code"]))
-    for c in later_sorted:
-        if len(sample_lookup) >= len(y1s1_sorted) + 3:
-            break
-        if c["name_th"] in seen_names:
+
+def hours(course: dict) -> tuple[int, int, int, int]:
+    parsed = parse_credits(course.get("credits"))
+    if parsed is None:
+        raise ValueError(f"{course.get('code')}: หน่วยกิตอ่านไม่ได้ {course.get('credits')!r}")
+    return parsed
+
+
+def _term_of(c: dict) -> tuple[int, int] | None:
+    try:
+        return int(c.get("year")), int(c.get("semester"))
+    except (TypeError, ValueError):
+        return None
+
+
+def eligible_terms(rows: list[dict], placed: dict[str, dict], allow_year1: bool = False) -> list[tuple[int, int]]:
+    """เทอมที่ถามรายเทอมได้โดยไม่ต้องเดา: ทุกแถวเป็นรหัสจริงในแผน, ไม่มีกลุ่มเลือก (note), ไม่มีรหัสซ้ำ,
+    หน่วยกิตรวม 9–22 (CHK7); ปี 1 ใช้เฉพาะเมื่อ allow_year1 (v1 ถามปี 1 ภาค 1 ไปแล้ว)"""
+    by_term: dict[tuple[int, int], list[dict]] = {}
+    for c in rows:
+        t = _term_of(c)
+        if t and t[0] >= 1 and t[1] >= 1:
+            by_term.setdefault(t, []).append(c)
+    ok = []
+    for (y, s), cs in sorted(by_term.items()):
+        if y == 1 and not allow_year1:
             continue
-        sample_lookup.append(c)
-        seen_names.add(c["name_th"])
-
-    code_name_pairs = sample_lookup[:6]
-    name_code_pairs = sample_lookup[6:9] if len(sample_lookup) > 6 else sample_lookup[:3]
-
-    # วิชาตัวอย่างช่วงหลังของหลักสูตร ใช้ถามปี/ภาค/หน่วยกิตเจาะจง
-    late_course = later_sorted[len(later_sorted) // 2] if later_sorted else y1s1_sorted[0]
-
-    # อีกสองวิชาไว้ถามชั่วโมงบรรยาย/ปฏิบัติการ (เลือกที่มีค่า lab_h > 0 กับ = 0 อย่างละตัวถ้ามี)
-    lab_gt0 = next((c for c in placed if hours_of(c)[1] > 0), None)
-    lab_eq0 = next((c for c in placed if hours_of(c)[1] == 0), None)
-
-    all_catalog = list(catalog.values())
-    credit_values = [credits_of(c) for c in all_catalog]
-    lab_values = [hours_of(c)[1] for c in all_catalog]
-    most_common_credit = max(set(credit_values), key=credit_values.count)
-    n_most_common = credit_values.count(most_common_credit)
-    n_lab_zero = sum(1 for v in lab_values if v == 0)
-    max_lab = max(lab_values)
-    min_credit = min(credit_values)
-
-    # คำถาม Y1S1 ที่หน่วยกิตต่างจากส่วนใหญ่ (เอาไว้ถาม "รหัสวิชาใดมี X หน่วยกิต")
-    y1s1_credits_list = [(c, credits_of(c)) for c in y1s1_sorted]
-    credit_counts = {}
-    for _, cr in y1s1_credits_list:
-        credit_counts[cr] = credit_counts.get(cr, 0) + 1
-    unique_credit_course = next(
-        (c for c, cr in y1s1_credits_list if credit_counts[cr] == 1), None
-    )
-    n_gt2 = sum(1 for _, cr in y1s1_credits_list if cr > 2)
-
-    # keyword ที่พบในชื่อวิชาอย่างน้อย 2 ตัว เอาไว้ถาม "มีกี่วิชาที่มีคำว่า ... ในชื่อ"
-    keyword_candidates = ["เทคโนโลยี", "ข้อมูล", "คอมพิวเตอร์", "ธุรกิจ", "ระบบ"]
-    keyword, keyword_count = None, 0
-    for kw in keyword_candidates:
-        cnt = sum(1 for c in all_catalog if kw in c["name_th"])
-        if cnt >= 2:
-            keyword, keyword_count = kw, cnt
-            break
-
-    q: list[dict] = []
-    q.append({"question": "หลักสูตรนี้ประกาศจำนวนหน่วยกิตรวมตลอดหลักสูตรไว้กี่หน่วยกิต",
-               "expect": {"type": "value", "value": str(declared_total_credits)}})
-    q.append({"question": "หลักสูตรนี้ใช้ระยะเวลาศึกษากี่ปี",
-               "expect": {"type": "value", "value": str(years)}})
-    q.append({"question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
-               "expect": {"type": "value", "value": str(len(y1s1))}})
-    q.append({"question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 1 เรียนรวมทั้งหมดกี่หน่วยกิต",
-               "expect": {"type": "value", "value": str(y1s1_credit_sum)}})
-    q.append({"question": "ในแผนการศึกษา ชั้นปีที่ 1 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง",
-               "expect": {"type": "set", "value": [c["code"] for c in y1s1_sorted]}})
-
-    for c in code_name_pairs:
-        q.append({"question": f"รหัสวิชา {c['code']} มีชื่อภาษาไทยว่าอะไร",
-                   "expect": {"type": "value", "value": c["name_th"]}})
-    for c in name_code_pairs:
-        q.append({"question": f"วิชา '{c['name_th']}' มีรหัสวิชาอะไร",
-                   "expect": {"type": "value", "value": c["code"]}})
-
-    q.append({"question": f"รหัสวิชา {late_course['code']} อยู่ในแผนการศึกษาชั้นปีที่เท่าไร",
-               "expect": {"type": "value", "value": str(int(late_course["year"]))}})
-    q.append({"question": f"รหัสวิชา {late_course['code']} มีกี่หน่วยกิต",
-               "expect": {"type": "value", "value": str(credits_of(late_course))}})
-
-    q.append({"question": f"ในฐานข้อมูลนี้มีคำอธิบายรายวิชา (ตาราง course) ทั้งหมดกี่วิชา",
-               "expect": {"type": "value", "value": str(len(all_catalog))}})
-    q.append({"question": f"มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ {most_common_credit}",
-               "expect": {"type": "value", "value": str(n_most_common)}})
-    q.append({"question": "มีรายวิชากี่วิชาที่ไม่มีชั่วโมงปฏิบัติการ (ชั่วโมงปฏิบัติการเท่ากับ 0)",
-               "expect": {"type": "value", "value": str(n_lab_zero)}})
-    q.append({"question": "รายวิชาในหลักสูตรนี้มีชั่วโมงปฏิบัติการต่อสัปดาห์มากที่สุดกี่ชั่วโมง",
-               "expect": {"type": "value", "value": str(max_lab)}})
-    q.append({"question": "หน่วยกิตที่น้อยที่สุดของรายวิชาในหลักสูตรนี้คือกี่หน่วยกิต",
-               "expect": {"type": "value", "value": str(min_credit)}})
-
-    if lab_gt0 is not None:
-        q.append({"question": f"รหัสวิชา {lab_gt0['code']} มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง",
-                   "expect": {"type": "value", "value": str(hours_of(lab_gt0)[1])}})
-    if lab_eq0 is not None:
-        q.append({"question": f"รหัสวิชา {lab_eq0['code']} มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง",
-                   "expect": {"type": "value", "value": str(hours_of(lab_eq0)[0])}})
-
-    if keyword:
-        q.append({"question": f"มีรายวิชากี่วิชาที่มีคำว่า '{keyword}' อยู่ในชื่อภาษาไทย",
-                   "expect": {"type": "value", "value": str(keyword_count)}})
-
-    q.append({"question": "ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 มีกี่วิชาที่มีหน่วยกิตมากกว่า 2",
-               "expect": {"type": "value", "value": str(n_gt2)}})
-    if unique_credit_course is not None:
-        cr = credits_of(unique_credit_course)
-        q.append({"question": f"ในแผนการศึกษาชั้นปีที่ 1 ภาคการศึกษาที่ 1 รหัสวิชาใดมี {cr} หน่วยกิต",
-                   "expect": {"type": "value", "value": unique_credit_course["code"]}})
-
-    q.append({"question": "ในฐานข้อมูลนี้มีคู่ความสัมพันธ์วิชาบังคับก่อน (prerequisite) ทั้งหมดกี่คู่",
-               "expect": {"type": "value", "value": str(prereq_pairs)}})
-
-    q.append({"question": "ค่าธรรมเนียมการศึกษา (ค่าเทอม) ของหลักสูตรนี้ต่อภาคการศึกษาคือเท่าไร",
-               "expect": {"type": "none", "value": None}})
-    q.append({"question": f"รายวิชา {y1s1_sorted[0]['code']} มีอาจารย์ผู้สอนประจำวิชาชื่อว่าอะไร",
-               "expect": {"type": "none", "value": None}})
-    q.append({"question": "รหัสวิชา 99999999 เป็นรายวิชาอะไร และมีกี่หน่วยกิต",
-               "expect": {"type": "none", "value": None}})
-
-    return q
+        codes = [c.get("code") for c in cs]
+        if any(c.get("note") or c.get("flexible_year_semester") for c in cs):
+            continue
+        if any(code not in placed for code in codes) or len(codes) != len(set(codes)):
+            continue
+        if 9 <= sum(hours(placed[code])[0] for code in codes) <= 22:
+            ok.append((y, s))
+    return ok
 
 
-# valid_prefixes: รหัสสาขาตัวเอง + วิชาเรียนรวมของคณะ (0606) + หมวดศึกษาทั่วไป (9064/9664)
-# อ้างอิงจากตาราง "ความหมายของรหัสประจำรายวิชา" ที่อ่านได้จากหน้าจริงของแต่ละเล่ม
-PLANS = [
-    ("ait", GT_DIR / "AIT_academic_plan.json", 120, 4, {"0604", "0606", "9064"}),
-    ("bit_coop", GT_DIR / "BIT_academic_plan_coop.json", 126, 4, {"0603", "9664"}),
-    ("bit_no_coop", GT_DIR / "BIT_academic_plan_no_coop.json", 126, 4, {"0603", "9664"}),
-    ("it_coop", GT_DIR / "IT_academic_plan_coop.json", 129, 4, {"0601", "0606", "9064"}),
-    ("it_no_coop", GT_DIR / "IT_academic_plan_no_coop.json", 129, 4, {"0601", "0606", "9064"}),
-    ("dsba_no_coop", GT_DIR / "DSBA_academic_plan_no_coop.json", 132, 4, {"0602", "0606", "9064"}),
-]
+def term_codes(rows: list[dict], y: int, s: int) -> list[str]:
+    return sorted({c["code"] for c in rows if _term_of(c) == (y, s) and re.fullmatch(r"\d{8}", c.get("code") or "")})
+
+
+def prereq_maps(placed: dict[str, dict]) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """(วิชา -> วิชาบังคับก่อน, วิชาบังคับก่อน -> วิชาที่ต้องใช้) — "A หรือ B" = สองรหัส, นับเฉพาะรหัสในแผน"""
+    fwd: dict[str, set[str]] = {}
+    rev: dict[str, set[str]] = {}
+    for code, c in placed.items():
+        for req in CODE_RE.findall(c.get("prerequisite") or ""):
+            if req in placed and req != code:
+                fwd.setdefault(code, set()).add(req)
+                rev.setdefault(req, set()).add(code)
+    return fwd, rev
+
+
+def unique_names(placed: dict[str, dict], key: str) -> set[str]:
+    """รหัสวิชาที่ชื่อ (key = name_th / name_en) ไม่ว่างและไม่ซ้ำวิชาอื่นในแผน — ถามด้วยชื่อแล้วได้คำตอบเดียว"""
+    normf = norm_th if key == "name_th" else norm_en
+    counts = Counter(normf(c.get(key)) for c in placed.values() if normf(c.get(key)))
+    return {code for code, c in placed.items() if normf(c.get(key)) and counts[normf(c.get(key))] == 1}
+
+
+# ชุด v1 (git tag gold-v1): (รหัสที่ v1 ถาม/เป็นคำตอบ, หน่วยกิตรวม, จำนวนปี, คำค้นในข้อ 'มีคำว่า') ต่อแผน
+V1: dict[str, tuple[list[str], str, str, str | None]] = {
+    'ait': (['06046400', '06046402', '06046405', '06046406', '06046409', '06066000', '06066001', '06066303', '90641005', '90641008', '99999999'],
+        '120', '4', 'เทคโนโลยี'),
+    'bit_coop': (['06036100', '06036101', '06036103', '06036104', '06036107', '06036118', '96641001', '96641003', '96644007', '96644042', '99999999'],
+        '126', '4', 'เทคโนโลยี'),
+    'bit_no_coop': (['06036100', '06036101', '06036103', '06036104', '06036107', '06036118', '96641001', '96641003', '96644007', '96644042', '99999999'],
+        '126', '4', 'เทคโนโลยี'),
+    'dsba_coop': (['06026201', '06026203', '06026204', '06026205', '06026206', '06026207', '06026208', '06026209', '06026210', '06026213', '06026214', '06026215', '06026259', '06066001', '06066102', '06066301', '06066303', '88888888', '90641002', '90641003', '90642033', '90644008'],
+        '132', '4', 'ข้อมูล'),
+    'dsba_no_coop': (['06026200', '06026202', '06026206', '06066000', '06066101', '06066102', '06066303', '90641001', '90641003', '90644007', '99999999'],
+        '132', '4', 'เทคโนโลยี'),
+    'it_coop': (['06016401', '06016402', '06016403', '06016404', '06016409', '06016411', '06066303', '90641001', '90641003', '90644007', '99999999'],
+        '129', '4', 'เทคโนโลยี'),
+    'it_no_coop': (['06016401', '06016402', '06016403', '06016404', '06016409', '06016411', '06066303', '90641001', '90641003', '90644007', '99999999'],
+        '129', '4', 'เทคโนโลยี'),
+}
+
+def v1_codes(plan: str) -> set[str]:
+    """รหัสวิชาที่ชุด v1 ถามถึงหรือเป็นคำตอบ — ชุดนี้เลี่ยงวิชาเหล่านี้เมื่อมีตัวเลือกอื่น"""
+    return set(V1[plan][0])
+
+
+def v1_declared(plan: str) -> tuple[str, str]:
+    """(หน่วยกิตรวม, จำนวนปี) ที่เล่มประกาศ"""
+    return V1[plan][1], V1[plan][2]
+
+
+def v1_keyword(plan: str) -> str | None:
+    return V1[plan][3]
+
+
+ALL_CODES: set[str] = {c.get("code") or "" for p in PLAN_NAMES for c in load_scoped(p)}
+ALL_NAMES_TH: set[str] = {norm_th(c.get("name_th")) for p in PLAN_NAMES for c in load_scoped(p)}
+
+KEYWORDS = ["ระบบ", "ข้อมูล", "เทคโนโลยี", "คอมพิวเตอร์", "ธุรกิจ", "สารสนเทศ", "ปัญญาประดิษฐ์", "ภาษา", "การจัดการ"]
+FAKE_NAMES = ["การเล่นหมากรุกสากลขั้นสูง", "ดาราศาสตร์วิทยุเบื้องต้น", "การทำอาหารไทยเชิงพาณิชย์"]
+
+T = {   # แม่แบบคำถาม — หลายแบบต่อหมวด (ทางการ / ภาษาพูด) สุ่มด้วย seed ของแผน
+    "total": ["หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "เรียนจบหลักสูตรนี้ต้องเก็บหน่วยกิตทั้งหมดกี่หน่วยกิต"],
+    "years": ["หลักสูตรนี้เรียนกี่ปี", "ระยะเวลาการศึกษาตามแผนของหลักสูตรนี้กี่ปี"],
+    "t_count": ["ปี {y} เทอม {s} ต้องลงเรียนกี่วิชา", "ในแผนการศึกษา ชั้นปีที่ {y} ภาคการศึกษาที่ {s} มีรายวิชาทั้งหมดกี่วิชา"],
+    "t_sum": ["ปี {y} เทอม {s} เรียนรวมกี่หน่วยกิต", "ชั้นปีที่ {y} ภาคการศึกษาที่ {s} มีหน่วยกิตรวมเท่าไร"],
+    "t_set": ["ปี {y} เทอม {s} เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ชั้นปีที่ {y} ภาคการศึกษาที่ {s} ประกอบด้วยรายวิชารหัสใดบ้าง"],
+    "c_th": ["รหัสวิชา {code} ชื่อวิชาภาษาไทยว่าอะไร", "วิชา {code} คือวิชาอะไร (ชื่อภาษาไทย)"],
+    "c_en": ["รหัสวิชา {code} มีชื่อภาษาอังกฤษว่าอะไร", "วิชา {code} ชื่อภาษาอังกฤษคืออะไร"],
+    "d_th": ["วิชา{name}มีรหัสวิชาอะไร"],
+    "d_talk": ["{name} รหัสวิชาอะไรนะ", "ขอรหัสวิชาของ{name}หน่อย"],
+    "d_en": ["วิชา {name} รหัสอะไร", "What is the course code of {name}"],
+    "e_year": ["วิชา{name}อยู่ในแผนการศึกษาชั้นปีที่เท่าไร", "{name} เรียนตอนปีไหน"],
+    "e_credit": ["วิชา{name}มีกี่หน่วยกิต", "{name} กี่หน่วยกิต"],
+    "e_lab": ["วิชา{name}มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง", "{name} แล็บสัปดาห์ละกี่ชั่วโมง"],
+    "e_lec_en": ["วิชา {name} มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง", "{name} lecture สัปดาห์ละกี่ชั่วโมง"],
+    "f_code": ["รหัสวิชา {code} มีวิชาบังคับก่อนคือวิชาใด", "ก่อนลงวิชา {code} ต้องผ่านวิชาอะไรมาก่อน"],
+    "f_name": ["ถ้าจะลงเรียน{name} ต้องผ่านวิชาอะไรมาก่อน", "{name} ต้องเรียนวิชาอะไรก่อน"],
+    "f_rev": ["วิชาใดบ้างที่มี {code} เป็นวิชาบังคับก่อน", "ผ่านวิชา {code} แล้วจะลงวิชาไหนต่อได้บ้าง"],
+    "f_pairs": ["ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่"],
+    # หมวด G จำกัดแค่แผนปี 1–2: เฉลย scoped ไม่มีวิชาในเมนูวิชาเลือก/คู่สหกิจ (ปี 3–4) ที่ตาราง course มี
+    "g_credit": ["ในแผนการศึกษาชั้นปีที่ 1–2 มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ {x}",
+                 "ปี 1 กับปี 2 มีวิชาที่ได้ {x} หน่วยกิตกี่วิชา"],
+    "g_lec": ["ในแผนการศึกษาชั้นปีที่ 1–2 วิชาที่มีชั่วโมงบรรยายต่อสัปดาห์มากที่สุดมีกี่ชั่วโมง",
+              "ปี 1 กับปี 2 วิชาที่บรรยายนานที่สุดสัปดาห์ละกี่ชั่วโมง"],
+    "g_kw": ["ในแผนการศึกษาชั้นปีที่ 1–2 มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่า '{kw}'",
+             "ปี 1 กับปี 2 มีวิชาที่ชื่อมีคำว่า '{kw}' กี่วิชา"],
+    "h_fee": ["ค่าเทอมของหลักสูตรนี้เท่าไร", "ค่าธรรมเนียมการศึกษาต่อภาคการศึกษาของหลักสูตรนี้คือเท่าไร"],
+    "h_teacher": ["ใครเป็นอาจารย์ผู้สอนวิชา {code}", "วิชา {code} อาจารย์ประจำวิชาชื่ออะไร"],
+    "h_code": ["รหัสวิชา {code} คือวิชาอะไร", "วิชา {code} มีกี่หน่วยกิต"],
+    "h_year7": ["ปี 7 เทอม 1 ต้องเรียนวิชาอะไรบ้าง", "ชั้นปีที่ 7 ภาคการศึกษาที่ 1 มีรายวิชาอะไรบ้าง"],
+    "h_name": ["วิชา{name}มีกี่หน่วยกิต"],
+}
+
+
+def build_plan(plan: str) -> tuple[list[dict], dict]:
+    seed = f"gold-v2:{plan}"
+    rng = random.Random(seed)
+    rows = load_scoped(plan)
+    placed = placed_courses(rows)
+    for c in placed.values():
+        hours(c)                                     # หน่วยกิตอ่านไม่ได้ = หยุด ไม่เดา
+    v1 = v1_codes(plan)
+    total, years = v1_declared(plan)
+    th_ok, en_ok = unique_names(placed, "name_th"), unique_names(placed, "name_en")
+    meta = {"plan": plan, "seed": seed, "terms": [], "terms_relaxed": False, "fallback_v1_codes": [], "replaced": []}
+    qs: list[dict] = []
+    used: set[str] = set()
+
+    def add(cat, level, text, expect, **extra):
+        n = sum(1 for q in qs if q["category"] == cat) + 1
+        qs.append({"id": f"{cat}{n}", "category": cat, "level": level, "question": text, "expect": expect, **extra})
+
+    def tmpl(key, **kw):
+        return rng.choice(T[key]).format(**kw)
+
+    def pick(allowed: set[str]) -> str:
+        fresh = sorted(c for c in allowed if c not in used and c not in v1)
+        if fresh:
+            code = rng.choice(fresh)
+        else:
+            code = rng.choice(sorted(c for c in allowed if c not in used))   # ไม่มีตัวใหม่แล้ว -> ใช้วิชาที่ v1 เคยถาม
+            meta["fallback_v1_codes"].append(code)
+        used.add(code)
+        return code
+
+    def named(code, key):   # ชื่อที่ขึ้นบรรทัดใหม่ในเฉลย (ตัดบรรทัดตามหน้ากระดาษ) = เว้นวรรคเดียว
+        return " ".join(placed[code][key].split())
+
+    def extra_e():   # ใช้แทนข้อ F เมื่อแผนไม่มีวิชาบังคับก่อนพอ
+        code = pick(th_ok)
+        add("E", "1", tmpl("e_credit", name=named(code, "name_th")),
+            {"type": "value", "value": str(hours(placed[code])[0])}, about_codes=[code], name_key="name_th")
+
+    # A — ระดับหลักสูตร
+    add("A", "1", tmpl("total"), {"type": "value", "value": total})
+    add("A", "1", tmpl("years"), {"type": "value", "value": years})
+
+    # B — รายเทอม (ปี 2–4)
+    terms = eligible_terms(rows, placed)
+    if len(terms) < 2:
+        terms = eligible_terms(rows, placed, allow_year1=True)
+        meta["terms_relaxed"] = True
+        if len([t for t in terms if t != (1, 1)]) >= 2:     # ปี 1 ภาค 1 = เทอมที่ v1 ถามแล้ว เลี่ยงถ้าเลี่ยงได้
+            terms = [t for t in terms if t != (1, 1)]
+    if len(terms) < 2:
+        raise ValueError(f"{plan}: เทอมที่ใช้ได้ไม่ถึง 2")
+    chosen = sorted(rng.sample(terms, 2))
+    meta["terms"] = [list(t) for t in chosen]
+    for y, s in chosen:
+        codes = term_codes(rows, y, s)
+        add("B", "2", tmpl("t_count", y=y, s=s), {"type": "value", "value": str(len(codes))}, term=[y, s])
+        add("B", "2", tmpl("t_sum", y=y, s=s),
+            {"type": "value", "value": str(sum(hours(placed[c])[0] for c in codes))}, term=[y, s])
+        add("B", "2", tmpl("t_set", y=y, s=s), {"type": "set_exact", "value": codes}, term=[y, s])
+
+    # C — รหัส -> ชื่อ
+    for _ in range(2):
+        code = pick(set(placed))
+        add("C", "1", tmpl("c_th", code=code), {"type": "value", "value": named(code, "name_th")}, about_codes=[code])
+    code = pick(en_ok)
+    add("C", "1", tmpl("c_en", code=code), {"type": "value", "value": named(code, "name_en")}, about_codes=[code])
+
+    # D — ชื่อ -> รหัส
+    for key in ("d_th", "d_talk"):
+        code = pick(th_ok)
+        add("D", "1", tmpl(key, name=named(code, "name_th")), {"type": "value", "value": code},
+            about_codes=[code], name_key="name_th")
+    code = pick(en_ok)
+    add("D", "1", tmpl("d_en", name=named(code, "name_en")), {"type": "value", "value": code},
+        about_codes=[code], name_key="name_en")
+
+    # E — ชื่อ -> ข้อมูลของวิชา
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_year", name=named(code, "name_th")),
+        {"type": "value", "value": str(int(placed[code]["year"]))}, about_codes=[code], name_key="name_th")
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_credit", name=named(code, "name_th")),
+        {"type": "value", "value": str(hours(placed[code])[0])}, about_codes=[code], name_key="name_th")
+    code = pick(th_ok)
+    add("E", "1", tmpl("e_lab", name=named(code, "name_th")),
+        {"type": "value", "value": str(hours(placed[code])[2])}, about_codes=[code], name_key="name_th")
+    code = pick(en_ok)
+    add("E", "1", tmpl("e_lec_en", name=named(code, "name_en")),
+        {"type": "value", "value": str(hours(placed[code])[1])}, about_codes=[code], name_key="name_en")
+
+    # F — วิชาบังคับก่อน
+    fwd, rev = prereq_maps(placed)
+    if fwd:
+        s1 = rng.choice(sorted(fwd))
+        add("F", "1", tmpl("f_code", code=s1), {"type": "set_exact", "value": sorted(fwd[s1]), "ignore": [s1]},
+            about_codes=[s1], direction="forward")
+        by_name = sorted(k for k in fwd if k in th_ok and k != s1)      # ห้ามถามวิชาเดียวกับ F1 ซ้ำ
+        if by_name:
+            s2 = rng.choice(by_name)
+            add("F", "1", tmpl("f_name", name=named(s2, "name_th")),
+                {"type": "set_exact", "value": sorted(fwd[s2]), "ignore": [s2]}, about_codes=[s2], name_key="name_th",
+                direction="forward")
+        else:
+            meta["replaced"].append("F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)")
+            extra_e()
+        r = rng.choice(sorted(rev))
+        add("F", "1", tmpl("f_rev", code=r), {"type": "set_exact", "value": sorted(rev[r]), "ignore": [r]},
+            about_codes=[r], direction="reverse")
+    else:
+        meta["replaced"].append("F1-F3 -> E (แผนนี้ไม่มีคู่วิชาบังคับก่อนในแผน)")
+        for _ in range(3):
+            extra_e()
+    add("F", "2", tmpl("f_pairs"), {"type": "value", "value": str(expected_prerequisite_pairs(rows))})
+
+    # G — ภาพรวม
+    catalog = [placed[c] for c in sorted(placed) if _term_of(placed[c])[0] in (1, 2)]
+    credit_values = [hours(c)[0] for c in catalog]
+    x = rng.choice(sorted(set(credit_values)))
+    add("G", "2", tmpl("g_credit", x=x), {"type": "value", "value": str(credit_values.count(x))})
+    add("G", "2", tmpl("g_lec"), {"type": "value", "value": str(max(hours(c)[1] for c in catalog))})
+    kw_count = {k: sum(k in c["name_th"] for c in catalog) for k in KEYWORDS if k != v1_keyword(plan)}
+    kws = [k for k, n in kw_count.items() if n >= 2] or [k for k, n in kw_count.items() if n >= 1]
+    if not kws:
+        raise ValueError(f"{plan}: ไม่มีคำค้นที่ใช้ได้")
+    kw = rng.choice(kws)
+    add("G", "2", tmpl("g_kw", kw=kw), {"type": "value", "value": str(sum(kw in c["name_th"] for c in catalog))})
+
+    # H — ข้อที่ต้องตอบว่าไม่รู้ (ch8: ระบบที่ตอบทุกคำถามได้เสมอ คือระบบที่แต่งคำตอบ)
+    none = {"type": "none", "value": None}
+    add("H", "none", tmpl("h_fee"), none)
+    add("H", "none", tmpl("h_teacher", code=rng.choice(sorted(placed))), none)
+    prefix = Counter(c[:4] for c in placed).most_common(1)[0][0]
+    fake = next(f"{prefix}{n:04d}" for n in rng.sample(range(10000), 10000) if f"{prefix}{n:04d}" not in ALL_CODES)
+    add("H", "none", tmpl("h_code", code=fake), none)
+    add("H", "none", tmpl("h_year7"), none)
+    fake_name = rng.choice([n for n in FAKE_NAMES if not any(norm_th(n) in a for a in ALL_NAMES_TH)])
+    add("H", "none", tmpl("h_name", name=fake_name), none)
+
+    if len(qs) != 30 or len({q["question"] for q in qs}) != 30:
+        raise ValueError(f"{plan}: ได้ {len(qs)} ข้อ / คำถามซ้ำ")
+    return qs, meta
+
+
+def render(qs: list[dict]) -> bytes:
+    return (json.dumps(qs, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+FROZEN = HERE / "frozen.json"
+
+
+def question_path(plan: str) -> Path:
+    return OUT_DIR / f"{plan}_gold_questions.json"
+
+
+def write_all() -> dict[str, dict]:
+    frozen: dict[str, dict] = {}
+    for plan in PLAN_NAMES:
+        qs, meta = build_plan(plan)
+        data = render(qs)
+        question_path(plan).write_bytes(data)
+        meta["sha256"] = hashlib.sha256(data).hexdigest()
+        frozen[plan] = meta
+    FROZEN.write_bytes((json.dumps(frozen, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+    return frozen
+
+
+def frozen_ok(plan: str, folder: Path = HERE) -> bool:
+    """ไฟล์คำถามตรง sha256 ที่ล็อกไว้ — กันรายงานผลจากไฟล์ที่ถูกแก้หลังล็อกว่าเป็นชุดทางการ"""
+    q, frozen = folder / f"{plan}_gold_questions.json", folder / "frozen.json"
+    if not frozen.exists():
+        return False
+    meta = json.loads(frozen.read_text(encoding="utf-8")).get(plan) or {}
+    return q.exists() and hashlib.sha256(q.read_bytes()).hexdigest() == meta.get("sha256")
 
 
 def main() -> None:
-    for name, gt_path, total_credits, years, valid_prefixes in PLANS:
-        courses = load_courses(gt_path) + MANUAL_GT_GAPS.get(name, [])
-        scoped = load_courses(SCOPED_DIR / f"{name}_scoped.json")
-        n_pairs = expected_prerequisite_pairs(scoped)
-        questions = build_questions(courses, total_credits, years, valid_prefixes, n_pairs)
-        out_path = HERE / f"{name}_gold_questions.json"
-        out_path.write_text(json.dumps(questions, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(f"{name}: {len(questions)} questions -> {out_path.name} (prerequisite pairs = {n_pairs})")
-
-    # dsba_coop: ไฟล์คำถามเตรียมไว้ก่อนสคริปต์นี้ (อยู่ที่ output ของรัน) — คัดลอกมาไว้ที่นี่แล้วแก้เฉพาะข้อ prerequisite
-    out_path = HERE / "dsba_coop_gold_questions.json"
-    if not out_path.exists():
-        src = HERE.parents[1] / "Lab8b_ocr_system" / "runs" / "DSBA" / "coop" / "lab8b_output" / "gold_questions.json"
-        out_path.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
-    qs = json.loads(out_path.read_text(encoding="utf-8"))
-    n_pairs = expected_prerequisite_pairs(load_courses(SCOPED_DIR / "dsba_coop_scoped.json"))
-    patch_prerequisite_question(qs, n_pairs)
-    out_path.write_text(json.dumps(qs, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"dsba_coop: {len(qs)} questions -> {out_path.name} (prerequisite pairs = {n_pairs}; แก้เฉพาะข้อ prerequisite)")
+    for plan in write_all():
+        print(f"{plan}: 30 ข้อ -> {question_path(plan).name}")
 
 
 if __name__ == "__main__":

@@ -40,19 +40,18 @@ lab10_fastapi/
 - Ollama
 - โมเดล `qwen3:4b`
 - ฝั่ง Transcript ต้องมีโมเดล `scb10x/typhoon-ocr1.5-3b` ด้วย
-- ฐานข้อมูล `work/lab8b_run/curriculum.db` จาก Lab 8B
+- ฐานข้อมูล `curriculum.db` จาก Lab 8B — มีใน repo แล้วทั้ง 7 แผนที่
+  `Lab7B_Lab8B_ocr_system/runs/<หลักสูตร>/<แผน>/lab8b_output/curriculum.db`
+  ชี้ด้วย `CURRICULUM_DB_PATH` ใน `curriculum_app/.env` (ดู `.env.example`)
 
-ถ้ายังไม่มีฐานข้อมูล ให้กลับไปรันจากรากโปรเจกต์:
-
-```bash
-python run_lab8b.py --skip-lab7
-```
-
-หากยังไม่มีผล Lab 7B ให้รันโดยไม่ใส่ `--skip-lab7`:
+สร้างฐานข้อมูลใหม่จากผล Lab 7B เดิม (ไม่ OCR ใหม่):
 
 ```bash
-python run_lab8b.py
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan it_coop --skip-lab7     # หรือ --plan all
 ```
+
+OCR ใหม่ทั้งหมด (ช้า ต้องมี `scb10x/typhoon-ocr1.5-3b`): ไม่ใส่ `--skip-lab7`
 
 ## 3. เปิดโปรเจกต์และ Terminal
 

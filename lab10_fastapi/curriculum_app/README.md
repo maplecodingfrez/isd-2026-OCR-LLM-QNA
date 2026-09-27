@@ -83,7 +83,7 @@ Endpoint /api/ask ไม่ได้เรียก OCR หรืออ่าน
 
 <!-- ไม่ได้ส่งหนังสือหลักสูตรทั้งเล่มเข้า LLM ทุกครั้ง
 OCR/ประมวลผลหนังสือจะเกิดเฉพาะตอนสร้างหรืออัปเดตฐานข้อมูล เช่น รัน:
-python run_lab8b.py
+python Lab7B_Lab8B_ocr_system/run_lab8b.py --plan <แผน>
 ส่วน:
-python run_lab8b.py --skip-lab7
+python Lab7B_Lab8B_ocr_system/run_lab8b.py --plan <แผน> --skip-lab7
 จะไม่ OCR หนังสือใหม่ แต่จะนำผลเดิมมาสร้าง curriculum.db ใหม่ -->

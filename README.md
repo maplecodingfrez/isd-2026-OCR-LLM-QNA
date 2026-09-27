@@ -20,6 +20,42 @@
 * 67070185 - 17decc
 * 67070195 - zvacia
 
+## Quick start — รันระบบถาม-ตอบหลักสูตร (Lab 7B → 8B → 9)
+
+ต้องมี Python 3.10+ และ [Ollama](https://ollama.com) ในเครื่อง (`ollama pull qwen3:4b`) — ข้อมูลที่สกัดแล้ว
+(ภาพหน้าแผน, ผล OCR, `curriculum.db` ทั้ง 7 แผน) อยู่ใน repo แล้ว ไม่ต้องมี PDF และไม่ต้อง OCR ใหม่
+
+1) สร้าง venv แล้ว activate (เลือกตามเชลล์ที่ใช้):
+
+```text
+python -m venv .venv
+.venv\Scripts\Activate.ps1        # Windows PowerShell
+.venv\Scripts\activate.bat        # Windows cmd
+source .venv/Scripts/activate     # Windows Git Bash
+source .venv/bin/activate         # macOS / Linux
+```
+
+2) ติดตั้งเฉพาะที่ Lab 7B–9 ใช้ (ไม่ต้องลง torch/paddle ของ Lab 3–6 ใน `requirements.txt`) แล้วรัน:
+
+```bash
+pip install pydantic requests pillow opencv-python numpy pytesseract pythainlp pytest
+python -m pytest tests -q                                # เทสทั้งหมด (ไม่ต้องใช้ Ollama)
+
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan it_coop --skip-lab7           # 1 แผน: ซ่อมข้อมูลจากเล่ม -> SQLite -> ตรวจ -> ถาม 30 ข้อ
+python run_lab8b.py --plan all --skip-lab7               # ครบ 7 แผน (~15 นาที)
+python src/ocr_system/lab8b_curriculum_db.py ask -d runs/IT/coop/lab8b_output/curriculum.db -q "ปี 1 เทอม 1 เรียนอะไรบ้าง"
+
+cd ../Lab9_evaluation
+python evaluate_lab9.py                                  # รายงาน metric -> reports/lab9_metrics_latest.md
+```
+
+- แผนที่มี: `ait`, `bit_no_coop`, `bit_coop`, `dsba_no_coop`, `dsba_coop`, `it_no_coop`, `it_coop`
+- ชุดคำถามทอง (30 ข้อ/แผน): `Lab9_evaluation/gold_questions/` — ทำไมทำใหม่และเลี่ยง overfit อย่างไร ดูหัวข้อ
+  "ชุดคำถามทอง" ในส่วน Evaluation & Overfitting (Lab 9)
+- `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ลองรันแล้วไม่อยากเก็บ: `git restore Lab7B_Lab8B_ocr_system/runs`
+- เว็บ/API ถาม-ตอบ (Lab 10): ดู `lab10_fastapi/README.md`
+
 ---
 # Thai-English OCR System
 
@@ -34,9 +70,9 @@ OCR engines ที่มีให้:
 
 ---
 
-> **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
-> **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
-> ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab8b_ocr_system/`, `Lab9_evaluation/`
+> **หมายเหตุ:** โฟลเดอร์ `src/`, `scripts/`, `outputs/`, `data/` ที่ root เป็นงาน **Lab 3-6**
+> (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยก: `Lab7B_Lab8B_ocr_system/`,
+> `Lab9_evaluation/`, `lab10_fastapi/` (เทสอยู่ที่ `tests/`)
 
 ## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
 
@@ -52,8 +88,8 @@ git pull --ff-only          # รวมเข้ามาเฉพาะกร�
 
 - ถ้า `git pull --ff-only` ไม่ผ่าน = ประวัติแยกกัน → **หยุดและดูก่อน** ว่าเพื่อนแก้อะไร อย่าสั่ง `git push --force` (ถ้าจะใช้ ต้องตกลงกันในทีมก่อน)
 - ก่อน push: `git pull --rebase` อีกครั้ง แล้วค่อย `git push`
-- `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
-- สคริปต์ `run_lab8b_*.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab8b_ocr_system/runs` หลังรัน
+- `git pull` จะ**ลบไฟล์ในเครื่อง**ที่เพื่อนเลิก track (เช่น PDF หลักสูตร, `outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`) — สำรองไฟล์ที่ยังต้องใช้ก่อน pull
+- สคริปต์ `run_lab8b.py` เขียนทับ `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บผลที่รันลอง ให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังรัน
 - แค่ใช้ระบบโดยไม่แก้โค้ด: ไม่ต้อง pull ทุกครั้ง แต่ควร pull เมื่อทีมแจ้งว่ามีอัปเดต (โค้ด/เฉลยชุดใหม่)
 
 ## Project Structure
@@ -61,49 +97,75 @@ git pull --ff-only          # รวมเข้ามาเฉพาะกร�
 ```text
 ocr_system/
 ├── README.md
-├── requirements.txt
+├── requirements.txt               # แพ็กเกจทั้งหมด (รวม torch/paddle ของ Lab 3–6)
 ├── pyproject.toml
-├── Lab7B_curriculum/           # Lab 7B (เวอร์ชันต้นแบบ) — แทนที่ด้วย Lab8b_ocr_system/ ด้านล่าง
-├── Lab8b_ocr_system/           # Lab 7B→8B: OCR ด้วย local VLM → JSON → SQLite → NL2SQL Q&A
-│                                 # (ดูภาพรวมที่ Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md)
-├── Lab9_evaluation/            # Lab 9: Evaluation & Overfitting — อ่านผล Lab 8B มาคำนวณ metric
-│                                 # (ดู Lab9_evaluation/README.md)
+├── .gitattributes                 # ล็อก LF ให้ไฟล์ชุดคำถามทอง (sha256 ตรงทุกเครื่อง)
+│
+│   ── Lab 3–6: OCR พื้นฐาน → สกัดรายวิชา → จับคู่หน้า → ประเมิน 3 ระดับ ──
 ├── data/
-│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
-│   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
+│   ├── input/                     # PDF เล่มหลักสูตร DSBA/AIT/IT/BIT (ไม่อยู่ใน repo — วางเองก่อนรัน Lab 3–6)
+│   └── ground_truth/              # เฉลยแผนการเรียน DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules, example
 ├── outputs/
-│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
-│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
-│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
+│   ├── dsba/ ait/ it/ bit/        # ผล OCR (Tesseract ทั้งเล่ม), extraction, evaluation, page mapping, Lab 6 (แยกตามหลักสูตร)
+│   ├── qa_pairs.csv               # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
+│   └── pages/                     # ภาพหน้า PDF ที่แปลงตอนรัน (ไม่อยู่ใน repo)
 ├── scripts/
-│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
-│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
-│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
-│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
-│   └── lab6_evaluate.py       # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
-        ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
-        ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
-        ├── evaluate_lab6.py         # evaluate_field_level / evaluate_page_level / evaluate_category_level / write_lab6_outputs (Lab 6)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+│   ├── lab5_page_mapping.py       # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
+│   ├── lab5_qa_pairs.py           # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
+│   ├── supplement_check_rules.py  # เช็ค coverage ของ rules_ground_truth.json ต่อ program
+│   ├── supplement_general_education.py # เทียบวิชาที่ extract ได้กับ general_education_ground_truth.json
+│   └── lab6_evaluate.py           # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
+├── src/
+│   └── ocr_system/
+│       ├── cli.py                 # command line interface
+│       ├── config.py              # config หลักของระบบ
+│       ├── document_loader.py     # โหลดภาพ / แปลง PDF เป็นภาพ
+│       ├── preprocessing.py       # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
+│       ├── pipeline.py            # OCR pipeline หลัก
+│       ├── evaluation.py          # CER, WER, exact match (เอกสารทั่วไป)
+│       ├── field_extraction.py    # ดึง field เช่น email, date, id, phone
+│       ├── curriculum_extraction.py # ดึง course records จากเล่มหลักสูตร (Lab 4)
+│       ├── evaluate_curriculum.py # recall + field-level agreement + CER/WER (Lab 4)
+│       ├── gt_page_mapping.py     # map course code → หน้า PDF จริง (Lab 5)
+│       ├── evaluate_lab6.py       # evaluate Field / Page / Category level (Lab 6)
+│       ├── schemas.py             # dataclass ของผลลัพธ์
+│       ├── engine_factory.py      # เลือก OCR engine
+│       ├── engines/               # base, paddle, tesseract, trocr, ensemble
+│       └── utils/io.py
+│
+│   ── Lab 7B–10: local VLM → SQLite → ถาม-ตอบ → ประเมิน → เว็บ ──
+├── Lab7B_Lab8B_ocr_system/        # ภาพรวม: LAB7B_LAB8B_OVERVIEW.md
+│   ├── run_lab8b.py               # รันทั้ง workflow: --plan <แผน|all> [--skip-lab7]
+│   ├── regenerate_evaluation.py   # คำนวณ evaluation.json/comparison.csv ใหม่จาก pred_vlm.json (ไม่เรียก VLM)
+│   ├── OCR_VS_BOOK_DIFF.md        # ผล OCR/DB เทียบกับเล่มจริงทีละแถว (ตรวจด้วยตา)
+│   ├── src/
+│   │   ├── lab7_metrics.py        # CER / WER ของ Lab 7
+│   │   └── ocr_system/
+│   │       ├── lab7b_curriculum.py      # Lab 7B: ภาพหน้าแผน → Typhoon-OCR (Markdown) → qwen3 (JSON)
+│   │       ├── lab8b_curriculum_db.py   # Lab 8B: JSON → SQLite + NL2SQL (import-lab7b / load / ask / eval ...)
+│   │       ├── code_from_book.py        # กู้รหัสวิชาที่ OCR ทำหายจากข้อความทั้งเล่ม
+│   │       ├── prereq_from_book.py      # สกัดวิชาบังคับก่อนจากหน้าคำอธิบายรายวิชา
+│   │       ├── extract_elective_catalog.py # ดึงกลุ่มวิชาเลือกจากหน้า catalog (→ runs/<หลักสูตร>/electives.json)
+│   │       ├── md_plan_slots.py         # ช่องตามเล่ม (wildcard / "หรือ" / เลือก 1 กลุ่ม) ให้หน่วยกิตรวมตรงเล่ม
+│   │       ├── or_course_names.py       # แก้ชื่อคู่ "A หรือ B" ที่สลับ/ซ้ำกัน
+│   │       ├── name_consensus.py        # ฉันทามติชื่อวิชาข้ามแผน แก้ typo ของ OCR
+│   │       ├── course_names.py          # ชื่อวิชาในคำถาม → รหัสวิชา (ก่อนส่งให้ LLM)
+│   │       ├── citations.py             # อ้างอิงเลขหน้าในคำตอบ
+│   │       └── schemas.py               # dataclass ผลลัพธ์ OCR (แบบเดียวกับ src/ocr_system/schemas.py)
+│   └── runs/                      # ผลที่ commit ไว้ของ 7 แผน: AIT/, BIT|DSBA|IT/{coop,no_coop}/
+│       └── <แผน>/
+│           ├── data_input/        # ภาพหน้าตารางแผนการศึกษา (input ของ Lab 7B)
+│           ├── lab7b_output/      # intermediate_vlm.md, pred_vlm.json, evaluation.json, comparison.csv
+│           └── lab8b_output/      # curriculum.db, curriculum.json, eval_result.json, verify*.json, report ต่างๆ
+├── Lab9_evaluation/               # อ่านผล Lab 8B มาคำนวณ metric เท่านั้น (ดู Lab9_evaluation/README.md)
+│   ├── evaluate_lab9.py           # รายงาน metric ทุกแผน → reports/
+│   ├── levels.py                  # ระดับความยากของคำถาม + หน้าที่ควรอ้างอิง
+│   ├── gold_questions/            # ชุดคำถามทอง 30 ข้อ × 7 แผน + build_gold_questions.py + frozen.json (sha256)
+│   ├── ground_truth_scoped/       # เฉลยเต็มชุดที่กรองเหลือวิชาในแผน (year >= 1) ใช้เทียบ P/R/F1/CER/WER
+│   └── reports/                   # lab9_metrics_latest.md/.json, สรุป overfit/underfit, P/R/F1 + CER/WER ของ Lab 7B
+├── lab10_fastapi/                 # Lab 10: เว็บ/API ถาม-ตอบหลักสูตร (ดู lab10_fastapi/README.md)
+│   └── curriculum_app/            # main.py (FastAPI), database.py + model_service.py (ใช้ lab8b ซ้ำ), static/index.html
+└── tests/                         # pytest ของ Lab 7B–9 (python -m pytest tests -q, ไม่ต้องใช้ Ollama)
 ```
 
 ---
@@ -1165,12 +1227,12 @@ outputs/it/general_education_it_evaluation.json
 ### วิธีรัน
 
 ```bash
-cd Lab8b_ocr_system
+cd Lab7B_Lab8B_ocr_system
 python src/ocr_system/lab7b_curriculum.py -i data/DSBA.pdf -g gt/x.json --pipeline all --out output/
 ```
 
 รายละเอียดคำสั่งทั้งหมด (รวม `--eval-only` สำหรับคำนวณ metric ใหม่โดยไม่เรียก VLM ซ้ำ) ดูใน
-docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอง
+docstring ของ `Lab7B_Lab8B_ocr_system/src/ocr_system/lab7b_curriculum.py` เอง
 
 ### Known Limitations
 
@@ -1181,7 +1243,7 @@ docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอ
   `exact_match_acc` เดิมมองไม่เห็น บันทึกไว้เป็นข้อสังเกต ยังไม่ได้แก้
 
 รายละเอียดประวัติแก้บั๊กทั้งหมด (session-by-session) อยู่ที่
-`Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md` และ `Lab8b_ocr_system/PROGRESS.md`
+`Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
 ---
 
@@ -1200,20 +1262,20 @@ docstring ของ `Lab8b_ocr_system/src/ocr_system/lab7b_curriculum.py` เอ
   พร้อมโมเดล: `ollama pull scb10x/typhoon-ocr1.5-3b` (OCR) และ `ollama pull qwen3:4b` (จัด JSON / ตอบ NL→SQL)
 - Tesseract เฉพาะขั้น baseline ของ Lab 7B — ข้ามได้ด้วย `LAB7_SKIP_BASELINE=1`
 
-**อยู่ใน git แล้ว:** โค้ด, `data/ground_truth/`, ผลของแต่ละแผนที่ `Lab8b_ocr_system/runs/<AIT|BIT|DSBA|IT>/…/`
+**อยู่ใน git แล้ว:** โค้ด, `data/ground_truth/`, ผลของแต่ละแผนที่ `Lab7B_Lab8B_ocr_system/runs/<AIT|BIT|DSBA|IT>/…/`
 (`data_input/` = ภาพหน้าแผนการศึกษาที่ใช้ OCR, `lab7b_output/`, `lab8b_output/` รวม `curriculum.db`),
 `outputs/<หลักสูตร>/*.json|csv` ของ Lab 4–6
 
 **ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
-`outputs/ocr_backup_before_workers/`, `Lab8b_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
+`outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
 `*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
 Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
 
 **ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
 
 ```bash
-cd Lab8b_ocr_system
-python run_lab8b_ait.py --skip-lab7
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan ait --skip-lab7
 ```
 
 ใช้ `runs/AIT/lab7b_output/pred_vlm.json` ที่มีอยู่ แล้วรัน Lab 8B ต่อ (schema → import → load → verify → eval NL→SQL)
@@ -1222,10 +1284,10 @@ python run_lab8b_ait.py --skip-lab7
 `python src/ocr_system/lab8b_curriculum_db.py verify -d runs/AIT/lab8b_output/curriculum.db -o verify.json`
 หรือเปิด `runs/*/lab8b_output/curriculum.db` ด้วย SQLite ได้เลย
 
-**OCR ใหม่เต็มรอบ:** `python run_lab8b_<แผน>.py` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
+**OCR ใหม่เต็มรอบ:** `python run_lab8b.py --plan <แผน>` (ไม่ใส่ `--skip-lab7`) ช้ากว่ามาก ต้องมี Ollama + โมเดลทั้งสองตัวข้างบน
 สคริปต์จะให้ Lab 7B เทียบผลกับเฉลยที่ `../Lab9_evaluation/ground_truth_scoped/<แผน>_scoped.json` ถ้าไฟล์นี้มี (มีใน `main` / `Lab-9`);
 ถ้าไม่พบ (เช่นบน branch `Lab-8`) สคริปต์จะ**ข้ามการเทียบเฉลย** โดย OCR และ Lab 8B ยังรันตามปกติ
-ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab8b_ocr_system/runs` หลังลองรัน
+ผลจะ**เขียนทับ** `runs/<แผน>/` ที่ commit ไว้ — ถ้าไม่ต้องการเก็บให้ `git restore Lab7B_Lab8B_ocr_system/runs` หลังลองรัน
 
 ### Pipeline
 
@@ -1234,19 +1296,22 @@ pred_vlm.json (จาก Lab 7B)
     → import-lab7b (convert_lab7b) — แปล schema เป็น curriculum.json
     → schema + load — สร้าง curriculum.db (SQLite)
     → verify — เช็ค CHK1-CHK7 (ไม่พึ่งเฉลย)
-    → eval — ถาม-ตอบ NL→SQL เทียบ gold_questions.json (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
+    → eval — ถาม-ตอบ NL→SQL เทียบชุดคำถามทอง (แยก "SQL รันผ่าน" กับ "ตอบถูก" เสมอ)
 ```
 
-รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ผ่าน
-`run_lab8b_<curriculum>.py` แต่ละไฟล์ (มีคอมเมนต์ "วิธีรัน" พร้อมคำสั่งจริงในตัว):
+รันครบทั้ง 4 คณะ (AIT/BIT/DSBA/IT, coop + no-coop ที่มี — รวม 7 runs) ด้วยสคริปต์เดียว `run_lab8b.py`
+(ค่าของแต่ละแผนอยู่ในตาราง `PLANS` ในไฟล์):
 
 ```bash
-cd Lab8b_ocr_system
-python run_lab8b_ait.py                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
-python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ
+cd Lab7B_Lab8B_ocr_system
+python run_lab8b.py --plan ait                 # เต็มรอบ: Lab7B OCR ใหม่ + Lab8B
+python run_lab8b.py --plan all --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.json เดิม รันแค่ Lab8B ต่อ ครบ 7 แผน
 ```
 
 ### Known Limitations (อัปเดต 2026-09-22)
+
+> **อัปเดต 2026-09-26:** สองข้อด้านล่างแก้แล้ว — CHK1F (นับหน่วยกิตตามช่องในเล่ม) ตรงหน่วยกิตที่เล่มประกาศ**ครบทั้ง 7 แผน**
+> และ IT "เลือก 1 กลุ่ม" ถูกสร้างเป็นกลุ่มเดียวแล้ว ดูหัวข้อ "อัปเดต 2026-09-26" ด้านล่าง (ข้อความเดิมเก็บไว้เป็นประวัติ)
 
 - **CHK1/CHK7 (7 ข้อบังคับ) ยังไม่ผ่านทุกหลักสูตร โดยตั้งใจไม่แก้** — แถว "วิชาเลือก" ที่เขียนเป็นรหัส wildcard (เช่น
   `06036xxx`) ในเอกสารต้นฉบับเองก็ไม่ได้ระบุว่านักศึกษาจะเลือกวิชาไหน จึงไม่ถูกนับใน `plan_item` ที่ CHK1/CHK7 ใช้
@@ -1259,9 +1324,9 @@ python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.
 
 ### อัปเดต 2026-09-22 — งานต่อยอด Lab 7B/8B (branch `Lab-8b-prereq`)
 
-แก้บั๊กจริงที่พบระหว่างตรวจงาน + เพิ่มข้อตรวจเสริม ทั้งหมดเป็นกฎเชิงกำหนด ไม่เรียก LLM ซ้ำ ไม่ใช้เฉลยสร้างผล (ตรวจแล้วว่า Lab 7B บันทึกผลก่อนโหลดเฉลยเสมอ) รายละเอียดทุกขั้นตอนอยู่ใน `Lab8b_ocr_system/PROGRESS.md`
+แก้บั๊กจริงที่พบระหว่างตรวจงาน + เพิ่มข้อตรวจเสริม ทั้งหมดเป็นกฎเชิงกำหนด ไม่เรียก LLM ซ้ำ ไม่ใช้เฉลยสร้างผล (ตรวจแล้วว่า Lab 7B บันทึกผลก่อนโหลดเฉลยเสมอ) สรุปอยู่ใน `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
 
-> **หมายเหตุ:** คำสั่ง `python experiments/...` ในหัวข้อนี้เป็นชุดทดสอบ/หลักฐานประกอบการอ้างอิงของงานวันนี้ **ไม่ได้ถูกแทร็กใน git แล้ว** (`Lab8b_ocr_system/experiments/` ถูกใส่ใน `.gitignore` โดยตั้งใจ เพื่อให้ระบบที่ `git pull` มาเหลือแค่ของที่ใช้งานจริง) จึง**ใช้งานไม่ได้ทันทีหลัง clone ใหม่** — เก็บไว้บนเครื่องของผู้พัฒนาเป็นหลักฐานย้อนกลับเท่านั้น
+> **หมายเหตุ:** คำสั่ง `python experiments/...` ในหัวข้อนี้เป็นชุดทดสอบ/หลักฐานประกอบการอ้างอิงของงานวันนี้ **ไม่ได้ถูกแทร็กใน git แล้ว** (`Lab7B_Lab8B_ocr_system/experiments/` ถูกใส่ใน `.gitignore` โดยตั้งใจ เพื่อให้ระบบที่ `git pull` มาเหลือแค่ของที่ใช้งานจริง) จึง**ใช้งานไม่ได้ทันทีหลัง clone ใหม่** — เก็บไว้บนเครื่องของผู้พัฒนาเป็นหลักฐานย้อนกลับเท่านั้น
 
 #### 1. ประเมินผล: จับคู่แถววิชาเลือก (wildcard)
 
@@ -1290,7 +1355,7 @@ python run_lab8b_ait.py --skip-lab7     # ข้าม Lab7B ใช้ pred_vlm.
 และกลุ่มวิชาเลือกเฉพาะด้านของ IT ที่ยังตก/รวมเซลล์
 
 ```bash
-cd Lab8b_ocr_system
+cd Lab7B_Lab8B_ocr_system
 python regenerate_evaluation.py                    # 7 แผนหลัก
 python regenerate_evaluation.py ait_dewm5 ait_dewm6  # ระบุรอบเอง
 python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุดทดสอบ 13 ข้อ
@@ -1311,9 +1376,9 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 รวมบรรทัดต่อ ("หรือ/และ") ตรวจซ้ำกับบรรทัด PREREQUISITE ภาษาอังกฤษ แต่ละวิชาได้สถานะ `found` / `none` / `not_found` / `unreadable`
 (`not_found`/`unreadable` = ไม่ทราบ ไม่ใช่ "ไม่มี" จึงไม่มีแถวในตาราง)
 
-**ตรวจความถูกต้องของ Ground Truth (ขั้นที่ทำโดยตั้งใจ):** ใบงาน Lab 7B (`Lab7B_curriculum/Lab7B_Curriculum_LocalLLM1.pdf` หน้า 1 หัวข้อ "วัตถุประสงค์การเรียนรู้") ระบุให้ "ตรวจสอบคุณภาพของ ground truth ก่อนนำมาใช้วัดผล" และ "ออกแบบกฎตรวจสอบความถูกต้องเชิงโครงสร้าง เช่น referential integrity ของวิชาบังคับก่อน" (คือ CHK5 + ตาราง `prerequisite` ที่ทำในส่วนนี้) ก่อนเชื่อเฉลย เราเทียบเฉลยกับตัวสกัดแล้วเปิด **ภาพเล่มจริง** ตรวจทุกแถวที่ไม่ตรงกัน (6 แถวที่เฉลยเดิมบอก "ไม่มี" แต่เล่มมีวิชาบังคับก่อน)
+**ตรวจความถูกต้องของ Ground Truth (ขั้นที่ทำโดยตั้งใจ):** ใบงาน Lab 7B (`Lab7B_Curriculum_LocalLLM1.pdf` หน้า 1 หัวข้อ "วัตถุประสงค์การเรียนรู้") ระบุให้ "ตรวจสอบคุณภาพของ ground truth ก่อนนำมาใช้วัดผล" และ "ออกแบบกฎตรวจสอบความถูกต้องเชิงโครงสร้าง เช่น referential integrity ของวิชาบังคับก่อน" (คือ CHK5 + ตาราง `prerequisite` ที่ทำในส่วนนี้) ก่อนเชื่อเฉลย เราเทียบเฉลยกับตัวสกัดแล้วเปิด **ภาพเล่มจริง** ตรวจทุกแถวที่ไม่ตรงกัน (6 แถวที่เฉลยเดิมบอก "ไม่มี" แต่เล่มมีวิชาบังคับก่อน)
 พบว่าเฉลยเดิมผิด จึงแก้ใน `Lab9_evaluation/ground_truth_scoped/` (AIT 2, IT no-coop 2, IT coop 2 แถว; ใส่ `_scoping_note` ต่อท้ายไฟล์ที่แก้) โดยไม่ได้แก้ตามตัวสกัดอย่างเดียว
-ต้นฉบับก่อนแก้เก็บไว้ที่ `Lab8b_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/` (ย้อนกลับได้) ส่วนกรณีที่เฉลยถูกอยู่แล้วก็คงไว้ (BIT `06036114` ต้นแบบเดิมอ่านผิด ไม่ใช่เฉลย)
+ต้นฉบับก่อนแก้เก็บไว้ที่ `Lab7B_Lab8B_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/` (ย้อนกลับได้) ส่วนกรณีที่เฉลยถูกอยู่แล้วก็คงไว้ (BIT `06036114` ต้นแบบเดิมอ่านผิด ไม่ใช่เฉลย)
 
 **ผลตรวจ:** ในแถวที่อ่านได้ 200 แถว ตรงเฉลยเองตั้งแต่ก่อนแก้ 196 แถว อีก 4 แถวตรงหลังแก้เฉลยที่ตรวจกับภาพเล่มแล้ว — ส่วนอีก 42 แถวอ่านไม่ได้ เกือบทั้งหมดเป็นวิชาศึกษาทั่วไปที่ไม่มีหัวรายวิชาแบบภาคผนวก
 **ข้อควรระวัง:** 200/200 นี้วัดบนหนังสือเล่มเดียวกับที่ใช้พัฒนากฎ และเฉลยก็ถูกตรวจจากเล่มเดียวกัน จึง **ยังไม่ใช่หลักฐานว่าใช้กับเล่มใหม่ได้** (สไลด์บทที่ 9 เตือนเรื่องผลดีบนชุดที่ใช้พัฒนา แต่พังกับข้อมูลจริง) ต้องทดสอบกับเล่มที่ยังไม่เคยเห็นก่อนจึงจะสรุปได้
@@ -1345,7 +1410,7 @@ python experiments/wildcard_pass_2026-09-21/test_wildcard_pass.py   # ชุด�
 \* CHK1 เดิมของรอบควบคุมผ่านโดยบังเอิญ (นับสมาชิกกลุ่ม "เลือก 1" เกินไปพอดีหักล้างกับ wildcard ที่หาย) ส่วนต่างที่เหลือมาจากข้อมูลที่ OCR ทำเสียจริง ไม่ได้ซ่อน: AIT ขาด 1 หน่วยกิต (`90641004` ตราน้ำบัง), IT ขาด 3 (`90644042`), และ IT รอบควบคุมปี 2/2 เกิน 6 เพราะ Markdown ของ OCR ทำหัวตารางกลุ่มที่ 3 (`06016419/420`) เสีย ตัวแยกช่องจึงไม่รู้ว่ามีกลุ่มนั้นและนับสองวิชานั้นเป็นวิชาปกติ
 
 ```bash
-cd Lab8b_ocr_system
+cd Lab7B_Lab8B_ocr_system
 python src/ocr_system/lab8b_curriculum_db.py verify -d runs/BIT/no_coop/lab8b_output/curriculum.db -o runs/BIT/no_coop/lab8b_output/verify.json   # เขียน verify.json + verify_full.json
 python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ชุดทดสอบ 9 ข้อ (ฐานข้อมูลสังเคราะห์)
 ```
@@ -1355,12 +1420,12 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 #### 4. ความน่าเชื่อถือของตัวเลข (กันโกงเฉลย / overfit / underfit)
 
 - **ไม่ใช้เฉลยสร้างผลลัพธ์:** ตรวจโค้ดแล้ว — Lab 7B บันทึกผล (`pred_*.json`) ก่อนโหลดเฉลย เฉลยใช้ตัดสินผลอย่างเดียว; ตัวสกัด/ตัวกู้ผล (`prereq_from_book.py`, `md_plan_slots.py`, `name_consensus.py`, `lab8b_curriculum_db.py`) ไม่อ่านไฟล์เฉลยเลย; NL2SQL เห็นแค่ตัวคำถาม
-- **ไม่แก้เฉลยด้วยมือเพิ่ม:** เฉลยที่แก้มีแค่ 6 แถวของ prerequisite (ตรวจกับภาพเล่มทุกแถว, ต้นฉบับเก็บที่ `Lab8b_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/`) และรายงานทั้งสองแบบเทียบกัน (`Lab8b_ocr_system/experiments/generalization_audit_2026-09-22/result.md`): prerequisite exact เฉลยเดิม → แก้แล้ว AIT 0.867 → 0.900, IT no-coop 0.795 → 0.800, IT coop 0.757 → 0.789
+- **ไม่แก้เฉลยด้วยมือเพิ่ม:** เฉลยที่แก้มีแค่ 6 แถวของ prerequisite (ตรวจกับภาพเล่มทุกแถว, ต้นฉบับเก็บที่ `Lab7B_Lab8B_ocr_system/experiments/prereq_from_book_ocr_2026-09-21/before_gt/`) และรายงานทั้งสองแบบเทียบกัน (`Lab7B_Lab8B_ocr_system/experiments/generalization_audit_2026-09-22/result.md`): prerequisite exact เฉลยเดิม → แก้แล้ว AIT 0.867 → 0.900, IT no-coop 0.795 → 0.800, IT coop 0.757 → 0.789
 - **กฎไม่ถูกฝังให้พอดีข้อมูล:** ตรวจแล้วไม่มีรหัสวิชาหรือเงื่อนไขเฉพาะหลักสูตรในโค้ดกฎ (รหัสที่เจอทั้งหมดอยู่ในข้อมูลตัวอย่างของ selftest) และเกณฑ์จับคู่ wildcard ขยับ 0.4–0.9 แล้วผลเท่ากันทุกแผน (ตัวตัดสินจริงคือกฎกรอง ไม่ใช่ค่าเกณฑ์) **แต่** กฎถูกพัฒนาโดยดูเล่มทั้ง 4 เล่มนี้ ตัวเลขจึงเป็น in-sample และยังไม่เคยทดสอบกับเล่มนอกชุด
 - **ระวัง accuracy paradox ของ prerequisite:** เฉลยส่วนใหญ่เป็น "ไม่มี" ทำให้ baseline "ตอบไม่มีทุกแถว" ได้ 0.83–0.97 และ exact ของเราต่ำกว่าในบางแผน (เช่น BIT 0.79–0.82 เทียบ 0.97) เพราะเราไม่ใส่ค่าเมื่อไม่ทราบ ตัวเลขที่ควรดูคือ **ค่าผิด = 0 ทุกแผน** และ **ได้วิชาที่มีวิชาบังคับก่อนถูก 26 จาก 29** (baseline ได้ 0) โดยครอบคลุม 79–90% ของแถว
 - **รันซ้ำ 7 แผนหลักด้วยโค้ดปัจจุบัน (ไม่ตัดตราน้ำ) แต่ละแผนรันเดียว:** F1 เฉลี่ย 0.879 → 0.891, `name_en` exact 0.00 → 0.66–0.91 (เติมจาก Markdown), NL2SQL เฉลี่ย 24.6 → 24.7 จาก 30 — การดีขึ้นไม่สม่ำเสมอ (IT coop F1 0.815 → 0.788) และผลแกว่งระหว่างรัน ±0.03–0.08 F1 จึงควรอ่านเป็นช่วง ไม่ใช่ค่าเดียว
 - **ความเสถียร (รอบหลัก vs รอบซ้ำ ด้วยโค้ดเดียวกัน 9 คู่):** F1 รายแถวต่างเฉลี่ย 0.028 สูงสุด 0.066; ตัวชี้วัดสรุปผ่านเกณฑ์ 10% ทุกคู่; การโหวตข้างมากข้ามรัน (ทดลองแยก) ได้ F1 0.898 เทียบเฉลี่ยรายรัน 0.891 — ไม่ดีขึ้นอย่างสม่ำเสมอ จึงไม่ใช้เป็นผลส่ง (รายละเอียดใน `Lab9_evaluation/README.md`)
-- **IT coop เป็นข้อยกเว้นของแผนหลัก:** หน้าปี 2/2 ไม่เคยมีรหัส `06016419`/`06016420` ในผล OCR เลยสักรอบตั้งแต่วันแรก (จุดบอดถาวรของหน้านั้น ไม่ใช่ความแกว่งแบบสุ่ม — ตรวจย้อนทุกคอมมิต/ทุกรอบ retry ยืนยันแล้ว) ทดลองตัดตราน้ำ (`LAB7B_DEWATERMARK=1`) 1 รอบ กู้ได้ทันที F1 wildcard-aware 0.788 → **0.849**, CHK7F ปี 2/2 24→18 หน่วยกิต (ตรงเล่ม) — **นำมาแทนที่รันหลักของ `runs/IT/coop/` แล้ว** (ผลเดิมสำรองที่ `Lab8b_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/`) เป็นแผนเดียวใน 7 แผนหลักที่เปิดตัดตราน้ำ (รัน `it_coop_retry` ใหม่ด้วยค่าตั้งเดียวกันแล้ว — เจอว่า LLM ซ้ำรหัส 2 ตัวข้ามเทอมโดยไม่ได้ตั้งใจ ยังอยู่ในเกณฑ์เสถียร 10% แต่เป็นหลักฐานความแกว่งเพิ่มเติม ดูรายละเอียดที่ `Lab9_evaluation/README.md`)
+- **IT coop เป็นข้อยกเว้นของแผนหลัก:** หน้าปี 2/2 ไม่เคยมีรหัส `06016419`/`06016420` ในผล OCR เลยสักรอบตั้งแต่วันแรก (จุดบอดถาวรของหน้านั้น ไม่ใช่ความแกว่งแบบสุ่ม — ตรวจย้อนทุกคอมมิต/ทุกรอบ retry ยืนยันแล้ว) ทดลองตัดตราน้ำ (`LAB7B_DEWATERMARK=1`) 1 รอบ กู้ได้ทันที F1 wildcard-aware 0.788 → **0.849**, CHK7F ปี 2/2 24→18 หน่วยกิต (ตรงเล่ม) — **นำมาแทนที่รันหลักของ `runs/IT/coop/` แล้ว** (ผลเดิมสำรองที่ `Lab7B_Lab8B_ocr_system/runs/IT/coop_pre_dewm_2026-09-22/`) เป็นแผนเดียวใน 7 แผนหลักที่เปิดตัดตราน้ำ (รัน `it_coop_retry` ใหม่ด้วยค่าตั้งเดียวกันแล้ว — เจอว่า LLM ซ้ำรหัส 2 ตัวข้ามเทอมโดยไม่ได้ตั้งใจ ยังอยู่ในเกณฑ์เสถียร 10% แต่เป็นหลักฐานความแกว่งเพิ่มเติม ดูรายละเอียดที่ `Lab9_evaluation/README.md`)
 - **สาเหตุที่ CHK1/CHK7 ตก แยก (ก)/(ข) แล้ว** ใน `verify_full.json` (`cause`): ส่วนต่างหน่วยกิตส่วนใหญ่เป็น (ข) เล่มเขียนเป็นช่อง wildcard ที่ `plan_item` ไม่นับ (เช่น AIT +21 จาก +22, BIT no-coop +21 จาก +21) ส่วน (ก) การสกัดผิดจริงมีน้อย (AIT +1, DSBA +6/+3, IT no-coop −3, IT coop +3)
 
 ---
@@ -1369,18 +1434,48 @@ python experiments/prereq_from_book_ocr_2026-09-21/test_verify_full.py   # ช�
 
 **ปัญหา:** หน้าตารางแผนบางแถวเขียนสองรหัสวิชาไว้ด้วยกัน ("A หรือ B" เช่น สหกิจศึกษาในประเทศ/ต่างประเทศ) พร้อมชื่อสองชื่อ แต่ตอนแปลง Markdown → JSON (qwen3) จับคู่รหัสกับชื่อแบบไขว้กัน (สร้างทุกคู่ผสม) พอ Lab 8B เลือกเก็บชื่อเดียวต่อรหัส ทั้งสองรหัสเลยได้ชื่อซ้ำกัน — **ต่างจากปัญหาที่ตาราง `plan_slot` (ข้อ 3) ตรงที่จุดนี้อยู่ในตาราง `course` ที่ NL2SQL ใช้ตอบจริง** ถ้ามีคนถามชื่อของรหัสที่สอง ระบบจะตอบชื่อผิด
 
-**แก้ (`src/ocr_system/or_course_names.py`, `apply_or_course_names.py`):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
+**แก้ (`src/ocr_system/or_course_names.py` — ตั้งแต่ 2026-09-27 ทำในขั้น `import-lab7b` ทุกครั้งที่รัน):** อ่าน Markdown ดิบหาแถว "A หรือ B" สองรหัสจริง จับคู่ชื่อกับรหัสตามลำดับที่ปรากฏจริงในเอกสาร (ไม่เดา — ถ้าจำนวนชื่อที่จับคู่ได้ไม่ตรงกับจำนวนรหัสเป๊ะ ข้ามไม่แก้) รองรับ 2 รูปแบบตารางที่เจอจริง: รหัสอยู่เซลล์ rowspan ครอบชื่อคนละแถว (BIT coop) และรหัสอยู่เซลล์เดียวไม่มี rowspan แต่ชื่อทั้งคู่ถูกยัดรวมในอีกเซลล์คั่นด้วย `<br/>` (DSBA coop)
 
 **ผล:** พบ 2 จุดใน 7 แผนหลัก — BIT coop `06036147`/`06036148`, DSBA coop `06026259`/`06026260` แก้แล้ว (สำรองไฟล์เดิมเป็น `.before_or_names.json`) P/R/F1/CER เท่าเดิมทุกตัว (เทียบแค่รหัส ไม่เทียบชื่อ) ตอบถูก NL2SQL เท่าเดิม (ชุดคำถามทอง 30 ข้อไม่ได้ถามตรงจุดนี้พอดี แต่ข้อมูลจริงถูกแล้วสำหรับคำถามอื่นที่อาจถามถึง)
 
-```bash
-cd Lab8b_ocr_system
-python apply_or_course_names.py            # dry-run
-python apply_or_course_names.py --apply    # เขียนจริง
-python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุดทดสอบ 9 ข้อ
-```
+เดิมเป็นสคริปต์แยก (`apply_or_course_names.py`) จึงถูกทับทุกครั้งที่รัน Lab 8B ใหม่ (DSBA coop กลับมาผิด) —
+ย้ายเข้า `convert_lab7b()` แล้ว และแก้ `name_en` ของคู่ที่ได้ชื่ออังกฤษซ้ำกันด้วย (เทสใน `tests/test_md_plan_slots.py`)
 
-รายละเอียดเต็มอยู่ที่ `Lab8b_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
+รายละเอียดเต็มอยู่ที่ `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
+
+---
+
+### อัปเดต 2026-09-26 — กู้วิชาที่หาย, แก้ SQL, อ้างอิงหน้าในคำตอบ (branch `feature/page-citations`)
+
+ทุกข้อเป็นกฎเชิงกำหนด (deterministic) ไม่แก้ผลด้วยมือ ไม่ใช้เฉลยสร้างผล (เฉลยใช้วัดผลอย่างเดียว) และลองแบบ dry-run กับทั้ง 7 แผน
+ก่อนใช้จริงทุกครั้ง สรุปอยู่ใน `Lab7B_Lab8B_ocr_system/LAB7B_LAB8B_OVERVIEW.md`
+
+**Lab 7B — กู้แถว/รหัสวิชาที่ OCR ทำหาย** (`lab7b_curriculum.py --fill-missing-rows --recover-codes --book-ocr ...`, run scripts เรียกให้แล้ว)
+
+- `fill_missing_rows` (`md_plan_slots.py`): แถวที่อยู่ใน Markdown ของ OCR แต่ qwen ไม่ได้ใส่ใน JSON → เติมจาก Markdown
+- แยกแถวชุดวิชา (series) และหัวกลุ่มที่ไม่มีรหัส ("กลุ่มวิชาด้าน...") ให้เป็นกลุ่ม "เลือก 1" — แก้ IT "เลือก 1 จาก 3 กลุ่ม"
+- `code_from_book.py`: กู้รหัสที่ OCR อ่านเพี้ยน/หาย โดยค้นจาก OCR ทั้งเล่ม (Tesseract, Lab 4–6) — แยกรหัสที่ถูกรวมเป็นก้อนเดียว,
+  เติมชื่อวิชาที่เจอในเทอมนั้น, แทนชื่อที่เป็นตัวยึดตำแหน่ง, แก้หน่วยกิตที่ OCR เลื่อนแถว (เช่น IT `06016407` ใต้ลายน้ำ)
+- ผล: หน่วยกิตรวมแบบนับช่องตามเล่ม (CHK1F) **ตรงที่เล่มประกาศครบ 7 แผน** (MAE 0) · F1 (wildcard-aware) AIT 0.923, BIT no-coop 1.000,
+  BIT coop 0.930, DSBA no-coop 0.928, DSBA coop 0.830, IT no-coop 0.972, IT coop 0.889 (เฉลี่ย 0.925)
+
+**Lab 8B — NL→SQL**
+
+- `repair_undefined_aliases()`: qwen ลอก alias `p.` จาก DDL ของ `v_plan` ไปใช้ในคำสั่งที่ไม่ได้ประกาศ alias → SQL error ทุกแผน;
+  ตัด alias ที่ไม่ได้ประกาศออกก่อนรัน → `valid_sql_rate` 1.0 ทุกแผน, ตอบถูก 182 → 188/210
+- ผลลัพธ์ค่าเดียว (COUNT/MIN/MAX) ที่ข้อความคำตอบไม่มีค่านั้น (เช่น qwen ลอกเลข 3 จากคำถาม "กี่วิชาที่ 3 หน่วยกิต") → ใช้ค่าจากฐานข้อมูลเป็นคำตอบ
+
+**อ้างอิงหน้าในคำตอบ (คำถามระดับ 1–2 ตาม ch1)**
+
+- คำตอบมีฟิลด์ `citations` / `citation_text` เช่น `(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))` — "หน้า 33" = เลขที่พิมพ์บนหน้ากระดาษ,
+  "PDF 38" = ลำดับหน้าในไฟล์ PDF; เลขหน้าที่พิมพ์ไม่น่าเชื่อ (ไม่ต่อเนื่องกับหน้าข้างเคียง) → แสดงแค่ PDF
+- แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า และไม่รวมในข้อความ `answer` · หาไม่เจอ/ยืนยันกับเล่มไม่ได้ = ไม่อ้างอิง (ไม่เดา)
+- ข้อมูลจากตาราง `course_page` (หน้าที่มีรหัสวิชา: `primary` / `description` = หน้าคำอธิบายรายวิชา / `other` / `plan`) และ `term_page`
+  (หน้าตารางแผนของแต่ละเทอม — ต้องยืนยันกับหัวเทอมหรือรหัสวิชาใน OCR ทั้งเล่ม; DSBA coop ยืนยันไม่ได้เพราะเลขไฟล์ภาพ
+  `DSBA_28..34` ไม่ใช่เลขหน้า PDF จึงไม่อ้างหน้าตารางแผน) — สร้างด้วย `lab8b_curriculum_db.py load-course-pages` (run scripts เรียกให้แล้ว)
+- ตารางอ้างอิงไม่อยู่ใน prompt ของ NL→SQL (มีเทสกัน) จึงไม่กระทบคำตอบข้ออื่น
+
+**เทส:** `python -m pytest tests -q` (ต้องใช้ `.venv`) + `python src/ocr_system/lab8b_curriculum_db.py selftest`
 
 ---
 
@@ -1394,13 +1489,14 @@ python experiments/or_course_names_2026-09-22/test_or_course_names.py   # ชุ
 
 - ต้องมี `.venv` ที่ติดตั้ง `pip install -r requirements.txt` (รวม `pythainlp` แล้ว) — ถ้าไม่มี WER ภาษาไทยจะผิด (ดูคำเตือนด้านล่าง)
 - **ไม่ต้องใช้ Ollama / GPU** — `evaluate_lab9.py` อ่านผลที่ Lab 8B รันไว้แล้วเท่านั้น
-- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab8b_ocr_system/runs/` (7 แผน + รันซ้ำ 8 รันสำหรับวัดความเสถียร),
-  `Lab9_evaluation/ground_truth_scoped/`, `Lab9_evaluation/gold_questions/`
-- ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab8b_ocr_system/archive/`, `work/`
+- ข้อมูลที่ใช้อยู่ใน git ครบ: `Lab7B_Lab8B_ocr_system/runs/` (7 แผน), `Lab9_evaluation/ground_truth_scoped/`,
+  `Lab9_evaluation/gold_questions/` — รอบรันซ้ำ (`*_retry*`) ไม่อยู่ใน repo หัวข้อความเสถียรในรายงานจึงแสดงหมายเหตุแทน
+  ผลรันซ้ำที่วัดไว้สรุปที่ `reports/lab9_overfit_underfit_summary.md`
+- ไม่อยู่ใน git: PDF หลักสูตรเต็มเล่ม, `outputs/*/pages/`, `.env`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`
 - ทดสอบบน checkout สะอาดแล้ว: รัน `python evaluate_lab9.py` ได้ตัวเลขตรงกับ `reports/lab9_metrics_latest.json` ที่ commit ไว้ทุกตัว
-  (ต่างเฉพาะเวลาและฟิลด์ `path` ที่เป็น path ในเครื่องคุณ) และไม่มีรันไหนถูกข้าม
+  (ต่างเฉพาะวันเวลาในรายงาน — path ในรายงานเป็นแบบ relative จาก repo) และไม่มีรันไหนถูกข้าม
 - สคริปต์จะ**เขียนทับ** `reports/lab9_metrics_latest.md` / `.json`
-- คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab8b_ocr_system/regenerate_evaluation.py`
+- คำนวณ P/R/F1 + CER/WER ของ Lab 7B ใหม่จาก `pred_vlm.json` เดิม (ไม่เรียก VLM): `python ../Lab7B_Lab8B_ocr_system/regenerate_evaluation.py`
 
 ### วิธีรัน
 
@@ -1411,13 +1507,35 @@ python evaluate_lab9.py
 
 ### ผลลัพธ์
 
-- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม,
-  execution_accuracy, answer_text_accuracy, ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
+- `reports/lab9_metrics_latest.md` — conversion_rate, verify_pass_rate, MAE/MAPE หน่วยกิตรวม (ทั้งแบบ `plan_item`
+  และนับช่องตามเล่ม), execution_accuracy, answer_text_accuracy, **คำตอบ + อ้างอิงหน้าแยกตามระดับคำถาม** (ระดับ 1/2/none
+  ติดป้ายด้วยกฎ — ดูรายการด้วย `python evaluate_lab9.py --list-levels`), ความเสถียร (รันซ้ำเอกสารชุดเดียวกัน), confusion
   matrix/MCC ของฟิลด์ `ctype`, และสรุป metric ที่ไม่ได้ใช้ + เหตุผล
+- `reports/lab9_overfit_underfit_summary.md` — สรุป overfit/underfit (เขียนเอง ไม่ถูกเขียนทับ)
 - `reports/lab7b_prf1_cerwer_2026-09-16.md` — P/R/F1 + CER/WER ระดับการสกัดข้อมูลดิบของ Lab 7B
 
 รายละเอียดเต็ม (การแม็ปแต่ละ metric กับสไลด์บทที่ 9, ทำไมต้องมี `answer_text_accuracy`/confusion
 matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab9_evaluation/README.md`
+
+### ชุดคำถามทอง (gold questions) — ทำใหม่ทำไม และเลี่ยง overfit อย่างไร
+
+`Lab9_evaluation/gold_questions/<แผน>_gold_questions.json` — 30 ข้อ/แผน × 7 แผน ใช้วัดส่วนถาม-ตอบ (NL→SQL)
+
+**ทำไมทำชุดใหม่:** ชุดแรก (v1) คือชุดที่ใช้ระหว่างพัฒนาระบบ — ระบบถูกปรับแก้จนตอบชุดนี้ได้ดี คะแนนจากชุดนี้จึงบอกไม่ได้ว่า
+ระบบเก่งจริงหรือแค่ "จำข้อสอบ" และ v1 แคบเกินไป: ถามด้วยรหัสวิชาเป็นหลัก, แผนการเรียนมีแค่ปี 1 ภาค 1, ไม่มีคำถามด้วยชื่อวิชา
+ชื่อภาษาอังกฤษ หรือวิชาบังคับก่อนรายวิชา — ปัญหาจริงที่ผู้ใช้เจอ (ถามวิชาบังคับก่อนด้วยชื่อวิชาแล้วตอบผิด) ชุด v1 วัดไม่เจอเลย
+ชุดใหม่ยังตรงเกณฑ์ ch8 (30 ข้อ, มีข้อที่ต้องตอบ "ไม่พบ", ให้คะแนนจากผล SQL) และเพิ่มคำถามแบบที่ v1 ไม่มี: ปี 1–2 เทอมอื่น,
+ถามด้วยชื่อไทย/อังกฤษ, ภาษาพูด, วิชาบังคับก่อน (ถามตรง / ถามด้วยชื่อ / ถามย้อนกลับ) และข้อรายการต้องตอบครบพอดี (`set_exact`)
+
+**เลี่ยง overfit อย่างไร:**
+- **เฉลยไม่มาจากระบบ:** คำนวณจากเฉลยที่ตรวจกับเล่มแล้ว (`ground_truth_scoped/`) ด้วยสคริปต์ ไม่อ่าน `curriculum.db` ที่ระบบสร้าง
+- **ไม่เลือกข้อเอง:** สุ่มวิชา/เทอมด้วย seed ตายตัว และเลี่ยงวิชา/เทอมที่ v1 เคยถาม เพื่อให้เป็นคำถามที่ระบบไม่เคยถูกปรับตาม
+- **ล็อกก่อนรัน:** เก็บ sha256 ของทุกไฟล์ใน `frozen.json` ก่อนรันครั้งแรก — `run_lab8b.py` ไม่ยอมรัน eval ถ้าไฟล์ไม่ตรง
+  และ `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับที่สคริปต์สร้างทุกไบต์ จึงแก้คำถามหลังเห็นผลไม่ได้
+- **ไม่แก้ระบบตามผลของชุดนี้:** จุดอ่อนที่ชุดนี้เผย จะแก้ได้เฉพาะเมื่อพบสาเหตุจากตัวเล่ม/ข้อมูล ไม่ใช่ปรับให้ตอบข้อสอบข้อนั้นได้
+  และรายงานตัวเลขก่อนแก้ข้อมูล (189/210) เป็นตัวเลข held-out ของระบบ แยกจากตัวเลขหลังแก้ (194/210)
+- **เทียบกับ v1:** ภาพรวมห่างกันไม่ถึง 1 จุด (v1 188 vs ชุดใหม่ 189 จาก 210) — ไม่พบสัญญาณว่าระบบจำ v1
+  (รายละเอียด `Lab9_evaluation/reports/lab9_overfit_underfit_summary.md`; v1 เก็บไว้ที่ git tag `gold-v1`)
 
 ---
 
@@ -1443,9 +1561,10 @@ matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab
 | `GET` | `/` | หน้าเว็บ Frontend สำหรับผู้ใช้ | ไม่มี |
 | `GET` | `/api/health` | ตรวจสอบสถานะ DB และ Ollama | ไม่มี |
 | `GET` | `/api/program` | อ่านข้อมูลภาพรวมหลักสูตร | ไม่มี |
+| `GET` | `/api/programs` | รายชื่อ 7 แผนและสถานะไฟล์ฐานข้อมูล | ไม่มี |
 | `GET` | `/api/courses` | อ่านและค้นหารายวิชา | `search`, `limit`, `offset` |
 | `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล | JSON: `CourseCreate` |
-| `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) | JSON: `{"question": "..."}` |
+| `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) | JSON: `{"question": "...", "program": "it_no_coop"}` |
 | `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค | Path: `code` (รหัสวิชา 8 หลัก) |
 
 ### API เพิ่มเติม: ตรวจสอบวิชาบังคับก่อน (`GET /api/courses/{code}/prerequisites`)

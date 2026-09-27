@@ -1,0 +1,20 @@
+{
+  "source_courses": 44,
+  "converted_courses": 36,
+  "plan_items": 36,
+  "prerequisites": 2,
+  "skipped_wildcards": 6,
+  "skipped_flexible_plan_items": 0,
+  "terms_recovered_from_markdown": [],
+  "or_pair_names": [],
+  "warnings": [
+    "courses[24] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",
+    "courses[30] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '9664xxxx'",
+    "courses[34] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '06036xxx'",
+    "courses[35] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: 'xXXXXxx'",
+    "courses[38] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '06036xxx'",
+    "courses[39] ข้ามรหัสที่ไม่ใช่ตัวเลข 8 หลัก: '06036xxx'",
+    "courses[42] อ่านหน่วยกิตไม่ได้: None; ข้ามรายการ",
+    "courses[43] อ่านหน่วยกิตไม่ได้: None; ข้ามรายการ"
+  ]
+}
