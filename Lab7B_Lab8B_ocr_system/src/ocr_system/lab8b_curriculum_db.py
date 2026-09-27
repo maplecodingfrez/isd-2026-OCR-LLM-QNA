@@ -1128,7 +1128,7 @@ def _citations_module():
 
 
 def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
-    """บรรทัด "ชื่อวิชา = รหัส" สำหรับ prompt (course_names.py) จากตาราง course ของ DB นี้ — ไม่มีตาราง/ไม่เจอชื่อ = "" """
+    """บรรทัด "ชื่อวิชา = รหัส" + ทิศทางวิชาบังคับก่อน สำหรับ prompt (course_names.py) — ไม่มีตาราง/ไม่เจออะไร = "" """
     _citations_module()                          # ให้โฟลเดอร์นี้อยู่ใน sys.path (ครั้งเดียว)
     import course_names
     try:
@@ -1136,7 +1136,10 @@ def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
     except sqlite3.OperationalError:
         return ""
     courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in rows]
-    return course_names.hint_block(course_names.course_hints(question, courses))
+    hints = course_names.course_hints(question, courses)
+    # ทิศทาง code/requires ของวิชาบังคับก่อน (ไม่ชัด = "" — prompt เหมือนเดิม)
+    return (course_names.hint_block(hints)
+            + course_names.direction_block(course_names.prereq_direction(question, hints)))
 
 
 def _with_course_names(conn: sqlite3.Connection, answer: str | None, rows: list[dict]) -> str | None:

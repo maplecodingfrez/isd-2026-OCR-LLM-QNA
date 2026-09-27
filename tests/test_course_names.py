@@ -99,3 +99,37 @@ def test_only_codes_from_the_rows_are_named():
 def test_unknown_code_is_left_alone():
     rows = [{"requires": "99999999"}]
     assert cn.with_course_names("99999999", rows, NAMES) == "99999999"
+
+
+def direction(question):
+    return cn.prereq_direction(question, cn.course_hints(question, COURSES))
+
+
+# Break caught: "วิชาตัวต่อจากแคลคูลัส 1" answered "ไม่พบ" — qwen wrote code='X' (what X requires) instead of requires='X'.
+def test_courses_that_come_after_x():
+    for q in ("วิชาหลังแคลคูลัส 1", "วิชาตัวต่อจากแคลคูลัส 1", "วิชาต่อจากแคลคูลัส 1",
+              "วิชาที่ต้องผ่านแคลคูลัส 1 ก่อน", "แคลคูลัส 1 เป็นวิชาบังคับก่อนของวิชาอะไร",
+              "เรียนแคลคูลัส 1 แล้วเรียนอะไรต่อ", "วิชาไหนใช้แคลคูลัส 1 เป็นวิชาบังคับก่อน",
+              "ผ่านวิชา 06026200 แล้วจะลงวิชาไหนต่อได้บ้าง", "วิชาใดบ้างที่มี 06026200 เป็นวิชาบังคับก่อน"):
+        assert direction(q) == ("after", "06026200"), q
+
+
+def test_courses_that_x_requires():
+    for q in ("ก่อนลงวิชา 06026200 ต้องผ่านวิชาอะไรมาก่อน", "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน",
+              "ถ้าจะลงเรียนแคลคูลัส 1 ต้องผ่านวิชาอะไรมาก่อน", "รหัสวิชา 06026200 มีวิชาบังคับก่อนคือวิชาใด",
+              "วิชาบังคับก่อนของแคลคูลัส 1", "ต้องเรียนวิชาอะไรมาก่อนจึงจะลงเรียนแคลคูลัส 1 ได้"):
+        assert direction(q) == ("before", "06026200"), q
+
+
+# Break caught: "ต่อสัปดาห์" (per week) read as "ต่อ" (next); no direction word / no course / two courses = no hint.
+def test_no_direction_hint_when_unclear():
+    assert direction("วิชาแคลคูลัส 1 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง") is None
+    assert direction("แคลคูลัส 1 กี่หน่วยกิต") is None
+    assert direction("ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่") is None
+    assert direction("การสร้างคลังข้อมูลต้องเรียนแคลคูลัส 1 มาก่อนไหม") is None
+
+
+def test_direction_block_names_the_column():
+    assert "requires='06026200'" in cn.direction_block(("after", "06026200"))
+    assert "code='06026200'" in cn.direction_block(("before", "06026200"))
+    assert cn.direction_block(None) == ""
