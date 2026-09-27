@@ -18,47 +18,34 @@ OCR engines ที่มีให้:
 
 ## Project Structure
 
+> แสดงเฉพาะไฟล์ที่ Lab 6 (รวม Lab 4/5 ต่อยอด AIT/IT/BIT) เพิ่ม/แก้ — ไฟล์ OCR พื้นฐาน (`engines/`, `pipeline.py`, `cli.py` ฯลฯ) มาจาก Lab 3
+> (ดู branch `Lab-3`) ส่วนโครงสร้างเต็มของทุก Lab ดูที่ branch `main`
+
 ```text
 ocr_system/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
 ├── data/
-│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
-│   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
+│   ├── input/                           # PDF เล่มหลักสูตร DSBA/AIT/IT/BIT (ใน git มีแค่ DSBA — ที่เหลือวางเอง)
+│   └── ground_truth/                    # (ใหม่) AIT, BIT + IT (coop/no_coop), DSBA no_coop, general_education, rules
 ├── outputs/
-│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
-│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
-│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
+│   ├── dsba/ ait/ it/ bit/              # (ใหม่) แยกโฟลเดอร์ต่อหลักสูตร:
+│   │                                    #   <prog>_curriculum_ocr.json/.txt, _courses.json, _curriculum_evaluation.json  (Lab 4 ต่อ)
+│   │                                    #   <prog>_<plan>_course_page_mapping.csv  (Lab 5 ต่อ)
+│   │                                    #   <prog>_<plan>_lab6_evaluation.json  (Lab 6: ผล 3 ระดับรวมไฟล์เดียว)
+│   └── qa_pairs.csv                     # Q&A ร่วมทุกหลักสูตร 32 ข้อ (16 รายวิชา + 16 ข้อบังคับ)
 ├── scripts/
-│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
-│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
-│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
-│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
-│   └── lab6_evaluate.py       # Lab 6: รวม Field/Page/Category level evaluation
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
-        ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
-        ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
-        ├── evaluate_lab6.py         # รวม Field/Page/Category level evaluation (Lab 6)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+│   ├── lab5_page_mapping.py             # (ใหม่) page mapping ต่อ program+plan: DSBA_coop, AIT, IT_no_coop ...
+│   ├── lab5_qa_pairs.py                 # (เปลี่ยนชื่อจาก build_qa_pairs.py) สร้าง qa_pairs.csv
+│   ├── lab6_evaluate.py                 # (ใหม่) Lab 6: Field/Page/Category level → <prog>_<plan>_lab6_evaluation.json
+│   ├── supplement_check_rules.py        # (ใหม่) เช็ค coverage ของ rules_ground_truth.json ต่อ program
+│   └── supplement_general_education.py  # (ใหม่) เทียบวิชาที่ดึงได้กับ general_education_ground_truth.json
+└── src/ocr_system/
+    ├── evaluate_lab6.py                 # (ใหม่) evaluate Field / Page / Category level (รวมผลไฟล์เดียว)
+    ├── preprocessing.py                 # (แก้) suppress_warm_watermark() ลบลายน้ำ AIT/IT
+    ├── curriculum_extraction.py         # (แก้) _looks_english() + _join_english_name()
+    ├── evaluate_curriculum.py           # (แก้) เพิ่ม CER/WER ต่อ field (name_en, name_th)
+    ├── cli.py / config.py               # (แก้) option `--workers` (OCR หลายหน้าพร้อมกัน)
+    ├── pipeline.py                      # (แก้) ประมวลผลหน้าแบบขนานด้วย ThreadPoolExecutor
+    └── document_loader.py               # (แก้) ส่ง thread_count ให้ poppler ตอนแปลง PDF
 ```
 
 ---
