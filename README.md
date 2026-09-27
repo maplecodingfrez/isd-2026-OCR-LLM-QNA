@@ -14,53 +14,27 @@ OCR engines ที่มีให้:
 
 ---
 
-> **หมายเหตุ:** โครงสร้างโฟลเดอร์ที่ root นี้ (`src/`, `scripts/`, `outputs/`, `data/`) เป็นงาน
-> **Lab 4-6** (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยกต่างหาก
-> ระดับเดียวกับ root นี้: `Lab7B_curriculum/`, `Lab8b_ocr_system/`, `Lab9_evaluation/`
-
 ## Project Structure
+
+> แสดงเฉพาะงาน Lab 7B (โฟลเดอร์ `Lab7B_curriculum/`) — `src/`, `scripts/`, `outputs/`, `data/` ที่ root
+> เป็นงาน Lab 3-6 ที่ติดมาจาก branch ก่อนหน้า ส่วนโครงสร้างเต็มของทุก Lab ดูที่ branch `main`
 
 ```text
 ocr_system/
-├── README.md
-├── requirements.txt
-├── pyproject.toml
-├── data/
-│   ├── input/                 # dsba_curriculum.pdf, ait_curriculum.pdf, it_curriculum.pdf, bit_curriculum.pdf
-│   └── ground_truth/          # DSBA/AIT/IT/BIT (coop + no_coop), general_education, rules
-├── outputs/
-│   ├── dsba/ ait/ it/ bit/     # ผลลัพธ์ OCR, extraction, evaluation, page mapping, Lab 6 (แยกโฟลเดอร์ต่อหลักสูตร)
-│   ├── qa_pairs.csv            # Q&A ร่วมทุกหลักสูตร (Lab 5/6)
-│   └── pages/                  # ภาพหน้า PDF ที่แปลงแล้ว (debug, ใช้ร่วมกัน)
-├── scripts/
-│   ├── lab5_page_mapping.py  # Lab 5: รัน gt_page_mapping ต่อ program+plan (DSBA/AIT/IT/BIT)
-│   ├── lab5_qa_pairs.py      # Lab 5: สร้าง outputs/qa_pairs.csv (32 ข้อ)
-│   ├── supplement_check_rules.py         # เช็ค coverage ของ rules_ground_truth.json ต่อ program
-│   ├── supplement_general_education.py # เทียบ courses ที่ extract ได้กับ general_education_ground_truth.json (DSBA/AIT/IT)
-│   └── lab6_evaluate.py       # Lab 6: evaluate Field/Page/Category level แล้วเซฟแยกไฟล์ (json/json/csv)
-└── src/
-    └── ocr_system/
-        ├── cli.py             # command line interface
-        ├── config.py          # config หลักของระบบ
-        ├── document_loader.py # โหลดภาพ / แปลง PDF เป็นภาพ
-        ├── preprocessing.py   # resize, denoise, contrast, deskew, threshold, ลบลายน้ำ (AIT/IT)
-        ├── pipeline.py        # OCR pipeline หลัก
-        ├── evaluation.py      # CER, WER, exact match (เอกสารทั่วไป)
-        ├── field_extraction.py# ดึง field เช่น email, date, id, phone
-        ├── curriculum_extraction.py # ดึง course records จากเอกสารหลักสูตร (Lab 4, ใช้กับ DSBA/AIT/IT/BIT)
-        ├── evaluate_curriculum.py   # recall + field-level agreement + CER/WER (Lab 4)
-        ├── gt_page_mapping.py       # map course code → หน้า PDF จริง (Lab 5)
-        ├── evaluate_lab6.py         # evaluate_field_level / evaluate_page_level / evaluate_category_level / write_lab6_outputs (Lab 6)
-        ├── schemas.py         # dataclass ของผลลัพธ์
-        ├── engine_factory.py  # เลือก OCR engine
-        ├── engines/
-        │   ├── base.py
-        │   ├── paddle_engine.py
-        │   ├── tesseract_engine.py
-        │   ├── trocr_engine.py
-        │   └── ensemble_engine.py
-        └── utils/
-            └── io.py
+└── Lab7B_curriculum/
+    ├── lab7b_curriculum.py              # pipeline หลัก: --pipeline text | vlm | all (Typhoon-OCR + qwen3:4b ผ่าน Ollama)
+    ├── lab7_metrics.py                  # P/R/F1 + CER/WER เทียบ ground truth
+    ├── data/                            # วาง DSBA_curriculum.pdf เอง (PDF ไม่อยู่ใน git)
+    ├── gt/DSBA_academic_plan_coop.json  # ground truth ที่ใช้เทียบ (DSBA coop)
+    ├── output/
+    │   ├── intermediate_vlm.md          # Markdown ที่ Typhoon-OCR อ่านได้
+    │   ├── pred_vlm.json / pred_text.json # ผลแปลงเป็น JSON ของแต่ละ pipeline
+    │   ├── evaluation.json              # metric ของทุก pipeline
+    │   └── comparison.csv               # เทียบรายวิชากับ GT
+    ├── PROGRESS.md                      # บันทึกการทดลอง session-by-session
+    ├── *.log                            # log การรัน (experiments, full run, patch pages)
+    ├── Lab7B_Curriculum_LocalLLM1.pdf   # รายงาน (PDF)
+    └── Lab7B_รายงาน_กลุ่มB.docx          # รายงาน (Word)
 ```
 
 ---
