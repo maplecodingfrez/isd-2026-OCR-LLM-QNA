@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+temp_uploads/
 outputs/pages/
 outputs/*/pages/
 *.egg-info/
