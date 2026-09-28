@@ -18,3 +18,8 @@ rich
 pythainlp
 requests
 pytest
+fastapi
+python-multipart
+python-dotenv
+pymupdf
+httpx2
