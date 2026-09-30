@@ -112,3 +112,31 @@ def test_script_wires_the_controls_and_never_writes_style_directly():
         assert f'$("{hook}")' in js, hook
     assert ".style." not in js and "style.cssText" not in js       # JS คุมสถานะ ไม่คุมสี (สไลด์ p.14)
     assert "dataset.state" in js
+
+
+# ---------- ผลตรวจ impeccable (Task 8) ----------
+
+def test_css_has_no_thick_side_border_accent():
+    """ขอบซ้าย/ขวาหนาเกิน 1px บนกล่อง error = ลายเซ็นของ UI ที่เจนมา (detector: side-tab)"""
+    assert not re.search(r"border-(left|right)\s*:\s*([2-9]|\d{2,})px", read("style.css"))
+
+
+def test_css_keeps_long_text_inside_the_layout():
+    assert "overflow-wrap: anywhere" in read("style.css")
+    assert ".visually-hidden" in read("style.css")
+
+
+def test_html_has_one_persistent_live_region_and_no_hidden_aria_live():
+    html = read("index.html")
+    assert re.search(r'<p id="live-status" class="visually-hidden" role="status"[^>]*></p>', html)
+    assert 'aria-live="polite"' not in html          # live region ต้องอยู่ถาวร ไม่ใช่ในบล็อกที่ display:none
+
+
+def test_html_does_not_hardcode_a_course_code_from_one_program():
+    assert 'placeholder="เช่น 06016407"' not in read("index.html")
+
+
+def test_script_announces_states_and_focuses_the_invalid_field():
+    js = read("app.js")
+    assert '$("live-status")' in js
+    assert '$("question").focus()' in js and '$("course-code").focus()' in js

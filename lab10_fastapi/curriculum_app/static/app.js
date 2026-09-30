@@ -200,6 +200,10 @@
       if (!submit.dataset.label) submit.dataset.label = submit.textContent;
       submit.textContent = state === "loading" ? submit.dataset.busyLabel : submit.dataset.label;
     }
+    // live region ถาวร: โปรแกรมอ่านหน้าจอประกาศการเปลี่ยนสถานะ (บล็อกที่ซ่อนอยู่ประกาศเองไม่น่าเชื่อถือ)
+    var heading = panel.querySelector("h2");
+    var say = { loading: "กำลังประมวลผล", success: "ได้ผลลัพธ์แล้ว", error: "เกิดข้อผิดพลาด", idle: "" }[state];
+    $("live-status").textContent = say ? (heading ? heading.textContent + ": " : "") + say : "";
   }
 
   var askPanel = $("ask-panel");
@@ -217,6 +221,7 @@
     $(prefix + "-error-detail").textContent = detail;
     $(prefix + "-error-more").hidden = !detail;
     setState(panel, "error", controls);
+    $("live-status").textContent = message.title + ". " + message.action;
     if (err instanceof ApiError && (err.kind === "network" || err.kind === "timeout" || err.status === 503)) {
       loadHealth();
     }
@@ -252,6 +257,7 @@
     var check = validateQuestion($("question").value);
     if (!check.ok) {
       showError(askPanel, askControls, "ask", new ApiError("http", 422, check.message, [{ msg: check.message }]), "ask");
+      $("question").focus();          // พาผู้ใช้ไปที่ช่องที่ต้องแก้
       return;
     }
     var program = $("program").value || null;
@@ -348,6 +354,7 @@
     var check = validateCode($("course-code").value);
     if (!check.ok) {
       showError(prereqPanel, prereqControls, "prereq", new ApiError("http", 422, check.message, check.message), "prereq");
+      $("course-code").focus();
       return;
     }
     setState(prereqPanel, "loading", prereqControls);

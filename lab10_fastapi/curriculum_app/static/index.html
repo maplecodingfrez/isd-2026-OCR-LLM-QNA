@@ -15,6 +15,7 @@
 
   <main>
     <noscript><p class="muted">หน้านี้ต้องเปิดใช้ JavaScript</p></noscript>
+    <p id="live-status" class="visually-hidden" role="status"></p>
 
     <section id="ask-panel" class="panel panel-ask" data-state="idle" aria-labelledby="ask-title">
       <h2 id="ask-title">ถามเรื่องเล่มหลักสูตร</h2>
@@ -40,7 +41,7 @@
         <span>กำลังค้นในเล่มหลักสูตร โดยปกติใช้ 10–60 วินาที</span>
       </div>
 
-      <div class="state-success" aria-live="polite">
+      <div class="state-success">
         <div id="answer-box" class="answer-box">
           <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
           <div class="answer-body">
@@ -80,7 +81,7 @@
       <p id="prereq-scope" class="muted" hidden></p>
       <form id="prereq-form" class="inline-form" novalidate>
         <label for="course-code">รหัสวิชา 8 หลัก</label>
-        <input id="course-code" type="text" inputmode="numeric" maxlength="8" autocomplete="off" list="courses-list" placeholder="เช่น 06016407">
+        <input id="course-code" type="text" inputmode="numeric" maxlength="8" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
         <datalist id="courses-list"></datalist>
         <button type="submit" id="prereq-button" data-busy-label="กำลังตรวจ…">ตรวจ</button>
       </form>
@@ -95,7 +96,7 @@
         <span>กำลังตรวจข้อมูลวิชา…</span>
       </div>
 
-      <div class="state-success" aria-live="polite">
+      <div class="state-success">
         <h3 id="prereq-course"></h3>
         <p id="prereq-meta" class="muted"></p>
         <h4>วิชาที่ต้องผ่านก่อน</h4>
