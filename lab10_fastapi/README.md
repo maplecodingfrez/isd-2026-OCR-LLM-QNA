@@ -441,4 +441,4 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 ### 13.7 Wireframe
 
-`docs/wireframes/curriculum_app.png` (ต้นฉบับใน Figma — ลิงก์ใส่ไว้ตอนทำ Task 7)
+`docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/iYxgQdXyZ3l54ANq8uuW9g>
