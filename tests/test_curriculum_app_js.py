@@ -1,0 +1,170 @@
+"""Lab 11 — ทดสอบตรรกะล้วนของ static/app.js ด้วย Node (ไม่ต้องมีเบราว์เซอร์).
+
+app.js เป็น IIFE; เมื่อไม่มี `document` (Node) มันจะ export ฟังก์ชันล้วนผ่าน module.exports
+"""
+
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+STATIC = REPO / "lab10_fastapi" / "curriculum_app" / "static"
+APP_JS = STATIC / "app.js"
+README = REPO / "lab10_fastapi" / "README.md"
+NODE = shutil.which("node")
+
+pytestmark = pytest.mark.skipif(NODE is None, reason="ต้องมี node เพื่อรันตรรกะ JS")
+
+
+def run_js(tmp_path, body):
+    """รันโค้ด JS (มีตัวแปร m = exports ของ app.js) แล้วคืนค่าที่ return เป็น Python object"""
+    script = tmp_path / "case.js"
+    script.write_text(
+        f"const m = require({json.dumps(APP_JS.as_posix())});\n"
+        "(async () => {\n"
+        f"{body}\n"
+        "})().then(v => process.stdout.write(JSON.stringify(v)),"
+        " e => { console.error(e); process.exit(1); });\n",
+        encoding="utf-8",
+    )
+    done = subprocess.run([NODE, str(script)], capture_output=True, text=True,
+                          encoding="utf-8", timeout=30)
+    assert done.returncode == 0, done.stderr
+    return json.loads(done.stdout)
+
+
+# ---------- formatDetail ----------
+
+def test_format_detail_shapes(tmp_path):
+    out = run_js(tmp_path, """
+      return [
+        m.formatDetail("ไม่พบฐานข้อมูล"),
+        m.formatDetail([{msg: "ข้อ 1"}, {msg: "ข้อ 2"}]),
+        m.formatDetail(["ก", {msg: "ข"}, {}, null]),
+        m.formatDetail({a: 1}), m.formatDetail(null), m.formatDetail(undefined), m.formatDetail(422),
+      ];""")
+    assert out == ["ไม่พบฐานข้อมูล", "ข้อ 1; ข้อ 2", "ก; ข", "", "", "", ""]
+
+
+# ---------- describeError ----------
+
+CASES = """
+  const E = m.ApiError;
+  return {
+    askPydantic: m.describeError(new E("http", 422, "x", [{msg: "x"}]), "ask"),
+    askLab8b: m.describeError(new E("http", 422, "sql พัง", "sql พัง"), "ask"),
+    askNoProgram: m.describeError(new E("http", 404, "x", "x"), "ask"),
+    prereqCode: m.describeError(new E("http", 422, "x", "x"), "prereq"),
+    prereqMissing: m.describeError(new E("http", 404, "x", "x"), "prereq"),
+    notReady: m.describeError(new E("http", 503, "x", "x"), "ask"),
+    json500: m.describeError(new E("http", 500, "boom", "boom"), "ask"),
+    server: m.describeError(new E("server", 500, "Internal Server Error", null), "ask"),
+    other4xx: m.describeError(new E("http", 409, "x", "x"), "ask"),
+    network: m.describeError(new E("network", 0, ""), "ask"),
+    timeout: m.describeError(new E("timeout", 0, ""), "ask"),
+    unexpected: m.describeError(new TypeError("x is undefined"), "ask"),
+  };
+"""
+
+
+def test_describe_error_table(tmp_path):
+    d = run_js(tmp_path, CASES)
+    assert "2–500" in d["askPydantic"]["title"]
+    assert "แปลงคำถามเป็นคำค้นไม่ได้" in d["askLab8b"]["title"]
+    assert d["askNoProgram"]["title"] == "ไม่พบหลักสูตรที่เลือก"
+    assert "8 หลัก" in d["prereqCode"]["title"]
+    assert "ไม่พบรายวิชารหัสนี้" in d["prereqMissing"]["title"]
+    assert "/api/health" in d["notReady"]["action"]
+    assert d["json500"]["title"] == d["server"]["title"] == "เซิร์ฟเวอร์ขัดข้อง"
+    assert "รหัส 409" in d["other4xx"]["title"]
+    assert d["network"]["title"] == "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"
+    assert "180" in d["timeout"]["title"]
+    assert d["unexpected"]["title"].startswith("เกิดข้อผิดพลาดที่ไม่คาดคิด")
+
+
+def test_describe_error_never_leaks_object_or_undefined(tmp_path):
+    for value in run_js(tmp_path, CASES).values():
+        for text in (value["title"], value["action"]):
+            assert text and "[object" not in text and "undefined" not in text
+
+
+def test_readme_contract_quotes_every_user_facing_message(tmp_path):
+    """README §13 ต้องมีข้อความ title/action ที่หน้าเว็บแสดงจริง (กันเอกสารกับโค้ดเพี้ยนกัน)"""
+    text = README.read_text(encoding="utf-8")
+    assert "API Contract (Lab 11)" in text
+    for value in run_js(tmp_path, CASES).values():
+        assert value["title"] in text or "รหัส 409" in value["title"], value["title"]
+        assert value["action"] in text, value["action"]
+
+
+# ---------- validateQuestion / validateCode (Review Focus 1, 3) ----------
+
+def test_validate_question_boundaries(tmp_path):
+    out = run_js(tmp_path, """
+      const r = (s) => { const v = m.validateQuestion(s); return [v.ok, v.value]; };
+      return [
+        r("   "), r("ก"), r("  ab  "), r("ก".repeat(500)), r("ก".repeat(501)),
+        r("😀".repeat(500)), r("😀".repeat(501)), r(null), r(undefined),
+      ];""")
+    assert out == [[False, ""], [False, "ก"], [True, "ab"], [True, "ก" * 500], [False, "ก" * 501],
+                   [True, "😀" * 500], [False, "😀" * 501], [False, ""], [False, ""]]
+
+
+def test_validate_question_message_reports_length(tmp_path):
+    msg = run_js(tmp_path, "return m.validateQuestion('ก').message;")
+    assert "2–500" in msg and "1" in msg
+
+
+def test_validate_code_keeps_string_and_rejects_bad_formats(tmp_path):
+    out = run_js(tmp_path, """
+      const r = (s) => { const v = m.validateCode(s); return [v.ok, v.value]; };
+      return [
+        r("06016407"), r(" 06016407 "), r("0601640"), r("060164070"), r("๐๖๐๑๖๔๐๗"),
+        r("6016407a"), r("0601 407"), r(""), r(null),
+      ];""")
+    assert out[0] == [True, "06016407"]           # เลข 0 นำหน้าต้องอยู่ครบ
+    assert out[1] == [True, "06016407"]           # ตัดช่องว่างหน้า/หลัง
+    assert all(ok is False for ok, _ in out[2:])
+
+
+# ---------- citationItems / answerText / isEmptyResult / buildCopyPayload (Review Focus 4) ----------
+
+def test_citation_items_are_defensive(tmp_path):
+    out = run_js(tmp_path, """
+      return [
+        m.citationItems(null), m.citationItems({}), m.citationItems({citations: "x"}),
+        m.citationItems({citations: [
+          {pdf_page: 38, printed_page: 33}, {pdf_page: 23, printed_page: null},
+          {pdf_page: "9"}, null, {printed_page: 4}, "junk",
+        ]}),
+      ];""")
+    assert out[:3] == [[], [], []]
+    assert out[3] == [{"printed": 33, "pdf": 38}, {"printed": None, "pdf": 23}]
+
+
+def test_answer_text_and_empty_result(tmp_path):
+    out = run_js(tmp_path, """
+      return [
+        m.answerText({answer: " 20 หน่วยกิต "}), m.answerText({answer: ""}), m.answerText({answer: null}),
+        m.answerText(null),
+        m.isEmptyResult({rows: []}), m.isEmptyResult({rows: null}), m.isEmptyResult({}),
+        m.isEmptyResult({rows: [{a: 1}]}),
+      ];""")
+    assert out[0] == "20 หน่วยกิต"
+    assert out[1] == out[2] == out[3] == "(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)"
+    assert out[4:] == [True, True, True, False]
+
+
+def test_build_copy_payload_has_exactly_five_keys(tmp_path):
+    out = run_js(tmp_path, """
+      const p = m.buildCopyPayload("ถามอะไร", "", {answer: "ตอบ", citation_text: "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))",
+                                                   sql: "SELECT 1", rows: [{a: 1}]}, 12.3456);
+      const q = m.buildCopyPayload("ก่อน", "it_no_coop", {answer: "ตอบ"}, 0.04);
+      return [p, q];""")
+    p, q = out
+    assert list(p) == ["question", "program", "answer", "citation_text", "elapsed_seconds"]
+    assert p["program"] is None and p["elapsed_seconds"] == 12.3
+    assert q["program"] == "it_no_coop" and q["citation_text"] == "" and q["elapsed_seconds"] == 0

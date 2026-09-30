@@ -349,3 +349,96 @@ ollama list
 ### เปิดหน้าเว็บได้แต่ถามไม่ได้
 
 เปิด `/api/health` แล้วดูว่า `database_ready` และ `ollama_ready` เป็น `true` หรือไม่
+
+
+## 13. API Contract (Lab 11)
+
+หน้าเว็บ (`curriculum_app/static/index.html` + `style.css` + `app.js`) คุยกับ backend ผ่าน endpoint ด้านล่าง
+ทุกแถวในตาราง error ถูกตรวจด้วย `tests/test_curriculum_api_contract.py` และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`
+
+### 13.1 รูปแบบ error
+
+error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` เป็น **string** (จาก HTTPException ของเรา) หรือ **array ของ `{loc, msg, type}`** (Pydantic, HTTP 422) — และ 500 ที่ไม่ได้ดักจะตอบเป็นข้อความธรรมดา ไม่ใช่ JSON หน้าเว็บรองรับทั้งสามแบบ และเช็ก `res.ok` เอง
+
+### 13.2 `POST /api/ask` (Content-Type: application/json)
+
+| key ที่ส่ง | type | บังคับ | หมายเหตุ |
+|---|---|---|---|
+| `question` | string | ใช่ | 2–500 ตัวอักษร (นับเป็น code point) |
+| `program` | string หรือ null | ไม่ | id จาก `/api/programs` เช่น `it_no_coop`; ไม่ส่ง/`null` = หลักสูตรเริ่มต้นใน `.env` |
+
+สำเร็จ `200 OK` — ชนิดข้อมูลของ response:
+
+| key ที่ได้ | type | หมายเหตุ |
+|---|---|---|
+| `question` | string | คำถามที่ส่งไป |
+| `program` | string หรือ null | id ที่ส่งมา; null = หลักสูตรเริ่มต้น |
+| `sql` | string หรือ null | SQL ที่ Qwen สร้าง |
+| `rows` | array ของ object | ผลจากฐานข้อมูล (ไม่เกิน `CURRICULUM_MAX_ROWS` แถว); ว่างได้ |
+| `answer` | string | คำตอบภาษาไทย |
+| `citations` | array ของ `{pdf_page: integer, printed_page: integer หรือ null}` | หน้าอ้างอิงในเล่ม; ว่างได้ (`printed_page` null = รู้แค่เลขหน้า PDF) |
+| `citation_text` | string | ข้อความอ้างอิงพร้อมแสดง เช่น "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"; ไม่มีอ้างอิง = "" |
+
+กรณี `rows` ว่างและ `answer` = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ยังเป็น 200 — หน้าเว็บแสดงเป็น Success โทนเตือน ไม่ใช่ Error
+
+| Status | เมื่อไร | `detail` | ข้อความที่ผู้ใช้เห็น (title) | ทำอะไรต่อ (action) |
+|---|---|---|---|---|
+| 422 | คำถามสั้น/ยาวเกิน (Pydantic) | array | คำถามไม่ผ่านการตรวจ (ต้องยาว 2–500 ตัวอักษร) | แก้คำถามแล้วกดถามอีกครั้ง |
+| 422 | Qwen สร้าง SQL ที่รันไม่ได้/ไม่ผ่านการตรวจ | string | ระบบแปลงคำถามเป็นคำค้นไม่ได้ | ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม |
+| 404 | `program` ไม่มีในระบบ | string | ไม่พบหลักสูตรที่เลือก | รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่ |
+| 503 | ไม่พบไฟล์ DB หรือติดต่อ Ollama ไม่ได้ | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
+| 500 | error ที่ไม่ได้ดัก (ตอบเป็นข้อความ) | ไม่ใช่ JSON | เซิร์ฟเวอร์ขัดข้อง | ลองใหม่อีกครั้ง |
+| ไม่มีคำตอบ | server ไม่รัน / เครือข่ายหลุด | - | เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ | ตรวจว่ารัน uvicorn อยู่ แล้วลองใหม่อีกครั้ง |
+| ไม่มีคำตอบ | เกิน 180 วินาที (= `CURRICULUM_REQUEST_TIMEOUT`) | - | หมดเวลารอคำตอบ (เกิน 180 วินาที) | ตรวจว่ารัน uvicorn อยู่ แล้วลองใหม่อีกครั้ง |
+| อื่น ๆ (เช่น 409) | ไม่อยู่ในรายการข้างบน | - | ส่งคำขอไม่สำเร็จ (รหัส N) | ลองใหม่อีกครั้ง |
+| - | ข้อผิดพลาดในตัวหน้าเว็บเอง | - | เกิดข้อผิดพลาดที่ไม่คาดคิดในหน้าเว็บ | รีเฟรชหน้าแล้วลองใหม่ (ถ้ายังเป็นอีก เปิด Console ดูข้อความ error) |
+
+### 13.3 `GET /api/courses/{code}/prerequisites`
+
+`code` = ตัวเลข 8 หลัก (ส่งเป็น string เสมอ เพราะมี 0 นำหน้า) ค้นจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์เสมอ (ไม่รับ `program`)
+สำเร็จ `200 OK` — ชนิดข้อมูลของ response:
+
+| key ที่ได้ | type | หมายเหตุ |
+|---|---|---|
+| `code` | string | ตัวเลข 8 หลัก |
+| `name_th` | string | ชื่อวิชาภาษาไทย |
+| `name_en` | string หรือ null | ชื่อภาษาอังกฤษ |
+| `credits` | integer | หน่วยกิต |
+| `prerequisites_required` | array ของ Item | วิชาที่ต้องผ่านก่อน; ว่างได้ |
+| `unlocked_courses` | array ของ Item | วิชาที่ปลดล็อกให้เรียนต่อ; ว่างได้ |
+
+`Item` = `{code: string, name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, kind: string}`
+
+| Status | เมื่อไร | `detail` | ข้อความที่ผู้ใช้เห็น (title) | ทำอะไรต่อ (action) |
+|---|---|---|---|---|
+| 422 | `code` ไม่ใช่ตัวเลข 8 หลัก | string | รหัสวิชาไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หลัก) | แก้รหัสแล้วกดตรวจอีกครั้ง |
+| 404 | ไม่พบวิชานี้ | string | ไม่พบรายวิชารหัสนี้ในหลักสูตรเริ่มต้น | ตรวจรหัส หรือเลือกจากรายการแนะนำ |
+| 503 | ไม่พบไฟล์ DB | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
+
+ข้อผิดพลาดแบบไม่มีคำตอบ/500 ใช้ข้อความเดียวกับตารางของ `/api/ask`
+
+### 13.4 endpoint เสริมตอนโหลดหน้า (ล้มได้ หน้าเว็บยังใช้งานต่อได้)
+
+- `GET /api/health` → `{status: "ok" หรือ "degraded" (string), database: string, database_ready: boolean, model: string, ollama_ready: boolean, lab8b_module: string}` แสดงเป็นแถบสถานะด้านบนหน้า
+- `GET /api/programs` → array ของ `{id: string, label: string, available: boolean, name_th: string หรือ null, total_credits: integer หรือ null, years: integer หรือ null}` เติมตัวเลือกหลักสูตร (`available: false` = เลือกไม่ได้)
+- `GET /api/program` → `{name_th: string, total_credits: integer, years: integer, ...}` ของหลักสูตรเริ่มต้น (บอกว่าแผงตรวจวิชาบังคับก่อนค้นจากหลักสูตรไหน); 404/503 = หน้าเว็บซ่อนบรรทัดนั้น
+- `GET /api/courses?limit=100` → array ของ `{code: string (8 หลัก), name_th: string, name_en: string หรือ null, credits: integer, lecture_h/lab_h/self_h: integer หรือ null, description_th: string หรือ null}` เติมรายการแนะนำรหัสวิชา
+
+### 13.5 สี่สถานะของ UI
+
+แต่ละแผง (ถามเรื่องหลักสูตร / ตรวจวิชาบังคับก่อน) มีสถานะของตัวเอง:
+
+| สถานะ | เมื่อไร | สิ่งที่เห็น |
+|---|---|---|
+| Idle | ยังไม่ได้ส่ง | คำแนะนำ + ตัวอย่างที่กดได้ |
+| Loading | รอ backend (Qwen ใช้ 10–60 วินาที) | ข้อความบอกเวลาที่ใช้ + ปุ่ม/ช่องกรอกถูกปิดกันกดซ้ำ |
+| Success | ได้ 200 | คำตอบ + แท็บเลขหน้าอ้างอิง + ปุ่มคัดลอกผล (แผงถาม) / รายการวิชา (แผงตรวจวิชา) |
+| Error | ตามตารางข้างบน | title + action + ปุ่มลองอีกครั้ง + รายละเอียดจากเซิร์ฟเวอร์ (พับไว้) |
+
+### 13.6 ปุ่ม "คัดลอกผล"
+
+คัดลอก JSON 5 คีย์ `{question, program, answer, citation_text, elapsed_seconds}` (ไม่รวม `sql`/`rows`) ไปวางใน Discord ได้ทันที
+
+### 13.7 Wireframe
+
+`docs/wireframes/curriculum_app.png` (ต้นฉบับใน Figma — ลิงก์ใส่ไว้ตอนทำ Task 7)
