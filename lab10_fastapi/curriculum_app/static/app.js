@@ -169,4 +169,282 @@
     if (typeof module !== "undefined") { module.exports = api; }
     return;
   }
+
+  // ---------- ส่วนที่แตะ DOM ----------
+  var $ = function (id) { return document.getElementById(id); };
+
+  // สร้าง node ด้วย textContent เท่านั้น — ข้อความจากเซิร์ฟเวอร์/โมเดลจึงเป็นตัวอักษรเสมอ ไม่ถูกตีความเป็น HTML
+  function el(tag, opts, children) {
+    var node = document.createElement(tag);
+    opts = opts || {};
+    if (opts.className) node.className = opts.className;
+    if (opts.text != null) node.textContent = String(opts.text);
+    if (opts.attrs) {
+      Object.keys(opts.attrs).forEach(function (key) { node.setAttribute(key, opts.attrs[key]); });
+    }
+    (children || []).forEach(function (child) { node.appendChild(child); });
+    return node;
+  }
+
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  // JS ตั้ง "สถานะ" อย่างเดียว; CSS เป็นคนซ่อน/แสดงบล็อก .state-* ตาม data-state
+  function setState(panel, state, controls) {
+    panel.dataset.state = state;
+    panel.setAttribute("aria-busy", state === "loading" ? "true" : "false");
+    controls.forEach(function (control) { control.disabled = state === "loading"; });
+    var submit = panel.querySelector('button[type="submit"]');      // ป้ายปุ่มบอกว่ากำลังทำงาน แล้วกลับเป็นชื่อเดิม
+    if (submit) {
+      if (!submit.dataset.label) submit.dataset.label = submit.textContent;
+      submit.textContent = state === "loading" ? submit.dataset.busyLabel : submit.dataset.label;
+    }
+  }
+
+  var askPanel = $("ask-panel");
+  var askControls = [$("ask-button"), $("question"), $("program")];
+  var prereqPanel = $("prereq-panel");
+  var prereqControls = [$("prereq-button"), $("course-code")];
+  var lastResult = null;
+  var copyTimer = null;
+
+  function showError(panel, controls, prefix, err, where) {
+    var message = describeError(err, where);
+    var detail = err instanceof ApiError ? err.detail : (err && err.message ? String(err.message) : "");
+    $(prefix + "-error-title").textContent = message.title;
+    $(prefix + "-error-action").textContent = message.action;
+    $(prefix + "-error-detail").textContent = detail;
+    $(prefix + "-error-more").hidden = !detail;
+    setState(panel, "error", controls);
+    if (err instanceof ApiError && (err.kind === "network" || err.kind === "timeout" || err.status === 503)) {
+      loadHealth();
+    }
+  }
+
+  // ---------- แผง 1: ถามเรื่องหลักสูตร ----------
+  function renderAnswer(data, seconds) {
+    var tabs = $("cite-tabs");
+    clear(tabs);
+    var items = citationItems(data);
+    items.forEach(function (c) {
+      var tab = el("li", { className: "cite-tab" }, [
+        el("span", { text: c.printed !== null ? "หน้า " + c.printed : "PDF " + c.pdf })
+      ]);
+      if (c.printed !== null) tab.appendChild(el("span", { className: "pdf", text: "PDF " + c.pdf }));
+      tabs.appendChild(tab);
+    });
+    $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
+    $("answer-text").textContent = answerText(data);
+    $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
+    var select = $("program");
+    $("answer-source").textContent = select.value && select.selectedOptions[0]
+      ? "ตอบจาก " + select.selectedOptions[0].textContent
+      : "ตอบจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์";
+    $("sql-text").textContent = data.sql || "-";
+    $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
+    $("elapsed-text").textContent = "ใช้เวลา " + seconds.toFixed(1) + " วินาที";
+    resetCopyUi();
+  }
+
+  async function runAsk() {
+    if (askPanel.dataset.state === "loading") return;        // กันกดซ้ำ (นอกเหนือจากการ disable ปุ่ม)
+    var check = validateQuestion($("question").value);
+    if (!check.ok) {
+      showError(askPanel, askControls, "ask", new ApiError("http", 422, check.message, [{ msg: check.message }]), "ask");
+      return;
+    }
+    var program = $("program").value || null;
+    var started = performance.now();
+    setState(askPanel, "loading", askControls);
+    try {
+      var data = await apiFetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: check.value, program: program })
+      });
+      var seconds = (performance.now() - started) / 1000;
+      lastResult = buildCopyPayload(check.value, program, data, seconds);
+      renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
+      setState(askPanel, "success", askControls);
+    } catch (err) {
+      showError(askPanel, askControls, "ask", err, "ask");
+    }
+  }
+
+  // ---------- ปุ่ม "คัดลอกผล" ----------
+  function resetCopyUi() {
+    clearTimeout(copyTimer);
+    $("copy-button").textContent = "คัดลอกผล";
+    $("copy-fallback").hidden = true;
+    $("copy-hint").hidden = true;
+  }
+
+  function legacyCopy(text) {
+    var area = el("textarea", { className: "offscreen", attrs: { readonly: "", "aria-hidden": "true", tabindex: "-1" } });
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(area);
+    return ok;
+  }
+
+  async function copyResult() {
+    if (!lastResult) return;
+    var text = JSON.stringify(lastResult, null, 2);
+    var ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        ok = true;
+      }
+    } catch (e) { ok = false; }
+    if (!ok) ok = legacyCopy(text);
+    if (ok) {
+      $("copy-fallback").hidden = true;
+      $("copy-hint").hidden = true;
+      $("copy-button").textContent = "คัดลอกแล้ว";
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(function () { $("copy-button").textContent = "คัดลอกผล"; }, 2000);
+      return;
+    }
+    var box = $("copy-fallback");     // คัดลอกอัตโนมัติไม่ได้ (เช่น เปิดผ่านที่อยู่ IP ของเครื่อง ไม่ใช่ localhost) → ให้เลือกไว้ให้แล้ว
+    box.value = text;
+    box.hidden = false;
+    $("copy-hint").hidden = false;
+    box.focus();
+    box.select();
+  }
+
+  // ---------- แผง 2: ตรวจวิชาบังคับก่อน ----------
+  function fillCourseList(list, items, emptyText) {
+    clear(list);
+    var courses = Array.isArray(items) ? items : [];
+    if (!courses.length) {
+      list.appendChild(el("li", { className: "muted", text: emptyText }));
+      return;
+    }
+    courses.forEach(function (course) {
+      var credits = course.credits != null ? " (" + course.credits + " หน่วยกิต)" : "";
+      list.appendChild(el("li", {}, [
+        el("span", { className: "code", text: course.code }),
+        document.createTextNode(" " + (course.name_th || "วิชาในหลักสูตร") + credits)
+      ]));
+    });
+  }
+
+  function renderPrereq(data) {
+    $("prereq-course").textContent = "[" + data.code + "] " + (data.name_th || "");
+    $("prereq-meta").textContent =
+      (data.credits != null ? data.credits + " หน่วยกิต" : "") + (data.name_en ? " (" + data.name_en + ")" : "");
+    fillCourseList($("prereq-required"), data.prerequisites_required, "ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที");
+    fillCourseList($("prereq-unlocks"), data.unlocked_courses, "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน");
+  }
+
+  async function runPrereq() {
+    if (prereqPanel.dataset.state === "loading") return;
+    var check = validateCode($("course-code").value);
+    if (!check.ok) {
+      showError(prereqPanel, prereqControls, "prereq", new ApiError("http", 422, check.message, check.message), "prereq");
+      return;
+    }
+    setState(prereqPanel, "loading", prereqControls);
+    try {
+      var data = await apiFetch("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites");
+      renderPrereq(data);
+      setState(prereqPanel, "success", prereqControls);
+    } catch (err) {
+      showError(prereqPanel, prereqControls, "prereq", err, "prereq");
+    }
+  }
+
+  // ---------- โหลดข้อมูลเริ่มต้น (ล้มได้ทุกตัว หน้ายังใช้งานต่อได้) ----------
+  async function loadHealth() {
+    var box = $("health");
+    try {
+      var health = await apiFetch("/api/health", {}, { timeoutMs: 10000 });
+      var ready = health.status === "ok";
+      var problems = [];
+      if (!health.database_ready) problems.push("ไม่พบฐานข้อมูล");
+      if (!health.ollama_ready) problems.push("ติดต่อ Ollama ไม่ได้");
+      box.dataset.health = ready ? "ok" : "degraded";
+      box.textContent = ready ? "ระบบพร้อมใช้งาน" : "ระบบยังไม่พร้อม: " + problems.join(", ");
+    } catch (e) {
+      box.dataset.health = "down";
+      box.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้";
+    }
+  }
+
+  async function loadPrograms() {
+    var select = $("program");
+    try {
+      var programs = await apiFetch("/api/programs", {}, { timeoutMs: 15000 });
+      clear(select);
+      select.appendChild(el("option", { text: "หลักสูตรเริ่มต้นของเซิร์ฟเวอร์", attrs: { value: "" } }));
+      programs.forEach(function (program) {
+        var option = el("option", {
+          text: program.label + (program.available ? "" : " (ไม่มีข้อมูล)"),
+          attrs: { value: program.id }
+        });
+        option.disabled = !program.available;
+        select.appendChild(option);
+      });
+    } catch (e) {
+      clear(select);
+      select.appendChild(el("option", { text: "โหลดรายชื่อหลักสูตรไม่ได้ (ใช้หลักสูตรเริ่มต้น)", attrs: { value: "" } }));
+    }
+  }
+
+  async function loadProgramNote() {
+    try {
+      var program = await apiFetch("/api/program", {}, { timeoutMs: 10000 });
+      if (program && program.name_th) {
+        $("prereq-scope").textContent = "ค้นจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์: " + program.name_th + " (ไม่ผูกกับตัวเลือกด้านบน)";
+        $("prereq-scope").hidden = false;
+      }
+    } catch (e) { /* ซ่อนบรรทัดนี้ไว้ */ }
+  }
+
+  async function loadCourses() {
+    try {
+      var courses = await apiFetch("/api/courses?limit=100", {}, { timeoutMs: 15000 });
+      var datalist = $("courses-list");
+      clear(datalist);
+      courses.forEach(function (course) {
+        datalist.appendChild(el("option", { attrs: { value: course.code, label: course.code + " " + (course.name_th || "") } }));
+      });
+      var samples = $("prereq-samples");
+      clear(samples);
+      courses.slice(0, 3).forEach(function (course) {
+        samples.appendChild(el("button", { className: "link-button", text: course.code, attrs: { type: "button", "data-code": course.code } }));
+      });
+      $("prereq-samples-wrap").hidden = courses.length === 0;
+    } catch (e) { /* ไม่มี autocomplete ก็ใช้งานได้ */ }
+  }
+
+  // ---------- ผูกเหตุการณ์ ----------
+  $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
+  $("ask-retry").addEventListener("click", runAsk);
+  $("copy-button").addEventListener("click", copyResult);
+  document.querySelectorAll("[data-question]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      $("question").value = button.dataset.question;
+      $("question").focus();
+    });
+  });
+  $("prereq-form").addEventListener("submit", function (event) { event.preventDefault(); runPrereq(); });
+  $("prereq-retry").addEventListener("click", runPrereq);
+  $("prereq-samples").addEventListener("click", function (event) {
+    var button = event.target.closest("[data-code]");
+    if (!button) return;
+    $("course-code").value = button.dataset.code;
+    runPrereq();
+  });
+
+  loadHealth();
+  loadPrograms();
+  loadProgramNote();
+  loadCourses();
 })();

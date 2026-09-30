@@ -92,3 +92,23 @@ def test_js_is_one_iife_with_no_top_level_declarations_and_checks_res_ok():
     assert not re.search(r"^(var|let|const|function|class)\s", js, re.M)   # ไม่มี global
     assert "res.ok" in js
     assert "res.json(" not in js                                            # อ่านเป็น text แล้ว parse เอง
+
+
+def test_every_id_the_script_reads_exists_in_the_html():
+    """เรียก $("x") ด้วย id ที่ไม่มีใน HTML = null แล้วสคริปต์ตายตอนโหลด (ทุกอย่างค้าง Idle)"""
+    js, html = read("app.js"), read("index.html")
+    used = set(re.findall(r'\$\("([A-Za-z0-9_-]+)"\)', js))
+    defined = set(re.findall(r'\bid="([A-Za-z0-9_-]+)"', html))
+    assert used, "ไม่พบการอ่าน id ใน app.js (ยังไม่ได้ต่อ DOM?)"
+    assert used <= defined, sorted(used - defined)
+    for prefix in ("ask", "prereq"):                      # id ที่ประกอบแบบไดนามิกใน showError()
+        for part in ("title", "action", "detail", "more"):
+            assert f"{prefix}-error-{part}" in defined, f"{prefix}-error-{part}"
+
+
+def test_script_wires_the_controls_and_never_writes_style_directly():
+    js = read("app.js")
+    for hook in ("ask-form", "prereq-form", "copy-button", "ask-retry", "prereq-retry"):
+        assert f'$("{hook}")' in js, hook
+    assert ".style." not in js and "style.cssText" not in js       # JS คุมสถานะ ไม่คุมสี (สไลด์ p.14)
+    assert "dataset.state" in js
