@@ -168,3 +168,79 @@ def test_build_copy_payload_has_exactly_five_keys(tmp_path):
     assert list(p) == ["question", "program", "answer", "citation_text", "elapsed_seconds"]
     assert p["program"] is None and p["elapsed_seconds"] == 12.3
     assert q["program"] == "it_no_coop" and q["citation_text"] == "" and q["elapsed_seconds"] == 0
+
+
+# ---------- apiFetch (Review Focus 2, 5) ----------
+
+FAKE = """
+  const respond = (status, body, type) => async () =>
+    new Response(body, {status: status, headers: {"Content-Type": type || "application/json"}});
+  const outcome = async (fetchImpl, deps) => {
+    try {
+      const v = await m.apiFetch("/x", {}, Object.assign({fetch: fetchImpl}, deps || {}));
+      return {ok: v};
+    } catch (e) {
+      return {kind: e.kind, status: e.status, detail: e.detail, raw: e.raw};
+    }
+  };
+"""
+
+
+def test_api_fetch_success_and_json_errors(tmp_path):
+    out = run_js(tmp_path, FAKE + """
+      return [
+        await outcome(respond(200, JSON.stringify({a: 1}))),
+        await outcome(respond(422, JSON.stringify({detail: [{msg: "สั้นไป"}, {msg: "อีกข้อ"}]}))),
+        await outcome(respond(422, JSON.stringify({detail: "sql พัง"}))),
+        await outcome(respond(404, JSON.stringify({detail: "ไม่พบ"}))),
+        await outcome(respond(400, JSON.stringify({x: 1}))),
+        await outcome(respond(400, JSON.stringify({detail: {a: 1}}))),
+        await outcome(respond(400, JSON.stringify([1, 2]))),
+      ];""")
+    assert out[0] == {"ok": {"a": 1}}
+    assert out[1] == {"kind": "http", "status": 422, "detail": "สั้นไป; อีกข้อ",
+                      "raw": [{"msg": "สั้นไป"}, {"msg": "อีกข้อ"}]}
+    assert out[2] == {"kind": "http", "status": 422, "detail": "sql พัง", "raw": "sql พัง"}
+    assert out[3] == {"kind": "http", "status": 404, "detail": "ไม่พบ", "raw": "ไม่พบ"}
+    assert out[4] == {"kind": "http", "status": 400, "detail": "", "raw": None}        # ไม่มีคีย์ detail
+    assert out[5] == {"kind": "http", "status": 400, "detail": "", "raw": {"a": 1}}    # detail เป็น object
+    assert out[6] == {"kind": "http", "status": 400, "detail": "", "raw": None}        # JSON ระดับบนเป็น array
+
+
+def test_api_fetch_non_json_bodies_become_server_errors(tmp_path):
+    out = run_js(tmp_path, FAKE + """
+      return [
+        await outcome(respond(500, "Internal Server Error", "text/plain")),
+        await outcome(respond(502, "<html>Bad Gateway</html>", "text/html")),
+        await outcome(respond(500, "", "text/plain")),
+        await outcome(respond(200, "not json at all", "text/plain")),
+      ];""")
+    assert out[0] == {"kind": "server", "status": 500, "detail": "Internal Server Error", "raw": None}
+    assert out[1]["kind"] == "server" and out[1]["status"] == 502
+    assert out[2] == {"kind": "server", "status": 500, "detail": "", "raw": None}
+    assert out[3]["kind"] == "server" and out[3]["status"] == 200
+
+
+def test_api_fetch_network_failure_and_timeout(tmp_path):
+    out = run_js(tmp_path, FAKE + """
+      const neverSettles = (url, init) => new Promise((resolve, reject) => {
+        init.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+      return [
+        await outcome(async () => { throw new TypeError("Failed to fetch"); }),
+        await outcome(neverSettles, {timeoutMs: 30}),
+      ];""")
+    assert out[0] == {"kind": "network", "status": 0, "detail": "", "raw": None}
+    assert out[1] == {"kind": "timeout", "status": 0, "detail": "", "raw": None}
+
+
+def test_api_fetch_sends_method_headers_body_and_a_signal(tmp_path):
+    seen = run_js(tmp_path, """
+      let seen = null;
+      await m.apiFetch("/api/ask", {method: "POST", headers: {"Content-Type": "application/json"}, body: "{}"},
+        {fetch: async (url, init) => { seen = {url, method: init.method, type: init.headers["Content-Type"],
+                                               body: init.body, hasSignal: !!init.signal};
+                                       return new Response("{}", {status: 200}); }});
+      return seen;""")
+    assert seen == {"url": "/api/ask", "method": "POST", "type": "application/json",
+                    "body": "{}", "hasSignal": True}

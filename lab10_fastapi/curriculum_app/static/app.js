@@ -112,8 +112,48 @@
     };
   }
 
+  var TIMEOUT_MS = 180000;   // = CURRICULUM_REQUEST_TIMEOUT ใน config.py
+
+  // จุดเดียวที่คุยกับเครือข่าย: ทุกความล้มเหลวกลายเป็น ApiError ที่ describeError อธิบายได้
+  async function apiFetch(url, options, deps) {
+    options = options || {};
+    deps = deps || {};
+    // เรียก fetch ตอนใช้งานจริง (ไม่จับไว้ตอนโหลดไฟล์) เพื่อให้ทับ window.fetch ใน Console ตอนทดสอบได้
+    var doFetch = deps.fetch || function (u, init) { return fetch(u, init); };
+    var controller = new AbortController();
+    var timedOut = false;
+    var timer = setTimeout(function () { timedOut = true; controller.abort(); }, deps.timeoutMs || TIMEOUT_MS);
+    var res;
+    var text;
+    try {
+      res = await doFetch(url, {
+        method: options.method || "GET",
+        headers: options.headers,
+        body: options.body,
+        signal: controller.signal
+      });
+      text = await res.text();
+    } catch (e) {
+      throw new ApiError(timedOut ? "timeout" : "network", 0, "", null);
+    } finally {
+      clearTimeout(timer);
+    }
+    var body = null;
+    var parsed = false;
+    try { body = JSON.parse(text); parsed = true; } catch (e) { parsed = false; }
+    if (!res.ok) {
+      if (!parsed) throw new ApiError("server", res.status, String(text).slice(0, 200), null);
+      var raw = body && typeof body === "object" && !Array.isArray(body) ? body.detail : undefined;
+      if (raw === undefined) raw = null;
+      throw new ApiError("http", res.status, formatDetail(raw), raw);
+    }
+    if (!parsed) throw new ApiError("server", res.status, "ตอบกลับไม่ใช่ JSON", null);
+    return body;
+  }
+
   var api = {
     ApiError: ApiError,
+    apiFetch: apiFetch,
     formatDetail: formatDetail,
     describeError: describeError,
     validateQuestion: validateQuestion,
