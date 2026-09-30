@@ -140,3 +140,17 @@ def test_script_announces_states_and_focuses_the_invalid_field():
     js = read("app.js")
     assert '$("live-status")' in js
     assert '$("question").focus()' in js and '$("course-code").focus()' in js
+
+
+# ---------- ผลรีวิวทั้ง branch (Important) ----------
+
+def test_course_code_input_has_no_maxlength_that_would_truncate_a_padded_paste():
+    tag = re.search(r'<input[^>]*id="course-code"[^>]*>', read("index.html")).group(0)
+    assert "maxlength" not in tag          # วาง " 06016407" แล้วเบราว์เซอร์ตัดเหลือ 8 ตัวก่อน trim() จะทำงาน
+
+
+def test_timeout_is_not_claimed_to_equal_a_backend_setting():
+    readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
+    assert "CURRICULUM_REQUEST_TIMEOUT" not in read("app.js")
+    assert "= `CURRICULUM_REQUEST_TIMEOUT`" not in readme
+    assert "Ollama ล่มตอนสร้าง SQL" in readme        # แถว 422 ที่ backend ส่งจริงเมื่อ Ollama ไม่ทำงาน

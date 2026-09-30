@@ -7,6 +7,11 @@
   var QUESTION_MAX = 500;
   var NETWORK_ACTION = "ตรวจว่ารัน uvicorn อยู่ แล้วลองใหม่อีกครั้ง";
   var RETRY_ACTION = "ลองใหม่อีกครั้ง";
+  var TIMEOUT_ACTION = "โมเดลอาจยังประมวลผลอยู่ รอสักครู่ แล้วกดลองอีกครั้ง (ถ้ายังเป็นอีก เปิดหน้า /api/health)";
+  var NOT_READY_ACTION = "แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน";
+  // backend ส่ง "Ollama ล่มตอนสร้าง SQL" เป็น 422 ที่ detail ขึ้นต้นด้วยชื่อ error ของ requests
+  // (lab8b.ask จับ exception ขั้นสร้าง SQL เอง) — ต้องไม่บอกผู้ใช้ให้ไปถามใหม่
+  var MODEL_DOWN = /^(ConnectionError|ConnectTimeout|ReadTimeout|Timeout|ProxyError|SSLError|ChunkedEncodingError|RequestException)\b/;
 
   // kind: "network" | "timeout" | "http" | "server"
   // status: เลข HTTP (0 = ไม่ได้คำตอบ) · detail: ข้อความอ่านได้ · raw: detail ดิบจากเซิร์ฟเวอร์
@@ -32,6 +37,13 @@
     }).filter(Boolean).join("; ");
   }
 
+  // ระบบฝั่งโมเดล/ฐานข้อมูลยังไม่พร้อม: 503 ทุกแผง หรือ 422 ของแผงถามที่เป็น Ollama ล่มตอนสร้าง SQL
+  function isModelDown(err, where) {
+    if (!(err instanceof ApiError) || err.kind !== "http") return false;
+    if (err.status === 503) return true;
+    return where === "ask" && err.status === 422 && typeof err.raw === "string" && MODEL_DOWN.test(err.raw);
+  }
+
   // ข้อความที่ผู้ใช้เห็น: title = เกิดอะไรขึ้น, action = ต้องทำอะไรต่อ (ตรงกับตารางใน README §13)
   function describeError(err, where) {
     var isAsk = where === "ask";
@@ -41,9 +53,12 @@
         action: "รีเฟรชหน้าแล้วลองใหม่ (ถ้ายังเป็นอีก เปิด Console ดูข้อความ error)"
       };
     }
-    if (err.kind === "timeout") return { title: "หมดเวลารอคำตอบ (เกิน 180 วินาที)", action: NETWORK_ACTION };
+    if (err.kind === "timeout") return { title: "หมดเวลารอคำตอบ (เกิน 180 วินาที)", action: TIMEOUT_ACTION };
     if (err.kind === "network") return { title: "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", action: NETWORK_ACTION };
     if (err.kind === "server") return { title: "เซิร์ฟเวอร์ขัดข้อง", action: RETRY_ACTION };
+    if (isModelDown(err, where)) {
+      return { title: "ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล)", action: NOT_READY_ACTION };
+    }
     if (err.status === 422) {
       if (!isAsk) return { title: "รหัสวิชาไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หลัก)", action: "แก้รหัสแล้วกดตรวจอีกครั้ง" };
       if (Array.isArray(err.raw)) {
@@ -55,12 +70,6 @@
       return isAsk
         ? { title: "ไม่พบหลักสูตรที่เลือก", action: "รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่" }
         : { title: "ไม่พบรายวิชารหัสนี้ในหลักสูตรเริ่มต้น", action: "ตรวจรหัส หรือเลือกจากรายการแนะนำ" };
-    }
-    if (err.status === 503) {
-      return {
-        title: "ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล)",
-        action: "แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน"
-      };
     }
     if (err.status >= 500) return { title: "เซิร์ฟเวอร์ขัดข้อง", action: RETRY_ACTION };
     return { title: "ส่งคำขอไม่สำเร็จ (รหัส " + err.status + ")", action: RETRY_ACTION };
@@ -112,7 +121,7 @@
     };
   }
 
-  var TIMEOUT_MS = 180000;   // = CURRICULUM_REQUEST_TIMEOUT ใน config.py
+  var TIMEOUT_MS = 180000;   // เพดานรอของหน้าเว็บเอง (backend ไม่มีเพดานเท่ากัน: Ollama รอได้ถึง 600 วินาทีต่อครั้ง)
 
   // จุดเดียวที่คุยกับเครือข่าย: ทุกความล้มเหลวกลายเป็น ApiError ที่ describeError อธิบายได้
   async function apiFetch(url, options, deps) {
@@ -154,6 +163,7 @@
   var api = {
     ApiError: ApiError,
     apiFetch: apiFetch,
+    isModelDown: isModelDown,
     formatDetail: formatDetail,
     describeError: describeError,
     validateQuestion: validateQuestion,
@@ -222,7 +232,7 @@
     $(prefix + "-error-more").hidden = !detail;
     setState(panel, "error", controls);
     $("live-status").textContent = message.title + ". " + message.action;
-    if (err instanceof ApiError && (err.kind === "network" || err.kind === "timeout" || err.status === 503)) {
+    if (err instanceof ApiError && (err.kind === "network" || err.kind === "timeout" || isModelDown(err, where))) {
       loadHealth();
     }
   }

@@ -192,3 +192,14 @@ def test_health_reports_database_and_ollama_flags(client, monkeypatch):
     body = client.get("/api/health").json()
     assert body["status"] in ("ok", "degraded")
     assert isinstance(body["database_ready"], bool) and body["ollama_ready"] is True
+
+
+@pytest.mark.skipif(not main.settings.db_path.exists(), reason="ต้องมีไฟล์ DB เริ่มต้นเพื่อรัน lab8b.ask จริง")
+def test_ask_422_when_ollama_is_down_during_sql_generation(client, monkeypatch):
+    """เส้นทางจริง: lab8b.ask จับทุก exception ในขั้นสร้าง SQL แล้วคืน error เป็นสตริง -> 422 (ไม่ใช่ 503)"""
+    def boom(*args, **kwargs):
+        raise requests.ConnectionError("Max retries exceeded")
+    monkeypatch.setattr(main.lab8b, "ollama_generate", boom)
+    r = client.post("/api/ask", json={"question": "หลักสูตรนี้มีหน่วยกิตรวมกี่หน่วยกิต"})
+    assert r.status_code == 422
+    assert isinstance(r.json()["detail"], str) and r.json()["detail"].startswith("ConnectionError")

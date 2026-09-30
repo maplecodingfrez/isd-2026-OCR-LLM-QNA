@@ -65,6 +65,7 @@ CASES = """
     other4xx: m.describeError(new E("http", 409, "x", "x"), "ask"),
     network: m.describeError(new E("network", 0, ""), "ask"),
     timeout: m.describeError(new E("timeout", 0, ""), "ask"),
+    askOllamaDown: m.describeError(new E("http", 422, "ConnectionError: Max retries exceeded", "ConnectionError: Max retries exceeded"), "ask"),
     unexpected: m.describeError(new TypeError("x is undefined"), "ask"),
   };
 """
@@ -83,6 +84,26 @@ def test_describe_error_table(tmp_path):
     assert d["network"]["title"] == "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"
     assert "180" in d["timeout"]["title"]
     assert d["unexpected"]["title"].startswith("เกิดข้อผิดพลาดที่ไม่คาดคิด")
+    # รีวิว Important 1: Ollama ล่มตอนสร้าง SQL มาเป็น 422 string ต้องไม่บอกให้ผู้ใช้ "ถามใหม่"
+    assert d["askOllamaDown"] == d["notReady"]
+    # รีวิว Important 2: timeout ไม่ใช่ uvicorn ดับ — คำแนะนำต้องต่างจาก network
+    assert "uvicorn" not in d["timeout"]["action"] and d["timeout"]["action"] != d["network"]["action"]
+
+
+def test_is_model_down_only_matches_requests_exception_names(tmp_path):
+    out = run_js(tmp_path, """
+      const E = m.ApiError, mk = (st, raw) => new E("http", st, String(raw), raw);
+      return [
+        m.isModelDown(mk(422, "ConnectionError: HTTPConnectionPool(host=localhost)"), "ask"),
+        m.isModelDown(mk(422, "ReadTimeout: read timed out"), "ask"),
+        m.isModelDown(mk(422, "OperationalError: no such column: x"), "ask"),
+        m.isModelDown(mk(422, "SQL ไม่ผ่านการตรวจ"), "ask"),
+        m.isModelDown(mk(422, [{msg: "x"}]), "ask"),
+        m.isModelDown(mk(503, "ติดต่อ Ollama ไม่ได้"), "ask"),
+        m.isModelDown(mk(422, "ConnectionError: x"), "prereq"),
+        m.isModelDown(new E("network", 0, ""), "ask"),
+      ];""")
+    assert out == [True, True, False, False, False, True, False, False]
 
 
 def test_describe_error_never_leaks_object_or_undefined(tmp_path):
