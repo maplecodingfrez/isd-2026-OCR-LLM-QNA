@@ -588,3 +588,63 @@ def test_scoping_the_elective_view_does_not_leak_between_questions_on_one_connec
         assert m.scope_elective_view(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง") is True and count() == 2
         assert m.scope_elective_view(conn, "วิชาเลือกหมวดศึกษาทั่วไปมีอะไรบ้าง") is False and count() == 4
         assert m.scope_elective_view(conn, "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง") is True and count() == 2
+
+
+# ---------- ช่อง GE/ภาษาฯ ตอบรายชื่อจริงจากแคตตาล็อก 2566 (ต้องมีแคตตาล็อกใน DB; ไม่มี = ข้อความระดับ 1 เดิม) ----------
+
+def _db_with_ge_catalog(path, extra_language=0):
+    c = _wildcard_db(path)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (20, 'P', ?, 24, 1, 'กลุ่มทักษะส่งเสริมอัตลักษณ์สถาบันฯ')", (GE_SLOT,))
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (22, 'P', ?, 24, 2, 'กลุ่มทักษะบุคคลและส่งเสริมวิชาชีพ')", (GE_SLOT,))
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (23, 'P', ?, 24, 3, 'กลุ่มทักษะการจัดการและภาวะความเป็นผู้นำ')", (GE_SLOT,))
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (24, 'P', ?, 24, 4, 'กลุ่มทักษะภาษาและการสื่อสาร')", (GE_SLOT,))
+    rows = [(20, "90641007", "พลเมืองดิจิทัล", 3), (22, "90642001", "ทักษะบุคคล", 3), (22, "90642002", "ทักษะบุคคลสอง", 2),
+            (23, "90643001", "ภาวะผู้นำ", 3), (24, "90644001", "ปฏิบัติงานสื่อสาร 1", 1), (24, "90644003", "ปฏิบัติงานสื่อสาร 3", 3),
+            (24, "90644009", "การออกเสียงภาษาอังกฤษ", 3), (24, "90644010", "การอ่านและเขียนภาษาอังกฤษ", 3)]
+    rows += [(24, f"90644{100 + i}", f"วิชาภาษาเพิ่ม {i}", 3) for i in range(extra_language)]
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (?, ?, ?, 'X', ?)", rows)
+    # วิชาบังคับในแผนของหลักสูตร: 90644007 ไม่อยู่ในแคตตาล็อก (เหมือน DSBA/IT), 90644010 อยู่ในแคตตาล็อกแต่เป็นวิชาบังคับในแผน
+    c.executemany("INSERT INTO course (code, name_th, credits) VALUES (?, ?, 3)",
+                  [("90644007", "ภาษาอังกฤษพื้นฐาน 1"), ("90644010", "การอ่านและเขียนภาษาอังกฤษ")])
+    c.executemany("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('P', 1, 1, ?, 3)",
+                  [("90644007",), ("90644010",)])
+    c.commit()
+    return c
+
+
+def _ask_with_catalog(tmp_path, monkeypatch, question, extra_language=0):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _db_with_ge_catalog(path, extra_language).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+def test_language_slot_lists_the_catalog_pool_with_matching_credits_and_without_plan_required_courses(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง")
+    assert sorted(x["code"] for x in r["rows"]) == ["90644003", "90644009"]          # 3 หน่วยกิต กลุ่ม 4 ไม่รวม 1 หน่วยกิต/วิชาบังคับในแผน
+    assert "พ.ศ. 2566" in r["answer"] and "2 วิชา" in r["answer"] and "90644009" in r["answer"]
+    assert "บังคับในแผน" in r["answer"] and "90644007" in r["answer"] and "90644010" in r["answer"]
+    assert "ภาคผนวก ง" not in r["answer"] and r["model_calls"] == 0                  # ไม่อ้างว่าตรงกับภาคผนวกในเล่ม (คนละฉบับ)
+
+
+def test_ge_elective_slot_summarises_pool_per_group_and_leaves_out_the_identity_group(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "ปี 3 เทอม 1 วิชาเลือกหมวดวิชาศึกษาทั่วไป มีวิชาอะไรให้เลือกบ้าง")
+    assert sorted(x["code"] for x in r["rows"]) == ["90642001", "90643001", "90644003", "90644009"]
+    assert "90641007" not in r["answer"] and "กลุ่มทักษะบุคคลและส่งเสริมวิชาชีพ 1 วิชา" in r["answer"]
+    assert "กลุ่มทักษะภาษาและการสื่อสาร 2 วิชา" in r["answer"]
+
+
+def test_long_pool_shows_at_most_eight_examples_but_all_rows(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง", extra_language=12)
+    assert len(r["rows"]) == 14 and "14 วิชา" in r["answer"]
+    assert len(re.findall(r"90644\d{3}", r["answer"].split("บังคับในแผน")[0])) <= 8
+
+
+def test_without_a_catalog_the_level_one_wording_is_kept(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง")
+    assert "ไม่ได้กำหนดรายวิชาตายตัว" in r["answer"] and "ภาคผนวก ง" in r["answer"]
