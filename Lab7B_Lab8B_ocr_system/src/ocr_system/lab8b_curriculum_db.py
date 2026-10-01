@@ -1144,6 +1144,53 @@ def _citations_module():
     return citations
 
 
+_ELECTIVE_Q = re.compile(r"วิชาเลือก(?!เสรี)|elective", re.I)       # วิชาเลือกเสรี ไม่ใช่แคตตาล็อกเฉพาะทาง
+_TOPIC_Q = re.compile(r"วิชา.*(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง)|(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง).*วิชา")
+
+
+def _has_view(conn: sqlite3.Connection, name: str) -> bool:
+    return conn.execute("SELECT 1 FROM sqlite_master WHERE name=?", (name,)).fetchone() is not None
+
+
+def _elective_hint_text(conn: sqlite3.Connection, question: str) -> str:
+    """คำใบ้เมื่อถามเรื่องวิชาเลือก: ชี้ให้ใช้ view v_elective_group (โมเดลเคยแต่งชื่อ v_elective_group_course เอง)
+    เปิดเฉพาะเมื่อคำถามพูดถึงวิชาเลือก และแคตตาล็อกของหลักสูตรนี้มีข้อมูล — นอกนั้นคืน "" (prompt เหมือนเดิมทุกตัวอักษร)"""
+    if not _ELECTIVE_Q.search(question):
+        return ""
+    try:
+        if not conn.execute("SELECT 1 FROM elective_group LIMIT 1").fetchone():
+            return ""
+    except sqlite3.OperationalError:
+        return ""
+    return (
+        "วิชาเลือกของหลักสูตรนี้ (จากแคตตาล็อก) อยู่ใน view v_elective_group เท่านั้น "
+        "(ห้ามแต่งชื่อ view/ตารางอื่น) คอลัมน์: plan_slot, credits_required, group_no, group_name_th, group_name_en, "
+        "code, course_name_th, course_name_en, credits\n"
+        "- รายวิชาเลือกทั้งหมด/ของกลุ่ม: SELECT group_no, group_name_th, code, course_name_th, credits "
+        "FROM v_elective_group [WHERE group_no = ?] ORDER BY group_no, code\n"
+        "- ต้องเลือกกี่หน่วยกิต/กี่กลุ่ม: SELECT DISTINCT plan_slot, credits_required FROM v_elective_group\n\n"
+    )
+
+
+def _topic_hint_text(conn: sqlite3.Connection, question: str) -> str:
+    """คำใบ้เมื่อถามหาวิชาตามหัวข้อ ("วิชาเกี่ยวกับ X"): ค้นด้วย LIKE ในชื่อวิชาไทย+อังกฤษ (และแคตตาล็อกวิชาเลือกถ้ามี)
+    ตัวอย่างใช้ตัวแทน <คำค้น> ไม่ใช่หัวข้อจริง — เปิดเฉพาะคำถามรูปแบบนี้ นอกนั้นคืน "" """
+    if not _TOPIC_Q.search(question):
+        return ""
+    text = (
+        "ค้นวิชาตามหัวข้อ: ใช้ LIKE '%<คำค้น>%' กับทั้ง name_th และ name_en (ใส่คำค้นทั้งภาษาไทยและอังกฤษที่ความหมายเดียวกัน) "
+        "อย่าใช้ = และอย่าเดาจากรหัสวิชา\n"
+        "  SELECT DISTINCT code, name_th, credits FROM course WHERE name_th LIKE '%<คำค้นไทย>%' OR name_en LIKE '%<คำค้นอังกฤษ>%'\n"
+    )
+    if _has_view(conn, "v_elective_group"):
+        text += (
+            "  ถ้าถามถึงวิชาเลือกด้วย ให้ UNION กับ v_elective_group:\n"
+            "  SELECT code, course_name_th, credits FROM v_elective_group "
+            "WHERE course_name_th LIKE '%<คำค้นไทย>%' OR course_name_en LIKE '%<คำค้นอังกฤษ>%'\n"
+        )
+    return text + "\n"
+
+
 def _course_name_hint_text(conn: sqlite3.Connection, question: str) -> str:
     """บรรทัด "ชื่อวิชา = รหัส" + ทิศทางวิชาบังคับก่อน สำหรับ prompt (course_names.py) — ไม่มีตาราง/ไม่เจออะไร = "" """
     _citations_module()                          # ให้โฟลเดอร์นี้อยู่ใน sys.path (ครั้งเดียว)
@@ -1743,7 +1790,8 @@ def ask(conn: sqlite3.Connection, question: str,
     # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
     base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
-    hints = _course_name_hint_text(conn, question)
+    hints = (_course_name_hint_text(conn, question) + _elective_hint_text(conn, question)
+             + _topic_hint_text(conn, question))
     if hints:
         tail = f"คำถาม: {question}\nSQL:"
         base_prompt = base_prompt[: -len(tail)] + hints + tail
@@ -1825,6 +1873,14 @@ def ask(conn: sqlite3.Connection, question: str,
         pattern = rf"(?<!\d){re.escape(value)}(?!\d)" if re.fullmatch(r"-?\d+(\.\d+)?", value) else re.escape(value)
         if not re.search(pattern, result["answer"] or ""):
             result["answer"] = value
+    # รายการหลายแถว หลายคอลัมน์ (เช่น วิชาเลือก: กลุ่ม+รหัส+ชื่อ+หน่วยกิต): num_predict=256 ตัดคำตอบกลางสตริงจนได้ข้อความว่าง
+    # และ qwen สะกดไทยเพี้ยน → ถ้าคำตอบขาดค่าข้อความของแถวใด (หรือว่าง) ประกอบจากแถวจริงตรง ๆ; คำตอบที่ครบอยู่แล้วไม่แตะ
+    elif 2 <= len(result["rows"]) <= 80 and all(len(r) >= 2 for r in result["rows"]):
+        texts = [str(v).strip() for r in result["rows"] for v in r.values()
+                 if isinstance(v, str) and v.strip() and not v.strip().isdigit()]
+        if not (result["answer"] or "").strip() or not all(t in result["answer"] for t in texts):
+            result["answer"] = "; ".join(
+                " ".join(str(v).strip() for v in r.values() if v is not None) for r in result["rows"])
     # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
     result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer

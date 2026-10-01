@@ -94,6 +94,10 @@ def run_plan(plan: str, skip_lab7: bool) -> None:
     # วิชาบังคับก่อน: สกัดจากข้อความ OCR ทั้งเล่มของ Lab 4–6 (หาไม่เจอ = ไม่มีแถว)
     if book_txt.exists():
         run(LAB8, "load-prerequisites", "-t", book_txt, "-d", db, "-o", lab8_out / "prerequisites_report.json")
+    # แคตตาล็อกวิชาเลือกของหลักสูตร (Lab 7B: runs/<หลักสูตร>/electives.json ใช้ร่วมกันทั้ง coop/no_coop) — ไม่มีไฟล์ = ข้าม
+    electives = ROOT / "runs" / rel.split("/")[0] / "electives.json"
+    if electives.exists():
+        run(LAB8, "load-electives", "-d", db, "-i", electives, "--program-id", program_id)
     # หน้าในเล่มสำหรับอ้างอิงคำตอบ (citations.py) — ไม่มีไฟล์ที่ต้องใช้ = คำสั่งพิมพ์บอกว่าข้าม
     run(LAB8, "load-course-pages", "-d", db, "--ocr-json", book_txt.with_suffix(".json"),
         "--data-input", run_dir / "data_input", "-m", md_file)
