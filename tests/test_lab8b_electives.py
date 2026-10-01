@@ -519,3 +519,72 @@ def test_bit_does_not_get_the_thai_ge_catalog(rel):
     with closing(m.open_db(db, readonly=True)) as conn:
         assert conn.execute("SELECT COUNT(*) FROM v_elective_group WHERE plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%'").fetchone()[0] == 0
         assert conn.execute("SELECT COUNT(*) FROM v_elective_group").fetchone()[0] == OWN_ELECTIVES[rel]
+
+
+# ---------- GE ไม่ปนกับ "วิชาเลือกของหลักสูตรนี้" (ความเสี่ยงข้อ 1) ----------
+
+def _db_with_own_and_ge_electives(path):
+    c = _make_db(path)                                        # วิชาเลือกของหลักสูตร 2 วิชา (06010001/2)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) "
+              "VALUES (2, 'P', ?, 24, 4, 'กลุ่มทักษะภาษาและการสื่อสาร')", (GE_SLOT,))
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (2, ?, ?, 'X', 3)",
+                  [("90644009", "ออกเสียงภาษาอังกฤษ"), ("90644010", "อ่านเขียนภาษาอังกฤษ")])
+    c.commit()
+    return c
+
+
+def test_elective_hint_tells_the_model_to_leave_the_ge_catalog_out(tmp_path):
+    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
+        hint = m._elective_hint_text(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง")
+    assert "NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'" in hint and "หมวดวิชาศึกษาทั่วไป" in hint
+
+
+def _ask_elective(tmp_path, monkeypatch, question, model_sql):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _db_with_own_and_ge_electives(path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+ALL_ELECTIVES_SQL = "SELECT group_no, group_name_th, code, course_name_th, credits FROM v_elective_group ORDER BY group_no, code"
+
+
+def test_ge_rows_are_dropped_from_a_program_elective_question_even_if_the_model_ignores_the_hint(tmp_path, monkeypatch):
+    r = _ask_elective(tmp_path, monkeypatch, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", ALL_ELECTIVES_SQL)
+    assert sorted(x["code"] for x in r["rows"]) == ["06010001", "06010002"]
+    assert "90644009" not in r["answer"]
+
+
+def test_ge_rows_stay_when_the_question_is_about_general_education(tmp_path, monkeypatch):
+    r = _ask_elective(tmp_path, monkeypatch, "วิชาเลือกหมวดศึกษาทั่วไปในแคตตาล็อกมีอะไรบ้าง", ALL_ELECTIVES_SQL)
+    assert {"90644009", "06010001"} <= {x["code"] for x in r["rows"]}
+
+
+@pytest.mark.parametrize("rel,expected", [("AIT", 16), ("DSBA/coop", 43), ("IT/coop", 53)])
+def test_real_databases_keep_the_program_elective_answer_free_of_ge(tmp_path, monkeypatch, rel, expected):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    monkeypatch.setattr(m, "ollama_generate", lambda prompt, fmt=None, **kw:
+                        json.dumps({"sql": ALL_ELECTIVES_SQL}) if "sql" in (fmt or {}).get("properties", {}) else json.dumps({"answer": "ok"}))
+    with closing(m.open_db(db, readonly=True)) as conn:
+        r = m.ask(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", verbose=False)
+    assert len({x["code"] for x in r["rows"]}) == expected and not any(x["code"].startswith("9064") for x in r["rows"])
+
+
+def test_scoping_the_elective_view_does_not_leak_between_questions_on_one_connection(tmp_path):
+    path = tmp_path / "t.db"
+    _db_with_own_and_ge_electives(path).close()
+    with closing(m.open_db(path, readonly=True)) as conn:
+        count = lambda: conn.execute("SELECT COUNT(*) FROM v_elective_group").fetchone()[0]
+        assert m.scope_elective_view(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง") is True and count() == 2
+        assert m.scope_elective_view(conn, "วิชาเลือกหมวดศึกษาทั่วไปมีอะไรบ้าง") is False and count() == 4
+        assert m.scope_elective_view(conn, "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง") is True and count() == 2

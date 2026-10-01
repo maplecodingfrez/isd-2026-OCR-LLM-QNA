@@ -1324,10 +1324,33 @@ def _elective_hint_text(conn: sqlite3.Connection, question: str) -> str:
         "วิชาเลือกของหลักสูตรนี้ (จากแคตตาล็อก) อยู่ใน view v_elective_group เท่านั้น "
         "(ห้ามแต่งชื่อ view/ตารางอื่น) คอลัมน์: plan_slot, credits_required, group_no, group_name_th, group_name_en, "
         "code, course_name_th, course_name_en, credits\n"
+        "ใน view นี้มีแคตตาล็อกหมวดวิชาศึกษาทั่วไป (plan_slot ขึ้นต้น 'หมวดวิชาศึกษาทั่วไป') ปนอยู่ด้วย — "
+        "ไม่ใช่วิชาเลือกของหลักสูตร ต้องตัดออกทุกครั้งเว้นแต่คำถามถามถึงหมวดวิชาศึกษาทั่วไปโดยตรง\n"
         "- รายวิชาเลือกทั้งหมด/ของกลุ่ม: SELECT group_no, group_name_th, code, course_name_th, credits "
-        "FROM v_elective_group [WHERE group_no = ?] ORDER BY group_no, code\n"
-        "- ต้องเลือกกี่หน่วยกิต/กี่กลุ่ม: SELECT DISTINCT plan_slot, credits_required FROM v_elective_group\n\n"
+        "FROM v_elective_group WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%' [AND group_no = ?] ORDER BY group_no, code\n"
+        "- ต้องเลือกกี่หน่วยกิต/กี่กลุ่ม: SELECT DISTINCT plan_slot, credits_required FROM v_elective_group "
+        "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'\n\n"
     )
+
+
+_GE_TERMS = ("ศึกษาทั่วไป", "ภาษาและการสื่อสาร", "GE")
+
+
+def scope_elective_view(conn: sqlite3.Connection, question: str) -> bool:
+    """ตัวกันแบบกำหนดตายตัวของ _elective_hint_text: ให้ v_elective_group "ในคำถามนี้" ไม่มีแคตตาล็อกหมวดวิชาศึกษาทั่วไป (GE 303 วิชา)
+    เว้นแต่คำถามพูดถึง GE เอง — กรองที่ต้นทางด้วย TEMP VIEW (เทคนิคเดียวกับ use_slot_aware_credit_view; temp ถูกค้นก่อน main
+    และเขียนได้แม้ mode=ro) เพราะกรองหลังได้แถวแล้วไม่ทัน: SQL ที่โมเดลเขียนไม่กรองจะโดน LIMIT 200 ตัดก่อน (เจอจริงกับ DSBA: ได้ 23 จาก 43 วิชา)
+    ทุกครั้งที่เรียกจะลบ view ชั่วคราวเดิมก่อน เพื่อให้คำถามถัดไปบน connection เดียวกันไม่ติดสถานะของคำถามก่อนหน้า
+    คืน True ถ้าตัด GE ออก"""
+    try:
+        conn.execute("DROP VIEW IF EXISTS temp.v_elective_group")
+        if any(t in question for t in _GE_TERMS) or not _has_view(conn, "v_elective_group"):
+            return False
+        conn.execute("CREATE TEMP VIEW v_elective_group AS SELECT * FROM main.v_elective_group "
+                     "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'")
+        return True
+    except sqlite3.Error:
+        return False
 
 
 def _topic_hint_text(conn: sqlite3.Connection, question: str) -> str:
@@ -1944,6 +1967,7 @@ def ask(conn: sqlite3.Connection, question: str,
     }
     # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน); False = สร้างไม่ได้ → กลับไปใช้ view เดิมใน DB (เห็นได้จากผลลัพธ์)
     result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
+    scope_elective_view(conn, question)                   # v_elective_group ไม่รวม GE เว้นแต่คำถามพูดถึง GE (ดูเหตุผลที่ฟังก์ชัน)
     open_slot = _open_slot_answer(conn, question)         # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ — ตอบตามเล่ม ไม่ต้องเรียกโมเดล
     if open_slot:
         result["answer"], result["rows"], result["sql"] = open_slot
