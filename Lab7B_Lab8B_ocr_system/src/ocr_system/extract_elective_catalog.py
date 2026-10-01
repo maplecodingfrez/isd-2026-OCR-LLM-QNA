@@ -173,7 +173,7 @@ def main() -> None:
     n_courses = sum(len(g["courses"]) for g in groups)
     result = {
         "program": args.program,
-        "source": f"{args.text} หน้า {args.start_page}-{args.end_page}",
+        "source": f"{args.text} PDF หน้า {args.start_page}-{args.end_page}",   # เลขหน้า PDF (marker --- Page N ---) ไม่ใช่เลขที่พิมพ์
         "plan_slot": args.plan_slot,
         "credits_required": args.credits_required,
         "groups": groups,

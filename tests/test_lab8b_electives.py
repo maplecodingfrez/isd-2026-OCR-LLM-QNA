@@ -2,6 +2,7 @@
 (v_elective_group_course) / ตอบ SQL ว่างเมื่อถามตามหัวข้อ. คำใบ้เปิดเฉพาะเมื่อคำถามพูดถึงเรื่องนั้น → prompt ของคำถามอื่น (รวมชุดเฉลย) เหมือนเดิมทุกตัวอักษร"""
 
 import json
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -394,3 +395,16 @@ def test_free_elective_slot_with_no_code_prefix_is_not_expanded(tmp_path, monkey
 def test_wildcard_fallback_needs_the_slot_to_be_named_in_the_question(tmp_path, monkeypatch):
     r = _ask_wildcard(tmp_path, monkeypatch, "มีวิชาอะไรให้เลือกบ้าง")
     assert r["rows"] == []
+
+
+# ---------- เลขหน้าใน source ของแคตตาล็อกคือเลขหน้า PDF (ตัวคั่น "--- Page N ---") ไม่ใช่เลขที่พิมพ์ในเล่ม ----------
+
+@pytest.mark.parametrize("path", sorted(RUNS.glob("*/electives.json")), ids=lambda p: p.parent.name)
+def test_elective_catalog_source_says_the_pages_are_pdf_pages(path):
+    source = json.loads(path.read_text(encoding="utf-8"))["source"]
+    assert re.search(r"PDF หน้า \d+-\d+$", source), source
+
+
+def test_the_extractor_writes_the_same_wording_so_a_rerun_keeps_it():
+    src = (REPO / "Lab7B_Lab8B_ocr_system" / "src" / "ocr_system" / "extract_elective_catalog.py").read_text(encoding="utf-8")
+    assert "PDF หน้า {args.start_page}-{args.end_page}" in src
