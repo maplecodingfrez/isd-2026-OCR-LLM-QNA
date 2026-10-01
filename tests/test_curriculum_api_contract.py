@@ -1,4 +1,4 @@
-"""Lab 11 — สัญญา API ระหว่าง curriculum_app กับหน้าเว็บ (ไม่ต้องเปิด Ollama).
+"""Lab 12 — สัญญา API ระหว่าง curriculum_app กับหน้าเว็บ (ไม่ต้องเปิด Ollama).
 
 ทุกแถวในตาราง error ของ README §13 ต้องเป็นจริงกับ backend ปัจจุบัน — ถ้าเทสต์ไหนล้ม
 แปลว่า README/หน้าเว็บเข้าใจ backend ผิด ให้แก้เอกสาร/frontend (ห้ามแก้ backend)

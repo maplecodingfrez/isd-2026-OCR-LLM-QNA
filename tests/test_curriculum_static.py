@@ -1,4 +1,4 @@
-"""Lab 11 — ไฟล์ static ของ curriculum_app: เสิร์ฟได้จริง และตรงกติกาจากสไลด์ L11 (p.8, 13-15, 25)."""
+"""Lab 12 — ไฟล์ static ของ curriculum_app: เสิร์ฟได้จริง และตรงกติกาจากสไลด์ L11 (p.8, 13-15, 25)."""
 
 import re
 from pathlib import Path

@@ -351,7 +351,7 @@ ollama list
 เปิด `/api/health` แล้วดูว่า `database_ready` และ `ollama_ready` เป็น `true` หรือไม่
 
 
-## 13. API Contract (Lab 11)
+## 13. API Contract (Lab 12)
 
 หน้าเว็บ (`curriculum_app/static/index.html` + `style.css` + `app.js`) คุยกับ backend ผ่าน endpoint ด้านล่าง
 ทุกแถวในตาราง error ถูกตรวจด้วย `tests/test_curriculum_api_contract.py` และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`

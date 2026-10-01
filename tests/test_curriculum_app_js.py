@@ -1,4 +1,4 @@
-"""Lab 11 — ทดสอบตรรกะล้วนของ static/app.js ด้วย Node (ไม่ต้องมีเบราว์เซอร์).
+"""Lab 12 — ทดสอบตรรกะล้วนของ static/app.js ด้วย Node (ไม่ต้องมีเบราว์เซอร์).
 
 app.js เป็น IIFE; เมื่อไม่มี `document` (Node) มันจะ export ฟังก์ชันล้วนผ่าน module.exports
 """
@@ -115,7 +115,7 @@ def test_describe_error_never_leaks_object_or_undefined(tmp_path):
 def test_readme_contract_quotes_every_user_facing_message(tmp_path):
     """README §13 ต้องมีข้อความ title/action ที่หน้าเว็บแสดงจริง (กันเอกสารกับโค้ดเพี้ยนกัน)"""
     text = README.read_text(encoding="utf-8")
-    assert "API Contract (Lab 11)" in text
+    assert "API Contract (Lab 12)" in text
     for value in run_js(tmp_path, CASES).values():
         assert value["title"] in text or "รหัส 409" in value["title"], value["title"]
         assert value["action"] in text, value["action"]

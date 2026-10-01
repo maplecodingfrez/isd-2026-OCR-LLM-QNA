@@ -1,4 +1,4 @@
-/* Curriculum Book Assistant — หน้าเว็บของ curriculum_app (Lab 11).
+/* Curriculum Book Assistant — หน้าเว็บของ curriculum_app (Lab 12).
    ครึ่งบนของไฟล์ = ตรรกะล้วน (ทดสอบด้วย Node); ครึ่งล่าง = ส่วนที่แตะ DOM */
 (function () {
   "use strict";
