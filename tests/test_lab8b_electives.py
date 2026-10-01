@@ -180,3 +180,105 @@ def test_rows_without_a_code_column_are_left_alone():
     rows = [{"credits": 3}, {"credits": 3}]
     assert m._dedupe_rows(rows) == rows
 
+
+# ---------- คำถามควบ "ปี/เทอมนี้ กี่หน่วยกิต + มีวิชาอะไรบ้าง" ----------
+# ราก: มีคำว่า "กี่หน่วยกิต/กี่วิชา" → โมเดลเลือก v_semester_credits (มีแค่ credits, n_courses ไม่มีชื่อวิชา);
+# ถามแบบ "…มีวิชาอะไรบ้าง" → เลือก v_plan (ได้ชื่อวิชา แต่ไม่มียอดรวม) — ได้ครึ่งเดียวทั้งสองทาง
+
+MARKER_TERM = "สรุปรายเทอมพร้อมรายวิชา"
+GOLD = sorted((REPO / "Lab9_evaluation" / "gold_questions").glob("*_gold_questions.json"))
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีกี่วิชาอะไรบ้าง",
+    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต มีวิชาอะไรบ้าง",
+    "ชั้นปีที่ 3 ภาคการศึกษาที่ 2 มีกี่วิชา และวิชาอะไรบ้าง",
+    "เทอม 2 ปี 1 รวมกี่หน่วยกิต แล้วต้องเรียนอะไรบ้าง",
+])
+def test_term_summary_hint_fires_when_both_a_total_and_a_course_list_are_asked(question):
+    hint = m._term_summary_hint_text(question)
+    assert MARKER_TERM in hint and "v_plan" in hint and "v_semester_credits" in hint and "total_credits" in hint
+    assert hint.endswith("\n\n")
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต",                              # ถามยอดอย่างเดียว
+    "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง",                                # ถามรายวิชาอย่างเดียว
+    "ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา",
+    "หลักสูตรนี้มีวิชาอะไรบ้าง กี่หน่วยกิต",                          # ไม่ระบุปี/เทอม
+])
+def test_term_summary_hint_stays_silent_otherwise(question):
+    assert m._term_summary_hint_text(question) == ""
+
+
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_gets_the_term_summary_hint(path):
+    """prompt ของชุดเฉลยต้องไม่เปลี่ยนจากคำใบ้นี้ (ไม่ปรับตามชุดเฉลย)"""
+    for q in json.loads(path.read_text(encoding="utf-8")):
+        assert m._term_summary_hint_text(q["question"]) == "", q["question"]
+
+
+def test_ask_adds_the_term_summary_hint_only_for_compound_term_questions(tmp_path, monkeypatch):
+    assert MARKER_TERM in _prompts_for(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง")
+    assert MARKER_TERM not in _prompts_for(tmp_path, monkeypatch, "ปี 2 เทอม 1 เรียนกี่หน่วยกิต")
+
+
+def test_totals_are_reported_once_not_repeated_on_every_course_row(tmp_path, monkeypatch):
+    rows_sql = ("SELECT code, course_name_th AS name_th, credits, 6 AS total_credits, 2 AS n_courses "
+                "FROM v_elective_group")
+    r = _ask_with_model_answer(tmp_path, monkeypatch, json.dumps({"answer": "x"}), rows_sql=rows_sql)
+    assert r["answer"].count("(รวม 6 หน่วยกิต, 2 วิชา)") == 1 and r["answer"].count("หน่วยกิต") == 1
+    assert "06010001 วิชาเลือก ก" in r["answer"] and "06010002 วิชาเลือก ข" in r["answer"]
+
+
+
+# ---------- ตัวสำรอง: คำถามควบแต่โมเดลตอบแค่ยอดรวม (ไม่มีชื่อวิชา) → รัน SQL แม่แบบเอง ----------
+
+def _plan_db(path):
+    c = _make_db(path, electives=False)
+    c.execute("INSERT INTO course (code, name_th, credits) VALUES ('06010001', 'วิชาก', 3), ('06010002', 'วิชาข', 3)")
+    c.executemany("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('P', ?, ?, ?, 3)",
+                  [(2, 1, "06010001"), (2, 1, "06010002"), (3, 2, "06010001")])
+    c.commit()
+    return c
+
+
+def _ask_compound(tmp_path, monkeypatch, question, model_sql):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _plan_db(path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+def test_compound_question_answered_with_totals_only_falls_back_to_the_template_sql(tmp_path, monkeypatch):
+    r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีกี่วิชาอะไรบ้าง",
+                      "SELECT credits, n_courses FROM v_semester_credits WHERE year=2 AND semester=1")
+    assert [row["name_th"] for row in r["rows"]] == ["วิชาก", "วิชาข"]
+    assert "v_plan" in r["sql"] and "(รวม 6 หน่วยกิต, 2 วิชา)" in r["answer"]
+
+
+def test_template_fallback_reads_year_and_term_from_the_question_in_either_order(tmp_path, monkeypatch):
+    r = _ask_compound(tmp_path, monkeypatch, "เทอม 2 ของปี 3 รวมกี่หน่วยกิต แล้วเรียนอะไรบ้าง",
+                      "SELECT credits FROM v_semester_credits WHERE year=3 AND semester=2")
+    assert [row["name_th"] for row in r["rows"]] == ["วิชาก"]
+
+
+def test_template_fallback_leaves_a_correct_model_sql_alone(tmp_path, monkeypatch):
+    good = ("SELECT p.code, p.name_th, p.credits, s.credits AS total_credits, s.n_courses FROM v_plan p "
+            "JOIN v_semester_credits s ON s.year = p.year AND s.semester = p.semester WHERE p.year = 2 AND p.semester = 1")
+    r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง", good)
+    assert r["sql"].startswith(good)                         # guard_sql ต่อท้าย LIMIT ให้ แต่ไม่ถูกแทนด้วยแม่แบบ
+
+
+def test_template_fallback_does_not_touch_non_compound_questions(tmp_path, monkeypatch):
+    sql = "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1"
+    r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 เรียนกี่หน่วยกิต", sql)
+    assert r["sql"].startswith("SELECT credits FROM v_semester_credits") and "name_th" not in r["rows"][0]

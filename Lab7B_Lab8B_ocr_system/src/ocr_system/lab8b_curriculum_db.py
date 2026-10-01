@@ -1169,6 +1169,57 @@ _ELECTIVE_Q = re.compile(r"วิชาเลือก(?!เสรี)|elective"
 _TOPIC_Q = re.compile(r"วิชา.*(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง)|(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง).*วิชา")
 
 
+_TERM_COUNT_Q = re.compile(r"กี่หน่วยกิต|กี่วิชา|กี่ตัว|หน่วยกิตรวม|รวมกี่")
+_TERM_LIST_Q = re.compile(r"อะไรบ้าง|วิชาอะไร|ชื่อวิชา|รายชื่อ")
+_TERM_YEAR_Q = re.compile(r"(?:ปี|ชั้นปี)(?:ที่)?\s*\d")
+_TERM_SEM_Q = re.compile(r"(?:เทอม|ภาค(?:เรียน|การศึกษา)?)(?:ที่)?\s*\d")
+TERM_TOTAL_COLS = ("total_credits", "n_courses")
+
+
+def _term_summary_hint_text(question: str) -> str:
+    """คำถามควบ "ปี/เทอมนี้ กี่หน่วยกิต/กี่วิชา + มีวิชาอะไรบ้าง": มีคำว่า "กี่…" โมเดลเลยเลือก v_semester_credits
+    (มีแค่ credits, n_courses ไม่มีชื่อวิชา) ส่วน "…อะไรบ้าง" ไปใช้ v_plan (ได้ชื่อวิชาแต่ไม่มียอดรวม) — ได้ครึ่งเดียวทั้งสองทาง
+    คำใบ้: SQL เดียว JOIN สองส่วน (ยอดรวมนับตามเล่มจาก v_semester_credits) — เปิดเฉพาะเมื่อมีทั้งคำถามยอด + รายวิชา + ระบุปี/เทอม"""
+    if not (_TERM_COUNT_Q.search(question) and _TERM_LIST_Q.search(question)
+            and _TERM_YEAR_Q.search(question) and _TERM_SEM_Q.search(question)):
+        return ""
+    return (
+        "สรุปรายเทอมพร้อมรายวิชา: คำถามนี้ต้องการทั้งยอดรวมและชื่อวิชาของภาคเรียน — ใช้ SQL เดียว JOIN v_plan "
+        "(ชื่อวิชา) กับ v_semester_credits (ยอดรวม จำนวนวิชา) ห้ามเลือกอย่างใดอย่างหนึ่ง:\n"
+        "SELECT p.code, p.name_th, p.credits, s.credits AS total_credits, s.n_courses FROM v_plan p "
+        "JOIN v_semester_credits s ON s.year = p.year AND s.semester = p.semester "
+        "WHERE p.year = <ปี> AND p.semester = <เทอม> ORDER BY p.id\n\n"
+    )
+
+
+_TERM_YEAR_NUM = re.compile(r"(?:ปี|ชั้นปี)(?:ที่)?\s*(\d)")
+_TERM_SEM_NUM = re.compile(r"(?:เทอม|ภาค(?:เรียน|การศึกษา)?)(?:ที่)?\s*(\d)")
+_TERM_SUMMARY_SQL = (
+    "SELECT p.code, p.name_th, p.credits, s.credits AS total_credits, s.n_courses FROM v_plan p "
+    "JOIN v_semester_credits s ON s.year = p.year AND s.semester = p.semester "
+    "WHERE p.year = {y} AND p.semester = {s} ORDER BY p.id")
+
+
+def _term_summary_fallback(conn: sqlite3.Connection, question: str, sql: str | None,
+                           rows: list[dict]) -> tuple[str | None, list[dict]]:
+    """ตัวสำรองของ _term_summary_hint_text: คำถามควบ (ยอดรวม + รายวิชา ของปี/เทอมที่ระบุ) แต่ SQL ของโมเดลได้แถวที่ไม่มี
+    ชื่อวิชา (เช่น ใช้ v_semester_credits อย่างเดียว) → รันแม่แบบ JOIN เองด้วยปี/เทอมที่อ่านจากข้อความคำถาม (กฎเชิงกำหนด)
+    SQL ที่ได้ชื่อวิชาอยู่แล้ว หรือคำถามที่ไม่ใช่แบบควบ ไม่ถูกแตะ; รันไม่ได้/ไม่มีแถว = คงของเดิม"""
+    if not rows or not _term_summary_hint_text(question):
+        return sql, rows
+    if any(k in rows[0] for k in ("name_th", "course_name_th", "name_en")):
+        return sql, rows
+    y, s = _TERM_YEAR_NUM.search(question), _TERM_SEM_NUM.search(question)
+    if not (y and s):
+        return sql, rows
+    template = _TERM_SUMMARY_SQL.format(y=int(y.group(1)), s=int(s.group(1)))
+    try:
+        fixed = _dedupe_rows([dict(r) for r in conn.execute(template).fetchall()])
+    except sqlite3.Error:
+        return sql, rows
+    return (template, fixed) if fixed else (sql, rows)
+
+
 def _has_view(conn: sqlite3.Connection, name: str) -> bool:
     return conn.execute("SELECT 1 FROM sqlite_master WHERE name=?", (name,)).fetchone() is not None
 
@@ -1812,7 +1863,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
     base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
     hints = (_course_name_hint_text(conn, question) + _elective_hint_text(conn, question)
-             + _topic_hint_text(conn, question))
+             + _topic_hint_text(conn, question) + _term_summary_hint_text(question))
     if hints:
         tail = f"คำถาม: {question}\nSQL:"
         base_prompt = base_prompt[: -len(tail)] + hints + tail
@@ -1849,6 +1900,8 @@ def ask(conn: sqlite3.Connection, question: str,
                 return result
             prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
+
+    result["sql"], result["rows"] = _term_summary_fallback(conn, question, result["sql"], result["rows"])
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
@@ -1897,11 +1950,23 @@ def ask(conn: sqlite3.Connection, question: str,
     # รายการหลายแถว หลายคอลัมน์ (เช่น วิชาเลือก: กลุ่ม+รหัส+ชื่อ+หน่วยกิต): num_predict=256 ตัดคำตอบกลางสตริงจนได้ข้อความว่าง
     # และ qwen สะกดไทยเพี้ยน → ถ้าคำตอบขาดค่าข้อความของแถวใด (หรือว่าง) ประกอบจากแถวจริงตรง ๆ; คำตอบที่ครบอยู่แล้วไม่แตะ
     elif 2 <= len(result["rows"]) <= 80 and all(len(r) >= 2 for r in result["rows"]):
-        texts = [str(v).strip() for r in result["rows"] for v in r.values()
+        rows_ = result["rows"]
+        # คอลัมน์ยอดรวมของภาคเรียน (ค่าเดียวกันทุกแถว) รายงานครั้งเดียวท้ายคำตอบ ไม่ซ้ำทุกแถว
+        totals = {c: rows_[0][c] for c in TERM_TOTAL_COLS
+                  if all(c in r and r[c] == rows_[0][c] for r in rows_) and rows_[0][c] is not None}
+        shown = [{k: v for k, v in r.items() if k not in totals} for r in rows_]
+        texts = [str(v).strip() for r in shown for v in r.values()
                  if isinstance(v, str) and v.strip() and not v.strip().isdigit()]
-        if not (result["answer"] or "").strip() or not all(t in result["answer"] for t in texts):
-            result["answer"] = "; ".join(
-                " ".join(str(v).strip() for v in r.values() if v is not None) for r in result["rows"])
+        ans = result["answer"] or ""
+        has_totals = all(re.search(rf"(?<!\d){re.escape(str(v))}(?!\d)", ans) for v in totals.values())
+        if not ans.strip() or not all(t in ans for t in texts) or not has_totals:
+            body = "; ".join(" ".join(str(v).strip() for v in r.values() if v is not None) for r in shown)
+            parts = []
+            if "total_credits" in totals:
+                parts.append(f"รวม {totals['total_credits']} หน่วยกิต")
+            if "n_courses" in totals:
+                parts.append(f"{totals['n_courses']} วิชา")
+            result["answer"] = body + (f" ({', '.join(parts)})" if parts else "")
     # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
     result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
