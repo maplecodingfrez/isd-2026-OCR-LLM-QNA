@@ -85,7 +85,7 @@ def test_ask_answers_from_the_slot_aware_view_without_changing_the_prompt(tmp_pa
         return json.dumps({"answer": "18 หน่วยกิต"})
 
     monkeypatch.setattr(m, "ollama_generate", fake_generate)
-    r = m.ask(conn, "ชั้นปีที่ 2 ภาคการศึกษาที่ 2 เรียนกี่หน่วยกิต", verbose=False)
+    r = m.ask(conn, "ชั้นปีที่ 2 ภาคการศึกษาที่ 2 เรียนกี่หน่วยกิต และกี่วิชา", verbose=False)       # สองส่วน = ทางลัดยอดรายเทอมปฏิเสธ → ทางโมเดล
     assert r["error"] is None and r["rows"] == [{"credits": 18}]
     assert "v_semester_credits_full" not in prompts[0]        # โมเดลยังเห็น DDL/ชื่อ view เดิม
 

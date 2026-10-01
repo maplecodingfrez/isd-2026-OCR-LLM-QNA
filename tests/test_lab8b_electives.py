@@ -1782,8 +1782,9 @@ def test_code_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, quest
     assert _ask_code(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
 
-def test_two_different_courses_in_one_question_are_left_to_the_old_path(tmp_path, monkeypatch):
-    assert _ask_code(tmp_path, monkeypatch, "ขอรหัสวิชาแคลคูลัส 1 กับแคลคูลัส 2")["model_calls"] >= 1
+def test_two_different_courses_in_one_question_are_answered_with_both_codes(tmp_path, monkeypatch):
+    r = _ask_code(tmp_path, monkeypatch, "ขอรหัสวิชาแคลคูลัส 1 กับแคลคูลัส 2")        # ไม่ตอบแค่วิชาเดียว (ดู _multi_course_answer)
+    assert "06020001" in r["answer"] and "06020002" in r["answer"] and r["model_calls"] == 0
 
 
 def test_the_same_name_under_two_codes_lists_both(tmp_path, monkeypatch):
@@ -2041,7 +2042,7 @@ def test_a_course_in_two_plan_places_lists_both(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("question", [
-    "วิชานอกแผนเรียนปีไหน", "วิชาที่ไม่มีอยู่จริงกี่หน่วยกิต", "แคลคูลัส 1 และฟิสิกส์ 1 กี่หน่วยกิต", "แคลคูลัส 1 ยากไหม",
+    "วิชานอกแผนเรียนปีไหน", "วิชาที่ไม่มีอยู่จริงกี่หน่วยกิต", "แคลคูลัส 1 ยากไหม",
     "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 มีวิชาอะไรบ้างกี่หน่วยกิต", "วิชาอะไรเรียนปีไหนบ้าง"])
 def test_course_attribute_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_attr(tmp_path, monkeypatch, question)["model_calls"] >= 1
@@ -2429,11 +2430,19 @@ def test_program_facts_still_answer_the_plain_program_questions(question, part):
     assert r and part in r[0]
 
 
-# I1 สองวิชาในคำถามเดียว (X 1 และ 2) ห้ามตอบแค่วิชาเดียว
+# I1 สองวิชาในคำถามเดียว (X 1 และ 2) ห้ามตอบแค่วิชาเดียว — ตอบทุกวิชา (หน่วยกิต/รหัส/ปีเทอม) หรือปล่อยให้โมเดล (ชั่วโมง/เนื้อหา/เปรียบเทียบ)
+@pytest.mark.parametrize("question,codes", [
+    ("แคลคูลัส 1 และ 2 กี่หน่วยกิต", ["06026200", "06026201"]), ("แคลคูลัส 1 และ 2 เรียนปีไหน", ["06026200", "06026201"]),
+    ("รหัสวิชาแคลคูลัส 1 และ 2", ["06026200", "06026201"]), ("รหัสวิชาภาษาอังกฤษพื้นฐาน 1, 2", ["90644007", "90644008"])])
+def test_two_courses_in_one_question_are_both_answered(question, codes):
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, question)
+    assert r and all(code in r[0] for code in codes), (question, r and r[0])
+
+
 @pytest.mark.parametrize("question", [
-    "แคลคูลัส 1 และ 2 กี่หน่วยกิต", "แคลคูลัส 1 และ 2 เรียนปีไหน", "รหัสวิชาแคลคูลัส 1 และ 2", "รหัสวิชาภาษาอังกฤษพื้นฐาน 1, 2",
     "ภาษาอังกฤษพื้นฐาน 1 และ 2 มีชั่วโมงบรรยายกี่ชั่วโมง", "แคลคูลัส 1 และพีชคณิตเชิงเส้นเรียนเกี่ยวกับอะไร"])
-def test_two_courses_in_one_question_are_left_to_the_model(question):
+def test_two_courses_in_one_question_about_hours_or_content_are_left_to_the_model(question):
     with closing(_real("DSBA/coop")) as c:
         assert _chain(c, question) is None, question
 
@@ -2445,7 +2454,8 @@ def test_extreme_hours_reads_every_listed_year_and_declines_word_years():
         assert r and "36 ชั่วโมง" in r[0]
         assert m._extreme_hours_answer(c, "ปีสุดท้ายวิชาที่ปฏิบัติมากที่สุดกี่ชั่วโมง") is None
         assert m._extreme_hours_answer(c, "ปีหนึ่งวิชาที่บรรยายมากที่สุดกี่ชั่วโมง") is None
-        assert m._extreme_hours_answer(c, "ชั่วโมงบรรยายน้อยที่สุดแต่ไม่เป็นศูนย์กี่ชั่วโมง") is None
+        r0 = m._extreme_hours_answer(c, "ชั่วโมงบรรยายน้อยที่สุดแต่ไม่เป็นศูนย์กี่ชั่วโมง")
+        assert r0 and all(row["lecture_h"] > 0 for row in r0[1])             # ค่าต่ำสุดในบรรดาค่าที่ > 0 (ไม่ใช่ 0)
     assert m._question_years("ปี 1 และ 3") == {1, 3} and m._question_years("ปี 1, 2 และ 4") == {1, 2, 4}
 
 
@@ -2530,3 +2540,187 @@ def test_an_explicit_group_name_is_a_group_question_even_when_a_plan_course_has_
 def test_the_same_name_without_an_explicit_group_word_is_about_the_course(tmp_path, question):
     with closing(_same_name_group_db(tmp_path)) as c:
         assert m._elective_group_answer(c, question) is None
+
+
+# =============== ชุดหลอก (subagent เขียน 84 ข้อ ตั้งใจให้ทางลัดตอบผิด): ถูก 57 → จัด 7 กลุ่ม ===============
+# P1 ทางลัดตอบผิด: _catalog_course_answer จับชื่อสั้นในชื่อยาว, ชั่วโมงต่ำสุด "ที่ไม่ใช่ศูนย์"
+# P2 โมเดลตอบผิดเพราะไม่มีทางลัด: ผลรวมหน่วยกิตรายปี, เทอมเดียวกับ X, ภาคฤดูร้อนที่เล่มไม่มี, ชื่อวิชาที่ไม่มีจริง (ตัวขยาย/ลำดับที่ไม่มี), เลือกหรือบังคับ, สองวิชา
+
+@pytest.mark.parametrize("rel,question", [
+    ("DSBA/coop", "การเรียนรู้ของเครื่องขั้นสูง กี่หน่วยกิต"), ("DSBA/no_coop", "การเรียนรู้เชิงลึกขั้นสูง รหัสวิชาอะไร")])
+def test_catalog_shortcut_does_not_answer_a_longer_unknown_name_as_the_shorter_catalog_course(rel, question):
+    with closing(_real(rel)) as c:
+        r = m._catalog_course_answer(c, question)
+        assert r is None, (question, r and r[0])
+
+
+@pytest.mark.parametrize("rel,question", [
+    ("AIT", "วิชาปฏิบัติการแคลคูลัส 1 มีกี่หน่วยกิต"), ("BIT/coop", "วิชาปฏิบัติการพื้นฐานการเขียนโปรแกรม มีชั่วโมงบรรยายกี่ชั่วโมง"),
+    ("DSBA/coop", "การเรียนรู้ของเครื่องขั้นสูง กี่หน่วยกิต"), ("DSBA/no_coop", "การเรียนรู้เชิงลึกขั้นสูง รหัสวิชาอะไร"),
+    ("DSBA/no_coop", "วิชาปฏิบัติการการวิเคราะห์ข้อมูลและการโปรแกรม มีกี่หน่วยกิต"), ("IT/coop", "การเขียนโปรแกรมเชิงฟังก์ชันขั้นสูง กี่หน่วยกิต"),
+    ("IT/no_coop", "การออกแบบส่วนต่อประสานกับมนุษย์ขั้นสูง รหัสวิชาอะไร"), ("IT/no_coop", "ปฏิบัติการโครงสร้างข้อมูลและอัลกอริทึม กี่หน่วยกิต"),
+    ("BIT/no_coop", "ภาษาอังกฤษพื้นฐาน 3 กี่หน่วยกิต")])
+def test_a_course_that_is_not_in_the_book_is_reported_as_not_found(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and "ไม่พบ" in r[0] and r[1] == [], (question, r and r[0])
+
+
+@pytest.mark.parametrize("rel,question,must", [
+    ("AIT", "แคลคูลัส 1 กี่หน่วยกิต", "3 หน่วยกิต"), ("BIT/no_coop", "ภาษาอังกฤษพื้นฐาน 2 กี่หน่วยกิต", "หน่วยกิต"),
+    ("DSBA/coop", "การเรียนรู้ของเครื่องเชิงประยุกต์ กี่หน่วยกิต", "06026")])
+def test_real_course_names_are_still_answered(rel, question, must):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and must in r[0] and "ไม่พบ" not in r[0], (question, r and r[0])
+
+
+@pytest.mark.parametrize("rel,expected", [("AIT", "2"), ("BIT/coop", "1"), ("DSBA/coop", "1"), ("IT/coop", "1"), ("IT/no_coop", "1")])
+def test_lowest_non_zero_lecture_hours(rel, expected):
+    with closing(_real(rel)) as c:
+        r = m._extreme_hours_answer(c, "ชั่วโมงบรรยายน้อยที่สุดที่ไม่ใช่ศูนย์ของวิชาในแผนคือกี่ชั่วโมง")
+    assert r and f"{expected} ชั่วโมง" in r[0] and all(row["lecture_h"] > 0 for row in r[1])
+
+
+@pytest.mark.parametrize("rel,question,expected", [
+    ("DSBA/coop", "ปี 1 เรียนรวมกี่หน่วยกิต", "39"), ("IT/coop", "ปี 4 เรียนรวมกี่หน่วยกิต", "33"), ("AIT", "ปีสุดท้ายต้องเรียนรวมกี่หน่วยกิต", "18"),
+    ("AIT", "ปีแรกเรียนทั้งหมดกี่หน่วยกิต", "34")])
+def test_year_credit_totals_follow_the_book_term_totals(rel, question, expected):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and f"{expected} หน่วยกิต" in r[0] and any(str(v) == expected for row in r[1] for v in row.values()), (question, r and r[0])
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 1 เทอม 1 เรียนรวมกี่หน่วยกิต", "ปี 1 มีวิชาที่ได้ 1 หน่วยกิตกี่วิชา", "ปี 1 กับปี 2 เรียนรวมกี่หน่วยกิต", "ปี 1 เรียนวิชาอะไรบ้าง"])
+def test_year_credit_shortcut_leaves_terms_lists_and_several_years_alone(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._year_credits_answer(c, question) is None, question
+
+
+@pytest.mark.parametrize("rel,question", [
+    ("BIT/no_coop", "ภาคฤดูร้อนเรียนกี่หน่วยกิต"), ("DSBA/no_coop", "ภาคฤดูร้อนเรียนกี่หน่วยกิต"), ("IT/no_coop", "ภาคฤดูร้อนต้องลงทะเบียนกี่หน่วยกิต"),
+    ("AIT", "ซัมเมอร์มีวิชาอะไรบ้าง")])
+def test_a_summer_term_the_plan_does_not_have_is_reported_as_not_found(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and "ไม่พบ" in r[0] and r[1] == [], (question, r and r[0])
+
+
+@pytest.mark.parametrize("rel,question,expected", [
+    ("BIT/coop", "เทอมเดียวกับเทคโนโลยีกลุ่มเมฆ มีวิชาอะไรอีกบ้าง", ["06036107", "06036110", "06036114", "06036121"]),
+    ("DSBA/coop", "เทอมเดียวกับระบบข้อมูลมหัต มีวิชาอะไรอีกบ้าง", ["06026214", "06066100", "90643021"])])
+def test_the_other_courses_in_the_same_term_as_a_named_course(rel, question, expected):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and sorted(row["code"] for row in r[1]) == expected, (question, r and r[0])
+
+
+@pytest.mark.parametrize("question", [
+    "วิชาที่เรียนเทอมเดียวกับแคลคูลัส 1 มีกี่หน่วยกิต", "เทอมเดียวกับแคลคูลัส 1 กับแคลคูลัส 2 มีวิชาอะไร"])
+def test_same_term_shortcut_declines_other_relational_questions(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._same_term_answer(c, question) is None, question
+
+
+@pytest.mark.parametrize("rel,question", [
+    ("BIT/no_coop", "ผู้ประกอบการสมัยใหม่ เป็นวิชาเลือกหรือบังคับ"), ("IT/no_coop", "คอมพิวเตอร์กราฟิกส์และแอนิเมชัน เป็นวิชาเลือกหรือบังคับ")])
+def test_elective_or_required_comes_from_the_plan_note(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and any(row.get("kind") == "เลือก" for row in r[1]) and "เลือก" in r[0], (question, r and r[0])
+
+
+def test_required_course_is_reported_as_required():
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, "แคลคูลัส 1 เป็นวิชาบังคับหรือวิชาเลือก")
+    assert r and any(row.get("kind") == "บังคับ" for row in r[1])
+
+
+@pytest.mark.parametrize("rel,question,fragments", [
+    ("BIT/no_coop", "ภาษาอังกฤษพื้นฐาน 1 และ 2 รวมกันกี่หน่วยกิต", ["6 หน่วยกิต"]),
+    ("DSBA/coop", "รหัสวิชาแคลคูลัส 1 และ 2", ["06026200", "06026201"]),
+    ("DSBA/coop", "แคลคูลัส 1 กับแคลคูลัส 2 เรียนปีไหน", ["ปี 1"])])
+def test_two_named_courses_are_each_answered(rel, question, fragments):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    assert r and all(f in r[0] for f in fragments), (question, r and r[0])
+
+
+@pytest.mark.parametrize("question", [
+    "แคลคูลัส 1 กับแคลคูลัส 2 ต่างกันอย่างไร", "แคลคูลัส 1 และพีชคณิตเชิงเส้นเรียนเกี่ยวกับอะไร", "แคลคูลัส 1 และวิชาที่ต่อจากแคลคูลัส 1 กี่หน่วยกิต"])
+def test_two_course_shortcut_declines_comparisons_and_descriptions(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._multi_course_answer(c, question) is None, question
+
+
+def test_a_summed_credit_answer_also_carries_the_total_in_its_rows():
+    with closing(_real("BIT/no_coop")) as c:
+        r = _chain(c, "ภาษาอังกฤษพื้นฐาน 1 และ 2 รวมกันกี่หน่วยกิต")
+    assert r and "รวม 6 หน่วยกิต" in r[0] and any(str(v) == "6" for row in r[1] for v in row.values())
+
+
+# =============== ปี/เทอมเดียว: "ต้องลงทะเบียนกี่วิชา" / "รวมกี่หน่วยกิต" — โมเดลแกว่ง 1 ใน ~160 ครั้ง (ตอบ 2 แทน 4) → ตายตัวตามยอดรายเทอมของเล่ม ===============
+
+def _ask_term_total(tmp_path, monkeypatch, question):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _plan_db(path)
+    c.executescript(m.PLAN_SLOT_DDL)                         # view v_semester_credits_full (นับตามเล่ม)
+    c.commit()
+    c.close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,needle", [
+    ("ปี 2 เทอม 1 ต้องลงทะเบียนกี่วิชา", "2 วิชา"), ("ภาคเรียนที่ 1 ของชั้นปีที่ 2 มีรายวิชาทั้งหมดกี่วิชา", "2 วิชา"),
+    ("ปี 2 เทอม 1 รวมกี่หน่วยกิต", "6 หน่วยกิต"), ("ชั้นปีที่ 3 ภาคการศึกษาที่ 2 มีหน่วยกิตรวมเท่าไร", "3 หน่วยกิต"),
+    ("ปี 3 ภาค 2 มีกี่วิชา", "1 วิชา")])
+def test_term_totals_come_from_the_book_term_view_without_the_model(tmp_path, monkeypatch, question, needle):
+    r = _ask_term_total(tmp_path, monkeypatch, question)
+    assert needle in r["answer"] and r["model_calls"] == 0 and len(r["rows"]) == 1
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ปี 2 เทอม 1 กับปี 3 เทอม 2 รวมกี่หน่วยกิต",
+    "ปี 9 เทอม 1 ต้องลงทะเบียนกี่วิชา", "วิชาแคลคูลัส 1 ปี 2 เทอม 1 กี่หน่วยกิต", "ปี 2 เทอม 1 วิชาไหนมีหน่วยกิตมากที่สุด", "ปี 2 เทอม 1 มีกี่วิชาที่ได้ 3 หน่วยกิต"])
+def test_term_total_shortcut_leaves_lists_compounds_missing_terms_and_courses_alone(tmp_path, monkeypatch, question):
+    assert _ask_term_total(tmp_path, monkeypatch, question)["model_calls"] >= 1 or "ไม่พบ" in _ask_term_total(tmp_path, monkeypatch, question)["answer"]
+
+
+def test_gold_term_total_questions_taken_by_the_shortcut_match_the_gold_values():
+    taken = 0
+    for rel, gold in (("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                      ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")):
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            continue
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(m.open_db(db, readonly=True)) as conn:
+            for q in qs:
+                r = m._term_total_answer(conn, q["question"])
+                if r is None:
+                    continue
+                taken += 1
+                ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
+                assert ok, (rel, q["id"], q["question"], r[0], q["expect"], why)
+    assert taken >= 20
+
+
+# บั๊กเก่าที่เพิ่งเห็น: "ปี 2 เทอม 1 วิชาไหนมีหน่วยกิตมากที่สุด" ถูกตอบเป็น "เทอมที่เรียนมากที่สุดคือ…" (ถามวิชา ตอบเทอม)
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 วิชาไหนมีหน่วยกิตมากที่สุด", "ปี 1 วิชาอะไรหน่วยกิตน้อยที่สุด", "เทอม 1 วิชาใดเรียนหนักที่สุด"])
+def test_a_question_about_which_course_is_not_answered_with_which_term(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._extreme_credits_answer(c, question) is None, question
+
+
+@pytest.mark.parametrize("question", ["เทอมไหนเรียนหน่วยกิตมากที่สุด", "ปีไหนเรียนหนักที่สุด", "ปี 3 เทอมไหนเรียนหน่วยกิตน้อยที่สุด"])
+def test_which_term_or_year_questions_are_still_answered(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._extreme_credits_answer(c, question) is not None, question
