@@ -175,3 +175,16 @@ def test_condition_phrasing_does_not_fire_on_other_questions():
     assert direction("วิชา แคลคูลัส 1 มีเงื่อนไขอะไรบ้าง") is None
     assert direction("เงื่อนไขการจบการศึกษาคืออะไร") is None
     assert direction("แคลคูลัส 1 เป็นเงื่อนไขของการสอบไหม") is None
+
+
+# Break caught (ชุดสำนวนใหม่ที่ subagent เขียน): "X เป็นวิชาที่ต้องเรียนก่อนวิชาไหน" / "X เป็นวิชาพื้นฐานให้วิชาอะไร" = วิชาตัวต่อของ X แต่กฎเดิมต้องติดกัน → โมเดลสลับทิศ ตอบ "ไม่พบ"
+def test_x_is_the_course_to_take_before_which_course_is_the_after_direction():
+    for q in ("แคลคูลัส 1 เป็นวิชาที่ต้องเรียนก่อนวิชาไหนบ้าง", "แคลคูลัส 1 เป็นวิชาที่ต้องผ่านก่อนวิชาอะไรบ้าง", "วิชา แคลคูลัส 1 เป็นวิชาต้องเรียนก่อนวิชาใด",
+              "แคลคูลัส 1 เป็นวิชาพื้นฐานให้วิชาอะไรบ้าง", "แคลคูลัส 1 เป็นวิชาพื้นฐานของวิชาไหน", "06026200 เป็นวิชาที่เป็นพื้นฐานให้วิชาอะไรบ้าง"):
+        assert direction(q) == ("after", "06026200"), q
+
+
+def test_those_phrasings_do_not_fire_on_other_questions():
+    assert direction("แคลคูลัส 1 เป็นวิชาที่ยากไหม") is None
+    assert direction("แคลคูลัส 1 เป็นวิชาบังคับหรือวิชาเลือก") is None
+    assert direction("แคลคูลัส 1 เป็นวิชาพื้นฐานที่สำคัญไหม") is None

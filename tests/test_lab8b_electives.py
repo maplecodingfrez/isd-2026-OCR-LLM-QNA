@@ -2065,3 +2065,170 @@ def test_gold_questions_taken_by_the_program_and_course_attribute_shortcuts_are_
                     ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
                     assert ok, (rel, q["id"], q["question"], r[0], q["expect"], why)
     assert taken >= 10
+
+
+# =============== ชุดสำนวนใหม่ล้วน (subagent อิสระเขียน 98 ข้อ): ถูก 78 ผิด 20 ผิดทุกรอบ ไม่แกว่ง — จัด 6 กลุ่มสาเหตุ ===============
+# (1) ทิศวิชาบังคับก่อน "เป็นวิชาที่ต้องเรียนก่อนวิชาไหน/เป็นวิชาพื้นฐานให้วิชาอะไร" (ดู tests/test_course_names.py)
+# (2) หัวข้อ มคอ.2 สำนวนอื่น (ทำงานตำแหน่งไหน, ผู้ที่จะสมัคร, เกณฑ์การรับ, ปริญญาที่ได้รับคือ…, จะสำเร็จการศึกษาต้องผ่านเกณฑ์)
+# (3) คำอธิบายวิชาถามด้วยชื่ออังกฤษ (4) กลุ่มวิชาเลือกถามด้วยชื่อกลุ่ม (5) ภาคต้น/ภาคปลาย (6) ทางลัดข้อมูลหลักสูตรแย่งคำถามเรื่องวิชาที่ไม่มีจริง
+
+@pytest.mark.parametrize("question,needle,page", [
+    ("จบ AI ไปแล้วทำงานตำแหน่งไหนได้บ้าง", "Data Scientist", 3), ("จบแล้วไปทำงานเป็นอะไรได้บ้าง", "Data Scientist", 3),
+    ("เรียนจบแล้วทำงานสายไหนได้บ้าง", "Data Scientist", 3),
+    ("คุณสมบัติของผู้ที่จะสมัครเข้าเรียนหลักสูตรนี้คืออะไร", "มัธยมศึกษาตอนปลาย", 4),
+    ("อยากรู้เกณฑ์การรับเข้าศึกษา ต้องจบอะไรมา", "มัธยมศึกษาตอนปลาย", 4),
+    ("สมัครเรียนต้องมีคุณสมบัติอะไรบ้าง", "มัธยมศึกษาตอนปลาย", 4),
+    ("จะสำเร็จการศึกษาต้องผ่านเกณฑ์อะไร", "ข้อบังคับสถาบัน", 5),
+    ("เงื่อนไขในการจบการศึกษาของหลักสูตรนี้คืออะไร", "ข้อบังคับสถาบัน", 5),
+    ("ปริญญาที่ได้รับคือชื่อว่าอะไร", "วิทยาศาสตรบัณฑิต (ตัวอย่าง)", 2), ("ปริญญาที่ได้ชื่อว่าอะไร", "วิทยาศาสตรบัณฑิต (ตัวอย่าง)", 2)])
+def test_book_sections_are_reached_by_other_natural_phrasings(tmp_path, monkeypatch, question, needle, page):
+    r = _ask_sec(tmp_path, monkeypatch, question)
+    assert needle in r["answer"] and r["model_calls"] == 0
+    assert [c["pdf_page"] for c in r["citations"]] == [page]
+
+
+@pytest.mark.parametrize("question", [
+    "วิชานี้มีการทำงานกลุ่มไหม", "ทำงานหนักไหมในปี 3", "วิชาไหนต้องทำงานเป็นทีม", "ต้องจบอะไรถึงจะเรียนวิชาแคลคูลัส 2 ได้",
+    "ผู้สอนวิชานี้ชื่ออะไร"])
+def test_section_phrasings_do_not_fire_on_work_degree_or_admission_words_elsewhere(tmp_path, monkeypatch, question):
+    assert _ask_sec(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def _desc_en_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.executemany("INSERT INTO course (code, name_th, name_en, credits) VALUES (?, ?, ?, 3)",
+                  [("06020001", "แคลคูลัส 1", "CALCULUS 1"), ("06020002", "แคลคูลัส 2", "CALCULUS 2")])
+    m.load_course_descriptions(c, _BOOK_DESC)
+    c.commit()
+    return c
+
+
+@pytest.mark.parametrize("question", [
+    "CALCULUS 1 สอนเกี่ยวกับอะไรบ้าง", "วิชา Calculus 1 เรียนเรื่องอะไร", "calculus 1 สอนอะไร", "คำอธิบายรายวิชา CALCULUS 1 คืออะไร"])
+def test_course_description_is_found_by_the_english_name_too(tmp_path, monkeypatch, question):
+    _desc_en_db(tmp_path).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    assert "ลิมิตและความต่อเนื่อง" in r["answer"] and "CALCULUS 2" not in r["answer"]
+
+
+def _grp_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=True)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) "
+              "VALUES (2, 'P', 'ช่องการตลาด', 9, 2, 'กลุ่มวิชาเลือกการตลาดดิจิทัล')")
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (2, ?, ?, 'X', 3)",
+                  [("06036141", "การตลาดเนื้อหา"), ("06036142", "การตลาดผ่านสื่อสังคม"), ("06036143", "การวิเคราะห์ตลาด")])
+    c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06036116', 'การตลาดดิจิทัล', 'DIGITAL MARKETING', 3)")
+    c.commit()
+    return c
+
+
+def _ask_grp(tmp_path, monkeypatch, question):
+    _grp_db(tmp_path).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,needles", [
+    ("กลุ่มวิชาเลือกการตลาดดิจิทัล มีวิชาอะไรบ้าง ขอเป็นรหัสวิชา", ["06036141", "06036142", "06036143"]),
+    ("ในกลุ่มวิชาเลือกการตลาดดิจิทัลมีวิชาอะไรให้เลือกบ้าง", ["การตลาดเนื้อหา", "06036143"]),
+    ("วิชาเลือกการตลาดดิจิทัลมีกี่วิชา", ["3 วิชา"]), ("กลุ่มวิชาเลือกการตลาดดิจิทัล มีวิชาทั้งหมดกี่วิชา", ["3 วิชา"]),
+    ("วิชาเลือกการตลาดดิจิทัล ต้องเลือกรวมกี่หน่วยกิต", ["9 หน่วยกิต"]), ("กลุ่มวิชาเลือกการตลาดดิจิทัลต้องเรียนกี่หน่วยกิต", ["9 หน่วยกิต"])])
+def test_elective_group_questions_are_answered_from_the_group(tmp_path, monkeypatch, question, needles):
+    r = _ask_grp(tmp_path, monkeypatch, question)
+    assert r["model_calls"] == 0 and all(n in r["answer"] for n in needles)
+    assert "06036116" not in r["answer"]                       # ชื่อกลุ่มชนชื่อวิชา "การตลาดดิจิทัล" — ต้องตอบเป็นกลุ่ม ไม่ใช่วิชานั้น
+
+
+@pytest.mark.parametrize("question", [
+    "การตลาดดิจิทัลกี่หน่วยกิต", "ปี 3 เทอม 1 เลือกวิชาเลือกอะไรได้", "ต้องเรียนกี่หน่วยกิตถึงจะจบ", "วิชาเลือกมีกี่วิชา",
+    "วิชา DIGITAL MARKETING รหัสอะไร", "กลุ่มวิชาเลือกการตลาดดิจิทัลมีวิชาอะไรบ้าง และเรียนปีไหน"])
+def test_elective_group_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    with closing(_grp_db(tmp_path)) as c:
+        c.row_factory = sqlite3.Row
+        assert m._elective_group_answer(c, question) is None
+
+
+@pytest.mark.parametrize("rel,gold", [("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                                       ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")])
+def test_no_gold_question_gets_an_elective_group_answer(rel, gold):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+    with closing(m.open_db(db, readonly=True)) as conn:
+        for q in qs:
+            assert m._elective_group_answer(conn, q["question"]) is None, q["question"]
+
+
+def test_thai_half_year_words_become_semester_numbers():
+    assert m._normalise_semester_words("ปี 2 ภาคปลายมีวิชาอะไรบ้าง") == "ปี 2 ภาคการศึกษาที่ 2 มีวิชาอะไรบ้าง"
+    assert m._normalise_semester_words("ปี 1 เทอมต้นเรียนอะไร") == "ปี 1 ภาคการศึกษาที่ 1 เรียนอะไร"
+    assert m._normalise_semester_words("ภาคฤดูร้อนมีวิชาไหม") == "ภาคฤดูร้อนมีวิชาไหม"
+    assert m._normalise_semester_words("ปี 2 เทอม 2 มีวิชาอะไรบ้าง") == "ปี 2 เทอม 2 มีวิชาอะไรบ้าง"
+
+
+def test_half_year_phrasing_reaches_the_prompt_as_a_semester_number(tmp_path, monkeypatch):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _plan_db(path).close()
+    seen = []
+    monkeypatch.setattr(m, "ollama_generate", lambda prompt, *a, **k: seen.append(prompt) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        m.ask(conn, "ปี 2 ภาคปลายมีวิชาอะไรบ้าง", verbose=False)
+    assert seen and "ภาคการศึกษาที่ 2" in seen[0]
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา Deep Learning ในหลักสูตรนี้กี่หน่วยกิต", "วิชาการทำอาหารไทยในหลักสูตรนี้มีกี่หน่วยกิต", "Quantum Computing กี่หน่วยกิตในหลักสูตรนี้",
+    "วิชาบล็อกเชนมีกี่หน่วยกิตในหลักสูตร"])
+def test_program_facts_do_not_answer_questions_about_a_course_that_is_not_in_the_book(tmp_path, monkeypatch, question):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert "129" not in r["answer"] and "ตลอดหลักสูตร" not in r["answer"] and r["model_calls"] >= 1
+
+
+# =============== ผลรันซ้ำชุดสำนวนใหม่: ทางลัดที่เพิ่งเพิ่มแย่งตอบ 2 ข้อ + วลี "สอนเรื่องอะไร" ===============
+
+@pytest.mark.parametrize("question", [
+    "ทั้งหลักสูตรวิทยาการข้อมูลแบบสหกิจใช้กี่หน่วยกิต", "หลักสูตรวิทยาการข้อมูลมีกี่วิชาในแผน", "วิทยาการข้อมูลเรียนกี่หน่วยกิตทั้งหมด"])
+def test_a_group_name_inside_the_program_name_is_not_taken_for_the_group(tmp_path, monkeypatch, question):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=True)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) "
+              "VALUES (3, 'P', 'ช่องข้อมูล', 6, 3, 'กลุ่มวิทยาการข้อมูล')")
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (3, ?, ?, 'X', 3)",
+                  [("06026250", "การทำเหมืองข้อมูล"), ("06026251", "การเรียนรู้ของเครื่อง")])
+    c.commit()
+    c.row_factory = sqlite3.Row
+    assert m._elective_group_answer(c, question) is None
+    assert m._elective_group_answer(c, "กลุ่มวิทยาการข้อมูลมีกี่วิชา") is not None            # พูดว่า "กลุ่ม" ชัดเจน = ถามกลุ่ม
+    c.close()
+
+
+@pytest.mark.parametrize("question", [
+    "CALCULUS 1 ต้องเรียนอะไรมาก่อน", "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน", "calculus 1 ต้องผ่านอะไรก่อนถึงจะเรียนได้", "แคลคูลัส 1 หลังจากนี้เรียนอะไรต่อ"])
+def test_prerequisite_questions_are_not_taken_for_description_questions(tmp_path, monkeypatch, question):
+    _desc_en_db(tmp_path).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        assert m._course_description_answer(conn, question) is None
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา CALCULUS 1 สอนเรื่องอะไร", "แคลคูลัส 1 สอนเกี่ยวกับเรื่องอะไร", "calculus 1 เรียนเรื่องอะไรบ้าง", "แคลคูลัส 1 มีเนื้อหาอะไร"])
+def test_more_ways_to_ask_what_a_course_teaches(tmp_path, monkeypatch, question):
+    _desc_en_db(tmp_path).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    assert "ลิมิตและความต่อเนื่อง" in r["answer"]

@@ -2097,14 +2097,15 @@ def cmd_load_course_descriptions(args) -> None:
           + "".join(f" [{c}: {o}→{n}]" for c, o, n in hours["fixed"]))
 
 
-_DESC_ASK = re.compile(r"เกี่ยวกับอะไร|สอนอะไร|เรียนอะไร|เรียนเรื่องอะไร|คำอธิบายรายวิชา|คําอธิบายรายวิชา|เนื้อหา(?:ของ)?วิชา|เนื้อหารายวิชา|รายละเอียดวิชา|description", re.I)
+_DESC_ASK = re.compile(r"เกี่ยวกับ(?:เรื่อง)?อะไร|สอน(?:เรื่อง|เกี่ยวกับ)?อะไร|(?<!ต้อง)เรียน(?:เรื่อง|เกี่ยวกับ)?อะไร|มีเนื้อหาอะไร|คำอธิบายรายวิชา|คําอธิบายรายวิชา|เนื้อหา(?:ของ)?วิชา|เนื้อหารายวิชา|รายละเอียดวิชา|description", re.I)
 _DESC_MAX_TH, _DESC_MAX_EN = 1100, 420
+_DESC_NOT = re.compile(r"ก่อน|ต้อง(?:เรียน|ผ่าน)|ต่อจาก|เรียนต่อ|หลังจาก")                 # คำถามวิชาบังคับก่อน/วิชาตัวต่อ ไม่ใช่ถามเนื้อหา
 
 
 def _course_description_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """ถามคำอธิบาย/เนื้อหาของวิชา (ระบุรหัส 8 หลัก หรือชื่อวิชา) → ยกข้อความไทย (+อังกฤษ) จากภาคผนวกของเล่มพร้อมเลขหน้า;
     วิชารู้จักแต่เล่มไม่มีคำอธิบาย = บอกตรง ๆ (ไม่ให้โมเดลเดา); ไม่ได้อ้างวิชา/DB ไม่มีตาราง = None (ทางเดิม)"""
-    if not _DESC_ASK.search(question):
+    if not _DESC_ASK.search(question) or _DESC_NOT.search(question):
         return None
     try:
         known = {r[0]: (r[1] or "") for r in conn.execute("SELECT code, name_th FROM course")}
@@ -2117,6 +2118,10 @@ def _course_description_answer(conn: sqlite3.Connection, question: str) -> tuple
     for code, d in described.items():
         known.setdefault(code, d["name_th"] or "")
     codes = [c for c in dict.fromkeys(_CODE8.findall(question)) if c in known][:3]
+    if not codes:
+        named = _named_courses(conn, question)             # ชื่อไทยหรืออังกฤษ (ตัดช่องว่าง/ตัวพิมพ์) ทั้งวิชาในแผนและแคตตาล็อก
+        if named:
+            codes = list(named)[:2]
     if not codes:
         qn = re.sub(r"\s+", "", question)
         best = max(((len(re.sub(r"\s+", "", n)), c) for c, n in known.items() if len(re.sub(r"\s+", "", n)) >= 4 and re.sub(r"\s+", "", n) in qn),
@@ -2294,13 +2299,14 @@ def cmd_load_book_sections(args) -> None:
 
 _SECTION_Q = (
     ("ชื่อหลักสูตร", r"หลักสูตร(?:นี้)?ชื่อ(?:ว่า)?อะไร|ชื่อ(?:เต็ม)?(?:ภาษา(?:ไทย|อังกฤษ))?(?:ของ)?หลักสูตร"),
-    ("ชื่อปริญญา", r"ชื่อ(?:ย่อ)?ปริญญา|ได้(?:รับ)?ปริญญา|ปริญญาอะไร|ได้(?:รับ)?วุฒิ|วุฒิอะไร"),
-    ("อาชีพ", r"(?<!มือ)อาชีพ|ทำงานอะไรได้"),
+    ("ชื่อปริญญา", r"ชื่อ(?:ย่อ)?ปริญญา|ได้(?:รับ)?ปริญญา|ปริญญาอะไร|ปริญญา(?:ที่)?ได้(?:รับ)?|ได้(?:รับ)?วุฒิ|วุฒิอะไร"),
+    ("อาชีพ", r"(?<!มือ)อาชีพ|ทำงานอะไรได้|จบ.{0,12}ทำงาน|ทำงาน(?:ตำแหน่ง|เป็นอะไร|สายไหน|ด้านไหน|อะไร).{0,6}ได้"),
     ("สถานที่จัดการเรียนการสอน", r"สถานที่จัดการเรียน(?:การ)?สอน"),
     ("ปรัชญา", r"ปรัชญา"),
     ("วัตถุประสงค์", r"วัตถุประสงค์(?:ของ)?หลักสูตร|หลักสูตร(?:นี้)?(?:มี)?วัตถุประสงค์"),
-    ("คุณสมบัติผู้เข้าศึกษา", r"คุณสมบัติ(?:ของ)?ผู้(?:เข้า)?(?:ศึกษา|เรียน|สมัคร)|ใคร(?:บ้าง)?(?:สามารถ)?(?:สมัคร|เข้า)เรียน|ใคร(?:บ้าง)?(?:สามารถ)?เรียน.{0,14}ได้"),
-    ("เกณฑ์สำเร็จการศึกษา", r"(?:เกณฑ์|เงื่อนไข)(?:การ)?(?:สำเร็จการศึกษา|จบการศึกษา|จบ)"),
+    ("คุณสมบัติผู้เข้าศึกษา", r"คุณสมบัติ(?:ของ)?(?:ผู้)?(?:ที่)?(?:จะ)?(?:สมัคร|เข้า|ศึกษา|เรียน)|ใคร(?:บ้าง)?(?:สามารถ)?(?:สมัคร|เข้า)เรียน|ใคร(?:บ้าง)?(?:สามารถ)?เรียน.{0,14}ได้"
+                              r"|เกณฑ์(?:การ)?รับ(?:เข้า)?|สมัคร(?:เรียน)?ต้อง(?:มี|จบ)|ต้องจบ(?:อะไร|สาย).{0,6}มา"),
+    ("เกณฑ์สำเร็จการศึกษา", r"(?:เกณฑ์|เงื่อนไข)(?:ในการ|การ|ใน)?(?:สำเร็จการศึกษา|จบการศึกษา|จบ)|สำเร็จการศึกษา.{0,12}(?:เกณฑ์|เงื่อนไข)|จบการศึกษา.{0,12}(?:เกณฑ์|เงื่อนไข)"),
 )
 
 
@@ -2458,7 +2464,7 @@ def _extreme_hours_answer(conn: sqlite3.Connection, question: str) -> tuple[str,
 
 # ---- 13. ข้อมูลระดับหลักสูตร (เรียนกี่ปี/หน่วยกิตรวม) และหน่วยกิต/ปี/เทอมของวิชาเดียว ----
 # held-out ใหม่ 270 ข้อ: "เรียนทั้งหมดกี่ปี" โมเดลตอบ COUNT(DISTINCT year) FROM program ผิดทุก DB; หน่วยกิต/ปี/เทอมของวิชาเดียวบางครั้งถามตารางผิด
-_FACT_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|ปีที่|เทอม|ภาค|หมวด|กลุ่ม|เลือก|เสรี|ศึกษาทั่วไป|วิชา(?:อะไร|ไหน|ใด)|อะไรบ้าง|ชั่วโมง|ก่อน|รหัส")
+_FACT_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|ปีที่|เทอม|ภาค|หมวด|กลุ่ม|เลือก|เสรี|ศึกษาทั่วไป|วิชา|อะไรบ้าง|ชั่วโมง|ก่อน|รหัส|[A-Za-z]{4,}")
 
 
 def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -2524,6 +2530,73 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         rows.append({"code": course["code"], "name_th": course["name_th"], "credits": course["credits"]})
     return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows,
             f"SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '{code}'")
+
+
+# ---- 14. กลุ่มวิชาเลือกถามด้วยชื่อกลุ่ม (รายชื่อวิชา / จำนวนวิชา / หน่วยกิตที่ต้องเลือก) ----
+# ชุดสำนวนใหม่: "กลุ่มวิชาเลือกการตลาดเชิงดิจิทัล มีวิชาอะไรบ้าง" โมเดลหยิบวิชา "การตลาดเชิงดิจิทัล" แทนกลุ่ม, "…มีกี่วิชา" ตอบ 0 (ชื่อกลุ่มไม่ตรงตัว)
+_GROUP_LIST = re.compile(r"อะไรบ้าง|วิชาอะไร|มีวิชา(?:อะไร|ไหน)|วิชาไหนบ้าง|รายชื่อ|ได้แก่|รหัสวิชา|ให้เลือก")
+_GROUP_COUNT = re.compile(r"กี่วิชา|กี่รายวิชา|จำนวนวิชา|กี่ตัว")
+_GROUP_CREDITS = re.compile(r"กี่หน่วยกิต")
+_GROUP_NOT = re.compile(r"ปี\s*\d|ชั้นปี|ปีไหน|เทอม|ภาคการศึกษา|ภาคเรียน|ก่อน|ชั่วโมง")
+
+
+def _elective_group_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามกลุ่มวิชาเลือกที่ระบุด้วยชื่อกลุ่ม (ไม่รวมกลุ่ม GE) → รายชื่อวิชาในกลุ่ม / จำนวนวิชา / หน่วยกิตที่ต้องเลือก (credits_required) จาก DB ตรง ๆ;
+    ถามหลายอย่างพร้อมกัน/มีปีเทอม/รหัสวิชา/ไม่เจอชื่อกลุ่ม/ชื่อวิชายาวกว่าชื่อกลุ่ม (ถามเรื่องวิชานั้น) = None (ทางเดิม)"""
+    if _GROUP_NOT.search(question) or _CODE8.search(question) or not re.search(r"กลุ่ม|วิชาเลือก", question):
+        return None
+    intents = [name for name, rx in (("list", _GROUP_LIST), ("count", _GROUP_COUNT), ("credits", _GROUP_CREDITS)) if rx.search(question)]
+    if len(intents) != 1:
+        return None
+    try:
+        groups = [dict(r) for r in conn.execute(
+            "SELECT DISTINCT group_no, group_name_th, credits_required FROM main.v_elective_group "
+            "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%' AND group_name_th IS NOT NULL")]
+    except sqlite3.OperationalError:
+        return None
+    norm = lambda s: re.sub(r"\s+", "", s or "").lower()
+    qn = norm(question)
+    hits = []
+    for g in groups:
+        key = re.sub(r"^กลุ่ม", "", norm(g["group_name_th"]))
+        core = re.sub(r"กลุ่ม|วิชาเลือก|วิชา|เลือก", "", key)             # ชื่อกลุ่มกว้าง ๆ เช่น "กลุ่มวิชาเลือก" ไม่ใช่ชื่อกลุ่มที่เจาะจง
+        if len(key) >= 8 and len(core) >= 4 and key in qn:
+            hits.append((len(key), g))
+    if not hits:
+        return None
+    best = max(n for n, _ in hits)
+    top = [g for n, g in hits if n == best]
+    if len({(g["group_no"], g["group_name_th"]) for g in top}) != 1:
+        return None
+    g = top[0]
+    named = _named_courses(conn, question)
+    if named and max(len(norm(n)) for n in named.values()) > best:
+        return None
+    try:
+        members = [dict(r) for r in conn.execute(
+            "SELECT DISTINCT code, course_name_th AS name_th, credits FROM main.v_elective_group WHERE group_no = ? AND group_name_th = ? ORDER BY code",
+            (g["group_no"], g["group_name_th"]))]
+    except sqlite3.OperationalError:
+        return None
+    sql = f"SELECT DISTINCT code, course_name_th, credits FROM main.v_elective_group WHERE group_name_th = '{g['group_name_th']}' ORDER BY code"
+    if intents[0] == "list":
+        return f"{g['group_name_th']} มี {len(members)} วิชา: " + ", ".join(f"{r['code']} {r['name_th']}" for r in members), members, sql
+    if intents[0] == "count":
+        return f"{g['group_name_th']} มี {len(members)} วิชา", [{"group": g["group_name_th"], "n_courses": len(members)}], sql
+    if g["credits_required"] is None:
+        return None
+    return (f"{g['group_name_th']} ต้องเลือกรวม {g['credits_required']} หน่วยกิต", [{"group": g["group_name_th"], "credits_required": g["credits_required"]}], sql)
+
+
+_SEM_HALF = ((r"(?:ภาคการศึกษา|ภาคเรียน|ภาค|เทอม)ต้น", "ภาคการศึกษาที่ 1 "), (r"(?:ภาคการศึกษา|ภาคเรียน|ภาค|เทอม)ปลาย", "ภาคการศึกษาที่ 2 "))
+
+
+def _normalise_semester_words(question: str) -> str:
+    """"ภาคต้น/เทอมต้น" = ภาคการศึกษาที่ 1, "ภาคปลาย/เทอมปลาย" = ภาคการศึกษาที่ 2 (โมเดลเคยตีเป็น semester 3 = ภาคฤดูร้อน แล้วตอบ "ไม่พบ")"""
+    out = question
+    for rx, repl in _SEM_HALF:
+        out = re.sub(rx, repl, out)
+    return re.sub(r" {2,}", " ", out).strip() if out != question else question
 
 
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
@@ -3230,11 +3303,12 @@ def ask(conn: sqlite3.Connection, question: str,
     }
     # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน); False = สร้างไม่ได้ → กลับไปใช้ view เดิมใน DB (เห็นได้จากผลลัพธ์)
     result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
+    question = _normalise_semester_words(question)          # ภาคต้น/ภาคปลาย → ภาคการศึกษาที่ 1/2 (result["question"] ยังเป็นข้อความเดิมของผู้ใช้)
     scope_elective_view(conn, question)                   # v_elective_group ไม่รวม GE เว้นแต่คำถามพูดถึง GE (ดูเหตุผลที่ฟังก์ชัน)
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _elective_group_answer, _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
