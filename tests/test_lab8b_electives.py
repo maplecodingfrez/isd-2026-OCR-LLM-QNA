@@ -282,3 +282,58 @@ def test_template_fallback_does_not_touch_non_compound_questions(tmp_path, monke
     sql = "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1"
     r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 เรียนกี่หน่วยกิต", sql)
     assert r["sql"].startswith("SELECT credits FROM v_semester_credits") and "name_th" not in r["rows"][0]
+
+
+# ---------- ช่องที่นักศึกษาเลือกเอง (plan_slot) ต่อท้ายคำตอบสรุปรายเทอม ----------
+# n_courses นับช่องด้วย แต่ v_plan ไม่มีช่อง wildcard → "6 วิชา" ลิสต์ 5 ชื่อ ผู้ใช้สงสัยว่าอีกวิชาหายไปไหน
+
+def _db_with_slot(path, extra_slot_in_other_term=True):
+    c = _plan_db(path)
+    c.executescript(m.PLAN_SLOT_DDL)
+    c.execute("INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th, credits) "
+              "VALUES ('P', 2, 1, 'wildcard', '90644xxx', 'วิชาเลือกด้านภาษา', 3)")
+    if extra_slot_in_other_term:
+        c.execute("INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th, credits) "
+                  "VALUES ('P', 4, 2, 'choose_one', NULL, 'เลือกอย่างใดอย่างหนึ่ง', 6)")
+    c.commit()
+    return c
+
+
+def _ask_compound_with_slots(tmp_path, monkeypatch, question, model_sql):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _db_with_slot(path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+def test_self_chosen_slot_is_listed_after_the_courses_of_a_compound_term_answer(tmp_path, monkeypatch):
+    r = _ask_compound_with_slots(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง",
+                                 "SELECT credits, n_courses FROM v_semester_credits WHERE year=2 AND semester=1")
+    assert r["answer"].count("ช่องที่นักศึกษาเลือกเอง: วิชาเลือกด้านภาษา 3 หน่วยกิต") == 1
+    assert "วิชาก" in r["answer"] and r["answer"].index("วิชาข") < r["answer"].index("ช่องที่นักศึกษาเลือกเอง")
+
+
+def test_slots_of_other_terms_are_not_listed(tmp_path, monkeypatch):
+    r = _ask_compound_with_slots(tmp_path, monkeypatch, "ปี 4 เทอม 2 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง",
+                                 "SELECT credits, n_courses FROM v_semester_credits WHERE year=4 AND semester=2")
+    assert "วิชาเลือกด้านภาษา" not in r["answer"]
+
+
+def test_slot_line_is_not_added_to_non_compound_answers(tmp_path, monkeypatch):
+    r = _ask_compound_with_slots(tmp_path, monkeypatch, "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง",
+                                 "SELECT name_th FROM v_plan WHERE year=2 AND semester=1")
+    assert "ช่องที่นักศึกษาเลือกเอง" not in r["answer"]
+
+
+def test_compound_answer_without_a_slot_table_is_unchanged(tmp_path, monkeypatch):
+    r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง",
+                      "SELECT credits, n_courses FROM v_semester_credits WHERE year=2 AND semester=1")
+    assert "ช่องที่นักศึกษาเลือกเอง" not in r["answer"]

@@ -1220,6 +1220,23 @@ def _term_summary_fallback(conn: sqlite3.Connection, question: str, sql: str | N
     return (template, fixed) if fixed else (sql, rows)
 
 
+def _self_chosen_slot_note(conn: sqlite3.Connection, question: str) -> str:
+    """ช่องที่นักศึกษาเลือกเองของปี/เทอมที่ถามในคำถามควบ (plan_slot: wildcard / A หรือ B / เลือก 1 กลุ่ม) เช่น
+    "ช่องที่นักศึกษาเลือกเอง: วิชาเลือกด้านภาษาและการสื่อสาร 3 หน่วยกิต" — v_plan ไม่มีช่อง wildcard แต่ n_courses นับรวม
+    ผู้ใช้เลยเห็น "6 วิชา" ลิสต์ 5 ชื่อ; ไม่ใช่คำถามควบ/ไม่ระบุปีเทอม/ไม่มีตาราง/ไม่มีช่อง = "" """
+    if not _term_summary_hint_text(question):
+        return ""
+    y, s = _TERM_YEAR_NUM.search(question), _TERM_SEM_NUM.search(question)
+    if not (y and s):
+        return ""
+    try:
+        slots = conn.execute("SELECT name_th, credits FROM plan_slot WHERE year = ? AND semester = ? ORDER BY id",
+                             (int(y.group(1)), int(s.group(1)))).fetchall()
+    except sqlite3.OperationalError:
+        return ""
+    return "; ".join(f"ช่องที่นักศึกษาเลือกเอง: {n} {c} หน่วยกิต" for n, c in slots)
+
+
 def _has_view(conn: sqlite3.Connection, name: str) -> bool:
     return conn.execute("SELECT 1 FROM sqlite_master WHERE name=?", (name,)).fetchone() is not None
 
@@ -1967,6 +1984,9 @@ def ask(conn: sqlite3.Connection, question: str,
             if "n_courses" in totals:
                 parts.append(f"{totals['n_courses']} วิชา")
             result["answer"] = body + (f" ({', '.join(parts)})" if parts else "")
+    slot_note = _self_chosen_slot_note(conn, question)
+    if slot_note and slot_note not in (result["answer"] or ""):
+        result["answer"] = f"{result['answer']}; {slot_note}" if result["answer"] else slot_note
     # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
     result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
     # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
