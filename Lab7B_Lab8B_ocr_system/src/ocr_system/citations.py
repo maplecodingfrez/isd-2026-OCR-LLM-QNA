@@ -143,7 +143,9 @@ def load_lookup(conn: sqlite3.Connection):
 
 def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
     """หน้าอ้างอิงของคำตอบ: หน้าตารางแผนของเทอมที่ SQL กรอง (year= และ semester=) ก่อน แล้วหน้าของรหัสวิชา
-    ที่อยู่ใน SQL หรือในแถวผลลัพธ์ — ไม่เกิน MAX_CITED หน้า; ไม่มีข้อมูล = [] (ไม่เดา)"""
+    ที่อยู่ใน SQL หรือในแถวผลลัพธ์ — ไม่เกิน MAX_CITED หน้า; ไม่มีข้อมูล = [] (ไม่เดา)
+    แต่ละหน้าบอก "courses" = รหัสวิชาของคำตอบที่พบในหน้านั้น (ผู้ใช้จะรู้ว่าหน้านี้อ้างข้อมูลใด)
+    ลำดับคงที่: รหัสที่ระบุใน SQL ก่อน แล้วรหัสจากแถวเรียงตามรหัส — โมเดลเรียงแถวต่างกันในแต่ละรอบ ห้ามทำให้หน้าเปลี่ยน"""
     course, term = lookup
     cited: list[tuple[int, str | None]] = []
 
@@ -156,19 +158,21 @@ def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
     y, s = YEAR_SQL_RE.search(sql), SEM_SQL_RE.search(sql)
     if y and s and not NEGATED_SQL_RE.search(sql):
         add(term.get((int(y.group(1)), int(s.group(1))), []))
-    codes = CODE_RE.findall(sql)
-    for r in rows:
-        for v in r.values():
-            codes += CODE_RE.findall(str(v))
-    for code in dict.fromkeys(codes):
+    sql_codes = list(dict.fromkeys(CODE_RE.findall(sql)))
+    row_codes = {c for r in rows for v in r.values() for c in CODE_RE.findall(str(v))}
+    codes = sql_codes + sorted(row_codes - set(sql_codes))
+    for code in codes:
         add(course.get(code, []))
-    return [{"pdf_page": pdf, "printed_page": printed} for pdf, printed in cited[:MAX_CITED]]
+    return [{"pdf_page": pdf, "printed_page": printed,
+             "courses": [c for c in codes if (pdf, printed) in course.get(c, [])]}
+            for pdf, printed in cited[:MAX_CITED]]
 
 
 def format_citation(cites: list[dict]) -> str:
     """ "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)" — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
     if not cites:
         return ""
-    parts = [f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"
+    parts = [(f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}")
+             + (f" [{', '.join(c['courses'])}]" if c.get("courses") else "")
              for c in cites]
     return f"(อ้างอิง: เล่มหลักสูตร {', '.join(parts)})"

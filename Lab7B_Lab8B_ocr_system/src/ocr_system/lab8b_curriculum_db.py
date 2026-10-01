@@ -1144,6 +1144,27 @@ def _citations_module():
     return citations
 
 
+def _dedupe_rows(rows: list[dict]) -> list[dict]:
+    """ตัดแถวของวิชาเดียวกันที่ต่างกันแค่การสะกด (ำ เทียบ ํา จาก OCR — แถวหนึ่งมาจาก course อีกแถวมาจากแคตตาล็อกวิชาเลือก)
+    ซ้ำ = มี code เท่ากันและทุกคอลัมน์อื่นเท่ากันหลังรวม ํา+า เป็น ำ; ปีหรือเทอมต่างกัน = ไม่ซ้ำ (ไม่แตะ); เก็บแบบสะกดมาตรฐาน"""
+    def norm(v):
+        return v.replace("ํา", "ำ") if isinstance(v, str) else v
+
+    out: list[dict] = []
+    seen: dict[tuple, int] = {}
+    for r in rows:
+        if "code" not in r:
+            out.append(r)
+            continue
+        key = tuple(sorted((k, norm(v)) for k, v in r.items()))
+        if key not in seen:
+            seen[key] = len(out)
+            out.append(r)
+        elif "ํา" in "".join(str(v) for v in out[seen[key]].values()):
+            out[seen[key]] = r                    # แถวแรกสะกดแยกอักขระ แถวนี้สะกดมาตรฐาน → ใช้แถวนี้
+    return out
+
+
 _ELECTIVE_Q = re.compile(r"วิชาเลือก(?!เสรี)|elective", re.I)       # วิชาเลือกเสรี ไม่ใช่แคตตาล็อกเฉพาะทาง
 _TOPIC_Q = re.compile(r"วิชา.*(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง)|(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง).*วิชา")
 
@@ -1815,7 +1836,7 @@ def ask(conn: sqlite3.Connection, question: str,
             # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
             sql = guard_sql(repair_undefined_aliases(sql))
             result["sql"] = sql
-            rows = [dict(r) for r in conn.execute(sql).fetchall()]
+            rows = _dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()])
             result["rows"] = rows
             result["error"] = None
             break

@@ -63,7 +63,7 @@ def test_term_page_not_leaked_to_other_term_sharing_a_code():
     sql_1_2 = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2"
     assert citations.citations_for([{"credits": 3}], sql_1_2, lookup) == []
     sql_1_1 = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"
-    assert citations.citations_for([{"credits": 3}], sql_1_1, lookup) == [{"pdf_page": 38, "printed_page": "33"}]
+    assert citations.citations_for([{"credits": 3}], sql_1_1, lookup) == [{"pdf_page": 38, "printed_page": "33", "courses": []}]
 
 
 # Break caught (review minor #7): a run without data_input aborting the whole run instead of skipping citations.

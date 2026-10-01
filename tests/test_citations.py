@@ -105,7 +105,7 @@ def _db_with_pages():
 def test_citations_for_term_question_cites_plan_page():
     lookup = citations.load_lookup(_db_with_pages())
     sql = "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1"
-    assert citations.citations_for([{"credits": 18}], sql, lookup) == [{"pdf_page": 38, "printed_page": "33"}]
+    assert citations.citations_for([{"credits": 18}], sql, lookup) == [{"pdf_page": 38, "printed_page": "33", "courses": []}]
 
 
 # Break caught: code taken only from rows (name lookup "WHERE code='X'" returns no code column).
@@ -113,7 +113,8 @@ def test_citations_for_code_in_sql_cites_plan_then_primary_not_other():
     lookup = citations.load_lookup(_db_with_pages())
     sql = "SELECT name_th FROM course WHERE code = '06016401'"
     assert citations.citations_for([{"name_th": "ก"}], sql, lookup) == [
-        {"pdf_page": 38, "printed_page": "33"}, {"pdf_page": 324, "printed_page": "319"}]
+        {"pdf_page": 38, "printed_page": "33", "courses": ["06016401"]},
+        {"pdf_page": 324, "printed_page": "319", "courses": ["06016401"]}]
 
 
 # Break caught: guessing a page for an unknown code / no-pages DB (Review Focus 1).
@@ -184,3 +185,51 @@ def test_citations_for_puts_description_page_right_after_plan():
         ("06016401", 20, "15", "primary"), ("06016401", 21, "16", "primary"), ("06016401", 330, "325", "description")])
     got = citations.citations_for([], "SELECT name_th FROM course WHERE code = '06016401'", citations.load_lookup(conn))
     assert [c["pdf_page"] for c in got] == [38, 330, 20]
+
+
+# ---------- ระบุวิชาต่อหน้า + ลำดับคงที่ (ผู้ใช้ถามว่า "หน้านี้บอกข้อมูลไหน") ----------
+
+def _multi_course_db():
+    conn = _db_with_pages()
+    conn.executemany("INSERT INTO course_page VALUES (?, ?, ?, ?)", [
+        ("06026243", 335, "334", "description"), ("06026244", 335, "334", "description"),
+        ("06026245", 336, "335", "description"), ("06026207", 321, "320", "description")])
+    return conn
+
+
+def test_each_citation_lists_the_courses_found_on_that_page():
+    lookup = citations.load_lookup(_multi_course_db())
+    rows = [{"code": "06026243"}, {"code": "06026244"}, {"code": "06026207"}]
+    got = citations.citations_for(rows, "SELECT code FROM course", lookup)
+    assert {c["pdf_page"]: c["courses"] for c in got} == {321: ["06026207"], 335: ["06026243", "06026244"]}
+
+
+def test_term_page_lists_no_courses():
+    lookup = citations.load_lookup(_db_with_pages())
+    got = citations.citations_for([{"credits": 18}], "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1", lookup)
+    assert got == [{"pdf_page": 38, "printed_page": "33", "courses": []}]
+
+
+def test_citations_do_not_depend_on_the_order_of_the_result_rows():
+    """ถามซ้ำแล้วโมเดลเรียงแถวต่างกัน → หน้าอ้างอิง 3 หน้าแรกต้องเป็นชุดเดิม"""
+    lookup = citations.load_lookup(_multi_course_db())
+    rows = [{"code": c} for c in ("06026245", "06026207", "06026244", "06026243")]
+    a = citations.citations_for(rows, "SELECT code FROM course", lookup)
+    b = citations.citations_for(list(reversed(rows)), "SELECT code FROM course", lookup)
+    assert a == b
+
+
+def test_course_named_in_the_sql_still_comes_first():
+    lookup = citations.load_lookup(_multi_course_db())
+    sql = "SELECT name_th FROM course WHERE code = '06026245'"
+    rows = [{"code": "06026207"}, {"code": "06026245"}]
+    assert citations.citations_for(rows, sql, lookup)[0]["pdf_page"] == 336
+
+
+def test_format_citation_names_the_courses_on_each_page():
+    cites = [{"pdf_page": 335, "printed_page": "334", "courses": ["06026243", "06026244"]},
+             {"pdf_page": 21, "printed_page": None, "courses": ["06026207"]},
+             {"pdf_page": 38, "printed_page": "33", "courses": []}]
+    assert citations.format_citation(cites) == (
+        "(อ้างอิง: เล่มหลักสูตร หน้า 334 (PDF 335) [06026243, 06026244], PDF 21 [06026207], หน้า 33 (PDF 38))")
+

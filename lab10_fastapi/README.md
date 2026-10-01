@@ -376,7 +376,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | `sql` | string หรือ null | SQL ที่ Qwen สร้าง |
 | `rows` | array ของ object | ผลจากฐานข้อมูล (ไม่เกิน `CURRICULUM_MAX_ROWS` แถว); ว่างได้ |
 | `answer` | string | คำตอบภาษาไทย |
-| `citations` | array ของ `{pdf_page: integer, printed_page: integer หรือ null}` | หน้าอ้างอิงในเล่ม; ว่างได้ (`printed_page` null = รู้แค่เลขหน้า PDF) |
+| `citations` | array ของ `{pdf_page: integer, printed_page: string ตัวเลข (เช่น "334") หรือ null, courses: array ของรหัสวิชา}` | หน้าอ้างอิงในเล่ม (ไม่เกิน 3 หน้า เรียงคงที่); `courses` = วิชาของคำตอบที่พบในหน้านั้น (หน้าตารางแผนของเทอมเป็น `[]`); ว่างได้ (`printed_page` null = รู้แค่เลขหน้า PDF) |
 | `citation_text` | string | ข้อความอ้างอิงพร้อมแสดง เช่น "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"; ไม่มีอ้างอิง = "" |
 
 กรณี `rows` ว่างและ `answer` = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ยังเป็น 200 — หน้าเว็บแสดงเป็น Success โทนเตือน ไม่ใช่ Error

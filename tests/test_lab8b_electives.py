@@ -158,3 +158,25 @@ def test_a_complete_multi_column_answer_is_left_untouched(tmp_path, monkeypatch)
     good = json.dumps({"answer": "06010001 วิชาเลือก ก, 06010002 วิชาเลือก ข"})
     r = _ask_with_model_answer(tmp_path, monkeypatch, good)
     assert r["answer"].startswith("06010001 วิชาเลือก ก") and "|" not in r["answer"]
+
+
+# ---------- แถวซ้ำต่างกันแค่การสะกด (ำ เทียบ ํา) ----------
+
+def test_rows_for_the_same_course_that_differ_only_in_thai_spelling_collapse_to_one():
+    rows = [{"code": "06026244", "name_th": "การดูแลและบํารุงรักษา", "credits": 3},      # ํา แยกอักขระ (จาก OCR)
+            {"code": "06026244", "name_th": "การดูแลและบำรุงรักษา", "credits": 3},
+            {"code": "06026207", "name_th": "ก", "credits": 3}]
+    got = m._dedupe_rows(rows)
+    assert [r["code"] for r in got] == ["06026244", "06026207"]
+    assert got[0]["name_th"] == "การดูแลและบำรุงรักษา"                                  # เก็บแบบสะกดมาตรฐาน
+
+
+def test_same_course_in_different_terms_is_not_collapsed():
+    rows = [{"code": "06026244", "year": 2}, {"code": "06026244", "year": 3}]
+    assert m._dedupe_rows(rows) == rows
+
+
+def test_rows_without_a_code_column_are_left_alone():
+    rows = [{"credits": 3}, {"credits": 3}]
+    assert m._dedupe_rows(rows) == rows
+

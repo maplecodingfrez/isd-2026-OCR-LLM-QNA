@@ -97,13 +97,22 @@
     return url + (url.indexOf("?") === -1 ? "?" : "&") + "program=" + encodeURIComponent(program);
   }
 
-  // citations จาก backend = [{pdf_page: int, printed_page: int | null}]; ข้อมูลเพี้ยน = ข้าม (ไม่เดา)
+  // เลขหน้าที่พิมพ์: backend ส่งเป็นสตริงตัวเลข ("334") หรือจำนวนเต็ม; อย่างอื่น = ไม่รู้ (null)
+  function printedPage(value) {
+    if (Number.isInteger(value)) return value;
+    if (typeof value === "string" && /^\s*\d{1,4}\s*$/.test(value)) return parseInt(value, 10);
+    return null;
+  }
+
+  // citations จาก backend = [{pdf_page: int, printed_page: "334" | int | null, courses: ["รหัสวิชา", ...]}];
+  // courses = วิชาของคำตอบที่พบในหน้านั้น; ข้อมูลเพี้ยน = ข้าม (ไม่เดา)
   function citationItems(data) {
     var list = data && Array.isArray(data.citations) ? data.citations : [];
     var items = [];
     list.forEach(function (c) {
       if (!c || !Number.isInteger(c.pdf_page)) return;
-      items.push({ printed: Number.isInteger(c.printed_page) ? c.printed_page : null, pdf: c.pdf_page });
+      var courses = Array.isArray(c.courses) ? c.courses.filter(function (x) { return typeof x === "string"; }) : [];
+      items.push({ printed: printedPage(c.printed_page), pdf: c.pdf_page, courses: courses });
     });
     return items;
   }
@@ -265,6 +274,13 @@
       ]);
       if (c.printed !== null) tab.appendChild(el("span", { className: "pdf", text: "PDF " + c.pdf }));
       tabs.appendChild(tab);
+    });
+    var detail = $("cite-detail");                           // หน้าไหนอ้างวิชาไหน (ไม่มีรหัสวิชา = ไม่แสดงบรรทัดนั้น)
+    clear(detail);
+    items.forEach(function (c) {
+      if (!c.courses.length) return;
+      detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
+        ": " + c.courses.join(", ") }));
     });
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
     $("answer-text").textContent = answerText(data);
