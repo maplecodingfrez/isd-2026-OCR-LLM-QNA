@@ -648,3 +648,65 @@ def test_long_pool_shows_at_most_eight_examples_but_all_rows(tmp_path, monkeypat
 def test_without_a_catalog_the_level_one_wording_is_kept(tmp_path, monkeypatch):
     r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง")
     assert "ไม่ได้กำหนดรายวิชาตายตัว" in r["answer"] and "ภาคผนวก ง" in r["answer"]
+
+
+# ---------- ถามรายเทอม "ปี N เทอม M เลือกอะไรได้บ้าง": สรุปทุกช่องเลือกของเทอมนั้น ----------
+
+def _db_for_term_choices(path):
+    c = _db_with_ge_catalog(path)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (30, 'P', 'ช่องวิทยาการข้อมูล', 6, 1, 'กลุ่มวิทยาการข้อมูล')")
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (31, 'P', 'ช่องวิทยาการข้อมูล', 6, 2, 'กลุ่มการวิเคราะห์เชิงสถิติ')")
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (?, ?, ?, 'X', 3)",
+                  [(30, "06026216", "ปัญญาประดิษฐ์"), (30, "06026217", "การเรียนรู้ของเครื่อง"), (31, "06026230", "อนุกรมเวลา")])
+    c.execute("INSERT INTO plan_slot (id, program_id, year, semester, kind, code, name_th, credits) "
+              "VALUES (50, 'P', 4, 2, 'choose_one', NULL, 'เลือกอย่างใดอย่างหนึ่ง (A หรือ B)', 6)")
+    c.executemany("INSERT INTO course (code, name_th, credits) VALUES (?, ?, 6)", [("06026259", "สหกิจศึกษา"), ("06026260", "สหกิจศึกษาต่างประเทศ")])
+    c.executemany("INSERT INTO plan_slot_member (slot_id, group_no, group_name, code) VALUES (50, 1, 'A หรือ B', ?)", [("06026259",), ("06026260",)])
+    c.commit()
+    return c
+
+
+def _ask_term(tmp_path, monkeypatch, question):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _db_for_term_choices(path).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT code FROM course LIMIT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+def test_term_choices_summarise_every_choice_slot_of_the_term(tmp_path, monkeypatch):
+    r = _ask_term(tmp_path, monkeypatch, "ปี 4 เทอม 1 เลือกอะไรได้บ้าง")
+    assert "วิชาเลือกหมวดวิชาศึกษาทั่วไป" in r["answer"] and "พ.ศ. 2566" in r["answer"]
+    assert "วิชาเลือกเสรี 1" in r["answer"] and "วิชาเลือกเสรี 2" in r["answer"] and "ไม่มีรายชื่อวิชากำหนด" in r["answer"]
+    assert [x["slot"] for x in r["rows"]] == ["วิชาเลือกหมวดวิชาศึกษาทั่วไป", "วิชาเลือกเสรี 1", "วิชาเลือกเสรี 2"]
+    assert r["model_calls"] == 0 and "(อ้างอิง" not in r["answer"]
+
+
+def test_term_choices_name_the_program_elective_groups_with_counts(tmp_path, monkeypatch):
+    r = _ask_term(tmp_path, monkeypatch, "ปี 3 เทอม 2 วิชาเลือกมีอะไรให้เลือกบ้าง")
+    assert "กลุ่มวิทยาการข้อมูล 2 วิชา" in r["answer"] and "กลุ่มการวิเคราะห์เชิงสถิติ 1 วิชา" in r["answer"]
+    assert r["model_calls"] == 0
+
+
+def test_term_choices_list_the_members_of_an_a_or_b_slot(tmp_path, monkeypatch):
+    r = _ask_term(tmp_path, monkeypatch, "ปี 4 เทอม 2 เลือกเรียนอะไรได้บ้าง")
+    assert "06026259 สหกิจศึกษา" in r["answer"] and "06026260 สหกิจศึกษาต่างประเทศ" in r["answer"] and "A หรือ B" in r["answer"]
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 1 เทอม 1 เลือกอะไรได้บ้าง",                 # เทอมนี้ไม่มีช่องเลือก → ทางเดิม
+    "ปี 4 เทอม 1 เลือกอะไรได้กี่หน่วยกิต",           # ถามจำนวน → ทางเดิม
+    "ปี 4 เทอม 1 เรียนวิชาอะไรบ้าง",                 # ไม่ได้ถามถึง "เลือก" → ทางเดิม
+])
+def test_term_choices_do_not_hijack_other_questions(tmp_path, monkeypatch, question):
+    assert _ask_term(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_is_a_term_choices_question(path):
+    for q in json.loads(path.read_text(encoding="utf-8")):
+        assert not m._is_term_choices_question(q["question"]), q["question"]
