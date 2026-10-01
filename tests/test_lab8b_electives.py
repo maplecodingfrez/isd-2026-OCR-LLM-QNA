@@ -337,3 +337,60 @@ def test_compound_answer_without_a_slot_table_is_unchanged(tmp_path, monkeypatch
     r = _ask_compound(tmp_path, monkeypatch, "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง",
                       "SELECT credits, n_courses FROM v_semester_credits WHERE year=2 AND semester=1")
     assert "ช่องที่นักศึกษาเลือกเอง" not in r["answer"]
+
+
+# ---------- ช่อง wildcard (เช่น 90644xxx = วิชารหัสขึ้นต้น 90644) ถามว่า "มีวิชาอะไรให้เลือก" ----------
+# ราก: โมเดลไปค้น v_elective_group (แคตตาล็อกเฉพาะทาง) ซึ่งไม่มีช่องนี้ → ว่าง ทั้งที่ course มีวิชารหัสนั้นอยู่
+
+def _wildcard_db(path):
+    c = _plan_db(path)
+    c.executescript(m.PLAN_SLOT_DDL)
+    c.executemany("INSERT INTO course (code, name_th, credits) VALUES (?, ?, 3)",
+                  [("90644001", "ภาษาอังกฤษ 1"), ("90644002", "การนำเสนอ"), ("90641001", "อื่น")])
+    c.executemany("INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th, credits) VALUES ('P', ?, ?, ?, ?, ?, 3)",
+                  [(2, 1, "wildcard", "90644xxx", "วิชาเลือกด้านภาษาและการสื่อสาร"),
+                   (4, 1, "wildcard", "xxxxxxx", "วิชาเลือกเสรี 1")])
+    c.commit()
+    return c
+
+
+def _ask_wildcard(tmp_path, monkeypatch, question, model_sql="SELECT code, name_th FROM course WHERE 1 = 0"):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _wildcard_db(path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+@pytest.mark.parametrize("question", [
+    "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+    "ปี 2 เทอม 1 ด้านภาษาและการสื่อสาร เลือกเรียนวิชาอะไรได้บ้าง",
+])
+def test_wildcard_slot_question_lists_the_courses_with_that_code_prefix(tmp_path, monkeypatch, question):
+    r = _ask_wildcard(tmp_path, monkeypatch, question)
+    assert sorted(row["code"] for row in r["rows"]) == ["90644001", "90644002"]
+    assert "ภาษาอังกฤษ 1" in r["answer"] and "การนำเสนอ" in r["answer"] and "อื่น" not in r["answer"]
+    assert "LIKE '90644%'" in r["sql"]
+
+
+def test_wildcard_fallback_leaves_rows_that_already_match_the_slot(tmp_path, monkeypatch):
+    sql = "SELECT code, name_th FROM course WHERE code = '90644001'"
+    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรบ้าง", sql)
+    assert [row["code"] for row in r["rows"]] == ["90644001"]
+
+
+def test_free_elective_slot_with_no_code_prefix_is_not_expanded(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกเสรี 1 มีวิชาอะไรให้เลือกบ้าง")
+    assert r["rows"] == []
+
+
+def test_wildcard_fallback_needs_the_slot_to_be_named_in_the_question(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "มีวิชาอะไรให้เลือกบ้าง")
+    assert r["rows"] == []

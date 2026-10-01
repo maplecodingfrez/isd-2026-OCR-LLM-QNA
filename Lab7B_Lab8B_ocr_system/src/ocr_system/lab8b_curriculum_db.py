@@ -1220,6 +1220,29 @@ def _term_summary_fallback(conn: sqlite3.Connection, question: str, sql: str | N
     return (template, fixed) if fixed else (sql, rows)
 
 
+def _wildcard_slot_fallback(conn: sqlite3.Connection, question: str, sql: str | None,
+                            rows: list[dict]) -> tuple[str | None, list[dict]]:
+    """ช่อง wildcard ในแผน (plan_slot เช่น 90644xxx = "วิชาเลือกด้านภาษาและการสื่อสาร" = วิชารหัสขึ้นต้น 90644): ถามว่า
+    "ช่องนี้มีวิชาอะไรให้เลือก" โมเดลไปค้น v_elective_group ซึ่งไม่มีช่องนี้ → ว่าง ทั้งที่ course มีวิชารหัสนั้น
+    ถ้าคำถามระบุชื่อช่อง (ตัดคำนำ "วิชาเลือก" แล้วต้องยาว ≥ 6 ตัวอักษร) และแถวของโมเดลไม่มีวิชารหัสขึ้นต้นตามช่อง
+    → ค้น course ตามรหัสขึ้นต้นเอง; ช่องที่ไม่มีรหัสนำ (วิชาเลือกเสรี xxxxxxx) หรือคำถามที่ไม่ระบุชื่อช่อง = ไม่แตะ"""
+    try:
+        slots = conn.execute("SELECT DISTINCT name_th, code FROM plan_slot WHERE kind = 'wildcard'").fetchall()
+    except sqlite3.OperationalError:
+        return sql, rows
+    for name, code in slots:
+        key = re.sub(r"^วิชาเลือก", "", (name or "").strip()).strip()
+        prefix = (code or "").rstrip("xX")
+        if len(key) < 6 or key not in question or not prefix.isdigit() or len(prefix) < 4:
+            continue
+        if any(str(r.get("code", "")).startswith(prefix) for r in rows):
+            return sql, rows
+        template = f"SELECT code, name_th, credits FROM course WHERE code LIKE '{prefix}%' ORDER BY code"
+        found = [dict(r) for r in conn.execute(template).fetchall()]
+        return (template, found) if found else (sql, rows)
+    return sql, rows
+
+
 def _self_chosen_slot_note(conn: sqlite3.Connection, question: str) -> str:
     """ช่องที่นักศึกษาเลือกเองของปี/เทอมที่ถามในคำถามควบ (plan_slot: wildcard / A หรือ B / เลือก 1 กลุ่ม) เช่น
     "ช่องที่นักศึกษาเลือกเอง: วิชาเลือกด้านภาษาและการสื่อสาร 3 หน่วยกิต" — v_plan ไม่มีช่อง wildcard แต่ n_courses นับรวม
@@ -1919,6 +1942,7 @@ def ask(conn: sqlite3.Connection, question: str,
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
 
     result["sql"], result["rows"] = _term_summary_fallback(conn, question, result["sql"], result["rows"])
+    result["sql"], result["rows"] = _wildcard_slot_fallback(conn, question, result["sql"], result["rows"])
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
