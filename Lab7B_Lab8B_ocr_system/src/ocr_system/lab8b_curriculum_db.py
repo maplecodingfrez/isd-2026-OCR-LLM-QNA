@@ -2304,6 +2304,39 @@ def _book_section_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     return "\n".join(parts), rows, sql
 
 
+# ---- 11. "ขอรหัสวิชา <ชื่อวิชา>" — รหัสจากชื่อ (ไทย/อังกฤษ) ตรง ๆ โมเดลเคยสุ่มเขียน SQL ผิดตาราง (prerequisite) แล้วตอบ "ไม่พบ" ----
+_CODE_ASK_RE = re.compile(r"รหัส")
+_CODE_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|เทอม|ภาคการศึกษา|ก่อน|หน่วยกิต|ชั่วโมง|ต่างกัน|เปรียบเทียบ")
+
+
+def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามรหัสของวิชาที่ระบุด้วยชื่อ (ไทยหรืออังกฤษ ทั้งวิชาในแผนและวิชาแคตตาล็อก) → ตอบรหัสจาก DB ตรง ๆ;
+    ชื่อที่ยาวที่สุดที่อยู่ในคำถามชนะชื่อสั้นที่เป็นส่วนหนึ่งของมัน; ชื่อเดียวกันหลายรหัส = บอกทุกรหัส;
+    ระบุวิชาไม่ได้/กำกวมหลายวิชา/มีรหัสวิชาหรือปีเทอมในคำถาม = None (ทางเดิม)"""
+    if not _CODE_ASK_RE.search(question) or _CODE_NOT_RE.search(question) or _CODE8.search(question):
+        return None
+    try:
+        pairs = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        pairs += [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, course_name_th, course_name_en FROM main.v_elective_group")]
+    except sqlite3.OperationalError:
+        return None
+    norm = lambda s: re.sub(r"\s+", "", s).lower()
+    qn = norm(question)
+    hits: dict[str, dict[str, str]] = {}                       # ชื่อที่ตัดช่องว่าง/ตัวพิมพ์ → {รหัส: ชื่อไทย}
+    for code, th, en in pairs:
+        for name in (th, en):
+            key = norm(name)
+            if len(key) >= 5 and key in qn:
+                hits.setdefault(key, {}).setdefault(code, th or en)
+    maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
+    codes = {c: n for k in maximal for c, n in hits[k].items()}
+    if not maximal or len({frozenset(hits[k]) for k in maximal}) != 1:
+        return None
+    found = [{"code": c, "name_th": n} for c, n in sorted(codes.items())]
+    ids = ", ".join(f"'{r['code']}'" for r in found)
+    return "; ".join(f"{r['code']} ({r['name_th']})" for r in found), found, f"SELECT code, name_th FROM course WHERE code IN ({ids})"
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -3012,7 +3045,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)

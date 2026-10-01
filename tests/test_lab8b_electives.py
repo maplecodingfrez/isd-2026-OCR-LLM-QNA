@@ -1727,3 +1727,97 @@ def test_a_course_name_containing_a_topic_word_is_not_taken_for_a_section_questi
 def test_who_can_apply_phrasings_reach_the_admission_section(tmp_path, monkeypatch, question):
     r = _ask_sec(tmp_path, monkeypatch, question)
     assert "มัธยมศึกษาตอนปลาย" in r["answer"] and r["model_calls"] == 0
+
+
+# =============== "ขอรหัสวิชา <ชื่อวิชา>" — หาจากชื่อ (ไทย/อังกฤษ) ใน DB แบบกำหนดตายตัว ===============
+# ผลเทสต์ซ้ำ: คำถามนี้โมเดลสุ่มเขียน SQL ผิดตาราง (prerequisite) ถูกแค่ ~1 ใน 6 ครั้ง ทั้งที่ชื่อวิชามีใน DB
+
+
+def _code_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path)
+    c.executemany("INSERT INTO course (code, name_th, name_en, credits) VALUES (?, ?, ?, 3)",
+                  [("06020001", "แคลคูลัส 1", "CALCULUS 1"), ("06020002", "แคลคูลัส 2", "CALCULUS 2"),
+                   ("06020003", "ระบบโครงสร้างพื้นฐานและการบริการ", "INFRASTRUCTURE AND SERVICES"),
+                   ("06020004", "ระบบ", "SYSTEM")])
+    c.commit()
+    return c
+
+
+def _ask_code(tmp_path, monkeypatch, question):
+    _code_db(tmp_path).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,code", [
+    ("ขอรหัสวิชาของระบบโครงสร้างพื้นฐานและการบริการหน่อย", "06020003"),
+    ("วิชาระบบโครงสร้างพื้นฐานและการบริการมีรหัสวิชาอะไร", "06020003"),
+    ("วิชา แคลคูลัส 2 รหัสอะไร", "06020002"),
+    ("แคลคูลัส 1 รหัสวิชาคืออะไร", "06020001"),
+    ("วิชา CALCULUS 2 รหัสอะไร", "06020002"),
+    ("วิชา calculus 1 มีรหัสวิชาอะไร", "06020001"),
+    ("รหัสวิชา INFRASTRUCTURE AND SERVICES คืออะไร", "06020003"),
+    ("วิชาวิชาเลือก กมีรหัสวิชาอะไร", "06010001")])
+def test_course_code_is_looked_up_from_the_name_without_the_model(tmp_path, monkeypatch, question, code):
+    r = _ask_code(tmp_path, monkeypatch, question)
+    assert code in r["answer"] and r["model_calls"] == 0
+
+
+def test_the_longest_matching_name_wins_over_a_shorter_name_inside_it(tmp_path, monkeypatch):
+    r = _ask_code(tmp_path, monkeypatch, "ขอรหัสวิชาของระบบโครงสร้างพื้นฐานและการบริการ")
+    assert "06020003" in r["answer"] and "06020004" not in r["answer"]
+
+
+@pytest.mark.parametrize("question", [
+    "แคลคูลัส 1 กี่หน่วยกิต", "วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
+    "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง", "ขอรหัสวิชาที่ไม่มีอยู่จริงหน่อย", "วิชา 06020001 ชื่ออะไร",
+    "รหัสวิชา 06020002 ต้องเรียนก่อนวิชาอะไร", "แคลคูลัส 1 และแคลคูลัส 2 ต่างกันอย่างไร"])
+def test_code_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_code(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def test_two_different_courses_in_one_question_are_left_to_the_old_path(tmp_path, monkeypatch):
+    assert _ask_code(tmp_path, monkeypatch, "ขอรหัสวิชาแคลคูลัส 1 กับแคลคูลัส 2")["model_calls"] >= 1
+
+
+def test_the_same_name_under_two_codes_lists_both(tmp_path, monkeypatch):
+    _code_db(tmp_path).close()
+    with closing(sqlite3.connect(tmp_path / "t.db")) as c:
+        c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06029999', 'แคลคูลัส 1', 'CALCULUS 1', 3)")
+        c.commit()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, "แคลคูลัส 1 รหัสอะไร", verbose=False)
+    assert "06020001" in r["answer"] and "06029999" in r["answer"]
+
+
+def _gold_code_cases():
+    out = []
+    for rel, gold in (("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                      ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")):
+        for q in json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8")):
+            out.append((rel, q))
+    return out
+
+
+def test_gold_questions_get_only_the_gold_code_from_the_code_shortcut():
+    """คำถามทองที่ถามรหัสวิชาจากชื่อจะเข้าทางลัดนี้ได้ แต่ต้องตอบตรงเฉลย; คำถามอื่นห้ามเข้า"""
+    checked = 0
+    for rel, q in _gold_code_cases():
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            continue
+        with closing(m.open_db(db, readonly=True)) as conn:
+            r = m._code_lookup_answer(conn, q["question"])
+        if r is None:
+            continue
+        checked += 1
+        gt = q["expect"]
+        assert gt.get("type") == "value" and str(gt.get("value")) in r[0] and len(r[1]) == 1, (rel, q["question"], r[0], gt)
+    assert checked >= 5                                                    # ทางลัดต้องทำงานกับคำถามทองกลุ่ม "…รหัสอะไร" จริง ๆ
