@@ -40,6 +40,16 @@ database = CurriculumDatabase(lab8b, settings.db_path, settings.max_rows)
 model = QwenTextToSQL(settings, lab8b)
 
 
+def _database_for(program: str | None) -> CurriculumDatabase:
+    """ไม่ระบุ program = ฐานข้อมูลที่ตั้งไว้ใน .env; ระบุ = ฐานข้อมูลของหลักสูตรนั้น (ใช้ร่วมกันหลาย endpoint)"""
+    if program is None:
+        return database
+    path = program_db_path(program)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{program}' - ใช้ได้: {', '.join(PROGRAMS)}")
+    return CurriculumDatabase(lab8b, path, settings.max_rows)
+
+
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -90,9 +100,10 @@ def get_courses(
     search: str = Query(default="", max_length=100),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    program: str | None = Query(default=None),
 ) -> list[dict]:
     try:
-        return database.courses(search, limit, offset)
+        return _database_for(program).courses(search, limit, offset)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -129,12 +140,12 @@ def ask(request: AskRequest) -> dict:
 
 
 @app.get("/api/courses/{code}/prerequisites", response_model=CoursePrerequisitesResponse, tags=["Prerequisites"])
-def get_course_prerequisites(code: str) -> dict:
+def get_course_prerequisites(code: str, program: str | None = Query(default=None)) -> dict:
     """ตรวจสอบวิชาบังคับก่อน (Prerequisite) และวิชาที่ปลดล็อคให้เรียนต่อได้"""
     if not code.isdigit() or len(code) != 8:
         raise HTTPException(status_code=422, detail="รหัสวิชาต้องเป็นตัวเลข 8 หลัก")
     try:
-        data = database.get_course_prerequisites(code)
+        data = _database_for(program).get_course_prerequisites(code)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

@@ -91,6 +91,12 @@
     return { ok: false, value: value, message: "ต้องเป็นตัวเลข 0–9 จำนวน 8 หลัก" };
   }
 
+  // ต่อ ?program=<id> (หรือ &program=) ให้ endpoint ที่ตามหลักสูตรที่ผู้ใช้เลือก; ไม่มีค่า = ไม่ต่อ
+  function withProgram(url, program) {
+    if (!program) return url;
+    return url + (url.indexOf("?") === -1 ? "?" : "&") + "program=" + encodeURIComponent(program);
+  }
+
   // citations จาก backend = [{pdf_page: int, printed_page: int | null}]; ข้อมูลเพี้ยน = ข้าม (ไม่เดา)
   function citationItems(data) {
     var list = data && Array.isArray(data.citations) ? data.citations : [];
@@ -164,6 +170,7 @@
   var api = {
     ApiError: ApiError,
     apiFetch: apiFetch,
+    withProgram: withProgram,
     isModelDown: isModelDown,
     formatDetail: formatDetail,
     describeError: describeError,
@@ -382,7 +389,7 @@
     }
     setState(prereqPanel, "loading", prereqControls);
     try {
-      var data = await apiFetch("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites");
+      var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", $("program").value));
       renderPrereq(data);
       setState(prereqPanel, "success", prereqControls);
     } catch (err) {
@@ -429,19 +436,22 @@
     }
   }
 
-  async function loadProgramNote() {
-    try {
-      var program = await apiFetch("/api/program", {}, { timeoutMs: 10000 });
-      if (program && program.name_th) {
-        $("prereq-scope").textContent = "ค้นจากหลักสูตร: " + program.name_th + " (ไม่ตามตัวเลือกด้านบน)";
-        $("prereq-scope").hidden = false;
-      }
-    } catch (e) { /* ซ่อนบรรทัดนี้ไว้ */ }
+  // บอกว่าแผงตรวจวิชากำลังค้นจากหลักสูตรไหน (ตามช่องเลือกด้านบน)
+  function updateScope() {
+    var select = $("program");
+    var option = select.selectedOptions[0];
+    var show = !!(select.value && option);
+    $("prereq-scope").hidden = !show;
+    if (show) $("prereq-scope").textContent = "ค้นจากหลักสูตร: " + option.textContent;
   }
 
+  var coursesRequest = 0;
+
   async function loadCourses() {
+    var mine = ++coursesRequest;           // เปลี่ยนหลักสูตรเร็ว ๆ: ใช้เฉพาะผลของคำขอล่าสุด
     try {
-      var courses = await apiFetch("/api/courses?limit=100", {}, { timeoutMs: 15000 });
+      var courses = await apiFetch(withProgram("/api/courses?limit=100", $("program").value), {}, { timeoutMs: 15000 });
+      if (mine !== coursesRequest) return;
       var datalist = $("courses-list");
       clear(datalist);
       courses.forEach(function (course) {
@@ -453,7 +463,12 @@
         samples.appendChild(el("button", { className: "link-button", text: course.code || "", attrs: { type: "button", "data-code": course.code || "" } }));
       });
       $("prereq-samples-wrap").hidden = courses.length === 0;
-    } catch (e) { /* ไม่มี autocomplete ก็ใช้งานได้ */ }
+    } catch (e) {
+      if (mine !== coursesRequest) return;
+      clear($("courses-list"));            // ไม่มี autocomplete ก็ใช้งานได้ (และไม่ค้างรายการของหลักสูตรก่อนหน้า)
+      clear($("prereq-samples"));
+      $("prereq-samples-wrap").hidden = true;
+    }
   }
 
   // ---------- ผูกเหตุการณ์ ----------
@@ -466,6 +481,12 @@
       $("question").focus();
     });
   });
+  $("program").addEventListener("change", function () {
+    updateScope();
+    loadCourses();
+    // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: กลับไปสถานะ Idle (ถ้ากำลังตรวจอยู่ปล่อยให้เสร็จก่อน)
+    if (prereqPanel.dataset.state !== "loading") setState(prereqPanel, "idle", prereqControls);
+  });
   $("prereq-form").addEventListener("submit", function (event) { event.preventDefault(); runPrereq(); });
   $("prereq-retry").addEventListener("click", runPrereq);
   $("prereq-samples").addEventListener("click", function (event) {
@@ -476,7 +497,5 @@
   });
 
   loadHealth();
-  loadPrograms();
-  loadProgramNote();
-  loadCourses();
+  loadPrograms().then(function () { updateScope(); loadCourses(); });
 })();

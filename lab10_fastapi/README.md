@@ -396,7 +396,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 ### 13.3 `GET /api/courses/{code}/prerequisites`
 
-`code` = ตัวเลข 8 หลัก (ส่งเป็น string เสมอ เพราะมี 0 นำหน้า) ค้นจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์เสมอ (ไม่รับ `program`)
+`code` = ตัวเลข 8 หลัก (ส่งเป็น string เสมอ เพราะมี 0 นำหน้า) ค้นจากหลักสูตรที่ส่งมาใน query `?program=<id>` เช่น `/api/courses/06016407/prerequisites?program=it_no_coop` (ไม่ส่ง = ฐานข้อมูลที่ตั้งไว้ใน `.env`; หน้าเว็บส่งตามช่องเลือกหลักสูตรเสมอ); `program` ที่ไม่รู้จัก = 404, ไม่พบไฟล์ DB = 503
 สำเร็จ `200 OK` — ชนิดข้อมูลของ response:
 
 | key ที่ได้ | type | หมายเหตุ |
@@ -424,8 +424,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 - `GET /api/health` → `{status: "ok" หรือ "degraded" (string), database: string, database_ready: boolean, model: string, ollama_ready: boolean, lab8b_module: string}` แสดงเป็นแถบสถานะด้านบนหน้า
 - `GET /api/programs` → array ของ `{id: string, label: string, available: boolean, name_th: string หรือ null, total_credits: integer หรือ null, years: integer หรือ null}` เติมตัวเลือกหลักสูตร (`available: false` = เลือกไม่ได้)
-- `GET /api/program` → `{name_th: string, total_credits: integer, years: integer, ...}` ของหลักสูตรเริ่มต้น (บอกว่าแผงตรวจวิชาบังคับก่อนค้นจากหลักสูตรไหน); 404/503 = หน้าเว็บซ่อนบรรทัดนั้น
-- `GET /api/courses?limit=100` → array ของ `{code: string (8 หลัก), name_th: string, name_en: string หรือ null, credits: integer, lecture_h/lab_h/self_h: integer หรือ null, description_th: string หรือ null}` เติมรายการแนะนำรหัสวิชา
+- `GET /api/courses?limit=100&program=<id>` → array ของ `{code: string (8 หลัก), name_th: string, name_en: string หรือ null, credits: integer, lecture_h/lab_h/self_h: integer หรือ null, description_th: string หรือ null}` เติมรายการแนะนำรหัสวิชา
 
 ### 13.5 สี่สถานะของ UI
 

@@ -203,3 +203,41 @@ def test_ask_422_when_ollama_is_down_during_sql_generation(client, monkeypatch):
     r = client.post("/api/ask", json={"question": "หลักสูตรนี้มีหน่วยกิตรวมกี่หน่วยกิต"})
     assert r.status_code == 422
     assert isinstance(r.json()["detail"], str) and r.json()["detail"].startswith("ConnectionError")
+
+
+# ---------- ?program= : แผงตรวจวิชาและรายการวิชาตามหลักสูตรที่ผู้ใช้เลือก ----------
+
+def _program_dbs_exist(*ids):
+    return all((p := main.program_db_path(i)) is not None and p.exists() for i in ids)
+
+
+@pytest.mark.skipif(not _program_dbs_exist("it_no_coop", "dsba_coop"), reason="ต้องมี DB ของ IT และ DSBA")
+def test_prerequisites_follow_the_program_query_param(client):
+    """06016407 (โครงงาน 2) อยู่ใน IT แต่ไม่อยู่ใน DSBA สหกิจ — ผลต้องต่างตามหลักสูตรที่ส่งมา"""
+    in_it = client.get("/api/courses/06016407/prerequisites?program=it_no_coop")
+    assert in_it.status_code == 200 and in_it.json()["code"] == "06016407"
+    not_in_dsba = client.get("/api/courses/06016407/prerequisites?program=dsba_coop")
+    assert not_in_dsba.status_code == 404
+
+
+@pytest.mark.skipif(not _program_dbs_exist("it_no_coop", "ait"), reason="ต้องมี DB ของ IT และ AIT")
+def test_courses_follow_the_program_query_param(client):
+    ait = client.get("/api/courses?limit=3&program=ait").json()
+    it = client.get("/api/courses?limit=3&program=it_no_coop").json()
+    assert ait and it and ait[0]["code"] != it[0]["code"]
+    assert all(c["code"].startswith("06046") for c in ait)        # รหัสวิชาของ AIT
+
+
+@pytest.mark.parametrize("path", ["/api/courses?program=nope", "/api/courses/06016407/prerequisites?program=nope"])
+def test_program_param_unknown_is_404_with_string_detail(client, path):
+    r = client.get(path)
+    assert r.status_code == 404
+    assert isinstance(r.json()["detail"], str) and "nope" in r.json()["detail"]
+
+
+@pytest.mark.parametrize("path", ["/api/courses?program=it_no_coop", "/api/courses/06016407/prerequisites?program=it_no_coop"])
+def test_program_param_with_missing_database_is_503(client, monkeypatch, tmp_path, path):
+    monkeypatch.setattr(main, "program_db_path", lambda program: tmp_path / "missing.db")
+    r = client.get(path)
+    assert r.status_code == 503
+    assert isinstance(r.json()["detail"], str)

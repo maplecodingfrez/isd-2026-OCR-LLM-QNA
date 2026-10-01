@@ -270,3 +270,23 @@ def test_api_fetch_sends_method_headers_body_and_a_signal(tmp_path):
       return seen;""")
     assert seen == {"url": "/api/ask", "method": "POST", "type": "application/json",
                     "body": "{}", "hasSignal": True}
+
+
+# ---------- withProgram: แผงตรวจวิชาตามหลักสูตรที่เลือก ----------
+
+def test_with_program_appends_the_encoded_program_param(tmp_path):
+    out = run_js(tmp_path, """
+      return [
+        m.withProgram("/api/courses/06016407/prerequisites", "it_no_coop"),
+        m.withProgram("/api/courses?limit=100", "ait"),
+        m.withProgram("/api/courses?limit=100", ""),
+        m.withProgram("/api/courses/06016407/prerequisites", null),
+        m.withProgram("/api/courses", "a b&c=d"),
+      ];""")
+    assert out == [
+        "/api/courses/06016407/prerequisites?program=it_no_coop",
+        "/api/courses?limit=100&program=ait",
+        "/api/courses?limit=100",
+        "/api/courses/06016407/prerequisites",
+        "/api/courses?program=a%20b%26c%3Dd",
+    ]

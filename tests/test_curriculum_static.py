@@ -222,3 +222,20 @@ def test_readme_prereq_404_title_matches_the_new_wording():
     readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
     assert "ไม่พบรายวิชารหัสนี้ในหลักสูตรเริ่มต้น" not in readme
     assert "ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น" in readme
+
+
+# ---------- แผงตรวจวิชาตามหลักสูตรที่เลือก ----------
+
+def test_prereq_panel_and_course_list_follow_the_selected_program():
+    js = read("app.js")
+    assert 'withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", $("program").value)' in js
+    assert 'withProgram("/api/courses?limit=100", $("program").value)' in js
+    assert '$("program").addEventListener("change"' in js
+    assert "loadProgramNote" not in js                      # ไม่ต้องถามหลักสูตรเริ่มต้นของเซิร์ฟเวอร์อีกแล้ว
+    assert "ไม่ตามตัวเลือกด้านบน" not in js
+
+
+def test_readme_documents_the_program_param_on_prerequisites_and_courses():
+    readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
+    assert "ไม่รับ `program`" not in readme
+    assert "/prerequisites?program=" in readme and "/api/courses?limit=100&program=" in readme
