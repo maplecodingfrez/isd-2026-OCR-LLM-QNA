@@ -79,7 +79,7 @@
     var value = String(raw == null ? "" : raw).trim();
     var length = Array.from(value).length;   // นับเป็น code point ให้ตรงกับ Pydantic (Python len)
     if (length < QUESTION_MIN || length > QUESTION_MAX) {
-      return { ok: false, value: value, message: "คำถามต้องยาว 2–500 ตัวอักษร (ตอนนี้ " + length + ")" };
+      return { ok: false, value: value, message: "ตอนนี้ " + length + " ตัวอักษร" };
     }
     return { ok: true, value: value, message: "" };
   }
@@ -87,7 +87,7 @@
   function validateCode(raw) {
     var value = String(raw == null ? "" : raw).trim();
     if (/^[0-9]{8}$/.test(value)) return { ok: true, value: value, message: "" };
-    return { ok: false, value: value, message: "รหัสวิชาต้องเป็นตัวเลข 0–9 จำนวน 8 หลัก เช่น 06016407" };
+    return { ok: false, value: value, message: "ต้องเป็นตัวเลข 0–9 จำนวน 8 หลัก" };
   }
 
   // citations จาก backend = [{pdf_page: int, printed_page: int | null}]; ข้อมูลเพี้ยน = ข้าม (ไม่เดา)
@@ -202,6 +202,7 @@
 
   // JS ตั้ง "สถานะ" อย่างเดียว; CSS เป็นคนซ่อน/แสดงบล็อก .state-* ตาม data-state
   function setState(panel, state, controls) {
+    var wasLoading = panel.dataset.state === "loading";
     panel.dataset.state = state;
     panel.setAttribute("aria-busy", state === "loading" ? "true" : "false");
     controls.forEach(function (control) { control.disabled = state === "loading"; });
@@ -209,6 +210,9 @@
     if (submit) {
       if (!submit.dataset.label) submit.dataset.label = submit.textContent;
       submit.textContent = state === "loading" ? submit.dataset.busyLabel : submit.dataset.label;
+      // ปุ่มที่เพิ่งถูก disable ทำให้โฟกัสหลุดไปที่ body: คืนโฟกัสให้ปุ่มส่ง ผู้ใช้คีย์บอร์ดจะได้ทำต่อได้ทันที
+      var active = document.activeElement;
+      if (wasLoading && state !== "loading" && (!active || active === document.body)) submit.focus();
     }
     // live region ถาวร: โปรแกรมอ่านหน้าจอประกาศการเปลี่ยนสถานะ (บล็อกที่ซ่อนอยู่ประกาศเองไม่น่าเชื่อถือ)
     var heading = panel.querySelector("h2");
@@ -223,15 +227,20 @@
   var lastResult = null;
   var copyTimer = null;
 
-  function showError(panel, controls, prefix, err, where) {
+  // opts.local = ตรวจไม่ผ่านในหน้าเว็บเอง (ไม่ได้ส่งคำขอ): ไม่มี "รายละเอียดจากเซิร์ฟเวอร์" และไม่มีปุ่มลองอีกครั้ง
+  // (ส่งซ้ำก็ผิดเหมือนเดิม) — ให้แก้ช่องแล้วกดปุ่มหลักแทน
+  function showError(panel, controls, prefix, err, where, opts) {
+    var local = !!(opts && opts.local);
     var message = describeError(err, where);
     var detail = err instanceof ApiError ? err.detail : (err && err.message ? String(err.message) : "");
+    var action = local && detail ? message.action + " (" + detail + ")" : message.action;
     $(prefix + "-error-title").textContent = message.title;
-    $(prefix + "-error-action").textContent = message.action;
-    $(prefix + "-error-detail").textContent = detail;
-    $(prefix + "-error-more").hidden = !detail;
+    $(prefix + "-error-action").textContent = action;
+    $(prefix + "-error-detail").textContent = local ? "" : detail;
+    $(prefix + "-error-more").hidden = local || !detail;
+    $(prefix + "-retry").hidden = local;
     setState(panel, "error", controls);
-    $("live-status").textContent = message.title + ". " + message.action;
+    $("live-status").textContent = message.title + ". " + action;
     if (err instanceof ApiError && (err.kind === "network" || err.kind === "timeout" || isModelDown(err, where))) {
       loadHealth();
     }
@@ -267,7 +276,7 @@
     if (askPanel.dataset.state === "loading") return;        // กันกดซ้ำ (นอกเหนือจากการ disable ปุ่ม)
     var check = validateQuestion($("question").value);
     if (!check.ok) {
-      showError(askPanel, askControls, "ask", new ApiError("http", 422, check.message, [{ msg: check.message }]), "ask");
+      showError(askPanel, askControls, "ask", new ApiError("http", 422, check.message, [{ msg: check.message }]), "ask", { local: true });
       $("question").focus();          // พาผู้ใช้ไปที่ช่องที่ต้องแก้
       return;
     }
@@ -348,14 +357,14 @@
     courses.forEach(function (course) {
       var credits = course.credits != null ? " (" + course.credits + " หน่วยกิต)" : "";
       list.appendChild(el("li", {}, [
-        el("span", { className: "code", text: course.code }),
+        el("span", { className: "code", text: course.code || "" }),
         document.createTextNode(" " + (course.name_th || "วิชาในหลักสูตร") + credits)
       ]));
     });
   }
 
   function renderPrereq(data) {
-    $("prereq-course").textContent = "[" + data.code + "] " + (data.name_th || "");
+    $("prereq-course").textContent = "[" + (data.code || "") + "] " + (data.name_th || "");
     $("prereq-meta").textContent =
       (data.credits != null ? data.credits + " หน่วยกิต" : "") + (data.name_en ? " (" + data.name_en + ")" : "");
     fillCourseList($("prereq-required"), data.prerequisites_required, "ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที");
@@ -366,7 +375,7 @@
     if (prereqPanel.dataset.state === "loading") return;
     var check = validateCode($("course-code").value);
     if (!check.ok) {
-      showError(prereqPanel, prereqControls, "prereq", new ApiError("http", 422, check.message, check.message), "prereq");
+      showError(prereqPanel, prereqControls, "prereq", new ApiError("http", 422, check.message, check.message), "prereq", { local: true });
       $("course-code").focus();
       return;
     }
@@ -405,7 +414,7 @@
       select.appendChild(el("option", { text: "หลักสูตรเริ่มต้นของเซิร์ฟเวอร์", attrs: { value: "" } }));
       programs.forEach(function (program) {
         var option = el("option", {
-          text: program.label + (program.available ? "" : " (ไม่มีข้อมูล)"),
+          text: (program.label || program.id) + (program.available ? "" : " (ไม่มีข้อมูล)"),
           attrs: { value: program.id }
         });
         option.disabled = !program.available;
@@ -433,12 +442,12 @@
       var datalist = $("courses-list");
       clear(datalist);
       courses.forEach(function (course) {
-        datalist.appendChild(el("option", { attrs: { value: course.code, label: course.code + " " + (course.name_th || "") } }));
+        datalist.appendChild(el("option", { attrs: { value: course.code || "", label: (course.code || "") + " " + (course.name_th || "") } }));
       });
       var samples = $("prereq-samples");
       clear(samples);
       courses.slice(0, 3).forEach(function (course) {
-        samples.appendChild(el("button", { className: "link-button", text: course.code, attrs: { type: "button", "data-code": course.code } }));
+        samples.appendChild(el("button", { className: "link-button", text: course.code || "", attrs: { type: "button", "data-code": course.code || "" } }));
       });
       $("prereq-samples-wrap").hidden = courses.length === 0;
     } catch (e) { /* ไม่มี autocomplete ก็ใช้งานได้ */ }

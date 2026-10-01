@@ -170,3 +170,35 @@ def test_empty_result_shows_the_rephrase_hint_from_spec():
     html, js = read("index.html"), read("app.js")
     assert re.search(r'<p id="answer-hint"[^>]*\bhidden\b[^>]*>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>', html)
     assert '$("answer-hint").hidden = !isEmptyResult(data)' in js
+
+
+# ---------- Minor ที่เหลือจากรีวิว (ข้อ 1, 2, 3, 5, 7, 9) ----------
+
+def test_state_blocks_do_not_double_announce_next_to_the_live_region():
+    html = read("index.html")
+    assert 'role="alert"' not in html
+    assert len(re.findall(r'role="status"', html)) == 1          # เหลือ live region ถาวรตัวเดียว
+
+
+def test_local_validation_errors_hide_server_details_and_retry():
+    js = read("app.js")
+    assert "opts.local" in js
+    assert '$(prefix + "-retry").hidden = local' in js
+    assert '$(prefix + "-error-more").hidden = local || !detail' in js
+    assert js.count("{ local: true }") == 2                      # ทั้งแผงถามและแผงตรวจวิชา
+
+
+def test_focus_returns_to_the_submit_button_after_loading():
+    assert "submit.focus()" in read("app.js")
+
+
+def test_renderers_guard_missing_fields():
+    js = read("app.js")
+    assert '(data.code || "")' in js
+    assert "program.label || program.id" in js
+    assert "course.code || \"\"" in js
+
+
+def test_readme_notes_that_backend_accepts_unicode_digits():
+    readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
+    assert "isdigit" in readme

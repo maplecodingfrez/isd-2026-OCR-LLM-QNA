@@ -136,7 +136,12 @@ def test_validate_question_boundaries(tmp_path):
 
 def test_validate_question_message_reports_length(tmp_path):
     msg = run_js(tmp_path, "return m.validateQuestion('ก').message;")
-    assert "2–500" in msg and "1" in msg
+    assert msg == "ตอนนี้ 1 ตัวอักษร"          # กฎ 2–500 อยู่ใน title ของ describeError แล้ว ไม่พูดซ้ำ
+
+
+def test_validate_code_message_does_not_hardcode_a_course_code(tmp_path):
+    msg = run_js(tmp_path, "return m.validateCode('abc').message;")
+    assert "8 หลัก" in msg and "06016407" not in msg
 
 
 def test_validate_code_keeps_string_and_rejects_bad_formats(tmp_path):
