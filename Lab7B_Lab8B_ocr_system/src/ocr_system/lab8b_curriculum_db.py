@@ -1223,6 +1223,9 @@ def _term_summary_fallback(conn: sqlite3.Connection, question: str, sql: str | N
 _OPEN_SLOT_LIST_Q = re.compile(r"อะไรบ้าง|วิชาอะไร|อะไรได้|อะไรให้เลือก|รายชื่อ|วิชาไหน|เลือกอะไร")
 _OPEN_SLOT_COUNT_Q = re.compile(r"กี่หน่วยกิต|กี่วิชา")
 _OPEN_SLOT_GE_PHRASES = ("ภาษาและการสื่อสาร", "ศึกษาทั่วไป")
+# "GE" ต้องเป็นคำเดี่ยว (ไม่ใช่ส่วนของ INTELLIGENCE/MANAGEMENT/LANGUAGE) หรือ "general education"
+_GE_WORD = re.compile(r"(?<![A-Za-z])GE(?![A-Za-z])|general\s+education", re.I)
+_GE_Q = re.compile(r"ศึกษาทั่วไป|ภาษาและการสื่อสาร|" + _GE_WORD.pattern, re.I)
 _UNIVERSITY = "สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง"
 
 
@@ -1238,20 +1241,28 @@ def _ge_pool(conn: sqlite3.Connection, code: str | None, credits: int,
     ไม่รวมกลุ่ม 5 เทียบโอน); หน่วยกิตต้องเท่ากับของช่อง; ไม่รวมวิชาที่เป็นวิชาบังคับในแผนของหลักสูตรนี้ (plan_item) — แต่แจ้งไว้
     ท้ายคำตอบ (วิชาบังคับบางตัว เช่น 90644007/008 ของ DSBA/IT เป็นรหัสฉบับ 2564 ที่ไม่อยู่ในแคตตาล็อก 2566 จะได้ไม่ตกหล่น)
     ใช้ main.v_elective_group เสมอ (view ชั่วคราวของ scope_elective_view ซ่อน GE)"""
+    if credits is None:
+        return None
     groups = (4,) if (code or "").startswith("90644") else (2, 3, 4)
     marks = ", ".join(str(g) for g in groups)
-    sql = ("SELECT code, course_name_th AS name_th, credits, group_no, group_name_th FROM v_elective_group "
-           f"WHERE plan_slot LIKE '{_GE_PLAN_SLOT_PREFIX}%' AND group_no IN ({marks}) AND credits = {int(credits)} "
-           "AND code NOT IN (SELECT code FROM plan_item) ORDER BY group_no, code")
     try:
-        found = [dict(r) for r in conn.execute(sql.replace("FROM v_elective_group", "FROM main.v_elective_group")).fetchall()]
+        credits = int(credits)
+    except (TypeError, ValueError):
+        return None
+    # main.-qualified (รันซ้ำได้แม้ TEMP VIEW ซ่อน GE) และ NOT EXISTS (NOT IN ล้มเหลวทั้งชุดถ้า plan_item.code มี NULL; และ citations.py
+    # ข้ามหน้าตารางแผนเมื่อเจอ NOT IN ใน SQL)
+    sql = ("SELECT v.code, v.course_name_th AS name_th, v.credits, v.group_no, v.group_name_th FROM main.v_elective_group v "
+           f"WHERE v.plan_slot LIKE '{_GE_PLAN_SLOT_PREFIX}%' AND v.group_no IN ({marks}) AND v.credits = {credits} "
+           "AND NOT EXISTS (SELECT 1 FROM plan_item p WHERE p.code = v.code) ORDER BY v.group_no, v.code")
+    try:
+        found = [dict(r) for r in conn.execute(sql).fetchall()]
         edition = conn.execute("SELECT plan_slot FROM main.v_elective_group WHERE plan_slot LIKE ? LIMIT 1",
                                (_GE_PLAN_SLOT_PREFIX + "%",)).fetchone()
         required = conn.execute(
             "SELECT DISTINCT c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code "
             f"WHERE c.code LIKE '9064%' AND substr(c.code, 5, 1) IN ({', '.join(repr(str(g)) for g in groups)}) "   # substr = ข้อความ ต้องเทียบกับ '4' ไม่ใช่ 4
             "ORDER BY c.code").fetchall()
-    except sqlite3.OperationalError:
+    except (sqlite3.Error, TypeError, ValueError):
         return None
     if not found or not edition:
         return None
@@ -1289,17 +1300,32 @@ def _open_slot_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
     except sqlite3.OperationalError:
         return None
     y, s = _TERM_YEAR_NUM.search(question), _TERM_SEM_NUM.search(question)
-    picked, seen = [], set()
-    for sid, year, sem, code, name, credits in slots:
-        name = name or ""
-        is_free = "เลือกเสรี" in name and "เลือกเสรี" in question
-        is_ge = any(p in name and p in question for p in _OPEN_SLOT_GE_PHRASES)
-        if not (is_free or is_ge):
-            continue
-        if (y and int(y.group(1)) != year) or (s and int(s.group(1)) != sem) or (year, sem, name) in seen:
-            continue
-        seen.add((year, sem, name))
-        picked.append((sid, year, sem, code, name, credits, is_free))
+
+    def collect(use_term_filter: bool) -> list[tuple]:
+        found, seen = [], set()
+        for sid, year, sem, code, name, credits in slots:
+            name = name or ""
+            is_free = "เลือกเสรี" in name and "เลือกเสรี" in question
+            is_ge = (any(p in name and p in question for p in _OPEN_SLOT_GE_PHRASES)
+                     or (_GE_WORD.search(question) is not None and "ศึกษาทั่วไป" in name))      # "GE"/"general education" = หมวดศึกษาทั่วไป
+            if not (is_free or is_ge):
+                continue
+            if use_term_filter and ((y and int(y.group(1)) != year) or (s and int(s.group(1)) != sem)):
+                continue
+            if (year, sem, name) in seen:
+                continue
+            seen.add((year, sem, name))
+            found.append((sid, year, sem, code, name, credits, is_free))
+        return found
+
+    picked = collect(True)
+    wrong_term = ""
+    if not picked and (y or s):                           # ชื่อช่องมีจริงแต่อยู่คนละเทอม → ตอบช่องนั้นพร้อมบอกเทอมจริง (ไม่หลุดไปสรุปช่องอื่น)
+        picked = collect(False)
+        if picked:
+            asked = " ".join(x for x in (f"ปี {y.group(1)}" if y else "", f"เทอม {s.group(1)}" if s else "") if x)
+            where_is = ", ".join(sorted({f"ปี {p[1]} เทอม {p[2]}" for p in picked}))
+            wrong_term = f"ไม่มีช่องนี้ใน{asked} — ช่องนี้อยู่ที่ {where_is}: "
     if not picked:
         return None
     picked = [p for p in picked if p[4] in question] or picked      # ระบุชื่อช่องเต็ม (เช่น "วิชาเลือกเสรี 2") = เฉพาะช่องนั้น
@@ -1321,9 +1347,11 @@ def _open_slot_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
             appendix = " (ภาคผนวก ง ของเล่มหลักสูตร)" if (code or "").startswith("9064") else ""
             parts.append(f"{name} {where}: ไม่ได้กำหนดรายวิชาตายตัวในแผน — ให้เลือก {credits} หน่วยกิต"
                          f"จากรายวิชาที่{_UNIVERSITY}เปิดสอน{appendix}")
-    if pool_rows and not plain:
-        return "; ".join(parts), pool_rows, pool_sql
     terms = {(p[1], p[2]) for p in picked}
+    if pool_rows and not plain:
+        # SQL เดียวที่รันซ้ำได้; เทอมเดียว → ใส่ year/semester ในคอมเมนต์เพื่อให้ citations.py อ้างหน้าตารางแผนของเทอมนั้น
+        tag = f" /* year = {next(iter(terms))[0]} AND semester = {next(iter(terms))[1]} */" if len(terms) == 1 else ""
+        return wrong_term + "; ".join(parts), pool_rows, pool_sql + tag
     if len(terms) == 1:                                   # เทอมเดียว → SQL ระบุ year/semester เพื่ออ้างอิงหน้าตารางแผนของเทอมนั้น
         year, sem = next(iter(terms))
         names = " OR ".join("name_th = '" + p[4].replace("'", "''") + "'" for p in picked)
@@ -1334,13 +1362,21 @@ def _open_slot_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
         sql = (f"SELECT year, semester, name_th AS slot, code AS code_pattern, credits FROM plan_slot "
                f"WHERE id IN ({ids}) ORDER BY year, semester, id")
     rows = [dict(r) for r in conn.execute(sql).fetchall()]
-    return "; ".join(parts), pool_rows + rows, sql if not pool_rows else f"{pool_sql}; {sql}"
+    # ผสมคลัง GE กับช่องอื่น: คืน SQL ตัวแรกตัวเดียว (รันซ้ำได้) แล้วบอกในคอมเมนต์ว่าแถวช่องอื่นมาจาก plan_slot
+    return wrong_term + "; ".join(parts), pool_rows + rows, sql if not pool_rows else f"{pool_sql} /* ช่องอื่นจาก plan_slot */"
+
+
+# "เลือก" ต้องเป็นสิ่งที่ถาม ("เลือกอะไรได้", "วิชาเลือกมีอะไร", "วิชาอะไรให้เลือก") — ไม่ใช่แค่มีคำว่าเลือกอยู่ในประโยค
+_TERM_CHOICES_ASK = re.compile(r"เลือก(?:เรียน)?(?:วิชา)?(?:อะไร|ได้)|วิชาเลือก(?:มี)?(?:วิชา)?อะไร|(?:อะไร|วิชาอะไร|วิชาไหน)ให้เลือก|ให้เลือก")
+# ประโยคที่ขอบเขตกว้างกว่า/ปฏิเสธ ("ไม่รวมวิชาเลือก", "รวมวิชาเลือกด้วย", "ถ้าเลือกแผนสหกิจ") — ปล่อยให้ทางโมเดล
+_TERM_CHOICES_BAIL = re.compile(r"ไม่รวม|นอกจาก|ยกเว้น|บังคับ|รวม.*ด้วย|แผน|สหกิจ")
 
 
 def _is_term_choices_question(question: str) -> bool:
-    """คำถามแบบ "ปี N เทอม M เลือก…ได้บ้าง/มีวิชาอะไร" — ระบุทั้งปีและเทอม มีคำว่า เลือก ถามรายการ ไม่ใช่ถามหน่วยกิต/จำนวน"""
-    return bool(_TERM_YEAR_NUM.search(question) and _TERM_SEM_NUM.search(question) and "เลือก" in question
-                and _OPEN_SLOT_LIST_Q.search(question) and not _OPEN_SLOT_COUNT_Q.search(question))
+    """คำถามแบบ "ปี N เทอม M เลือกอะไรได้บ้าง/มีวิชาอะไรให้เลือก" — ระบุทั้งปีและเทอม ถามตัวเลือกจริง ไม่ปฏิเสธ/ขยายขอบเขต
+    ไม่ใช่ถามหน่วยกิต/จำนวน"""
+    return bool(_TERM_YEAR_NUM.search(question) and _TERM_SEM_NUM.search(question) and _TERM_CHOICES_ASK.search(question)
+                and not _TERM_CHOICES_BAIL.search(question) and not _OPEN_SLOT_COUNT_Q.search(question))
 
 
 def _term_choices_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -1349,6 +1385,14 @@ def _term_choices_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     A หรือ B / เลือก 1 กลุ่ม → สมาชิกจาก plan_slot_member; เทอมที่ไม่มีช่องเลือก/ไม่ใช่คำถามแบบนี้ = None (ทางเดิม)
     SQL ที่คืนระบุ year/semester เพื่ออ้างอิงหน้าตารางแผนของเทอมนั้น"""
     if not _is_term_choices_question(question):
+        return None
+    try:                                                  # ถามกลุ่มวิชาเลือกของหลักสูตรโดยระบุชื่อ → ให้ทางโมเดลลิสต์ชื่อวิชา (สรุปจำนวนกลุ่มไม่พอ)
+        own_groups = [r[0] for r in conn.execute(
+            "SELECT DISTINCT group_name_th FROM main.v_elective_group "
+            f"WHERE plan_slot NOT LIKE '{_GE_PLAN_SLOT_PREFIX}%' AND group_name_th IS NOT NULL")]
+    except sqlite3.Error:
+        own_groups = []
+    if any(g and g in question for g in own_groups):
         return None
     year, sem = int(_TERM_YEAR_NUM.search(question).group(1)), int(_TERM_SEM_NUM.search(question).group(1))
     sql = ("SELECT year, semester, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot "
@@ -1388,6 +1432,41 @@ def _term_choices_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
             parts.append(head + (": เลือกจากกลุ่มวิชาเลือกของหลักสูตร " + ", ".join(f"{g} {n} วิชา" for g, n in groups)
                                  if groups else ": เลือกตามกลุ่มวิชาเลือกที่หลักสูตรกำหนด"))
     return f"ปี {year} เทอม {sem} มีช่องให้เลือก {len(slots)} ช่อง — " + "; ".join(parts), slots, sql
+
+
+_GE_CATEGORY_LIST_Q = re.compile(r"อะไรบ้าง|วิชาอะไร|มีวิชา|รายวิชา|รายชื่อ")
+
+
+def _is_ge_category_question(question: str) -> bool:
+    """คำถามภาพรวมหมวด "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง" — พูดถึงศึกษาทั่วไป ถามรายการ ไม่มีคำว่าเลือก (ถามตัวเลือกไปทางช่อง/รายเทอม)
+    ไม่ระบุปี/เทอม และไม่ถามจำนวน/หน่วยกิต"""
+    return bool("ศึกษาทั่วไป" in question and _GE_CATEGORY_LIST_Q.search(question) and "เลือก" not in question
+                and not _TERM_YEAR_NUM.search(question) and not _TERM_SEM_NUM.search(question)
+                and not _OPEN_SLOT_COUNT_Q.search(question))
+
+
+def _ge_category_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ภาพรวมหมวดวิชาศึกษาทั่วไปของหลักสูตรนี้จากแผน: วิชา GE ที่เป็นวิชาบังคับในแผน (plan_item) + ช่องที่นักศึกษาเลือกเอง (plan_slot)
+    พร้อมบอกว่าจะดูรายชื่อวิชาเลือกต่อได้อย่างไร — ไม่มีทั้งสองอย่าง = None (ทางเดิม)"""
+    if not _is_ge_category_question(question):
+        return None
+    sql = ("SELECT DISTINCT c.code, c.name_th, c.credits FROM plan_item p JOIN course c ON c.code = p.code "
+           "WHERE c.code LIKE '9064%' OR c.code LIKE '9664%' ORDER BY c.code")
+    try:
+        required = [dict(r) for r in conn.execute(sql).fetchall()]
+        slots = conn.execute("SELECT year, semester, name_th, credits FROM plan_slot WHERE kind = 'wildcard' ORDER BY year, semester, id").fetchall()
+    except sqlite3.Error:
+        return None
+    slots = [r for r in slots if any(p in (r[2] or "") for p in _OPEN_SLOT_GE_PHRASES)]
+    if not required and not slots:
+        return None
+    parts = []
+    if required:
+        parts.append("วิชาบังคับในแผนของหลักสูตรนี้: " + ", ".join(f"{r['code']} {r['name_th']} ({r['credits']} หน่วยกิต)" for r in required))
+    if slots:
+        parts.append("ช่องที่นักศึกษาเลือกเอง: " + ", ".join(f"{r[2]} (ปี {r[0]} เทอม {r[1]}, {r[3]} หน่วยกิต)" for r in slots)
+                     + " — ถามรายชื่อวิชาที่เลือกได้ต่อเป็นรายช่อง เช่น \"" + slots[0][2] + "มีวิชาอะไรให้เลือกบ้าง\"")
+    return "หมวดวิชาศึกษาทั่วไปในแผนของหลักสูตรนี้ — " + "; ".join(parts), required, sql
 
 
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
@@ -1431,20 +1510,26 @@ def _elective_hint_text(conn: sqlite3.Connection, question: str) -> str:
             return ""
     except sqlite3.OperationalError:
         return ""
-    return (
+    if _GE_Q.search(question):
+        # ถามถึงหมวดวิชาศึกษาทั่วไป (scope_elective_view ไม่ซ่อนแคตตาล็อก GE ในคำถามนี้) — ตัวอย่างต้องชี้ที่ GE ไม่ใช่วิชาเลือกของหลักสูตร
+        return (
+            "แคตตาล็อกหมวดวิชาศึกษาทั่วไป (GE) อยู่ใน view v_elective_group ที่ plan_slot ขึ้นต้น 'หมวดวิชาศึกษาทั่วไป' เท่านั้น "
+            "(ห้ามแต่งชื่อ view/ตารางอื่น) คอลัมน์: plan_slot, group_no, group_name_th, code, course_name_th, course_name_en, credits; "
+            "group_no 1=อัตลักษณ์สถาบัน 2=บุคคลและวิชาชีพ 3=การจัดการและผู้นำ 4=ภาษาและการสื่อสาร (ตัวอย่างใช้กลุ่ม 4 เปลี่ยนเลขตามที่ถาม)\n"
+            "- รายวิชาของกลุ่ม: SELECT code, course_name_th, credits FROM v_elective_group "
+            "WHERE plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%' AND group_no = 4 ORDER BY code\n"
+            "- นับจำนวนวิชา: SELECT COUNT(*) FROM v_elective_group "
+            "WHERE plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%' AND group_no = 4\n\n"
+        )
+    return (                                                  # วิชาเลือกของหลักสูตร: scope_elective_view ซ่อนแคตตาล็อก GE ให้แล้ว ไม่ต้องกรองเอง
         "วิชาเลือกของหลักสูตรนี้ (จากแคตตาล็อก) อยู่ใน view v_elective_group เท่านั้น "
         "(ห้ามแต่งชื่อ view/ตารางอื่น) คอลัมน์: plan_slot, credits_required, group_no, group_name_th, group_name_en, "
         "code, course_name_th, course_name_en, credits\n"
-        "ใน view นี้มีแคตตาล็อกหมวดวิชาศึกษาทั่วไป (plan_slot ขึ้นต้น 'หมวดวิชาศึกษาทั่วไป') ปนอยู่ด้วย — "
-        "ไม่ใช่วิชาเลือกของหลักสูตร ต้องตัดออกทุกครั้งเว้นแต่คำถามถามถึงหมวดวิชาศึกษาทั่วไปโดยตรง\n"
         "- รายวิชาเลือกทั้งหมด/ของกลุ่ม: SELECT group_no, group_name_th, code, course_name_th, credits "
-        "FROM v_elective_group WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%' [AND group_no = ?] ORDER BY group_no, code\n"
-        "- ต้องเลือกกี่หน่วยกิต/กี่กลุ่ม: SELECT DISTINCT plan_slot, credits_required FROM v_elective_group "
-        "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'\n\n"
+        "FROM v_elective_group [WHERE group_no = ?] ORDER BY group_no, code\n"
+        "- ต้องเลือกกี่หน่วยกิต/กี่กลุ่ม: SELECT DISTINCT plan_slot, credits_required FROM v_elective_group\n\n"
     )
 
-
-_GE_TERMS = ("ศึกษาทั่วไป", "ภาษาและการสื่อสาร", "GE")
 
 
 def scope_elective_view(conn: sqlite3.Connection, question: str) -> bool:
@@ -1455,7 +1540,7 @@ def scope_elective_view(conn: sqlite3.Connection, question: str) -> bool:
     คืน True ถ้าตัด GE ออก"""
     try:
         conn.execute("DROP VIEW IF EXISTS temp.v_elective_group")
-        if any(t in question for t in _GE_TERMS) or not _has_view(conn, "v_elective_group"):
+        if _GE_Q.search(question) or not _has_view(conn, "v_elective_group"):
             return False
         conn.execute("CREATE TEMP VIEW v_elective_group AS SELECT * FROM main.v_elective_group "
                      "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'")
@@ -2080,7 +2165,14 @@ def ask(conn: sqlite3.Connection, question: str,
     result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
     scope_elective_view(conn, question)                   # v_elective_group ไม่รวม GE เว้นแต่คำถามพูดถึง GE (ดูเหตุผลที่ฟังก์ชัน)
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
-    open_slot = _open_slot_answer(conn, question) or _term_choices_answer(conn, question)
+    open_slot = None
+    for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer):
+        try:
+            open_slot = shortcut(conn, question)
+        except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
+            open_slot = None
+        if open_slot:
+            break
     if open_slot:
         result["answer"], result["rows"], result["sql"] = open_slot
         _attach_citations(conn, result)

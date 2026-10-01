@@ -533,12 +533,6 @@ def _db_with_own_and_ge_electives(path):
     return c
 
 
-def test_elective_hint_tells_the_model_to_leave_the_ge_catalog_out(tmp_path):
-    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
-        hint = m._elective_hint_text(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง")
-    assert "NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'" in hint and "หมวดวิชาศึกษาทั่วไป" in hint
-
-
 def _ask_elective(tmp_path, monkeypatch, question, model_sql):
     path = tmp_path / "t.db"
     path.unlink(missing_ok=True)
@@ -710,3 +704,135 @@ def test_term_choices_do_not_hijack_other_questions(tmp_path, monkeypatch, quest
 def test_no_gold_question_is_a_term_choices_question(path):
     for q in json.loads(path.read_text(encoding="utf-8")):
         assert not m._is_term_choices_question(q["question"]), q["question"]
+
+
+# =============== รอบแก้หลังรีวิวทั้ง branch (C1, I1, I3, I4, M1–M5, M7) ===============
+
+# ---- I2 (ตัดสินแล้ว ไม่แก้โค้ด): 90964xxx เป็นรหัสภาคผนวก ช สำหรับ "หลักสูตรปริญญาตรีต่อเนื่องเพื่อการเทียบโอน" ----
+@pytest.mark.skipif(not GE_PDF.exists(), reason="ไม่มี GE66 PDF")
+def test_continuing_degree_codes_90964xxx_are_deliberately_not_in_the_catalog():
+    codes = {c["code"] for c in eec.parse_ge_pdf(GE_PDF)}
+    assert codes and not any(c.startswith("90964") for c in codes)
+
+
+# ---- C1: คำถามที่มีคำว่า "เลือก" แต่ไม่ได้ถามตัวเลือก ต้องไม่ถูกแย่งไปสรุปช่องเลือก ----
+@pytest.mark.parametrize("question", [
+    "ปี 4 เทอม 1 มีวิชาบังคับอะไรบ้าง ไม่รวมวิชาเลือก",
+    "ปี 3 เทอม 1 มีวิชาอะไรบ้าง รวมวิชาเลือกด้วย",
+    "ถ้าเลือกแผนสหกิจ ปี 4 เทอม 2 เรียนวิชาอะไรบ้าง",
+    "ปี 3 เทอม 2 วิชาเลือกกลุ่มวิทยาการข้อมูลมีวิชาอะไรบ้าง",        # ระบุกลุ่มของหลักสูตร → ต้องให้ทางโมเดลลิสต์ชื่อวิชา
+])
+def test_term_choices_do_not_hijack_questions_that_only_mention_choosing(tmp_path, monkeypatch, question):
+    assert _ask_term(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("question", ["ปี 4 เทอม 1 เลือกอะไรได้บ้าง", "ปี 4 เทอม 1 มีวิชาอะไรให้เลือกบ้าง", "ปี 4 เทอม 1 วิชาเลือกมีอะไรบ้าง",
+                                       "ปี 4 เทอม 1 เลือกเรียนวิชาอะไรได้บ้าง"])
+def test_term_choices_still_answer_the_real_choice_questions(question):
+    assert m._is_term_choices_question(question)
+
+
+# ---- I4: ถามช่องที่มีอยู่แต่ผิดเทอม → ตอบช่องนั้นพร้อมบอกเทอมจริง ไม่หลุดไปสรุปช่องอื่น ----
+def test_a_named_slot_asked_in_the_wrong_term_is_answered_with_its_real_term(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "ปี 3 เทอม 1 วิชาเลือกด้านภาษาและการสื่อสาร เลือกอะไรได้บ้าง")
+    assert "ไม่มีช่องนี้ในปี 3 เทอม 1" in r["answer"] and "ปี 2 เทอม 1" in r["answer"] and "90644009" in r["answer"]
+    assert r["model_calls"] == 0 and "กลุ่มวิทยาการข้อมูล" not in r["answer"]
+
+
+# ---- I1: คำใบ้วิชาเลือก — ไม่มี NOT LIKE (TEMP VIEW กรองให้แล้ว) และมีคำใบ้ GE แยกเมื่อถามถึง GE; "GE" ต้องเป็นคำเดี่ยว ----
+def test_elective_hint_has_no_redundant_ge_filter_and_a_separate_ge_variant(tmp_path):
+    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
+        plain = m._elective_hint_text(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง")
+        ge = m._elective_hint_text(conn, "วิชาเลือกกลุ่มภาษาและการสื่อสารมีกี่วิชา")
+    assert "NOT LIKE" not in plain
+    assert "plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%'" in ge and "group_no = 4" in ge and "COUNT(*)" in ge and "NOT LIKE" not in ge
+
+
+def test_a_hint_following_model_gets_the_ge_rows_for_a_ge_count_question(tmp_path, monkeypatch):
+    path = tmp_path / "t.db"
+    _db_with_own_and_ge_electives(path).close()
+    captured = {}
+
+    def hint_following(prompt, fmt=None, **kw):                      # โมเดลที่ลอก SQL ตัวอย่างข้อ "นับ" จากคำใบ้ตรง ๆ
+        if "sql" in (fmt or {}).get("properties", {}):
+            line = next(l for l in prompt.splitlines() if l.startswith("- นับ"))
+            captured["sql"] = line.split(": ", 1)[1].replace("<1-4>", "4")
+            return json.dumps({"sql": captured["sql"]})
+        return json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", hint_following)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, "วิชาเลือกกลุ่มภาษาและการสื่อสารมีกี่วิชา", verbose=False)
+    assert r["error"] is None and r["rows"] and list(r["rows"][0].values())[0] == 2      # กลุ่ม 4 ในแคตตาล็อกทดสอบมี 2 วิชา
+
+
+@pytest.mark.parametrize("question,hidden", [
+    ("วิชา DIGITAL INTELLIGENCE QUOTIENT รหัสอะไร", True),     # INTELLIGENCE มีตัวอักษร GE แต่ไม่ใช่คำ GE
+    ("วิชาเลือก GE ของหลักสูตรนี้มีอะไรบ้าง", False),
+    ("general education มีวิชาอะไรบ้าง", False),
+    ("วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", True),
+])
+def test_ge_term_detection_is_word_based(tmp_path, question, hidden):
+    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
+        assert m.scope_elective_view(conn, question) is hidden
+
+
+def test_question_with_the_word_ge_reaches_the_ge_slot_shortcut(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "วิชาเลือก GE ปี 3 เทอม 1 มีวิชาอะไรให้เลือกบ้าง")
+    assert r["model_calls"] == 0 and "พ.ศ. 2566" in r["answer"]
+
+
+# ---- I3: "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง" (ไม่มีคำว่าเลือก) → ภาพรวมของหมวดจากแผน + ช่องเลือก ----
+def test_ge_category_question_gets_required_courses_and_choice_slots(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง")
+    assert "90644007" in r["answer"] and "บังคับ" in r["answer"]                      # วิชา GE ที่อยู่ในแผน
+    assert "วิชาเลือกด้านภาษาและการสื่อสาร" in r["answer"] and "ปี 2 เทอม 1" in r["answer"]   # ช่องเลือก + เทอม
+    assert {x["code"] for x in r["rows"] if x.get("code")} >= {"90644007", "90644010"} and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", ["หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "ศึกษาทั่วไปคืออะไร"])
+def test_ge_category_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_with_catalog(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_is_a_ge_category_question(path):
+    for q in json.loads(path.read_text(encoding="utf-8")):
+        assert not m._is_ge_category_question(q["question"]), q["question"]
+
+
+# ---- M1: ไม่ให้หลุด exception เมื่อข้อมูลไม่ครบ (M2: plan_item.code เป็น NOT NULL ตามสคีมา จึงไม่เกิด; ใช้ NOT EXISTS อยู่ดี) ----
+def test_ge_pool_survives_a_null_credit(tmp_path):
+    c = _db_with_ge_catalog(tmp_path / "t.db")
+    c.row_factory = sqlite3.Row                                                     # เหมือน open_db จริง
+    assert m._ge_pool(c, "90644xxx", None) is None                                 # หน่วยกิตว่าง → ไม่มีคลัง ไม่ใช่ TypeError
+    pool = m._ge_pool(c, "90644xxx", 3)
+    assert pool and {r["code"] for r in pool[1]} == {"90644003", "90644009"}
+    c.close()
+
+
+def test_a_failure_inside_the_shortcuts_falls_back_to_the_normal_path(tmp_path, monkeypatch):
+    path = tmp_path / "t.db"
+    _db_with_ge_catalog(path).close()
+    monkeypatch.setattr(m, "_open_slot_answer", lambda *a, **k: (_ for _ in ()).throw(TypeError("boom")))
+    monkeypatch.setattr(m, "ollama_generate", lambda prompt, fmt=None, **kw:
+                        json.dumps({"sql": "SELECT code FROM course LIMIT 1"}) if "sql" in (fmt or {}).get("properties", {}) else json.dumps({"answer": "ok"}))
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง", verbose=False)
+    assert r["error"] is None and r["rows"]
+
+
+# ---- M3/M4: เลขหน้าอ้างอิงของคำตอบช่อง GE และ SQL ที่รันซ้ำได้ ----
+def test_ge_pool_answer_still_cites_the_plan_page_of_its_term_and_returns_runnable_sql(tmp_path, monkeypatch):
+    path = tmp_path / "t.db"
+    _db_with_ge_catalog(path).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, "ปี 2 เทอม 1 วิชาเลือกด้านภาษาและการสื่อสารมีอะไรให้เลือกบ้าง", verbose=False)
+        assert [c["pdf_page"] for c in r["citations"]] == [16]
+        assert len(conn.execute(r["sql"]).fetchall()) == len(r["rows"])            # main.-qualified รันซ้ำได้ (แม้มี TEMP VIEW) และเป็นคำสั่งเดียว
+
+
+def test_mixed_ge_and_free_answers_return_one_statement(tmp_path, monkeypatch):
+    r = _ask_with_catalog(tmp_path, monkeypatch, "ปี 4 เทอม 1 วิชาเลือกศึกษาทั่วไปและวิชาเลือกเสรี เลือกอะไรได้บ้าง")
+    assert r["sql"].count("SELECT") == 1 or "/*" in r["sql"]
