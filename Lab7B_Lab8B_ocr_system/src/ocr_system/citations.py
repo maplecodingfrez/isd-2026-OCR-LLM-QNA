@@ -52,6 +52,7 @@ def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:
 
 HEADING_RE = re.compile(r"ปีที่\s*(\d)\s*ภาค(?:การศึกษา|เรียน)?\s*ที่\s*(\d)")
 IMAGE_PAGE_RE = re.compile(r"(\d+)\.(?:jpe?g|png)$", re.I)
+PAGE_NUMBER_TAG_RE = re.compile(r"<page_number>\s*(\d+)\s*</page_number>")      # เลขหน้าที่พิมพ์ ที่ VLM (Lab 7B) อ่านติดมาในแต่ละหน้า
 
 
 def _confirmed(chunk: str, terms: list[tuple[int, int]], book_text: str) -> bool:
@@ -76,20 +77,56 @@ def plan_pages(image_names: list[str], md_text: str,
     chunks = md_text.split("\n---\n")
     if len(pages) != len(chunks):
         return []
+    out, _confirmed_n = _plan_rows(pages, chunks, printed_by_pdf, book_text_by_pdf)
+    if out or book_text_by_pdf is None:
+        return out
+    # ไม่มีหน้าไหนผ่านการยืนยันเลย → เลขในชื่อไฟล์ภาพอาจเลื่อนจากเลขหน้า PDF "คงที่" (DSBA สหกิจ: DSBA_28.png = PDF 30 เพราะเล่มมีตารางแผน
+    # สองชุด และภาพชุดนี้นับต่างจากไฟล์ PDF) — ลองเลื่อน ±5 แล้วรับเฉพาะค่าที่ยืนยัน "ทุกหน้าที่มีหัวเทอม" ได้ และมีค่าเดียว
+    # (กำกวม/หลักฐานน้อยกว่า 3 หน้า = ไม่อ้าง ไม่เดา); ถ้าเลขเดิมยืนยันได้แม้แต่หน้าเดียวจะไม่เข้าทางนี้
+    n_term_chunks = sum(1 for c in chunks if HEADING_RE.search(c))
+    if n_term_chunks < 3:
+        return []
+    fits = []
+    for k in (d for d in range(-5, 6) if d):
+        rows, n_ok = _plan_rows([p + k for p in pages], chunks, printed_by_pdf, book_text_by_pdf)
+        if rows and n_ok == n_term_chunks:
+            fits.append((k, rows))
+    if len(fits) == 1:
+        return fits[0][1]
+    if len(fits) > 1:
+        # เล่มมีตารางแผนซ้ำหลายชุด (DSBA: ไม่สหกิจ PDF 23–29 / สหกิจ PDF 30–36 หัวเทอมเหมือนกัน) → หลายค่าเลื่อนผ่านพร้อมกัน
+        # ตัดสินด้วยเลขหน้าที่พิมพ์ซึ่ง VLM อ่านติดมา (<page_number>) เทียบกับเลขที่พิมพ์ของหน้าเล่ม: ต้องตรงมากกว่าอย่างชัดเจนและ
+        # ตรงอย่างน้อย 2 หน้า (ยอมให้ VLM อ่านเลขพลาดบางหน้า); ไม่ชัด = ไม่อ้าง (ใช้รหัสวิชาตัดสินไม่ได้: OCR ของเล่มอ่านรหัสคลาดเคลื่อน
+        # วัดแล้วค่าที่ผิดได้คะแนนสูงกว่า)
+        tags = [(m.group(1) if (m := PAGE_NUMBER_TAG_RE.search(c)) else None) for c in chunks]
+        scored = sorted(((sum(t is not None and printed_by_pdf.get(p + k) == t for p, t in zip(pages, tags)), rows)
+                         for k, rows in fits), key=lambda x: -x[0])
+        if scored[0][0] >= 2 and scored[0][0] > scored[1][0]:
+            return scored[0][1]
+    return []
+
+
+def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, str | None],
+               book_text_by_pdf: dict[int, str] | None) -> tuple[list[dict], int]:
+    """แถว term_page จากคู่ (เลขหน้า, ส่วน Markdown) + จำนวนหน้าที่มีหัวเทอมและผ่านการยืนยัน"""
     out: list[dict] = []
     last = None
+    n_confirmed = 0
     for pdf, chunk in zip(pages, chunks):
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
+        has_heading = bool(terms)
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
         if terms and book_text_by_pdf is not None and not _confirmed(chunk, terms, book_text_by_pdf.get(pdf, "")):
             last = None
             continue
+        if has_heading:
+            n_confirmed += 1
         for y, s in dict.fromkeys(terms):
             out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed_by_pdf.get(pdf)})
         if terms:
             last = terms[-1]
-    return out
+    return out, n_confirmed
 
 
 def consistent_printed(printed_by_pdf: dict[int, str | None]) -> dict[int, str | None]:

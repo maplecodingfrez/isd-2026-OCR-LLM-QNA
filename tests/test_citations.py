@@ -1,3 +1,5 @@
+import pytest
+
 import citations
 
 
@@ -233,3 +235,106 @@ def test_format_citation_names_the_courses_on_each_page():
     assert citations.format_citation(cites) == (
         "(อ้างอิง: เล่มหลักสูตร หน้า 334 (PDF 335) [06026243, 06026244], PDF 21 [06026207], หน้า 33 (PDF 38))")
 
+
+
+# ---------- เลขหน้าในชื่อไฟล์ภาพเลื่อนจากเลขหน้า PDF คงที่ (DSBA สหกิจ: DSBA_28.png = PDF 30; เล่มมีตารางแผนสองชุด) ----------
+
+def _shifted_book():
+    """หน้าเล่ม: 28–29 เป็นตารางแผนชุดอื่น (หัวเทอมต่างกัน), 30–32 คือหน้าที่ภาพ X_28–X_30 หมายถึงจริง"""
+    return {28: "27\nปีที่ 1 ภาคการศึกษาที่ 2", 29: "28\nปีที่ 2 ภาคการศึกษาที่ 2",
+            30: "29\nปีที่ 1 ภาคการศึกษาที่ 1", 31: "30\nปีที่ 1 ภาคการศึกษาที่ 2", 32: "31\nปีที่ 2 ภาคการศึกษาที่ 1"}
+
+
+_SHIFTED_MD = ("ปีที่ 1 ภาคการศึกษาที่ 1\n<table>a</table>\n---\nปีที่ 1 ภาคการศึกษาที่ 2\n<table>b</table>\n---\n"
+               "ปีที่ 2 ภาคการศึกษาที่ 1\n<table>c</table>")
+
+
+# Break caught: DSBA coop had no term_page at all — every image failed confirmation because the file numbers are off by a constant.
+def test_plan_pages_finds_a_constant_offset_when_no_page_confirms_at_the_filename_number():
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _SHIFTED_MD, {30: "29", 31: "30", 32: "31"}, _shifted_book())
+    assert got == [{"year": 1, "semester": 1, "pdf_page": 30, "printed_page": "29"},
+                   {"year": 1, "semester": 2, "pdf_page": 31, "printed_page": "30"},
+                   {"year": 2, "semester": 1, "pdf_page": 32, "printed_page": "31"}]
+
+
+# Break guarded: guessing when two offsets both fit (book repeats the same headings) — ambiguous = no citation.
+def test_plan_pages_does_not_guess_when_two_offsets_fit():
+    book = dict(_shifted_book())
+    book.update({31: "ปีที่ 1 ภาคการศึกษาที่ 1", 32: "ปีที่ 1 ภาคการศึกษาที่ 2", 33: "ปีที่ 2 ภาคการศึกษาที่ 1"})   # ชุดเดียวกันซ้ำที่ +3 และ +2
+    book[30] = "ปีที่ 1 ภาคการศึกษาที่ 1"
+    book[31] = "ปีที่ 1 ภาคการศึกษาที่ 2"
+    book[32] = "ปีที่ 2 ภาคการศึกษาที่ 1"
+    book[33] = "ปีที่ 1 ภาคการศึกษาที่ 1"
+    book[34] = "ปีที่ 1 ภาคการศึกษาที่ 2"
+    book[35] = "ปีที่ 2 ภาคการศึกษาที่ 1"
+    assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _SHIFTED_MD, {}, book) == []
+
+
+# Break guarded: shifting on too little evidence (one or two term pages) or when part of the pages already confirm.
+def test_plan_pages_only_shifts_with_enough_evidence_and_when_nothing_confirms():
+    md = "ปีที่ 1 ภาคการศึกษาที่ 1\n<table>a</table>\n---\nปีที่ 1 ภาคการศึกษาที่ 2\n<table>b</table>"
+    book = {30: "ปีที่ 1 ภาคการศึกษาที่ 1", 31: "ปีที่ 1 ภาคการศึกษาที่ 2"}
+    assert citations.plan_pages(["X_28.png", "X_29.png"], md, {}, book) == []            # มีหน้าที่มีหัวเทอมแค่ 2 → หลักฐานไม่พอจะเลื่อน
+    partly = {28: "ปีที่ 1 ภาคการศึกษาที่ 1", 29: "ปีที่ 9 ภาคการศึกษาที่ 9", 30: "ปีที่ 2 ภาคการศึกษาที่ 1"}
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _SHIFTED_MD, {}, partly)
+    assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 1, 28), (2, 1, 30)]   # ยืนยันได้บางหน้าที่เลขเดิม → ไม่เลื่อน
+
+
+def test_plan_pages_without_book_text_never_shifts():
+    assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _SHIFTED_MD, {}, None)[0]["pdf_page"] == 28
+
+
+@pytest.mark.parametrize("rel", ["DSBA/coop", "DSBA/no_coop"])
+def test_real_dsba_databases_cite_the_plan_page_of_every_term(rel):
+    from pathlib import Path
+    db = Path(__file__).resolve().parents[1] / "Lab7B_Lab8B_ocr_system" / "runs" / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    c = sqlite3.connect(db)
+    got = {(y, s): p for y, s, p in c.execute("SELECT year, semester, pdf_page FROM term_page")}
+    assert {(1, 1), (1, 2), (2, 1), (2, 2), (3, 1), (3, 2), (4, 1), (4, 2)} <= set(got)
+    start = {"DSBA/coop": 30, "DSBA/no_coop": 23}[rel]            # เล่มเดียวมีตารางแผนสองชุด: ไม่สหกิจ PDF 23–29, สหกิจ PDF 30–36
+    assert (got[(1, 1)], got[(2, 1)], got[(3, 1)], got[(4, 1)]) == (start, start + 2, start + 4, start + 6)
+
+
+# ---------- หลายค่าเลื่อนผ่านพร้อมกัน (เล่มมีตารางแผนสองชุดหัวเทอมซ้ำกัน) → ใช้เลขหน้าที่พิมพ์ในแท็ก <page_number> ของ VLM ตัดสิน ----------
+
+def _two_plans_book():
+    """ตารางแผนซ้ำสองชุด: PDF 30–32 (พิมพ์ 29–31) และ PDF 33–35 (พิมพ์ 32–34) — ภาพ X_28–X_30 จึงผ่านทั้งเลื่อน +2 และ +5"""
+    heads = ["ปีที่ 1 ภาคการศึกษาที่ 1", "ปีที่ 1 ภาคการศึกษาที่ 2", "ปีที่ 2 ภาคการศึกษาที่ 1"]
+    book = {28: "27\nอื่น", 29: "28\nอื่น"}
+    for i, h in enumerate(heads):
+        book[30 + i] = f"{29 + i}\n{h}"
+        book[33 + i] = f"{32 + i}\n{h}"
+    printed = {pdf: str(pdf - 1) for pdf in range(28, 36)}
+    return book, printed
+
+
+def _tagged_md(numbers):
+    heads = ["ปีที่ 1 ภาคการศึกษาที่ 1", "ปีที่ 1 ภาคการศึกษาที่ 2", "ปีที่ 2 ภาคการศึกษาที่ 1"]
+    return "\n---\n".join(f"<page_number>{n}</page_number>\n{h}\n<table>x</table>" for n, h in zip(numbers, heads))
+
+
+# Break caught: DSBA coop — both offsets −5 and +2 pass the heading check (book repeats the plan); the printed page number picks the right one.
+def test_plan_pages_uses_the_vlm_page_number_tag_to_break_an_offset_tie():
+    book, printed = _two_plans_book()
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _tagged_md([29, 30, 31]), printed, book)
+    assert [(t["year"], t["semester"], t["pdf_page"]) for t in got] == [(1, 1, 30), (1, 2, 31), (2, 1, 32)]
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _tagged_md([32, 33, 34]), printed, book)
+    assert [t["pdf_page"] for t in got] == [33, 34, 35]
+
+
+def test_plan_pages_tolerates_one_misread_page_number_tag():
+    book, printed = _two_plans_book()
+    got = citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], _tagged_md([28, 30, 31]), printed, book)   # แท็กแรกอ่านพลาด (28 แทน 29)
+    assert [t["pdf_page"] for t in got] == [30, 31, 32]
+
+
+# Break guarded: a tie that the tags cannot break (no tags, or they favour both offsets equally) must still cite nothing.
+def test_plan_pages_stays_silent_when_page_numbers_cannot_break_the_tie():
+    book, printed = _two_plans_book()
+    untagged = "\n---\n".join(["ปีที่ 1 ภาคการศึกษาที่ 1\n<table>x</table>", "ปีที่ 1 ภาคการศึกษาที่ 2\n<table>x</table>",
+                               "ปีที่ 2 ภาคการศึกษาที่ 1\n<table>x</table>"])
+    assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], untagged, printed, book) == []
+    one_tag = _tagged_md([29, 99, 98])                                       # ตรงแค่หน้าเดียว (< 2 หน้า) → หลักฐานไม่พอ
+    assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], one_tag, printed, book) == []
