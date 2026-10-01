@@ -2511,7 +2511,7 @@ _FACT_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|ปีที่|เ�
 
 # ขอบเขตย่อย/ค่าสูงสุด/เงื่อนไขพิเศษ ที่ไม่ใช่ "ยอดของทั้งหลักสูตร" — ปีแรก/ปีสุดท้าย/ซัมเมอร์/แกน/สะสม/ระยะเวลาสูงสุด/สหกิจ
 _FACT_SUBSCOPE_RE = re.compile(r"ปีแรก|ปีสุดท้าย|ปีหนึ่ง|ปีสอง|ปีสาม|ปีสี่|ซัมเมอร์|ฤดูร้อน|แกน|สะสม|สูงสุด|นานสุด|นานที่สุด|ไม่เกิน|ขั้นต่ำ|อย่างน้อย|เฉลี่ย|"
-                              r"ต่อเทอม|ต่อภาค|สหกิจ|ฝึกงาน|ได้ออก|ถึงจะออก|ก่อนออก")
+                              r"ต่อเทอม|ต่อภาค|ออกสหกิจ|ไปสหกิจ|ก่อนสหกิจ|ลงสหกิจ|ฝึกสหกิจ|ฝึกงาน|ได้ออก|ถึงจะออก|ก่อนออก")
 
 
 def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -2520,7 +2520,7 @@ def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     if _FACT_NOT_RE.search(question) or _FACT_SUBSCOPE_RE.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question):
         return None
     years = bool(re.search(r"กี่ปี", question) and re.search(r"เรียน|ใช้เวลา|ระยะเวลา|หลักสูตร|จบ|ศึกษา", question))
-    credits = bool("หน่วยกิต" in question and re.search(r"ตลอดหลักสูตร|ถึงจะจบ|จึงจะจบ|เพื่อจบ|จบหลักสูตร|ทั้งหลักสูตร|หลักสูตร(?:นี้)?(?:มี|ใช้|เรียน|ต้อง)", question))
+    credits = bool("หน่วยกิต" in question and re.search(r"หลักสูตร|ถึงจะจบ|จึงจะจบ|เพื่อจบ", question))
     if years == credits:                                                   # ไม่ใช่ทั้งสองอย่าง/ถามสองอย่างพร้อมกัน → ทางเดิม
         return None
     try:
@@ -2626,7 +2626,8 @@ def _elective_group_answer(conn: sqlite3.Connection, question: str) -> tuple[str
         return None
     g = top[0]
     named = _named_courses(conn, question, strict=False)       # มีวิชาชื่อยาวเท่ากันหรือยาวกว่า/เท่ากับชื่อกลุ่ม (วิชาเดี่ยวที่ชื่อเหมือนกลุ่ม) = ถามเรื่องวิชานั้น
-    if named and max(len(norm(n)) for n in named.values()) >= best:
+    explicit = re.search(r"กลุ่ม(?:วิชาเลือก|วิชา)?" + re.escape(key_of(g)), qn)             # "กลุ่ม(วิชา)<ชื่อกลุ่ม>" ติดกัน = ถามกลุ่มแน่นอน
+    if named and max(len(norm(n)) for n in named.values()) >= best and not explicit:
         return None
     if not re.search(r"กลุ่ม", question) and "วิชาเลือก" not in key_of(g):
         return None

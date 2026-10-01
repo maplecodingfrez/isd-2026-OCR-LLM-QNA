@@ -2485,3 +2485,48 @@ def test_a_failing_reload_keeps_the_previous_table(tmp_path, monkeypatch):
         m.load_book_sections(c, _BOOK_SEC)
     assert c.execute("SELECT COUNT(*) FROM book_section").fetchone()[0] == before
     c.close()
+
+
+# =============== ผลรันซ้ำชุดสำนวนใหม่หลังรีวิว: กฎเข้มทำให้ 3 ข้อที่เคยถูกกลายเป็น "ไม่พบ" — เปิดเฉพาะส่วนที่ไม่เสี่ยง ===============
+
+@pytest.mark.parametrize("question", [
+    "เรียนหลักสูตรนี้รวมแล้วกี่หน่วยกิต", "หลักสูตร IT ทั้งหมดกี่หน่วยกิต", "ทั้งหลักสูตรแบบสหกิจใช้กี่หน่วยกิต", "เรียนหลักสูตรสหกิจนานาชาติรวมกี่หน่วยกิต"])
+def test_program_credits_are_answered_when_the_question_names_the_program_in_any_form(tmp_path, monkeypatch, question):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert "129 หน่วยกิต" in r["answer"] and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", [
+    "ต้องมีหน่วยกิตสะสมรวมเท่าไหร่ถึงจะออกสหกิจได้", "ก่อนไปสหกิจต้องเรียนครบกี่หน่วยกิต", "หลักสูตรนี้ต้องผ่านกี่หน่วยกิตก่อนออกสหกิจ"])
+def test_program_credits_are_still_not_answered_for_the_requirement_before_cooperative_education(tmp_path, monkeypatch, question):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert "129 หน่วยกิต" not in r["answer"]
+
+
+def _same_name_group_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) "
+              "VALUES (1, 'P', 'ช่องการตลาด', 6, 1, 'กลุ่มการตลาดดิจิทัล')")
+    c.executemany("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (1, ?, ?, 'X', 3)",
+                  [("06036141", "การตลาดเนื้อหา"), ("06036142", "การตลาดผ่านสื่อสังคม")])
+    c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06036116', 'การตลาดดิจิทัล', 'DIGITAL MARKETING', 3)")
+    c.commit()
+    c.row_factory = sqlite3.Row
+    return c
+
+
+@pytest.mark.parametrize("question", [
+    "กลุ่มวิชาเลือกการตลาดดิจิทัล มีวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "กลุ่มการตลาดดิจิทัลมีกี่วิชา", "กลุ่มวิชาการตลาดดิจิทัล ต้องเลือกรวมกี่หน่วยกิต"])
+def test_an_explicit_group_name_is_a_group_question_even_when_a_plan_course_has_the_same_name(tmp_path, question):
+    with closing(_same_name_group_db(tmp_path)) as c:
+        r = m._elective_group_answer(c, question)
+    assert r and "06036116" not in r[0]
+
+
+@pytest.mark.parametrize("question", [
+    "การตลาดดิจิทัลมีวิชาอะไรบ้าง", "วิชาการตลาดดิจิทัลมีกี่หน่วยกิต", "วิชาการตลาดดิจิทัลอยู่ในกลุ่มวิชาอะไร", "วิชาการตลาดดิจิทัลเป็นวิชาเลือกหรือเปล่า"])
+def test_the_same_name_without_an_explicit_group_word_is_about_the_course(tmp_path, question):
+    with closing(_same_name_group_db(tmp_path)) as c:
+        assert m._elective_group_answer(c, question) is None
