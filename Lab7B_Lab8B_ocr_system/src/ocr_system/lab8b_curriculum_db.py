@@ -1636,12 +1636,17 @@ SQL: SELECT NULL WHERE 0
 กติกา
 - เขียน SQL คำสั่งเดียว ขึ้นต้นด้วย SELECT หรือ WITH เท่านั้น
 - ห้ามใช้ INSERT UPDATE DELETE DROP หรือคำสั่งที่แก้ไขข้อมูล
-- ถามว่าภาคเรียนไหนมีกี่หน่วยกิต ให้ใช้ v_semester_credits เสมอ
+- ถามว่าภาคเรียนไหนหรือชั้นปีไหนมีกี่หน่วยกิต ให้ใช้ v_semester_credits เสมอ
+  (รวมทั้งชั้นปีใช้ SUM(credits) จาก v_semester_credits ตาม year)
   ห้ามใช้ SUM(credits) จาก v_plan เพราะจะนับวิชาเลือกซ้ำ
 - ถามว่าเรียนวิชาอะไรบ้าง ให้ใช้ v_plan เพราะมีชื่อวิชาอยู่แล้ว
 - คำถามเรื่อง "วิชาบังคับก่อน / ต้องผ่านวิชาใดก่อน / วิชาไหนใช้ X เป็นบังคับก่อน /
   วิชาเรียนควบ" ให้ query ตาราง prerequisite เสมอ (join ผ่านคอลัมน์ code/requires)
   ห้ามใช้ LIKE กับ name_th หรือ name_en เพื่อเดาความสัมพันธ์วิชาบังคับก่อน
+- ทิศของตาราง prerequisite: แถว (code, requires) แปลว่า "code ต้องผ่าน requires ก่อน"
+  ถามว่า X ต้องผ่านอะไรก่อน -> กรอง code = X แล้วเลือกคอลัมน์ requires
+  ถามว่าเรียน X แล้วเรียนอะไรต่อได้ / X ปลดล็อกวิชาอะไร / วิชาไหนต้องใช้ X ก่อน
+  -> กรอง requires = X แล้วเลือกคอลัมน์ code
 - ถ้าคำถามถามถึงสิ่งที่ "ไม่มีคอลัมน์หรือตารางรองรับในโครงสร้างข้างบนเลย"
   (เช่น ค่าเทอม/ค่าธรรมเนียม, ชื่ออาจารย์ผู้สอน, ห้องเรียน, ตำราเรียน, ตารางสอบ)
   ห้ามเดา SQL ที่ดูใกล้เคียง ให้ตอบว่า  SELECT NULL WHERE 0  เท่านั้น
@@ -1694,6 +1699,27 @@ def clean_sql_output(s: str) -> str:
     return m.group(0).strip() if m else s
 
 
+def use_slot_aware_credit_view(conn: sqlite3.Connection) -> bool:
+    """ให้ v_semester_credits ในการเชื่อมต่อนี้ "นับตามเล่ม" (รู้จัก plan_slot) โดยไม่แก้ไฟล์ DB และไม่แก้ prompt
+
+    ราก: v_semester_credits ที่เก็บใน DB รวมทุกแถวของ plan_item จึงนับสมาชิกของช่อง "เลือก 1 กลุ่มวิชา" ครบทุกวิชา
+    (IT ปี 2/2 ได้ 30 ทั้งที่เล่มรวม 18) ส่วน v_semester_credits_full (ที่ CHK1F/CHK7F ใช้ตรวจ 7/7 run) ถูกต้อง
+    จึงสร้าง TEMP VIEW ชื่อเดิมชี้ไป _full — temp schema ถูกค้นก่อน main และเขียนได้แม้เปิด DB แบบ mode=ro;
+    เทอมที่ไม่มี slot ได้ค่าเท่าเดิมทุกประการ; DB ที่ไม่มีตาราง slot ไม่ถูกแตะ (คืน False)
+    """
+    try:
+        has_full = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'view' AND name = 'v_semester_credits_full'").fetchone()
+        if not has_full:
+            return False
+        conn.execute(
+            "CREATE TEMP VIEW IF NOT EXISTS v_semester_credits AS "
+            "SELECT year, semester, credits, n_entries AS n_courses FROM main.v_semester_credits_full")
+        return True
+    except sqlite3.Error:
+        return False
+
+
 def ask(conn: sqlite3.Connection, question: str,
         verbose: bool = True) -> dict:
     """
@@ -1708,6 +1734,7 @@ def ask(conn: sqlite3.Connection, question: str,
         "error": None, "sql_model_output": None, "answer_model_output": None,
         "citations": [], "citation_text": "",
     }
+    use_slot_aware_credit_view(conn)           # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน)
     ddl = DDL.strip()
     # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
