@@ -98,6 +98,11 @@ def run_plan(plan: str, skip_lab7: bool) -> None:
     electives = ROOT / "runs" / rel.split("/")[0] / "electives.json"
     if electives.exists():
         run(LAB8, "load-electives", "-d", db, "-i", electives, "--program-id", program_id)
+    # แคตตาล็อกหมวดวิชาศึกษาทั่วไป ฉบับ 2566 (python -m ocr_system.extract_elective_catalog --pdf data/input/GE66_Th_Ed240501.pdf
+    # --edition 2566) — plan_slot คนละชื่อกับวิชาเลือกของหลักสูตร จึงไม่ลบกัน; BIT เป็นหลักสูตรนานาชาติ ใช้หมวดศึกษาทั่วไปของตัวเอง ไม่โหลดให้
+    ge_catalog = ROOT / "runs" / "ge66_catalog.json"
+    if ge_catalog.exists() and not rel.startswith("BIT"):
+        run(LAB8, "load-electives", "-d", db, "-i", ge_catalog, "--program-id", program_id)
     # หน้าในเล่มสำหรับอ้างอิงคำตอบ (citations.py) — ไม่มีไฟล์ที่ต้องใช้ = คำสั่งพิมพ์บอกว่าข้าม
     run(LAB8, "load-course-pages", "-d", db, "--ocr-json", book_txt.with_suffix(".json"),
         "--data-input", run_dir / "data_input", "-m", md_file)

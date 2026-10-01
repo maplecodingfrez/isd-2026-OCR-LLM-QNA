@@ -482,3 +482,40 @@ def test_build_ge_catalog_has_the_shape_the_elective_loader_expects():
     assert sum(len(g["courses"]) for g in data["groups"]) == len(eec.parse_ge_pdf(GE_PDF))
     c = data["groups"][3]["courses"][0]
     assert set(c) >= {"code", "name_th", "name_en", "credits"} and re.match(r"\d+ \(\d+-\d+-\d+\)", c["credits"])
+
+
+# ---------- โหลดแคตตาล็อก GE 2566 เข้า DB (ไม่ลบวิชาเลือกเดิม ไม่โหลดให้ BIT) ----------
+
+GE_SLOT = "หมวดวิชาศึกษาทั่วไป ฉบับปรับปรุง พ.ศ. 2566"
+OWN_ELECTIVES = {"AIT": 16, "DSBA/coop": 43, "DSBA/no_coop": 43, "IT/coop": 53, "IT/no_coop": 53, "BIT/coop": 9, "BIT/no_coop": 9}
+
+
+def test_the_pipeline_runner_loads_the_ge_catalog_and_skips_bit():
+    src = (REPO / "Lab7B_Lab8B_ocr_system" / "run_lab8b.py").read_text(encoding="utf-8")
+    assert "ge66_catalog.json" in src and 'rel.startswith("BIT")' in src
+
+
+@pytest.mark.parametrize("rel", [r for r in ALL_DBS if not r.startswith("BIT")])
+def test_ge_catalog_is_loaded_next_to_the_programs_own_electives(rel):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(m.open_db(db, readonly=True)) as conn:
+        groups, n = conn.execute("SELECT COUNT(DISTINCT group_no), COUNT(*) FROM v_elective_group WHERE plan_slot = ?",
+                                 (GE_SLOT,)).fetchone()
+        own = conn.execute("SELECT COUNT(*) FROM v_elective_group WHERE plan_slot != ? AND plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'",
+                           (GE_SLOT,)).fetchone()[0]
+        credit_is_int = conn.execute("SELECT COUNT(*) FROM v_elective_group WHERE plan_slot = ? AND typeof(credits) != 'integer'",
+                                     (GE_SLOT,)).fetchone()[0]
+    assert (groups, n) == (5, 303) and credit_is_int == 0
+    assert own == OWN_ELECTIVES[rel]                       # วิชาเลือกเดิมของหลักสูตรไม่หาย
+
+
+@pytest.mark.parametrize("rel", ["BIT/coop", "BIT/no_coop"])
+def test_bit_does_not_get_the_thai_ge_catalog(rel):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(m.open_db(db, readonly=True)) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM v_elective_group WHERE plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%'").fetchone()[0] == 0
+        assert conn.execute("SELECT COUNT(*) FROM v_elective_group").fetchone()[0] == OWN_ELECTIVES[rel]
