@@ -1220,27 +1220,73 @@ def _term_summary_fallback(conn: sqlite3.Connection, question: str, sql: str | N
     return (template, fixed) if fixed else (sql, rows)
 
 
-def _wildcard_slot_fallback(conn: sqlite3.Connection, question: str, sql: str | None,
-                            rows: list[dict]) -> tuple[str | None, list[dict]]:
-    """ช่อง wildcard ในแผน (plan_slot เช่น 90644xxx = "วิชาเลือกด้านภาษาและการสื่อสาร" = วิชารหัสขึ้นต้น 90644): ถามว่า
-    "ช่องนี้มีวิชาอะไรให้เลือก" โมเดลไปค้น v_elective_group ซึ่งไม่มีช่องนี้ → ว่าง ทั้งที่ course มีวิชารหัสนั้น
-    ถ้าคำถามระบุชื่อช่อง (ตัดคำนำ "วิชาเลือก" แล้วต้องยาว ≥ 6 ตัวอักษร) และแถวของโมเดลไม่มีวิชารหัสขึ้นต้นตามช่อง
-    → ค้น course ตามรหัสขึ้นต้นเอง; ช่องที่ไม่มีรหัสนำ (วิชาเลือกเสรี xxxxxxx) หรือคำถามที่ไม่ระบุชื่อช่อง = ไม่แตะ"""
+_OPEN_SLOT_LIST_Q = re.compile(r"อะไรบ้าง|วิชาอะไร|อะไรได้|อะไรให้เลือก|รายชื่อ|วิชาไหน|เลือกอะไร")
+_OPEN_SLOT_COUNT_Q = re.compile(r"กี่หน่วยกิต|กี่วิชา")
+_OPEN_SLOT_GE_PHRASES = ("ภาษาและการสื่อสาร", "ศึกษาทั่วไป")
+_UNIVERSITY = "สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง"
+
+
+def _open_slot_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ช่อง "เลือกเอง" ที่เล่มไม่ระบุรายชื่อวิชา — คืน (คำตอบ, แถว, SQL) หรือ None (ใช้ทางเดิม)
+    - หมวดศึกษาทั่วไป / ด้านภาษาและการสื่อสาร (plan_slot wildcard เช่น 90644xxx): เล่มให้เลือกตามรายวิชาที่ สจล. เปิดสอน
+      (ภาคผนวก ง) — ไม่ลิสต์วิชารหัสขึ้นต้นเดียวกัน เพราะรวมวิชาบังคับ/กลุ่มอื่นเข้ามา (เคยตอบผิดแบบนั้น)
+    - วิชาเลือกเสรี: เลือกจากรายวิชาที่เปิดสอนในสถาบัน ไม่มีรายชื่อกำหนด
+    เปิดเฉพาะคำถามแบบ "…เลือก…มีวิชาอะไรบ้าง" ที่ระบุชื่อช่อง (ไม่ใช่ถามหน่วยกิต/จำนวน); ช่องที่มีแคตตาล็อกจริง
+    (เช่น 06026xxx กลุ่มวิทยาการข้อมูล) ไม่เกี่ยว ปล่อยให้ทางเดิม; ระบุปี/เทอมในคำถาม = กรองเฉพาะเทอมนั้น"""
+    if "เลือก" not in question or not _OPEN_SLOT_LIST_Q.search(question) or _OPEN_SLOT_COUNT_Q.search(question):
+        return None
     try:
-        slots = conn.execute("SELECT DISTINCT name_th, code FROM plan_slot WHERE kind = 'wildcard'").fetchall()
+        slots = conn.execute("SELECT id, year, semester, code, name_th, credits FROM plan_slot "
+                             "WHERE kind = 'wildcard' ORDER BY year, semester, id").fetchall()
     except sqlite3.OperationalError:
-        return sql, rows
-    for name, code in slots:
-        key = re.sub(r"^วิชาเลือก", "", (name or "").strip()).strip()
-        prefix = (code or "").rstrip("xX")
-        if len(key) < 6 or key not in question or not prefix.isdigit() or len(prefix) < 4:
+        return None
+    y, s = _TERM_YEAR_NUM.search(question), _TERM_SEM_NUM.search(question)
+    picked, seen = [], set()
+    for sid, year, sem, code, name, credits in slots:
+        name = name or ""
+        is_free = "เลือกเสรี" in name and "เลือกเสรี" in question
+        is_ge = any(p in name and p in question for p in _OPEN_SLOT_GE_PHRASES)
+        if not (is_free or is_ge):
             continue
-        if any(str(r.get("code", "")).startswith(prefix) for r in rows):
-            return sql, rows
-        template = f"SELECT code, name_th, credits FROM course WHERE code LIKE '{prefix}%' ORDER BY code"
-        found = [dict(r) for r in conn.execute(template).fetchall()]
-        return (template, found) if found else (sql, rows)
-    return sql, rows
+        if (y and int(y.group(1)) != year) or (s and int(s.group(1)) != sem) or (year, sem, name) in seen:
+            continue
+        seen.add((year, sem, name))
+        picked.append((sid, year, sem, code, name, credits, is_free))
+    if not picked:
+        return None
+    picked = [p for p in picked if p[4] in question] or picked      # ระบุชื่อช่องเต็ม (เช่น "วิชาเลือกเสรี 2") = เฉพาะช่องนั้น
+    parts = []
+    for _sid, year, sem, code, name, credits, is_free in picked:
+        where = f"(ปี {year} เทอม {sem})"
+        if is_free:
+            parts.append(f"{name} {where}: เลือกเรียนจากรายวิชาที่เปิดสอนในสถาบันได้ {credits} หน่วยกิต "
+                         "ไม่มีรายชื่อวิชากำหนดในเล่ม")
+        else:
+            appendix = " (ภาคผนวก ง ของเล่มหลักสูตร)" if (code or "").startswith("9064") else ""
+            parts.append(f"{name} {where}: ไม่ได้กำหนดรายวิชาตายตัวในแผน — ให้เลือก {credits} หน่วยกิต"
+                         f"จากรายวิชาที่{_UNIVERSITY}เปิดสอน{appendix}")
+    terms = {(p[1], p[2]) for p in picked}
+    if len(terms) == 1:                                   # เทอมเดียว → SQL ระบุ year/semester เพื่ออ้างอิงหน้าตารางแผนของเทอมนั้น
+        year, sem = next(iter(terms))
+        names = " OR ".join("name_th = '" + p[4].replace("'", "''") + "'" for p in picked)
+        sql = (f"SELECT year, semester, name_th AS slot, code AS code_pattern, credits FROM plan_slot "
+               f"WHERE year = {year} AND semester = {sem} AND ({names}) ORDER BY id")
+    else:
+        ids = ", ".join(str(p[0]) for p in picked)
+        sql = (f"SELECT year, semester, name_th AS slot, code AS code_pattern, credits FROM plan_slot "
+               f"WHERE id IN ({ids}) ORDER BY year, semester, id")
+    rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    return "; ".join(parts), rows, sql
+
+
+def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
+    """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
+    (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
+    citations = _citations_module()
+    lookup = citations.load_lookup(conn)
+    if lookup is not None:
+        result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)
+        result["citation_text"] = citations.format_citation(result["citations"])
 
 
 def _self_chosen_slot_note(conn: sqlite3.Connection, question: str) -> str:
@@ -1898,6 +1944,11 @@ def ask(conn: sqlite3.Connection, question: str,
     }
     # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน); False = สร้างไม่ได้ → กลับไปใช้ view เดิมใน DB (เห็นได้จากผลลัพธ์)
     result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
+    open_slot = _open_slot_answer(conn, question)         # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ — ตอบตามเล่ม ไม่ต้องเรียกโมเดล
+    if open_slot:
+        result["answer"], result["rows"], result["sql"] = open_slot
+        _attach_citations(conn, result)
+        return result
     ddl = DDL.strip()
     # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
@@ -1942,7 +1993,6 @@ def ask(conn: sqlite3.Connection, question: str,
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
 
     result["sql"], result["rows"] = _term_summary_fallback(conn, question, result["sql"], result["rows"])
-    result["sql"], result["rows"] = _wildcard_slot_fallback(conn, question, result["sql"], result["rows"])
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
@@ -2013,13 +2063,7 @@ def ask(conn: sqlite3.Connection, question: str,
         result["answer"] = f"{result['answer']}; {slot_note}" if result["answer"] else slot_note
     # รหัสวิชาในคำตอบ -> เติมชื่อจากตาราง course ("06026200" -> "06026200 (แคลคูลัส 1)") เฉพาะรหัสที่มาจากผล SQL
     result["answer"] = _with_course_names(conn, result["answer"], result["rows"])
-    # อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
-    # (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)
-    citations = _citations_module()
-    lookup = citations.load_lookup(conn)
-    if lookup is not None:
-        result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)
-        result["citation_text"] = citations.format_citation(result["citations"])
+    _attach_citations(conn, result)
     return result
 
 

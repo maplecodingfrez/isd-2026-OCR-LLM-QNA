@@ -340,17 +340,23 @@ def test_compound_answer_without_a_slot_table_is_unchanged(tmp_path, monkeypatch
     assert "ช่องที่นักศึกษาเลือกเอง" not in r["answer"]
 
 
-# ---------- ช่อง wildcard (เช่น 90644xxx = วิชารหัสขึ้นต้น 90644) ถามว่า "มีวิชาอะไรให้เลือก" ----------
-# ราก: โมเดลไปค้น v_elective_group (แคตตาล็อกเฉพาะทาง) ซึ่งไม่มีช่องนี้ → ว่าง ทั้งที่ course มีวิชารหัสนั้นอยู่
+# ---------- ช่อง "เลือกเอง" ที่เล่มไม่ระบุรายชื่อ: หมวดศึกษาทั่วไป/ภาษาและการสื่อสาร (เลือกจากที่ สจล. เปิดสอน, ภาคผนวก ง)
+# และวิชาเลือกเสรี — ตอบตามถ้อยคำเล่ม ไม่ลิสต์วิชารหัสขึ้นต้นเดียวกัน (รวมวิชาบังคับ/กลุ่มอื่นมั่ว ๆ) ----------
 
 def _wildcard_db(path):
     c = _plan_db(path)
     c.executescript(m.PLAN_SLOT_DDL)
+    c.executescript(m.COURSE_PAGE_DDL)
     c.executemany("INSERT INTO course (code, name_th, credits) VALUES (?, ?, 3)",
-                  [("90644001", "ภาษาอังกฤษ 1"), ("90644002", "การนำเสนอ"), ("90641001", "อื่น")])
-    c.executemany("INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th, credits) VALUES ('P', ?, ?, ?, ?, ?, 3)",
-                  [(2, 1, "wildcard", "90644xxx", "วิชาเลือกด้านภาษาและการสื่อสาร"),
-                   (4, 1, "wildcard", "xxxxxxx", "วิชาเลือกเสรี 1")])
+                  [("90644001", "ภาษาอังกฤษ 1"), ("90644002", "การนำเสนอ")])
+    c.executemany("INSERT INTO plan_slot (program_id, year, semester, kind, code, name_th, credits) VALUES ('P', ?, ?, 'wildcard', ?, ?, 3)",
+                  [(2, 1, "90644xxx", "วิชาเลือกด้านภาษาและการสื่อสาร"),
+                   (3, 1, "9064xxxx", "วิชาเลือกหมวดวิชาศึกษาทั่วไป"),
+                   (4, 1, "9064xxxx", "วิชาเลือกหมวดวิชาศึกษาทั่วไป"),
+                   (4, 1, "xxxxxxx", "วิชาเลือกเสรี 1"),
+                   (4, 1, "xxxxxxx", "วิชาเลือกเสรี 2"),
+                   (3, 2, "06026xxx", "วิชาเลือกกลุ่มวิทยาการข้อมูล")])
+    c.execute("INSERT INTO term_page VALUES (2, 1, 16, '15')")
     c.commit()
     return c
 
@@ -367,34 +373,57 @@ def _ask_wildcard(tmp_path, monkeypatch, question, model_sql="SELECT code, name_
 
     monkeypatch.setattr(m, "ollama_generate", fake)
     with closing(m.open_db(path, readonly=True)) as conn:
-        return m.ask(conn, question, verbose=False)
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
 
 
 @pytest.mark.parametrize("question", [
     "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
     "ปี 2 เทอม 1 ด้านภาษาและการสื่อสาร เลือกเรียนวิชาอะไรได้บ้าง",
 ])
-def test_wildcard_slot_question_lists_the_courses_with_that_code_prefix(tmp_path, monkeypatch, question):
+def test_ge_slot_answers_as_the_book_does_without_listing_courses(tmp_path, monkeypatch, question):
     r = _ask_wildcard(tmp_path, monkeypatch, question)
-    assert sorted(row["code"] for row in r["rows"]) == ["90644001", "90644002"]
-    assert "ภาษาอังกฤษ 1" in r["answer"] and "การนำเสนอ" in r["answer"] and "อื่น" not in r["answer"]
-    assert "LIKE '90644%'" in r["sql"]
+    assert "ไม่ได้กำหนดรายวิชาตายตัว" in r["answer"] and "ภาคผนวก ง" in r["answer"] and "3 หน่วยกิต" in r["answer"]
+    assert "ภาษาอังกฤษ 1" not in r["answer"] and "90644001" not in r["answer"]      # ไม่ลิสต์วิชารหัสขึ้นต้นเดียวกัน
+    assert r["rows"] == [{"year": 2, "semester": 1, "slot": "วิชาเลือกด้านภาษาและการสื่อสาร",
+                          "code_pattern": "90644xxx", "credits": 3}]
+    assert r["model_calls"] == 0 and r["error"] is None
 
 
-def test_wildcard_fallback_leaves_rows_that_already_match_the_slot(tmp_path, monkeypatch):
-    sql = "SELECT code, name_th FROM course WHERE code = '90644001'"
-    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรบ้าง", sql)
-    assert [row["code"] for row in r["rows"]] == ["90644001"]
+def test_ge_slot_answer_cites_the_plan_page_of_its_term(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "ปี 2 เทอม 1 วิชาเลือกด้านภาษาและการสื่อสารมีอะไรให้เลือกบ้าง")
+    assert [c["pdf_page"] for c in r["citations"]] == [16]
 
 
-def test_free_elective_slot_with_no_code_prefix_is_not_expanded(tmp_path, monkeypatch):
-    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกเสรี 1 มีวิชาอะไรให้เลือกบ้าง")
-    assert r["rows"] == []
+def test_ge_slot_in_several_terms_names_each_term_unless_the_question_picks_one(tmp_path, monkeypatch):
+    both = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกหมวดวิชาศึกษาทั่วไป มีวิชาอะไรให้เลือกบ้าง")
+    assert [(x["year"], x["semester"]) for x in both["rows"]] == [(3, 1), (4, 1)]
+    assert "ปี 3 เทอม 1" in both["answer"] and "ปี 4 เทอม 1" in both["answer"]
+    one = _ask_wildcard(tmp_path, monkeypatch, "ปี 4 เทอม 1 วิชาเลือกหมวดวิชาศึกษาทั่วไป มีวิชาอะไรให้เลือกบ้าง")
+    assert [(x["year"], x["semester"]) for x in one["rows"]] == [(4, 1)]
 
 
-def test_wildcard_fallback_needs_the_slot_to_be_named_in_the_question(tmp_path, monkeypatch):
-    r = _ask_wildcard(tmp_path, monkeypatch, "มีวิชาอะไรให้เลือกบ้าง")
-    assert r["rows"] == []
+def test_a_slot_named_in_full_in_the_question_is_the_only_one_answered(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกเสรี 2 เลือกวิชาอะไรได้บ้าง")
+    assert [x["slot"] for x in r["rows"]] == ["วิชาเลือกเสรี 2"]
+    generic = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกเสรีเลือกวิชาอะไรได้บ้าง")
+    assert [x["slot"] for x in generic["rows"]] == ["วิชาเลือกเสรี 1", "วิชาเลือกเสรี 2"]
+
+
+def test_free_elective_answer_says_there_is_no_fixed_list(tmp_path, monkeypatch):
+    r = _ask_wildcard(tmp_path, monkeypatch, "วิชาเลือกเสรี 1 เลือกวิชาอะไรได้บ้าง")
+    assert "ไม่มีรายชื่อวิชากำหนด" in r["answer"] and "ที่เปิดสอนในสถาบัน" in r["answer"]
+    assert r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 วิชาเลือกด้านภาษาและการสื่อสารกี่หน่วยกิต",       # ถามหน่วยกิต ไม่ใช่รายชื่อ → ทางเดิม (โมเดล)
+    "วิชาเลือกกลุ่มวิทยาการข้อมูลมีวิชาอะไรบ้าง",                    # ช่องที่มีแคตตาล็อกจริง → ทางเดิม
+    "ภาษาและการสื่อสารมีวิชาอะไรบ้าง",                               # ไม่ได้ถามถึง "วิชาเลือก" → ทางเดิม
+])
+def test_questions_that_are_not_about_choosing_a_course_use_the_normal_path(tmp_path, monkeypatch, question):
+    assert _ask_wildcard(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
 
 # ---------- เลขหน้าใน source ของแคตตาล็อกคือเลขหน้า PDF (ตัวคั่น "--- Page N ---") ไม่ใช่เลขที่พิมพ์ในเล่ม ----------
