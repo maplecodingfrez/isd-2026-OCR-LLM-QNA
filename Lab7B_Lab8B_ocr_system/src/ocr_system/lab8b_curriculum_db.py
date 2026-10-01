@@ -2456,6 +2456,76 @@ def _extreme_hours_answer(conn: sqlite3.Connection, question: str) -> tuple[str,
             sql + f" ORDER BY c.{col} {'DESC' if want_max else 'ASC'}")
 
 
+# ---- 13. ข้อมูลระดับหลักสูตร (เรียนกี่ปี/หน่วยกิตรวม) และหน่วยกิต/ปี/เทอมของวิชาเดียว ----
+# held-out ใหม่ 270 ข้อ: "เรียนทั้งหมดกี่ปี" โมเดลตอบ COUNT(DISTINCT year) FROM program ผิดทุก DB; หน่วยกิต/ปี/เทอมของวิชาเดียวบางครั้งถามตารางผิด
+_FACT_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|ปีที่|เทอม|ภาค|หมวด|กลุ่ม|เลือก|เสรี|ศึกษาทั่วไป|วิชา(?:อะไร|ไหน|ใด)|อะไรบ้าง|ชั่วโมง|ก่อน|รหัส")
+
+
+def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ "หลักสูตรนี้เรียนกี่ปี" / "ต้องเรียนกี่หน่วยกิตถึงจะจบ" → ค่าจากตาราง program (หน่วยกิตรวมตลอดหลักสูตร, จำนวนปี);
+    มีปี/เทอม/หมวด/กลุ่ม/วิชาเลือก/ชื่อวิชา/รหัสวิชาในคำถาม = None (ไปทางทางลัดอื่นหรือโมเดล)"""
+    if _FACT_NOT_RE.search(question) or _CODE8.search(question):
+        return None
+    years = bool(re.search(r"กี่ปี", question) and re.search(r"เรียน|ใช้เวลา|ระยะเวลา|หลักสูตร|จบ|ศึกษา", question))
+    credits = bool("หน่วยกิต" in question and re.search(r"ทั้งหมด|รวม|ตลอดหลักสูตร|ถึงจะจบ|จึงจะจบ|เพื่อจบ|ที่ต้องเรียน|หลักสูตร|จบ", question))
+    if years == credits:                                                   # ไม่ใช่ทั้งสองอย่าง/ถามสองอย่างพร้อมกัน → ทางเดิม
+        return None
+    try:
+        progs = [dict(r) for r in conn.execute("SELECT total_credits, years FROM program").fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if len(progs) != 1 or _named_courses(conn, question):
+        return None
+    col, label = ("years", "ปี") if years else ("total_credits", "หน่วยกิต")
+    if progs[0][col] is None:
+        return None
+    return (f"{'หลักสูตรนี้ใช้เวลาเรียนตามแผน' if years else 'หน่วยกิตรวมตลอดหลักสูตร'} {progs[0][col]} {label}", [{col: progs[0][col]}],
+            f"SELECT {col} FROM program")
+
+
+_ATTR_YEAR = re.compile(r"ปีไหน|ชั้นปีไหน|ปีใด|ชั้นปีใด|ปีที่เท่าไร|ปีที่เท่าไหร่|ปีอะไร")
+_ATTR_SEM = re.compile(r"เทอมไหน|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|เทอมใด|ภาคเรียนที่เท่าไร|เทอมที่เท่าไร|เทอมอะไร")
+_ATTR_NOT = re.compile(r"ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|ภาค\S*\s*\d|รวม|ทั้งหมด|กี่วิชา|หมวด|ชั่วโมง|ก่อน|รหัส|ชื่อ|อะไรบ้าง|วิชาไหนบ้าง|วิชา(?:อะไร|ใด)")
+
+
+def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """หน่วยกิต / ปี / เทอมที่เรียน ของ "วิชาเดียว" (ระบุด้วยรหัสหรือชื่อ) จากตาราง course และ plan_item ตรง ๆ;
+    วิชาอยู่ในแผนหลายที่ = บอกทุกที่; ปี/เทอมของวิชานอกแผน, ถามหลายวิชา/เป็นรายการ/มีเลขปีเทอมในคำถาม = None (ทางเดิม)"""
+    want_credits = "หน่วยกิต" in question
+    want_year, want_sem = bool(_ATTR_YEAR.search(question)), bool(_ATTR_SEM.search(question))
+    if not (want_credits or want_year or want_sem) or _ATTR_NOT.search(question):
+        return None
+    codes = list(dict.fromkeys(_CODE8.findall(question)))
+    if len(codes) > 1:
+        return None
+    if codes:
+        code = codes[0]
+    else:
+        named = _named_courses(conn, question, catalog=False)
+        if not named or len(named) != 1:
+            return None
+        code = next(iter(named))
+    try:
+        course = conn.execute("SELECT code, name_th, credits FROM course WHERE code = ?", (code,)).fetchone()
+        places = [tuple(r) for r in conn.execute("SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (code,))]
+    except sqlite3.OperationalError:
+        return None
+    if course is None or ((want_year or want_sem) and not places) or (want_credits and course["credits"] is None):
+        return None
+    bits, rows = [], []
+    if want_credits:
+        bits.append(f"{course['credits']} หน่วยกิต")
+    if want_year or want_sem:
+        bits.append(" และ ".join(f"ปี {y} เทอม {s}" for y, s in places))
+        for y, s in places:
+            rows.append({"code": course["code"], "name_th": course["name_th"], "year": y, "semester": s,
+                         **({"credits": course["credits"]} if want_credits else {})})
+    else:
+        rows.append({"code": course["code"], "name_th": course["name_th"], "credits": course["credits"]})
+    return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows,
+            f"SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '{code}'")
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -3164,7 +3234,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)

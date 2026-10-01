@@ -162,3 +162,16 @@ def test_x_must_be_taken_before_which_course_is_the_after_direction():
 def test_new_after_pattern_does_not_touch_other_directions_or_yes_no_questions():
     assert direction("วิชา แคลคูลัส 1 ต้องเรียนก่อนไหม") is None
     assert direction("วิชา แคลคูลัส 1 ต้องเรียนวิชาอะไรมาก่อน") == ("before", "06026200")
+
+
+# Break caught (held-out ใหม่ 270 ข้อ): "X เป็นเงื่อนไขก่อนเรียนของวิชาไหนบ้าง" = ถามวิชาตัวต่อของ X แต่ไม่มีกฎ → โมเดลสลับทิศ (WHERE code='X') ตอบ "ไม่พบ" 14 ครั้งใน 7 DB
+def test_x_is_a_condition_for_which_course_is_the_after_direction():
+    for q in ("วิชา แคลคูลัส 1 เป็นเงื่อนไขก่อนเรียนของวิชาไหนบ้าง", "แคลคูลัส 1 เป็นเงื่อนไขของวิชาอะไร", "06026200 เป็นข้อกำหนดก่อนเรียนของวิชาใดบ้าง",
+              "วิชา แคลคูลัส 1 เป็นเงื่อนไขก่อนลงทะเบียนของวิชาไหน", "แคลคูลัส 1 เป็นวิชาเงื่อนไขของวิชาอะไรบ้าง"):
+        assert direction(q) == ("after", "06026200"), q
+
+
+def test_condition_phrasing_does_not_fire_on_other_questions():
+    assert direction("วิชา แคลคูลัส 1 มีเงื่อนไขอะไรบ้าง") is None
+    assert direction("เงื่อนไขการจบการศึกษาคืออะไร") is None
+    assert direction("แคลคูลัส 1 เป็นเงื่อนไขของการสอบไหม") is None

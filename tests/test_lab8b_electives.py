@@ -117,7 +117,7 @@ def _prompts_for(tmp_path, monkeypatch, question):
 
 def test_ask_adds_the_elective_hint_only_for_elective_questions(tmp_path, monkeypatch):
     assert MARKER_ELECTIVE in _prompts_for(tmp_path, monkeypatch, "วิชาเลือกมีอะไรบ้าง")
-    plain = _prompts_for(tmp_path, monkeypatch, "หลักสูตรนี้มีหน่วยกิตรวมกี่หน่วยกิต")
+    plain = _prompts_for(tmp_path, monkeypatch, "หลักสูตรนี้ยากไหม")
     assert MARKER_ELECTIVE not in plain and MARKER_TOPIC not in plain
 
 
@@ -961,7 +961,7 @@ def test_catalog_course_is_found_by_code_and_by_name(tmp_path, monkeypatch):
     assert "ภาษาจีน" in r["answer"] and "กลุ่มทักษะภาษาและการสื่อสาร" in r["answer"]
 
 
-@pytest.mark.parametrize("question", ["วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "วิชา 99999999 ชื่ออะไร", "ปี 1 เทอม 1 เรียนอะไรบ้าง"])
+@pytest.mark.parametrize("question", ["วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 ยากไหม", "วิชา 99999999 ชื่ออะไร", "ปี 1 เทอม 1 เรียนอะไรบ้าง"])
 def test_catalog_lookup_leaves_plan_courses_unknown_codes_and_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -998,7 +998,7 @@ def test_term_listing_with_prerequisites(tmp_path, monkeypatch):
     assert "06020004" in r["answer"] and "06020005" in r["answer"] and "06020003" in r["answer"] and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 เรียนปีไหนเทอมไหน", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง"])
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง"])
 def test_prereq_term_shortcut_leaves_plain_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_prereq_term_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1269,7 +1269,7 @@ def test_a_structure_answer_cites_the_page_of_the_heading(tmp_path, monkeypatch)
 
 
 @pytest.mark.parametrize("question", [
-    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต", "วิชา 06020001 กี่หน่วยกิต", "วิชา แคลคูลัส 1 กี่หน่วยกิต",
+    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต", "วิชา 06020001 ยากไหม", "วิชา แคลคูลัส 1 ยากไหม",
     "หมวดวิชาเฉพาะมีวิชาอะไรบ้าง", "ทั้งหลักสูตรมีกี่วิชา", "หลักสูตรนี้มีหน่วยกิตรวมเท่าไหร่"])
 def test_structure_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_credit_structure_question(question)
@@ -1477,7 +1477,7 @@ def test_a_known_course_without_a_description_says_so_instead_of_guessing(tmp_pa
 
 
 @pytest.mark.parametrize("question", [
-    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "หลักสูตรนี้เกี่ยวกับอะไร",
+    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "หลักสูตรนี้เกี่ยวกับอะไร",
     "วิชา 99999999 เรียนเกี่ยวกับอะไร"])
 def test_description_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_desc(tmp_path, monkeypatch, question)["model_calls"] >= 1
@@ -1675,8 +1675,8 @@ def test_a_missing_topic_is_reported_not_guessed(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("question", [
-    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "วิชาเลือกมีกี่หน่วยกิต",
-    "ต้องเรียนกี่หน่วยกิตจึงจะจบ", "หมวดวิชาเฉพาะมีกี่หน่วยกิต"])
+    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "วิชาเลือกมีกี่หน่วยกิต",
+    "หมวดวิชาเฉพาะมีกี่หน่วยกิต"])
 def test_section_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_sec(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1775,7 +1775,7 @@ def test_the_longest_matching_name_wins_over_a_shorter_name_inside_it(tmp_path, 
 
 
 @pytest.mark.parametrize("question", [
-    "แคลคูลัส 1 กี่หน่วยกิต", "วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
+    "แคลคูลัส 1 ยากไหม", "วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
     "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง", "ขอรหัสวิชาที่ไม่มีอยู่จริงหน่อย", "วิชา 06020001 ชื่ออะไร",
     "รหัสวิชา 06020002 ต้องเรียนก่อนวิชาอะไร", "แคลคูลัส 1 และแคลคูลัส 2 ต่างกันอย่างไร"])
 def test_code_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
@@ -1872,7 +1872,7 @@ def test_hours_of_one_named_course_are_read_from_the_course_row(tmp_path, monkey
 
 
 @pytest.mark.parametrize("question", [
-    "ปี 1 มีวิชาที่แล็บกี่ชั่วโมงบ้าง", "แคลคูลัส 1 กี่หน่วยกิต",
+    "ปี 1 มีวิชาที่แล็บกี่ชั่วโมงบ้าง", "แคลคูลัส 1 ยากไหม",
     "แคลคูลัส 1 และฟิสิกส์ 1 บรรยายสัปดาห์ละกี่ชั่วโมง", "วิชาที่ไม่มีอยู่จริงบรรยายสัปดาห์ละกี่ชั่วโมง", "ชั่วโมงบรรยายรวมของทุกวิชากี่ชั่วโมง"])
 def test_hours_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_hours(tmp_path, monkeypatch, question)["model_calls"] >= 1
@@ -1984,3 +1984,84 @@ def test_real_it_databases_carry_the_hours_the_book_prints():
             pytest.skip("ไม่มีไฟล์ DB")
         with closing(sqlite3.connect(db)) as c:
             assert c.execute("SELECT lecture_h, lab_h, self_h FROM course WHERE code = '06016425'").fetchone() == (2, 2, 5), rel
+
+
+# =============== held-out ใหม่ 270 ข้อ: "เรียนทั้งหมดกี่ปี" (โมเดลตอบ COUNT(DISTINCT year) FROM program ผิด 7/7 DB) และ
+# หน่วยกิต/ปี/เทอมของวิชาเดียว (โมเดลถามตารางผิดเป็นบางครั้ง) → ทางลัดจากตาราง program / course / plan_item ตรง ๆ ===============
+
+def _attr_db(tmp_path):
+    c = _hours_db(tmp_path)
+    c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06020006', 'โครงงานทดสอบ', 'TEST PROJECT', 2)")
+    c.executemany("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('P', ?, ?, '06020006', 2)", [(3, 1), (3, 2)])
+    c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06020007', 'วิชานอกแผน', 'OFF PLAN', 3)")
+    c.commit()
+    return c
+
+
+def _ask_attr(tmp_path, monkeypatch, question):
+    _attr_db(tmp_path).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,needle", [
+    ("หลักสูตรนี้เรียนทั้งหมดกี่ปี", "4 ปี"), ("เรียนกี่ปีถึงจะจบ", "4 ปี"), ("หลักสูตรใช้เวลากี่ปี", "4 ปี"),
+    ("ต้องเรียนกี่หน่วยกิตถึงจะจบหลักสูตรนี้", "129 หน่วยกิต"), ("รวมแล้วหลักสูตรมีกี่หน่วยกิต", "129 หน่วยกิต"),
+    ("หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "129 หน่วยกิต")])
+def test_program_level_years_and_credits_come_from_the_program_row(tmp_path, monkeypatch, question, needle):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert needle in r["answer"] and r["model_calls"] == 0
+    assert any(str(v) in ("4", "129") for row in r["rows"] for v in row.values())
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 1 เทอม 1 เรียนรวมกี่หน่วยกิต", "หมวดวิชาเฉพาะมีกี่หน่วยกิต", "วิชาเลือกเสรีรวมกี่หน่วยกิต", "แคลคูลัส 1 กี่หน่วยกิต",
+    "ปี 2 เรียนกี่ปี", "เทอมนี้เรียนกี่หน่วยกิตทั้งหมด", "วิชาโครงงานทดสอบเรียนกี่ปี"])
+def test_program_shortcut_leaves_term_category_and_course_questions_alone(tmp_path, monkeypatch, question):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert "129 หน่วยกิต" not in r["answer"] and "ตลอดหลักสูตร" not in r["answer"]
+
+
+@pytest.mark.parametrize("question,needle", [
+    ("แคลคูลัส 1 อยู่ปีไหนของแผน", "ปี 1"), ("วิชา ฟิสิกส์ 1 เรียนเทอมไหน", "เทอม 1"), ("วิชาฟิสิกส์ 1 อยู่ปีไหน เทอมไหน", "ปี 2 เทอม 1"),
+    ("PHYSICS 1 เรียนตอนปีไหน", "ปี 2"), ("06020004 อยู่ภาคเรียนไหน", "เทอม 2"), ("โครงงานทดสอบมีกี่หน่วยกิต", "2 หน่วยกิต"),
+    ("วิชา 06020003 กี่หน่วยกิต", "3 หน่วยกิต"), ("โครงงานทดสอบเรียนปีไหน", "ปี 3")])
+def test_credits_year_and_semester_of_one_course_come_from_the_tables(tmp_path, monkeypatch, question, needle):
+    r = _ask_attr(tmp_path, monkeypatch, question)
+    assert needle in r["answer"] and r["model_calls"] == 0
+
+
+def test_a_course_in_two_plan_places_lists_both(tmp_path, monkeypatch):
+    r = _ask_attr(tmp_path, monkeypatch, "โครงงานทดสอบเรียนเทอมไหน")
+    assert "ปี 3 เทอม 1" in r["answer"] and "ปี 3 เทอม 2" in r["answer"]
+
+
+@pytest.mark.parametrize("question", [
+    "วิชานอกแผนเรียนปีไหน", "วิชาที่ไม่มีอยู่จริงกี่หน่วยกิต", "แคลคูลัส 1 และฟิสิกส์ 1 กี่หน่วยกิต", "แคลคูลัส 1 ยากไหม",
+    "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 มีวิชาอะไรบ้างกี่หน่วยกิต", "วิชาอะไรเรียนปีไหนบ้าง"])
+def test_course_attribute_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_attr(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def test_gold_questions_taken_by_the_program_and_course_attribute_shortcuts_are_answered_right():
+    taken = 0
+    for rel, gold in (("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                      ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")):
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            continue
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(m.open_db(db, readonly=True)) as conn:
+            for q in qs:
+                for fn in (m._program_fact_answer, m._course_attr_answer):
+                    r = fn(conn, q["question"])
+                    if r is None:
+                        continue
+                    taken += 1
+                    ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
+                    assert ok, (rel, q["id"], q["question"], r[0], q["expect"], why)
+    assert taken >= 10

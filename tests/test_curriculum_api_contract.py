@@ -202,7 +202,7 @@ def test_ask_422_when_ollama_is_down_during_sql_generation(client, monkeypatch):
     def boom(*args, **kwargs):
         raise requests.ConnectionError("Max retries exceeded")
     monkeypatch.setattr(main.lab8b, "ollama_generate", boom)
-    r = client.post("/api/ask", json={"question": "หลักสูตรนี้มีหน่วยกิตรวมกี่หน่วยกิต"})
+    r = client.post("/api/ask", json={"question": "หลักสูตรนี้ยากไหม"})
     assert r.status_code == 422
     assert isinstance(r.json()["detail"], str) and r.json()["detail"].startswith("ConnectionError")
 
