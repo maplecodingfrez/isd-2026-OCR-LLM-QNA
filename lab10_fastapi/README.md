@@ -444,3 +444,20 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 ### 13.7 Wireframe
 
 `docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/iYxgQdXyZ3l54ANq8uuW9g>
+
+## 14. วัน Challenge: รันคำถามเป็นชุด และอุ่นโมเดล
+
+อาจารย์ส่งชุดคำถามมาให้ตอบ (ผลส่งเป็นไฟล์ JSON/ข้อความลง Discord ทันทีหลังทดสอบ) — ใช้คำสั่ง `ask-batch` ของ Lab 8B ซึ่ง **ไม่ต้องเปิดเซิร์ฟเวอร์ uvicorn** (ต้องเปิด Ollama เท่านั้น):
+
+```powershell
+.venv\Scripts\python.exe Lab7B_Lab8B_ocr_system\src\ocr_system\lab8b_curriculum_db.py ask-batch `
+  -d Lab7B_Lab8B_ocr_system\runs\DSBA\coop\lab8b_output\curriculum.db `
+  -q challenge_questions.json -o challenge_answers.json --program "DSBA สหกิจ"
+```
+
+- **ไฟล์คำถาม:** `.json` (list ของข้อความ หรือของอ็อบเจ็กต์ `{"id","question","level"}` หรือ `{"questions":[...]}`), `.csv` (มีคอลัมน์ `question`) หรือ `.txt` (หนึ่งบรรทัดหนึ่งคำถาม ข้ามบรรทัดว่างและบรรทัดขึ้นต้นด้วย `#`)
+- **ผลลัพธ์:** `{"meta": {...}, "results": [{id, question, answer, citation_text, citations, sql, n_rows, seconds, error}]}` — `meta` สรุปจำนวนข้อที่ตอบได้/ล้ม จำนวนข้อที่เกิน 5 วินาที และเวลาเฉลี่ย; เพิ่ม `--with-rows` ถ้าต้องการแนบแถวจากฐานข้อมูล; ไม่ระบุ `-o` = เขียนเป็น `<ชื่อไฟล์คำถาม>_answers.json` ข้างไฟล์คำถาม
+- **ข้อที่พังไม่ทำให้ทั้งชุดหยุด:** exception (เช่น Ollama ล่มกลางชุด) ถูกบันทึกใน `error` และคำตอบสำรอง "ตอบไม่ได้: …" — คำตอบไม่เคยว่าง (คำตอบว่างทำให้ judge ให้ 0)
+- **คนละหลักสูตร:** รันทีละหลักสูตร โดยเปลี่ยน `-d` ให้ชี้ `runs/<หลักสูตร>/.../lab8b_output/curriculum.db` ที่ตรงกับคำถามชุดนั้น
+- **อุ่นโมเดล:** `ask-batch` โหลดโมเดลล่วงหน้าก่อนจับเวลา (ปิดได้ด้วย `--no-warmup`) และเซิร์ฟเวอร์ก็อุ่นโมเดลเบื้องหลังตอนเริ่ม ส่วน Ollama ถูกสั่งให้ค้างโมเดลไว้ 30 นาที (ปรับด้วยตัวแปร `LAB8_KEEP_ALIVE`, ค่าเริ่มต้นของ Ollama คือ 5 นาที) คำถามแรกจึงไม่ช้าจากการโหลดโมเดล
+

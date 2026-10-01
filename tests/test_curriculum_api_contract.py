@@ -6,6 +6,8 @@
 
 from pathlib import Path
 
+import threading
+
 import pytest
 import requests
 from starlette.testclient import TestClient
@@ -241,3 +243,20 @@ def test_program_param_with_missing_database_is_503(client, monkeypatch, tmp_pat
     r = client.get(path)
     assert r.status_code == 503
     assert isinstance(r.json()["detail"], str)
+
+
+# ---------- อุ่นโมเดลตอนเริ่มเซิร์ฟเวอร์ (คำถามแรกของ Challenge ไม่ต้องรอโหลดโมเดล) ----------
+
+def test_server_warms_up_the_model_in_the_background_on_startup(monkeypatch):
+    started = threading.Event()
+    monkeypatch.setattr(main.lab8b, "warm_up", lambda timeout=180: started.set() or True)
+    with TestClient(main.app):                       # ใช้ with เพื่อให้ lifespan ทำงาน
+        assert started.wait(3), "ไม่มีการเรียก warm_up ตอนเริ่มเซิร์ฟเวอร์"
+
+
+def test_startup_survives_when_warm_up_raises(monkeypatch):
+    def boom(timeout=180):
+        raise RuntimeError("ollama down")
+    monkeypatch.setattr(main.lab8b, "warm_up", boom)
+    with TestClient(main.app) as c:                  # เธรดเบื้องหลังล้มได้ แต่เซิร์ฟเวอร์ต้องยังตอบ
+        assert c.get("/api/programs").status_code == 200

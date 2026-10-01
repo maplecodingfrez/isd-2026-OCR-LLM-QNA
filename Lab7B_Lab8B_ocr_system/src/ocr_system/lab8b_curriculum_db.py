@@ -31,6 +31,8 @@ Lab 8B พาข้อมูลนั้นเดินต่ออีกสา�
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 import os
 import re
@@ -38,6 +40,7 @@ import sqlite3
 import sys
 import tempfile
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +50,8 @@ from typing import Any
 
 OLLAMA_URL = os.environ.get("LAB8_OLLAMA_URL", "http://127.0.0.1:11434")
 MODEL_TEXT = os.environ.get("LAB8_MODEL_TEXT", "qwen3:4b")
+# ให้ Ollama ค้างโมเดลไว้ในหน่วยความจำ (ค่าเริ่มต้นของ Ollama คือ 5 นาทีแล้วปล่อย → คำถามถัดไปช้าตอนโหลดใหม่)
+KEEP_ALIVE = os.environ.get("LAB8_KEEP_ALIVE", "30m")
 
 MAX_REPAIR_ROUNDS = 3      # จำนวนครั้งสูงสุดที่ยอมให้ LLM แก้ JSON ของตัวเอง
 SQL_ROW_LIMIT = 200        # กันไม่ให้ query เผลอดึงทั้งตารางมาใส่ prompt
@@ -425,6 +430,7 @@ def ollama_generate(prompt: str, fmt: Any | None = None,
         "messages": [{"role": "user", "content": prompt + "\n/no_think"}],
         "stream": False,
         "think": False,
+        "keep_alive": KEEP_ALIVE,
         "options": {"temperature": 0.0, "num_ctx": num_ctx,
                     "num_predict": num_predict},
     }
@@ -433,6 +439,17 @@ def ollama_generate(prompt: str, fmt: Any | None = None,
     r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=timeout)
     r.raise_for_status()
     return (r.json().get("message") or {}).get("content", "")
+
+
+def warm_up(timeout: int = 180) -> bool:
+    """โหลดโมเดลเข้าหน่วยความจำล่วงหน้า (คำถามแรกจะได้ไม่ช้า) — ไม่ throw เมื่อ Ollama ยังไม่พร้อม"""
+    import requests
+    try:
+        r = requests.post(f"{OLLAMA_URL}/api/generate",
+                          json={"model": MODEL_TEXT, "keep_alive": KEEP_ALIVE}, timeout=timeout)
+        return bool(r.ok)
+    except Exception:
+        return False
 
 
 def parse_json_loose(s: str) -> dict:
@@ -1806,6 +1823,115 @@ def cmd_ask(args) -> None:
         print(f"  หมายเหตุ: {r['error']}")
 
 
+# ───────────────────────────────────────────────────────────────────────
+#  รันหลายคำถามจากไฟล์ (ask-batch) — เตรียมวัน Challenge
+#  อาจารย์ส่งชุดคำถามมา เราส่งคำตอบกลับเป็นไฟล์ JSON; ข้อไหนพังต้องไม่ทำให้ทั้งชุดหยุด
+# ───────────────────────────────────────────────────────────────────────
+
+FALLBACK_ANSWER = "ตอบไม่ได้: ระบบประมวลผลคำถามนี้ไม่สำเร็จ"
+
+
+def load_questions(path: str | Path) -> list[dict]:
+    """อ่านคำถามจาก .json (list ของข้อความ/อ็อบเจ็กต์ หรือ dict ที่มีคีย์ questions), .csv (หัวคอลัมน์ question)
+    หรือ .txt (หนึ่งบรรทัดหนึ่งคำถาม; บรรทัดว่างและบรรทัดขึ้นต้นด้วย # ถูกข้าม) → [dict ที่มี id และ question]"""
+    p = Path(path)
+    text = p.read_text(encoding="utf-8-sig")
+    suffix = p.suffix.lower()
+    if suffix == ".json":
+        data = json.loads(text)
+        items = (data.get("questions") or data.get("items") or []) if isinstance(data, dict) else data
+    elif suffix == ".csv":
+        reader = csv.DictReader(io.StringIO(text))
+        names = [(n or "").strip().lower() for n in (reader.fieldnames or [])]
+        if "question" not in names:
+            raise ValueError("ไฟล์ CSV ต้องมีคอลัมน์ question")
+        items = [{(k or "").strip().lower(): v for k, v in row.items()} for row in reader]
+    else:
+        items = [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+    out: list[dict] = []
+    for i, item in enumerate(items, 1):
+        if isinstance(item, str):
+            d: dict = {"question": item}
+        elif isinstance(item, dict):
+            d = dict(item)
+        else:
+            raise ValueError(f"ข้อที่ {i} ไม่ใช่ข้อความหรืออ็อบเจ็กต์")
+        d["question"] = str(d.get("question") or "").strip()
+        if not d["question"]:
+            raise ValueError(f"ข้อที่ {i} ไม่มีข้อความคำถาม")
+        d["id"] = str(d.get("id") or f"q{i}")
+        out.append(d)
+    if not out:
+        raise ValueError("ไม่พบคำถามในไฟล์")
+    return out
+
+
+def ask_batch(conn, questions: list[dict], ask_fn=None, clock=time.perf_counter,
+              with_rows: bool = False, on_result=None) -> list[dict]:
+    """ถามทีละข้อตามลำดับ — ข้อที่ exception (เช่น Ollama ล่ม) บันทึกเป็นคำตอบสำรองแล้วไปต่อ ไม่หยุดทั้งชุด
+    และไม่ปล่อยให้คำตอบว่าง (คำตอบว่างทำให้ judge ให้ 0)"""
+    ask_fn = ask_fn or ask
+    results: list[dict] = []
+    for i, q in enumerate(questions, 1):
+        t0 = clock()
+        try:
+            r = ask_fn(conn, q["question"], verbose=False)
+            error = r.get("error")
+        except Exception as e:                                  # noqa: BLE001 — ตั้งใจจับทุกชนิด
+            r, error = {}, f"{type(e).__name__}: {e}"
+        seconds = round(clock() - t0, 2)
+        item = {
+            "id": q["id"], "question": q["question"],
+            "answer": str(r.get("answer") or "").strip() or FALLBACK_ANSWER,
+            "citation_text": r.get("citation_text") or "", "citations": r.get("citations") or [],
+            "sql": r.get("sql"), "n_rows": len(r.get("rows") or []),
+            "seconds": seconds, "error": error,
+        }
+        for key in ("level", "category"):
+            if key in q:
+                item[key] = q[key]
+        if with_rows:
+            item["rows"] = r.get("rows") or []
+        results.append(item)
+        if on_result:
+            on_result(i, len(questions), item)
+    return results
+
+
+def summarize_batch(results: list[dict]) -> dict:
+    secs = [r["seconds"] for r in results]
+    n = len(results)
+    ok = sum(1 for r in results if not r["error"])
+    return {"n": n, "ok": ok, "failed": n - ok, "over_5s": sum(1 for s in secs if s > 5),
+            "avg_seconds": round(sum(secs) / n, 2) if n else 0, "max_seconds": max(secs) if secs else 0}
+
+
+def cmd_ask_batch(args) -> None:
+    questions = load_questions(args.questions)
+    conn = open_db(args.database, readonly=True)
+    warmed = None if args.no_warmup else warm_up()
+    if warmed is False:
+        print("  คำเตือน: โหลดโมเดลล่วงหน้าไม่สำเร็จ (Ollama ยังไม่เปิดหรือไม่มีโมเดล) — ข้อแรกอาจช้าหรือล้ม")
+
+    def show(i: int, n: int, r: dict) -> None:
+        mark = "ok " if not r["error"] else "ERR"
+        print(f"  [{i}/{n}] {mark} {r['seconds']:>5.1f}s  {r['question'][:60]}")
+
+    started = time.perf_counter()
+    results = ask_batch(conn, questions, with_rows=args.with_rows, on_result=show)
+    conn.close()
+    summary = summarize_batch(results)
+    payload = {"meta": {"database": str(args.database), "program": args.program or None, "model": MODEL_TEXT,
+                        "warmed_up": warmed, "created": datetime.now().isoformat(timespec="seconds"),
+                        "total_seconds": round(time.perf_counter() - started, 1), **summary},
+               "results": results}
+    out = Path(args.output) if args.output else Path(args.questions).with_name(Path(args.questions).stem + "_answers.json")
+    out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n  ตอบได้ {summary['ok']}/{summary['n']} ข้อ · เกิน 5 วินาที {summary['over_5s']} ข้อ · "
+          f"เฉลี่ย {summary['avg_seconds']} วินาที")
+    print(f"  เขียนคำตอบไว้ที่ {out}")
+
+
 # ═══════════════════════════════════════════════════════════════════════
 #  ส่วนที่ 6 — ประเมินด้วยชุดคำถามทอง
 # ═══════════════════════════════════════════════════════════════════════
@@ -2377,6 +2503,14 @@ def main() -> None:
     p.add_argument("-q", "--questions", required=True)
     p.add_argument("-o", "--output", default="")
 
+    p = sub.add_parser("ask-batch", help="ถามหลายคำถามจากไฟล์ (json/csv/txt) แล้วเขียนคำตอบเป็นไฟล์ JSON")
+    p.add_argument("-d", "--database", required=True)
+    p.add_argument("-q", "--questions", required=True)
+    p.add_argument("-o", "--output", default="", help="ไม่ระบุ = <ชื่อไฟล์คำถาม>_answers.json ข้าง ๆ ไฟล์คำถาม")
+    p.add_argument("--program", default="", help="ชื่อหลักสูตร (บันทึกใน meta)")
+    p.add_argument("--with-rows", action="store_true", help="แนบแถวผลลัพธ์จากฐานข้อมูลด้วย")
+    p.add_argument("--no-warmup", action="store_true", help="ไม่โหลดโมเดลล่วงหน้า")
+
     args = ap.parse_args()
     if args.cmd == "check":
         sys.exit(0 if check_environment() else 1)
@@ -2389,7 +2523,7 @@ def main() -> None:
      "load-course-pages": cmd_load_course_pages,
      "load-prerequisites": cmd_load_prerequisites,
      "verify": cmd_verify, "ask": cmd_ask,
-     "eval": cmd_eval}[args.cmd](args)
+     "ask-batch": cmd_ask_batch, "eval": cmd_eval}[args.cmd](args)
 
 
 if __name__ == "__main__":

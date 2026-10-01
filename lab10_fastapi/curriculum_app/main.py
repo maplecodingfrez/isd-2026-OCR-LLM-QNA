@@ -4,6 +4,8 @@ import json
 import os
 import sqlite3
 import sys
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import requests
@@ -30,7 +32,20 @@ from .schemas import (  # noqa: E402
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # โหลดโมเดลล่วงหน้าเบื้องหลัง: คำถามแรกไม่ต้องรอโหลด (ไม่ block การเปิดเซิร์ฟเวอร์ และไม่ล้มถ้า Ollama ยังไม่เปิด)
+    def warm() -> None:
+        try:
+            lab8b.warm_up()
+        except Exception:
+            pass
+    threading.Thread(target=warm, daemon=True).start()
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title=f"{settings.app_name} — Curriculum",
     description="Qwen text-to-SQL + SQLite curriculum application",
     version="1.0.0",
