@@ -1519,3 +1519,211 @@ def test_dsba_description_text_matches_the_book():
     with closing(sqlite3.connect(db)) as c:
         th, en = c.execute("SELECT description_th, description_en FROM course_description WHERE code = '06026206'").fetchone()
     assert th.startswith("ในภาคทฤษฎี แนะนํา") and "Introduction to business data analytics" in en
+
+
+# =============== หัวข้อเล่ม มคอ.2 (ชื่อหลักสูตร/ปริญญา/อาชีพ/ปรัชญา/วัตถุประสงค์/คุณสมบัติ/เกณฑ์จบ) — ยกข้อความตามเล่ม ===============
+# OCR เพี้ยนวรรณยุกต์/สระ (ชือ, ซือ, สําเร็จ) และมีเศษขยะหน้ากระดาษ → ต้องจับหัวข้อแบบทนเสียงรบกวน ตัดที่หัวข้อถัดไป ไม่เอาสารบัญ
+
+_BOOK_SEC = """--- Page 1 ---
+สารบัญ
+1. ชื่อหลักสูตร 1
+2. ชื่อปริญญาและสาขาวิชา 1
+8. อาชีพที่สามารถประกอบได้หลังสําเร็จการศึกษา 7
+--- Page 2 ---
+1
+มคอ. 2
+หมวดที 1 ข้อมูลทัวไป
+1. ชือหลักสูตร
+ขือภาษาไทย หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาตัวอย่าง
+ขื่อภาษาอังกฤษ Bachelor of Science Program in Example
+2. ซือปริญญาและสาขาวิชา
+Youu (ภาษาไทย) : วิทยาศาสตรบัณฑิต (ตัวอย่าง)
+(ภาษาอังกฤษ) : Bachelor of Science (Example)
+3. วิชาเอก
+ไม่มี
+วท.บ (ตัวอย่าง) สาขาวิชาตัวอย่าง
+คณะตัวอย่าง สจล.
+--- Page 3 ---
+2
+มคอ. 2
+8. อาชีพที่สามารถประกอบได้หลังสําเร็จการศึกษา
+1) นักวิทยาการข้อมูล (Data Scientist)
+[ๆ 2) นักวิเคราะห์ข้อมูล (Data Analyst)
+a   a
+วท.บ (ตัวอย่าง) สาขาวิชาตัวอย่าง
+คณะตัวอย่าง สจล.
+--- Page 4 ---
+3
+มคอ. 2
+3) นักพัฒนาระบบ (System Developer)
+9. สถานที่จัดการเรียนการสอน
+ในสถานที่ตั้งสถาบันเทคโนโลยีตัวอย่าง
+1. ปรัชญา ความสําคัญ และวัตถุประสงค์ของหลักสูตร
+1.1 ปรัชญา
+ข้อมูลและสารสนเทศมีบทบาทสําคัญ
+1.2 ความสําคัญ
+ไม่ควรอยู่ในคําตอบ
+1.3 วัตถุประสงค์
+1) เพื่อผลิตบัณฑิตที่มีความรู้
+2) เพื่อพัฒนางานวิจัย
+2.2 คุณสมบัติของผู้เข้าศึกษา
+สําเร็จการศึกษาระดับมัธยมศึกษาตอนปลายหรือเทียบเท่า
+2.3 ปัญหาของนักศึกษาแรกเข้า
+ไม่ควรอยู่ในคําตอบ
+วท.บ (ตัวอย่าง) สาขาวิชาตัวอย่าง
+คณะตัวอย่าง สจล.
+--- Page 5 ---
+4
+มคอ. 2
+3. เกณฑ์การสําเร็จการศึกษาตามหลักสูตร
+เป็นไปตามข้อบังคับสถาบัน
+4. การลงทะเบียน
+ไม่ควรอยู่ในคําตอบ
+วท.บ (ตัวอย่าง) สาขาวิชาตัวอย่าง
+คณะตัวอย่าง สจล.
+"""
+
+
+def _sec(text=_BOOK_SEC):
+    return {d["topic"]: d for d in m.parse_book_sections(text)}
+
+
+def test_sections_ignore_the_table_of_contents_and_tolerate_ocr_marks():
+    got = _sec()
+    assert got["ชื่อหลักสูตร"]["pdf_page"] == 2 and "Bachelor of Science Program in Example" in got["ชื่อหลักสูตร"]["body"]
+    assert got["ชื่อปริญญา"]["body"].startswith("(ภาษาไทย) : วิทยาศาสตรบัณฑิต (ตัวอย่าง)")      # ตัดคำขยะหน้าวงเล็บ "Youu"
+    assert "วิชาเอก" not in got["ชื่อปริญญา"]["body"]                                           # หยุดที่หัวข้อถัดไป
+    assert "สารบัญ" not in got["ชื่อหลักสูตร"]["body"]
+
+
+def test_sections_join_across_pages_and_drop_page_furniture():
+    body = _sec()["อาชีพ"]["body"]
+    assert body.index("Data Scientist") < body.index("Data Analyst") < body.index("System Developer")   # ต่อข้ามหน้า
+    assert "ตัวอย่าง สจล." not in body and "มคอ" not in body and "[ๆ" not in body and "สาขาวิชาตัวอย่าง" not in body
+    assert _sec()["อาชีพ"]["pdf_page"] == 3
+
+
+def test_sections_stop_at_the_next_heading_and_prefer_the_exact_heading():
+    got = _sec()
+    assert got["ปรัชญา"]["body"] == "ข้อมูลและสารสนเทศมีบทบาทสําคัญ"
+    assert got["วัตถุประสงค์"]["body"] == "1) เพื่อผลิตบัณฑิตที่มีความรู้ 2) เพื่อพัฒนางานวิจัย"
+    assert got["คุณสมบัติผู้เข้าศึกษา"]["body"] == "สําเร็จการศึกษาระดับมัธยมศึกษาตอนปลายหรือเทียบเท่า"
+    assert got["เกณฑ์สำเร็จการศึกษา"]["body"] == "เป็นไปตามข้อบังคับสถาบัน"
+    assert got["สถานที่จัดการเรียนการสอน"]["body"] == "ในสถานที่ตั้งสถาบันเทคโนโลยีตัวอย่าง"
+
+
+def test_section_body_is_capped_at_a_line_boundary():
+    long_book = "--- Page 1 ---\n1. ปรัชญา\n" + "\n".join(f"บรรทัดที่ {i} " + "ก" * 60 for i in range(60)) + "\n"
+    body = _sec(long_book)["ปรัชญา"]["body"]
+    assert 400 < len(body) <= m._SECTION_MAX_CHARS and body.endswith("ก") and "บรรทัดที่ 59" not in body
+
+
+def _sec_db(tmp_path, with_table=True):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    if with_table:
+        assert m.load_book_sections(c, _BOOK_SEC)["loaded"] == 8
+    c.commit()
+    return c
+
+
+def test_section_loader_is_idempotent(tmp_path):
+    c = _sec_db(tmp_path)
+    assert m.load_book_sections(c, _BOOK_SEC)["loaded"] == 8
+    assert c.execute("SELECT COUNT(*) FROM book_section").fetchone()[0] == 8
+    c.close()
+
+
+def _ask_sec(tmp_path, monkeypatch, question, with_table=True):
+    _sec_db(tmp_path, with_table).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,needle,page", [
+    ("หลักสูตรนี้ชื่ออะไร", "Bachelor of Science Program in Example", 2),
+    ("จบแล้วได้รับปริญญาอะไร", "วิทยาศาสตรบัณฑิต (ตัวอย่าง)", 2),
+    ("ชื่อปริญญาและสาขาวิชาคืออะไร", "Bachelor of Science (Example)", 2),
+    ("จบแล้วประกอบอาชีพอะไรได้บ้าง", "Data Scientist", 3),
+    ("อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษามีอะไรบ้าง", "System Developer", 3),
+    ("ปรัชญาของหลักสูตรคืออะไร", "ข้อมูลและสารสนเทศมีบทบาทสําคัญ", 4),
+    ("วัตถุประสงค์ของหลักสูตรคืออะไร", "เพื่อผลิตบัณฑิตที่มีความรู้", 4),
+    ("คุณสมบัติของผู้เข้าศึกษามีอะไรบ้าง", "มัธยมศึกษาตอนปลาย", 4),
+    ("ใครสมัครเรียนหลักสูตรนี้ได้บ้าง", "มัธยมศึกษาตอนปลาย", 4),
+    ("เกณฑ์การสำเร็จการศึกษาคืออะไร", "ข้อบังคับสถาบัน", 5),
+    ("สถานที่จัดการเรียนการสอนอยู่ที่ไหน", "สถาบันเทคโนโลยีตัวอย่าง", 4)])
+def test_book_sections_are_answered_from_the_book_text(tmp_path, monkeypatch, question, needle, page):
+    r = _ask_sec(tmp_path, monkeypatch, question)
+    assert needle in r["answer"] and r["model_calls"] == 0
+    assert [c["pdf_page"] for c in r["citations"]] == [page]
+
+
+def test_a_missing_topic_is_reported_not_guessed(tmp_path, monkeypatch):
+    _sec_db(tmp_path).close()
+    with closing(sqlite3.connect(tmp_path / "t.db")) as c:
+        c.execute("DELETE FROM book_section WHERE topic = 'อาชีพ'")
+        c.commit()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, "จบแล้วประกอบอาชีพอะไรได้บ้าง", verbose=False)
+    assert "ไม่พบ" in r["answer"] and "อาชีพ" in r["answer"]
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "วิชาเลือกมีกี่หน่วยกิต",
+    "ต้องเรียนกี่หน่วยกิตจึงจะจบ", "หมวดวิชาเฉพาะมีกี่หน่วยกิต"])
+def test_section_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_sec(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def test_database_without_the_section_table_keeps_the_old_path(tmp_path, monkeypatch):
+    assert _ask_sec(tmp_path, monkeypatch, "ปรัชญาของหลักสูตรคืออะไร", with_table=False)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("rel,gold", [("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                                       ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")])
+def test_no_gold_question_gets_a_section_answer_on_its_own_database(rel, gold):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+    with closing(m.open_db(db, readonly=True)) as conn:
+        for q in qs:
+            assert m._book_section_answer(conn, q["question"]) is None, q["question"]
+
+
+@pytest.mark.parametrize("rel,min_topics", [("DSBA/coop", 7), ("DSBA/no_coop", 7), ("AIT", 7), ("IT/coop", 7), ("IT/no_coop", 7), ("BIT/coop", 7), ("BIT/no_coop", 7)])
+def test_real_databases_hold_most_book_sections(rel, min_topics):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(sqlite3.connect(db)) as c:
+        rows = {r[0]: r[1] for r in c.execute("SELECT topic, body FROM book_section")}
+    assert len(rows) >= min_topics and all(len(b) >= 10 for b in rows.values())
+
+
+def test_a_heading_with_a_doubled_ocr_letter_is_still_found():
+    book = "--- Page 1 ---\n2. ชซือปริญญาและสาขาวิชา\n(ภาษาไทย) : วิทยาศาสตรบัณฑิต (ตัวอย่าง)\n3. วิชาเอก\nไม่มี\n"
+    assert "วิทยาศาสตรบัณฑิต" in _sec(book)["ชื่อปริญญา"]["body"]
+
+
+def test_a_course_name_containing_a_topic_word_is_not_taken_for_a_section_question(tmp_path, monkeypatch):
+    _sec_db(tmp_path).close()
+    with closing(sqlite3.connect(tmp_path / "t.db")) as c:
+        c.execute("INSERT INTO course (code, name_th, name_en, credits) VALUES ('06020077', 'ปรัชญาของการเป็นมืออาชีพ', 'EN', 3)")
+        c.commit()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        assert m._book_section_answer(conn, "วิชาปรัชญาของการเป็นมืออาชีพมีกี่หน่วยกิต") is None
+        assert m._book_section_answer(conn, "จบแล้วประกอบอาชีพอะไรได้บ้าง") is not None
+
+
+@pytest.mark.parametrize("question", ["ใครสามารถสมัครเรียนหลักสูตรนี้ได้", "ใครสามารถเข้าเรียนหลักสูตรนี้ได้บ้าง", "ใครเรียนหลักสูตรนี้ได้"])
+def test_who_can_apply_phrasings_reach_the_admission_section(tmp_path, monkeypatch, question):
+    r = _ask_sec(tmp_path, monkeypatch, question)
+    assert "มัธยมศึกษาตอนปลาย" in r["answer"] and r["model_calls"] == 0

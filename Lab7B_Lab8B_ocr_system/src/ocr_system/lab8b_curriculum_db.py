@@ -2113,6 +2113,197 @@ def _course_description_answer(conn: sqlite3.Connection, question: str) -> tuple
     return "; ".join(parts), rows, sql
 
 
+# ===================== หัวข้อเล่ม มคอ.2 (ชื่อหลักสูตร/ปริญญา/อาชีพ/ปรัชญา/วัตถุประสงค์/คุณสมบัติ/เกณฑ์จบ) =====================
+# แม่แบบ มคอ.2 มีหัวข้อมาตรฐานเดียวกันทุกเล่ม (ตรวจกับ 4 เล่มแล้ว) แต่ข้อความไม่อยู่ใน DB → คำถามเชิงบรรยายตอบไม่ได้
+# สกัดแบบยกข้อความ (ไม่สรุปเอง): จับบรรทัดหัวข้อ → เก็บเนื้อหาจนถึงหัวข้อถัดไป (ตัดเศษหน้ากระดาษ/ขยะ OCR) พร้อมเลขหน้า
+# ตารางแยกจาก DDL ของ prompt; ไม่พบหัวข้อ = บอกตรง ๆ ไม่ให้โมเดลเดา
+BOOK_SECTION_DDL = """
+CREATE TABLE IF NOT EXISTS book_section (
+    topic        TEXT PRIMARY KEY,
+    heading      TEXT,
+    body         TEXT,
+    pdf_page     INTEGER,
+    printed_page TEXT
+);
+"""
+
+_SECTION_MAX_CHARS = 1200
+_THAI_MARKS_RE = re.compile("[ัิ-ฺ็-๎]")      # สระบน/ล่าง วรรณยุกต์ ทัณฑฆาต นิคหิต — OCR ทำหล่นบ่อย จึงตัดทิ้งก่อนเทียบหัวข้อ
+# (หัวข้อ, regex เข้ม, regex หลวม) เทียบกับข้อความหัวข้อที่ตัดวรรณยุกต์/ช่องว่างแล้ว และ ซ→ช (OCR สับสน "ซือ"/"ชื่อ")
+_SECTION_TOPICS = (
+    ("ชื่อหลักสูตร", r"^ชอหลกสตร$", None),
+    ("ชื่อปริญญา", r"^ชอปรญญา(?:และสาขาวชา)?$", None),
+    ("อาชีพ", r"^อาชพทสามารถประกอบ", None),
+    ("สถานที่จัดการเรียนการสอน", r"^สถานทจดการเรยนการสอน$", None),
+    ("ปรัชญา", r"^ปรชญา$", r"^ปรชญาความสาคญ"),
+    ("วัตถุประสงค์", r"^วตถประสงค(?:ของหลกสตร)?$", None),
+    ("คุณสมบัติผู้เข้าศึกษา", r"^คณสมบตของผเขาศกษา$", None),
+    ("เกณฑ์สำเร็จการศึกษา", r"^เกณฑ(?:การ)?สาเรจการศกษา(?:ตามหลกสตร)?$", None),
+)
+_SECTION_LABEL = {
+    "ชื่อหลักสูตร": "ชื่อหลักสูตร", "ชื่อปริญญา": "ชื่อปริญญาและสาขาวิชา", "อาชีพ": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา",
+    "สถานที่จัดการเรียนการสอน": "สถานที่จัดการเรียนการสอน", "ปรัชญา": "ปรัชญาของหลักสูตร", "วัตถุประสงค์": "วัตถุประสงค์ของหลักสูตร",
+    "คุณสมบัติผู้เข้าศึกษา": "คุณสมบัติของผู้เข้าศึกษา", "เกณฑ์สำเร็จการศึกษา": "เกณฑ์การสำเร็จการศึกษา"}
+_SECTION_HEAD = re.compile(r"^(\d{1,2}(?:\.\d{1,2}){0,3})[\.,]?\s+(\S.*)$")
+_SECTION_NOT_HEAD = re.compile(r"^(?:หน่วยกิต|สัปดาห์|ปี|ภาคการศึกษา|เดือน|ชั่วโมง|คน|วิชา|ครั้ง|ข้อ)(?:\s|$)")
+_SECTION_JUNK_PREFIX = re.compile(r"^(?:\[[^\]\s]{0,3}\]?\s*\|?\s*|[Mm]1?\s+|Vv\]?\s*|LU\s+|[|\]]\s*)")
+_SECTION_JUNK_LABEL = re.compile(r"^[A-Za-z]{2,8}\s+(?=\(ภาษา)")
+_SECTION_FOOTER = re.compile(r"^วท\.บ\.?\s*\(|สจล\.?$|^มคอ\.?\s*\d?$")
+
+
+def _section_key(text: str) -> str:
+    return re.sub("ช+", "ช", _THAI_MARKS_RE.sub("", text).replace(" ", "").replace("ซ", "ช"))     # "ชซือ" (ตัวอักษรเกิน) → "ชอ"
+
+
+def _section_lines(text: str) -> list[tuple[int, str]]:
+    """(เลขหน้า PDF, บรรทัด) ทั้งเล่มต่อกันเป็นสายเดียว (ข้ามหน้าได้) — ตัดบรรทัดสารบัญไม่ได้ที่นี่ (ทำตอนจับหัวข้อ)"""
+    marks = list(_STRUCT_PAGE_RE.finditer(text))
+    raw: list[tuple[int, str]] = []
+    for i, mk in enumerate(marks):
+        pg = int(mk.group(1))
+        for line in text[mk.end(): marks[i + 1].start() if i + 1 < len(marks) else len(text)].split("\n"):
+            line = re.sub(r"\s+", " ", line.strip())
+            if line:
+                raw.append((pg, line))
+    seen: dict[str, int] = {}
+    for _, line in raw:
+        seen[line] = seen.get(line, 0) + 1
+    out = []
+    for pg, line in raw:
+        if seen[line] >= 5 and len(line) > 8:                        # หัวท้ายกระดาษที่ซ้ำทุกหน้า
+            continue
+        if re.fullmatch(r"\d{1,3}", line) or _SECTION_FOOTER.search(line):
+            continue
+        out.append((pg, line))
+    return out
+
+
+def _section_clean(line: str) -> str:
+    line = _SECTION_JUNK_PREFIX.sub("", line).strip()
+    line = _SECTION_JUNK_LABEL.sub("", line)
+    chars = [c for c in line if not c.isspace()]
+    if len(chars) < 3 or sum(1 for c in chars if c.isalnum() or "฀" <= c <= "๿") / len(chars) < 0.6:
+        return ""
+    return line
+
+
+def _section_heading(line: str) -> tuple[str, int, str] | None:
+    """บรรทัดหัวข้อมีเลขข้อ ("2.2 คุณสมบัติ…", "11, สถานการณ์…") → (เลขข้อ, ความลึก, ข้อความ); บรรทัดสารบัญ (ลงท้ายเลขหน้า) ไม่นับ"""
+    mt = _SECTION_HEAD.match(_SECTION_JUNK_PREFIX.sub("", line))
+    if not mt or re.search(r"\s\d{1,3}$", line) or _SECTION_NOT_HEAD.match(mt.group(2)) or len(mt.group(2)) > 120:
+        return None
+    return mt.group(1), mt.group(1).count(".") + 1, mt.group(2)
+
+
+def parse_book_sections(text: str) -> list[dict]:
+    """หัวข้อมาตรฐาน มคอ.2 → [{topic, heading, body, pdf_page}] ยกข้อความตามเล่ม (เนื้อหาถึงหัวข้อถัดไป ไม่เกิน _SECTION_MAX_CHARS ตัดที่ขอบบรรทัด)
+    ใช้ "หัวข้อเข้ม" ที่พบก่อนเสมอ (เช่น 1.1 ปรัชญา) แล้วจึงลดเป็นหัวข้อรวม (ปรัชญา ความสำคัญ และวัตถุประสงค์…); ไม่พบ/ไม่มีเนื้อหา = ไม่คืนหัวข้อนั้น"""
+    lines = _section_lines(text)
+    heads = [(i, h) for i, (_, ln) in enumerate(lines) if (h := _section_heading(ln))]
+    out = []
+    for topic, strict, loose in _SECTION_TOPICS:
+        found = None
+        for rx in (strict, loose):
+            if rx is None:
+                continue
+            for i, (num, depth, title) in heads:
+                if re.search(rx, _section_key(title)):
+                    found = (i, num, depth, title)
+                    break
+            if found:
+                break
+        if not found:
+            continue
+        i, num, depth, title = found
+        body: list[str] = []
+        size = 0
+        for pg, ln in lines[i + 1:]:
+            h = _section_heading(ln)
+            if h and not h[0].startswith(num + "."):                 # หัวข้อถัดไปที่ไม่ใช่หัวข้อย่อยของหัวข้อนี้
+                break
+            if re.match(r"^หมวดที่?\s*\d", ln):
+                break
+            clean = _section_clean(ln)
+            if not clean:
+                continue
+            if body and size + len(clean) + 1 > _SECTION_MAX_CHARS:
+                break
+            body.append(clean)
+            size += len(clean) + 1
+        text_body = " ".join(body)[:_SECTION_MAX_CHARS]
+        if len(text_body) >= 10:
+            out.append({"topic": topic, "heading": f"{num} {title}", "body": text_body, "pdf_page": lines[i][0]})
+    return out
+
+
+def load_book_sections(conn: sqlite3.Connection, text: str) -> dict[str, Any]:
+    """โหลดตาราง book_section (สร้างใหม่ทุกครั้ง รันซ้ำได้) พร้อมเลขหน้าที่พิมพ์ (consistent_printed)"""
+    rows = parse_book_sections(text)
+    conn.executescript("DROP TABLE IF EXISTS book_section;" + BOOK_SECTION_DDL)
+    citations = _citations_module()
+    marks = list(_STRUCT_PAGE_RE.finditer(text))
+    pages = {int(mk.group(1)): text[mk.end(): marks[i + 1].start() if i + 1 < len(marks) else len(text)] for i, mk in enumerate(marks)}
+    printed = citations.consistent_printed({pg: citations.printed_page(body) for pg, body in pages.items()})
+    conn.executemany("INSERT OR REPLACE INTO book_section VALUES (?,?,?,?,?)",
+                     [(r["topic"], r["heading"], r["body"], r["pdf_page"], printed.get(r["pdf_page"])) for r in rows])
+    conn.commit()
+    return {"loaded": len(rows)}
+
+
+def cmd_load_book_sections(args) -> None:
+    db = Path(args.database)
+    if not db.exists():
+        raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
+    conn = open_db(db)
+    stats = load_book_sections(conn, Path(args.text).read_text(encoding="utf-8").replace("\r", ""))
+    conn.close()
+    print(f"  book_section: โหลดหัวข้อ มคอ.2 {stats['loaded']}/{len(_SECTION_TOPICS)} หัวข้อ (ยกข้อความจากเล่ม)")
+
+
+_SECTION_Q = (
+    ("ชื่อหลักสูตร", r"หลักสูตร(?:นี้)?ชื่อ(?:ว่า)?อะไร|ชื่อ(?:เต็ม)?(?:ภาษา(?:ไทย|อังกฤษ))?(?:ของ)?หลักสูตร"),
+    ("ชื่อปริญญา", r"ชื่อ(?:ย่อ)?ปริญญา|ได้(?:รับ)?ปริญญา|ปริญญาอะไร|ได้(?:รับ)?วุฒิ|วุฒิอะไร"),
+    ("อาชีพ", r"(?<!มือ)อาชีพ|ทำงานอะไรได้"),
+    ("สถานที่จัดการเรียนการสอน", r"สถานที่จัดการเรียน(?:การ)?สอน"),
+    ("ปรัชญา", r"ปรัชญา"),
+    ("วัตถุประสงค์", r"วัตถุประสงค์(?:ของ)?หลักสูตร|หลักสูตร(?:นี้)?(?:มี)?วัตถุประสงค์"),
+    ("คุณสมบัติผู้เข้าศึกษา", r"คุณสมบัติ(?:ของ)?ผู้(?:เข้า)?(?:ศึกษา|เรียน|สมัคร)|ใคร(?:บ้าง)?(?:สามารถ)?(?:สมัคร|เข้า)เรียน|ใคร(?:บ้าง)?(?:สามารถ)?เรียน.{0,14}ได้"),
+    ("เกณฑ์สำเร็จการศึกษา", r"(?:เกณฑ์|เงื่อนไข)(?:การ)?(?:สำเร็จการศึกษา|จบการศึกษา|จบ)"),
+)
+
+
+def _book_section_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามหัวข้อมาตรฐาน มคอ.2 (ชื่อหลักสูตร/ปริญญา/อาชีพ/ปรัชญา/วัตถุประสงค์/คุณสมบัติผู้เข้าศึกษา/เกณฑ์จบ/สถานที่) → ยกข้อความตามเล่มพร้อมหน้า;
+    หัวข้อที่อ่านไม่ได้จากเล่ม = บอกตรง ๆ; ไม่มีตาราง/ไม่เข้าหัวข้อ/อ้างรหัสวิชา = None (ทางเดิม)"""
+    q = question.replace("ํา", "ำ")                    # "สํา" (นิคหิต+า) → "สำ"
+    if _CODE8.search(q):
+        return None
+    topics = [t for t, rx in _SECTION_Q if re.search(rx, q)][:3]
+    if not topics:
+        return None
+    try:
+        have = {r["topic"]: dict(r) for r in conn.execute("SELECT topic, heading, body, pdf_page, printed_page FROM book_section")}
+    except sqlite3.OperationalError:
+        return None
+    if not have:
+        return None
+    qn = re.sub(r"\s+", "", q)
+    for (name,) in conn.execute("SELECT name_th FROM course WHERE length(name_th) >= 5"):    # ชื่อวิชาที่มีคำหัวข้อติดอยู่ (เช่น "…มืออาชีพ") = คำถามเรื่องวิชา
+        if re.sub(r"\s+", "", name) in qn:
+            return None
+    parts, rows = [], []
+    for t in topics:
+        label = _SECTION_LABEL[t]
+        if t not in have:
+            parts.append(f"ไม่พบหัวข้อ{label}ในเล่มหลักสูตร")
+            continue
+        d = have[t]
+        parts.append(f"{label}: {d['body']}")
+        rows.append({"topic": t, "heading": d["heading"], "body": d["body"], "pdf_page": d["pdf_page"], "printed_page": d["printed_page"]})
+    sql = "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN (" + ", ".join(f"'{t}'" for t in topics) + ")"
+    return "\n".join(parts), rows, sql
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -2821,7 +3012,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
@@ -3645,6 +3836,11 @@ def main() -> None:
     p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt")
     p.add_argument("-d", "--database", required=True)
 
+    p = sub.add_parser("load-book-sections",
+                       help="สกัดหัวข้อมาตรฐาน มคอ.2 (ชื่อหลักสูตร/ปริญญา/อาชีพ/ปรัชญา/วัตถุประสงค์/คุณสมบัติ/เกณฑ์จบ) จากข้อความ OCR ทั้งเล่ม เข้าตาราง book_section")
+    p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt")
+    p.add_argument("-d", "--database", required=True)
+
     p = sub.add_parser("verify", help="ตรวจความสอดคล้อง 7 ข้อ")
     p.add_argument("-d", "--database", required=True)
     p.add_argument("-o", "--output", default="")
@@ -3679,6 +3875,7 @@ def main() -> None:
      "load-prerequisites": cmd_load_prerequisites,
      "load-credit-structure": cmd_load_credit_structure,
      "load-course-descriptions": cmd_load_course_descriptions,
+     "load-book-sections": cmd_load_book_sections,
      "verify": cmd_verify, "ask": cmd_ask,
      "ask-batch": cmd_ask_batch, "eval": cmd_eval}[args.cmd](args)
 
