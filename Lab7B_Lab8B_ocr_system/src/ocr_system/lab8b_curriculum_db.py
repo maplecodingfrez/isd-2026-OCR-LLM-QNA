@@ -2055,14 +2055,46 @@ def load_course_descriptions(conn: sqlite3.Connection, text: str) -> dict[str, A
     return {"loaded": len(rows)}
 
 
+_HOURS_LINE = re.compile(r"^(\d{8})\)?\s*\|?\s*\S.*?\s(\d{1,2})\s*\((\d{1,2})-(\d{1,2})-(\d{1,3})\)\s*$", re.M)
+
+
+def reconcile_course_hours(conn: sqlite3.Connection, text: str) -> dict[str, Any]:
+    """ชั่วโมง บรรยาย-ปฏิบัติ-ศึกษาเอง ของแต่ละวิชามาจาก VLM อ่านภาพตารางแผน (อ่านผิดได้: IT/no_coop 06016425 อ่าน 3-0-6 ทั้งที่เล่มพิมพ์ 3(2-2-5))
+    แต่เล่มพิมพ์ "รหัส ชื่อ n(a-b-c)" ซ้ำหลายที่ในข้อความ OCR → ถ้าเล่มตรงกันเอง (≥2 ที่ และชนะเสียงอื่นขาด) และหน่วยกิต n ตรงกับ DB
+    จึงแก้ชั่วโมงใน DB ตามเล่ม; ไม่ครบเงื่อนไข = ไม่แตะ. คืน {"checked": จำนวนวิชาที่เทียบ, "fixed": [(รหัส, ค่าเดิม, ค่าใหม่)]}"""
+    votes: dict[str, dict[tuple[int, int, int, int], int]] = {}
+    for mt in _HOURS_LINE.finditer(text):
+        key = tuple(int(g) for g in mt.groups()[1:])
+        bucket = votes.setdefault(mt.group(1), {})
+        bucket[key] = bucket.get(key, 0) + 1
+    fixed, checked = [], 0
+    for code, credits, lec, lab, own in conn.execute("SELECT code, credits, lecture_h, lab_h, self_h FROM course").fetchall():
+        ranked = sorted(votes.get(code, {}).items(), key=lambda kv: -kv[1])
+        if not ranked or ranked[0][1] < 2 or (len(ranked) > 1 and ranked[1][1] == ranked[0][1]):
+            continue
+        (n, a, b, c), _ = ranked[0]
+        if n != credits:
+            continue
+        checked += 1
+        if (lec, lab, own) != (a, b, c):
+            conn.execute("UPDATE course SET lecture_h = ?, lab_h = ?, self_h = ? WHERE code = ?", (a, b, c, code))
+            fixed.append((code, (lec, lab, own), (a, b, c)))
+    conn.commit()
+    return {"checked": checked, "fixed": fixed}
+
+
 def cmd_load_course_descriptions(args) -> None:
     db = Path(args.database)
     if not db.exists():
         raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
     conn = open_db(db)
-    stats = load_course_descriptions(conn, Path(args.text).read_text(encoding="utf-8").replace("\r", ""))
+    text = Path(args.text).read_text(encoding="utf-8").replace("\r", "")
+    stats = load_course_descriptions(conn, text)
+    hours = reconcile_course_hours(conn, text)               # ข้อความชุดเดียวกัน: เทียบชั่วโมงในตารางแผนกับ n(a-b-c) ที่เล่มพิมพ์
     conn.close()
     print(f"  course_description: โหลดคำอธิบาย {stats['loaded']} วิชา (ยกข้อความจากภาคผนวกของเล่ม)")
+    print(f"  ชั่วโมงต่อสัปดาห์: เทียบกับเล่ม {hours['checked']} วิชา แก้ตามเล่ม {len(hours['fixed'])} วิชา"
+          + "".join(f" [{c}: {o}→{n}]" for c, o, n in hours["fixed"]))
 
 
 _DESC_ASK = re.compile(r"เกี่ยวกับอะไร|สอนอะไร|เรียนอะไร|เรียนเรื่องอะไร|คำอธิบายรายวิชา|คําอธิบายรายวิชา|เนื้อหา(?:ของ)?วิชา|เนื้อหารายวิชา|รายละเอียดวิชา|description", re.I)
@@ -2305,19 +2337,17 @@ def _book_section_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
 
 
 # ---- 11. "ขอรหัสวิชา <ชื่อวิชา>" — รหัสจากชื่อ (ไทย/อังกฤษ) ตรง ๆ โมเดลเคยสุ่มเขียน SQL ผิดตาราง (prerequisite) แล้วตอบ "ไม่พบ" ----
-_CODE_ASK_RE = re.compile(r"รหัส")
+_CODE_ASK_RE = re.compile(r"รหัส|course\s*code|code\s+(?:of|for)\b", re.I)
 _CODE_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|เทอม|ภาคการศึกษา|ก่อน|หน่วยกิต|ชั่วโมง|ต่างกัน|เปรียบเทียบ")
 
 
-def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
-    """ถามรหัสของวิชาที่ระบุด้วยชื่อ (ไทยหรืออังกฤษ ทั้งวิชาในแผนและวิชาแคตตาล็อก) → ตอบรหัสจาก DB ตรง ๆ;
-    ชื่อที่ยาวที่สุดที่อยู่ในคำถามชนะชื่อสั้นที่เป็นส่วนหนึ่งของมัน; ชื่อเดียวกันหลายรหัส = บอกทุกรหัส;
-    ระบุวิชาไม่ได้/กำกวมหลายวิชา/มีรหัสวิชาหรือปีเทอมในคำถาม = None (ทางเดิม)"""
-    if not _CODE_ASK_RE.search(question) or _CODE_NOT_RE.search(question) or _CODE8.search(question):
-        return None
+def _named_courses(conn: sqlite3.Connection, question: str, catalog: bool = True) -> dict[str, str] | None:
+    """{รหัส: ชื่อไทย} ของวิชาที่ระบุในคำถามด้วยชื่อ (ไทยหรืออังกฤษ ตัดช่องว่าง/ตัวพิมพ์) ทั้งวิชาในแผนและแคตตาล็อก (catalog=True);
+    ชื่อที่ยาวที่สุดชนะชื่อสั้นที่เป็นส่วนหนึ่งของมัน; ชื่อเดียวกันหลายรหัส = คืนทุกรหัส; ไม่พบ/กำกวมหลายวิชา = None"""
     try:
         pairs = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, name_th, name_en FROM course")]
-        pairs += [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, course_name_th, course_name_en FROM main.v_elective_group")]
+        if catalog:
+            pairs += [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, course_name_th, course_name_en FROM main.v_elective_group")]
     except sqlite3.OperationalError:
         return None
     norm = lambda s: re.sub(r"\s+", "", s).lower()
@@ -2329,12 +2359,101 @@ def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
             if len(key) >= 5 and key in qn:
                 hits.setdefault(key, {}).setdefault(code, th or en)
     maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
-    codes = {c: n for k in maximal for c, n in hits[k].items()}
     if not maximal or len({frozenset(hits[k]) for k in maximal}) != 1:
+        return None
+    return {c: n for k in maximal for c, n in hits[k].items()}
+
+
+def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามรหัสของวิชาที่ระบุด้วยชื่อ (ไทยหรืออังกฤษ ทั้งวิชาในแผนและวิชาแคตตาล็อก) → ตอบรหัสจาก DB ตรง ๆ;
+    ระบุวิชาไม่ได้/กำกวมหลายวิชา/มีรหัสวิชาหรือปีเทอมในคำถาม = None (ทางเดิม)"""
+    if not _CODE_ASK_RE.search(question) or _CODE_NOT_RE.search(question) or _CODE8.search(question):
+        return None
+    codes = _named_courses(conn, question)
+    if not codes:
         return None
     found = [{"code": c, "name_th": n} for c, n in sorted(codes.items())]
     ids = ", ".join(f"'{r['code']}'" for r in found)
     return "; ".join(f"{r['code']} ({r['name_th']})" for r in found), found, f"SELECT code, name_th FROM course WHERE code IN ({ids})"
+
+
+# ---- 12. ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเองของวิชาเดียว และวิชาที่ชั่วโมงมาก/น้อยที่สุดในปีที่ระบุ ----
+# ทดสอบ 5 รอบ: โมเดลไม่แกว่ง แต่ตอบผิดซ้ำทุกรอบ ("แล็บกี่ชั่วโมง" ตอบ lecture_h; "บรรยายนานที่สุด" ตอบผลบวกสามคอลัมน์)
+_HOUR_ATTRS = (("lecture_h", "บรรยาย", r"บรรยาย|ทฤษฎี"), ("lab_h", "ปฏิบัติ", r"ปฏิบัติ|แล็บ|แลป|lab\b"),
+               ("self_h", "ศึกษาด้วยตนเอง", r"ศึกษาด้วยตนเอง|ศึกษาเอง|นอกชั้นเรียน"))
+_HOURS_NOT_RE = re.compile(r"ปี\s*\d|ชั้นปี|เทอม|ภาคการศึกษา|มากกว่า|น้อยกว่า|ไม่น้อยกว่า|ไม่เกิน|เกิน|อย่างน้อย|ตั้งแต่|อะไรบ้าง|วิชาไหน|วิชาอะไร|"
+                           r"ทั้งหมด|รวม|ทุกวิชา|กี่วิชา|จำนวนวิชา|หน่วยกิต")
+
+
+def _hours_attrs(question: str) -> list[tuple[str, str]]:
+    return [(col, label) for col, label, rx in _HOUR_ATTRS if re.search(rx, question, re.I)]
+
+
+def _course_hours_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาด้วยตนเองต่อสัปดาห์ของ "วิชาเดียว" (ระบุด้วยรหัสหรือชื่อ) จากแถว course ตรง ๆ;
+    ถามหลายวิชา/ถามเป็นรายการ/มีเงื่อนไขเทียบตัวเลข/ปีเทอม/ไม่ระบุวิชา/ชั่วโมงในเล่มเป็นค่าว่าง = None (ทางเดิม)"""
+    if "ชั่วโมง" not in question or _HOURS_NOT_RE.search(question):
+        return None
+    attrs = _hours_attrs(question)
+    if not attrs:
+        return None
+    codes = list(dict.fromkeys(_CODE8.findall(question)))
+    if len(codes) > 1:
+        return None
+    if codes:
+        named = {codes[0]: ""}
+    else:
+        named = _named_courses(conn, question, catalog=False)
+        if not named or len(named) != 1:
+            return None
+    code = next(iter(named))
+    cols = ", ".join(c for c, _ in attrs)
+    try:
+        row = conn.execute(f"SELECT code, name_th, {cols} FROM course WHERE code = ?", (code,)).fetchone()
+    except sqlite3.OperationalError:
+        return None
+    if row is None or any(row[c] is None for c, _ in attrs):
+        return None
+    out = dict(row)
+    text = " ".join(f"ชั่วโมง{label} {row[c]} ชั่วโมงต่อสัปดาห์" for c, label in attrs)
+    return f"{row['code']} {row['name_th']}: {text}", [out], f"SELECT code, name_th, {cols} FROM course WHERE code = '{code}'"
+
+
+_HOURS_MAX = re.compile(r"นานที่สุด|นานสุด|มากที่สุด|มากสุด|สูงสุด|เยอะที่สุด")
+_HOURS_MIN = re.compile(r"น้อยที่สุด|น้อยสุด|ต่ำสุด|สั้นที่สุด|สั้นสุด")
+
+
+def _extreme_hours_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชาที่ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเองมาก/น้อยที่สุดในแผน (ทั้งแผนหรือเฉพาะปีที่ระบุ เช่น "ปี 1 กับปี 2", "ปี 1 ถึงปี 3") —
+    ค่าสูงสุด/ต่ำสุดของ "คอลัมน์เดียว" ไม่ใช่ผลบวก; เสมอกันบอกทุกวิชา; ระบุเทอม/รหัส/ชื่อวิชา/ไม่ใช่เรื่องชั่วโมง = None"""
+    want_max, want_min = bool(_HOURS_MAX.search(question)), bool(_HOURS_MIN.search(question))
+    attrs = _hours_attrs(question)
+    if want_max == want_min or len(attrs) != 1 or _CODE8.search(question) or re.search(r"เทอม|ภาคการศึกษา|ภาคเรียน|หน่วยกิต|ปีไหน|ปีใด", question):
+        return None
+    if "ชั่วโมง" not in question and not re.search(r"นาน|เยอะ", question):
+        return None
+    if _named_courses(conn, question, catalog=False):
+        return None
+    col, label = attrs[0]
+    years = {int(y) for y in re.findall(r"ปี(?:ที่)?\s*(\d)", question)}
+    rng = re.search(r"ปี(?:ที่)?\s*(\d)\s*(?:ถึง|-|–|ไปจนถึง)\s*(?:ปี(?:ที่)?\s*)?(\d)", question)
+    if rng:
+        years |= set(range(int(rng.group(1)), int(rng.group(2)) + 1))
+    where = f" AND p.year IN ({', '.join(str(y) for y in sorted(years))})" if years else ""
+    sql = (f"SELECT DISTINCT c.code, c.name_th, c.{col} FROM course c JOIN plan_item p ON p.code = c.code "
+           f"WHERE c.{col} IS NOT NULL{where}")
+    try:
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    best = (max if want_max else min)(r[col] for r in rows)
+    top = sorted((r for r in rows if r[col] == best), key=lambda r: r["code"])
+    scope = f"ปี {', '.join(str(y) for y in sorted(years))}" if years else "ทั้งแผน"
+    names = " และ ".join(f"{r['code']} {r['name_th']}" for r in top)
+    return (f"วิชาที่ชั่วโมง{label}{'มาก' if want_max else 'น้อย'}ที่สุดใน{scope}คือ {names} ({best} ชั่วโมงต่อสัปดาห์)", top,
+            sql + f" ORDER BY c.{col} {'DESC' if want_max else 'ASC'}")
 
 
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
@@ -3045,7 +3164,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _book_section_answer, _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)

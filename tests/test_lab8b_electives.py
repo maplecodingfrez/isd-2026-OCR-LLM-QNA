@@ -1821,3 +1821,166 @@ def test_gold_questions_get_only_the_gold_code_from_the_code_shortcut():
         gt = q["expect"]
         assert gt.get("type") == "value" and str(gt.get("value")) in r[0] and len(r[1]) == 1, (rel, q["question"], r[0], gt)
     assert checked >= 5                                                    # ทางลัดต้องทำงานกับคำถามทองกลุ่ม "…รหัสอะไร" จริง ๆ
+
+
+# =============== ผลทดสอบความนิ่ง (ถามทุกข้อทอง 5 รอบ): โมเดลไม่แกว่ง แต่ 7 ข้อผิดเหมือนเดิมทุกรอบ → ทางลัดทั่วไป 3 แบบ ===============
+# (1) "course code of <ชื่ออังกฤษ>" (2) ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเองของวิชาเดียว (3) วิชาที่ชั่วโมงมาก/น้อยที่สุดในปีที่ระบุ
+
+def _hours_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.executemany("INSERT INTO course (code, name_th, name_en, credits, lecture_h, lab_h, self_h) VALUES (?, ?, ?, 3, ?, ?, ?)",
+                  [("06020001", "แคลคูลัส 1", "CALCULUS 1", 3, 0, 6), ("06020002", "การเขียนโปรแกรม", "PROGRAMMING", 2, 2, 5),
+                   ("06020003", "ฟิสิกส์ 1", "PHYSICS 1", 2, 3, 2), ("06020004", "ภาษาอังกฤษ 3", "ENGLISH 3", 2, 0, 3),
+                   ("06020005", "สัมมนา", "SEMINAR", 0, 0, 1)])
+    c.executemany("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('P', ?, ?, ?, 3)",
+                  [(1, 1, "06020001"), (1, 2, "06020002"), (2, 1, "06020003"), (2, 2, "06020004"), (3, 1, "06020005")])
+    c.commit()
+    return c
+
+
+def _ask_hours(tmp_path, monkeypatch, question):
+    _hours_db(tmp_path).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,code", [
+    ("What is the course code of CALCULUS 2", None), ("What is the course code of PHYSICS 1", "06020003"),
+    ("what is the course code for programming?", "06020002"), ("Course code of English 3", "06020004")])
+def test_english_course_code_questions_use_the_code_lookup(tmp_path, monkeypatch, question, code):
+    r = _ask_hours(tmp_path, monkeypatch, question)
+    if code:
+        assert code in r["answer"] and r["model_calls"] == 0
+    else:
+        assert r["model_calls"] >= 1                                       # ไม่มีวิชานี้ → ทางเดิม ไม่เดา
+
+
+@pytest.mark.parametrize("question,value", [
+    ("แคลคูลัส 1 แล็บสัปดาห์ละกี่ชั่วโมง", 0), ("วิชาแคลคูลัส 1 มีชั่วโมงบรรยายต่อสัปดาห์กี่ชั่วโมง", 3),
+    ("วิชา PHYSICS 1 มีชั่วโมงปฏิบัติการต่อสัปดาห์กี่ชั่วโมง", 3), ("วิชา 06020002 ศึกษาด้วยตนเองสัปดาห์ละกี่ชั่วโมง", 5),
+    ("การเขียนโปรแกรม ใช้ชั่วโมงบรรยายกี่ชั่วโมงต่อสัปดาห์", 2)])
+def test_hours_of_one_named_course_are_read_from_the_course_row(tmp_path, monkeypatch, question, value):
+    r = _ask_hours(tmp_path, monkeypatch, question)
+    assert r["model_calls"] == 0 and any(str(value) == str(v) for row in r["rows"] for v in row.values())
+    assert f"{value} ชั่วโมง" in r["answer"]
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 1 มีวิชาที่แล็บกี่ชั่วโมงบ้าง", "แคลคูลัส 1 กี่หน่วยกิต",
+    "แคลคูลัส 1 และฟิสิกส์ 1 บรรยายสัปดาห์ละกี่ชั่วโมง", "วิชาที่ไม่มีอยู่จริงบรรยายสัปดาห์ละกี่ชั่วโมง", "ชั่วโมงบรรยายรวมของทุกวิชากี่ชั่วโมง"])
+def test_hours_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_hours(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("question,value,names", [
+    ("ปี 1 กับปี 2 วิชาที่บรรยายนานที่สุดสัปดาห์ละกี่ชั่วโมง", 3, ["แคลคูลัส 1"]),
+    ("ปี 1 วิชาที่บรรยายนานที่สุดกี่ชั่วโมง", 3, ["แคลคูลัส 1"]),
+    ("ทั้งแผนวิชาที่แล็บมากที่สุดสัปดาห์ละกี่ชั่วโมง", 3, ["ฟิสิกส์ 1"]),
+    ("ปี 1 ถึงปี 3 วิชาที่ศึกษาด้วยตนเองน้อยที่สุดกี่ชั่วโมง", 1, ["สัมมนา"]),
+    ("ในปี 2 วิชาที่ปฏิบัติน้อยที่สุดสัปดาห์ละกี่ชั่วโมง", 0, ["ภาษาอังกฤษ 3"]),
+    ("ปี 2 วิชาที่บรรยายมากที่สุดกี่ชั่วโมง", 2, ["ฟิสิกส์ 1", "ภาษาอังกฤษ 3"])])
+def test_extreme_hours_over_the_requested_years(tmp_path, monkeypatch, question, value, names):
+    r = _ask_hours(tmp_path, monkeypatch, question)
+    assert r["model_calls"] == 0 and f"{value} ชั่วโมง" in r["answer"]
+    assert sorted(row["name_th"] for row in r["rows"]) == sorted(names)
+    assert any(str(value) == str(v) for row in r["rows"] for v in row.values())
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 1 เทอม 1 เรียนหนักที่สุดกี่หน่วยกิต", "วิชาที่บรรยายมากกว่า 2 ชั่วโมงมีกี่วิชา", "เทอมไหนเรียนหน่วยกิตมากที่สุด"])
+def test_extreme_hours_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_hours(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+# ข้อทองที่เฉลยขัดกับเล่ม (ไม่แก้ไฟล์ทองที่ล็อกไว้): IT/coop E3 เล่มพิมพ์ 06016425 เป็น 3(2-2-5) = ปฏิบัติ 2 ชั่วโมง แต่เฉลยทองเขียน 0
+_GOLD_DISAGREES_WITH_BOOK = {("IT/coop", "E3"): "ชั่วโมงปฏิบัติ 2 ชั่วโมง"}
+
+
+def test_no_gold_question_is_taken_by_the_hours_shortcuts_unless_it_is_answered_right():
+    """ข้อทองที่เข้าทางลัดชั่วโมงต้องตอบตรงเฉลย (ชนิด value) — ข้ออื่นห้ามเข้า"""
+    taken = 0
+    for rel, gold in (("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                      ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")):
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            continue
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(m.open_db(db, readonly=True)) as conn:
+            for q in qs:
+                for fn in (m._course_hours_answer, m._extreme_hours_answer):
+                    r = fn(conn, q["question"])
+                    if r is None:
+                        continue
+                    taken += 1
+                    ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
+                    if (rel, q["id"]) in _GOLD_DISAGREES_WITH_BOOK:
+                        assert not ok and _GOLD_DISAGREES_WITH_BOOK[(rel, q["id"])] in r[0], (rel, q["id"], r[0])
+                        continue
+                    assert ok, (rel, q["question"], r[0], q["expect"], why)
+    assert taken >= 10
+
+
+# =============== ชั่วโมง (บรรยาย-ปฏิบัติ-ศึกษาเอง) ที่ VLM อ่านจากภาพแผนผิด → เทียบกับ "n(a-b-c)" ที่เล่มพิมพ์ซ้ำหลายที่ ===============
+# พบจากการเทียบทุกวิชา 7 DB: IT/no_coop 06016425 ใน DB เป็น 3-0-6 แต่เล่มพิมพ์ 3(2-2-5) ทุกที่ (IT/coop อ่านถูก)
+
+_BOOK_HOURS = """--- Page 5 ---
+06020001 แคลคูลัส 1 3(2-2-5)
+06020002 ฟิสิกส์ 3(3-0-6)
+06020003 วิชาที่เห็นครั้งเดียว 3(2-2-5)
+06020004 วิชาที่หน่วยกิตไม่ตรง 3(2-2-5)
+06020005 วิชาที่เสียงแตก 3(2-2-5)
+--- Page 6 ---
+06020001 | แคลคูลัส 1 3(2-2-5)
+06020002 ฟิสิกส์ 3(3-0-6)
+06020004 วิชาที่หน่วยกิตไม่ตรง 3(2-2-5)
+06020005 วิชาที่เสียงแตก 3(3-0-6)
+--- Page 7 ---
+06020001) แคลคูลัส 1 3(2-2-5)
+06020004 วิชาที่หน่วยกิตไม่ตรง 3(2-2-5)
+"""
+
+
+def _hours_book_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.executemany("INSERT INTO course (code, name_th, credits, lecture_h, lab_h, self_h) VALUES (?, ?, ?, ?, ?, ?)",
+                  [("06020001", "แคลคูลัส 1", 3, 3, 0, 6), ("06020002", "ฟิสิกส์", 3, 3, 0, 6), ("06020003", "เห็นครั้งเดียว", 3, 3, 0, 6),
+                   ("06020004", "หน่วยกิตไม่ตรง", 2, 3, 0, 6), ("06020005", "เสียงแตก", 3, 3, 0, 6)])
+    c.commit()
+    return c
+
+
+def test_hours_are_corrected_from_the_book_text_only_when_the_book_agrees_with_itself(tmp_path):
+    c = _hours_book_db(tmp_path)
+    stats = m.reconcile_course_hours(c, _BOOK_HOURS)
+    got = {r[0]: (r[1], r[2], r[3]) for r in c.execute("SELECT code, lecture_h, lab_h, self_h FROM course")}
+    assert got["06020001"] == (2, 2, 5)                       # 3 ที่ในเล่มตรงกันหมด ต่างจาก DB → แก้ตามเล่ม
+    assert got["06020002"] == (3, 0, 6)                       # ตรงกันอยู่แล้ว
+    assert got["06020003"] == (3, 0, 6)                       # เห็นที่เดียว ไม่พอยืนยัน
+    assert got["06020004"] == (3, 0, 6)                       # หน่วยกิตในเล่ม (3) ไม่ตรงกับ DB (2) → ไม่แตะ
+    assert got["06020005"] == (3, 0, 6)                       # เล่มเสียงแตก 1:1 → ไม่แตะ
+    assert stats["fixed"] == [("06020001", (3, 0, 6), (2, 2, 5))]
+    c.close()
+
+
+def test_hours_reconciliation_is_idempotent(tmp_path):
+    c = _hours_book_db(tmp_path)
+    m.reconcile_course_hours(c, _BOOK_HOURS)
+    assert m.reconcile_course_hours(c, _BOOK_HOURS)["fixed"] == []
+    c.close()
+
+
+def test_real_it_databases_carry_the_hours_the_book_prints():
+    for rel in ("IT/coop", "IT/no_coop"):
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            pytest.skip("ไม่มีไฟล์ DB")
+        with closing(sqlite3.connect(db)) as c:
+            assert c.execute("SELECT lecture_h, lab_h, self_h FROM course WHERE code = '06016425'").fetchone() == (2, 2, 5), rel
