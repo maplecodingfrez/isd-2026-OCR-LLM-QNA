@@ -251,6 +251,7 @@
     });
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
     $("answer-text").textContent = answerText(data);
+    $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
@@ -322,6 +323,7 @@
       $("copy-fallback").hidden = true;
       $("copy-hint").hidden = true;
       $("copy-button").textContent = "คัดลอกแล้ว";
+      $("live-status").textContent = "คัดลอกผลแล้ว";     // ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ
       clearTimeout(copyTimer);
       copyTimer = setTimeout(function () { $("copy-button").textContent = "คัดลอกผล"; }, 2000);
       return;
@@ -330,6 +332,7 @@
     box.value = text;
     box.hidden = false;
     $("copy-hint").hidden = false;
+    $("live-status").textContent = "คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง";
     box.focus();
     box.select();
   }

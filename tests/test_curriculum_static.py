@@ -154,3 +154,19 @@ def test_timeout_is_not_claimed_to_equal_a_backend_setting():
     assert "CURRICULUM_REQUEST_TIMEOUT" not in read("app.js")
     assert "= `CURRICULUM_REQUEST_TIMEOUT`" not in readme
     assert "Ollama ล่มตอนสร้าง SQL" in readme        # แถว 422 ที่ backend ส่งจริงเมื่อ Ollama ไม่ทำงาน
+
+
+# ---------- Minor ข้อ 3 และ 4 จากรีวิว ----------
+
+def test_copy_result_is_announced_to_screen_readers():
+    """spec 3: ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ -> เขียนลง live region ถาวรด้วย"""
+    js = read("app.js")
+    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*"คัดลอกผลแล้ว"', js)
+    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*"คัดลอกอัตโนมัติไม่ได้', js)
+
+
+def test_empty_result_shows_the_rephrase_hint_from_spec():
+    """spec 3.5 'Success ว่าง': ไม่พบข้อมูลนี้ในเล่มหลักสูตร + ลองระบุปีหรือเทอมให้ชัดขึ้น"""
+    html, js = read("index.html"), read("app.js")
+    assert re.search(r'<p id="answer-hint"[^>]*\bhidden\b[^>]*>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>', html)
+    assert '$("answer-hint").hidden = !isEmptyResult(data)' in js
