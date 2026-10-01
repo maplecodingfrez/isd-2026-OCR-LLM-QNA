@@ -133,3 +133,20 @@ def test_direction_block_names_the_column():
     assert "requires='06026200'" in cn.direction_block(("after", "06026200"))
     assert "code='06026200'" in cn.direction_block(("before", "06026200"))
     assert cn.direction_block(None) == ""
+
+
+# Break caught (held-out หลังรีวิว): ถ้อยคำอื่นของ "วิชาตัวต่อ" ไม่ถูกจับ → ไม่มีคำสั่งทิศเฉพาะข้อ โมเดลเลยกลับทิศ
+def test_other_phrasings_of_courses_that_come_after_x():
+    for q in ("วิชา 06026200 เป็นพื้นฐานของวิชาอะไรบ้าง", "เรียนจบวิชา 06026200 แล้วไปต่อวิชาไหนได้",
+              "ถ้าผ่านวิชา 06026200 แล้ว ลงเรียนวิชาอะไรได้อีก", "06026200 ปลดล็อกวิชาอะไร",
+              "วิชาไหนใช้ 06026200 เป็นพื้นฐาน", "เรียนแคลคูลัส 1 แล้วจะปลดล็อกให้เรียนวิชาอะไรต่อ"):
+        assert direction(q) == ("after", "06026200"), q
+
+
+# Break guarded: คำว่าพื้นฐาน/ปลดล็อก/ไปต่อ ที่ไม่ได้ถามความสัมพันธ์วิชาบังคับก่อนต้องไม่ถูกตีเป็นทิศ
+def test_new_direction_patterns_do_not_fire_on_other_questions():
+    assert direction("แคลคูลัส 1 เป็นพื้นฐานของสาขาอะไร") is None
+    assert direction("เรียนแคลคูลัส 1 แล้วจะได้ความรู้อะไรบ้าง") is None
+    assert direction("แคลคูลัส 1 ปลดล็อกศักยภาพด้านใดของนักศึกษา") is None
+    assert direction("เรียนจบแคลคูลัส 1 แล้วไปต่อปริญญาโทได้ไหม") is None
+

@@ -1262,7 +1262,7 @@ def cmd_load_plan_slots_md(args) -> None:
 
     declared = conn.execute("SELECT total_credits FROM program").fetchone()[0]
     full = sum(r[0] for r in conn.execute("SELECT credits FROM v_semester_credits_full"))
-    base = sum(r[0] for r in conn.execute("SELECT credits FROM v_semester_credits"))
+    base = sum(r[0] for r in conn.execute("SELECT credits FROM main.v_semester_credits"))
     in_db: dict[tuple[int, int], set[str]] = {}
     for y, sm, c in conn.execute("SELECT year, semester, code FROM plan_item"):
         in_db.setdefault((y, sm), set()).add(c)
@@ -1309,7 +1309,7 @@ def _sem_credits(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     """
     return conn.execute(
         "SELECT year, semester, credits, n_courses "
-        "FROM v_semester_credits ORDER BY year, semester").fetchall()
+        "FROM main.v_semester_credits ORDER BY year, semester").fetchall()
 
 
 def verify_db(conn: sqlite3.Connection) -> list[dict]:
@@ -1647,6 +1647,7 @@ SQL: SELECT NULL WHERE 0
   ถามว่า X ต้องผ่านอะไรก่อน -> กรอง code = X แล้วเลือกคอลัมน์ requires
   ถามว่าเรียน X แล้วเรียนอะไรต่อได้ / X ปลดล็อกวิชาอะไร / วิชาไหนต้องใช้ X ก่อน
   -> กรอง requires = X แล้วเลือกคอลัมน์ code
+  (ทั้งสองทิศใช้ kind='pre' ยกเว้นถามวิชาเรียนควบ ใช้ kind='co')
 - ถ้าคำถามถามถึงสิ่งที่ "ไม่มีคอลัมน์หรือตารางรองรับในโครงสร้างข้างบนเลย"
   (เช่น ค่าเทอม/ค่าธรรมเนียม, ชื่ออาจารย์ผู้สอน, ห้องเรียน, ตำราเรียน, ตารางสอบ)
   ห้ามเดา SQL ที่ดูใกล้เคียง ให้ตอบว่า  SELECT NULL WHERE 0  เท่านั้น
@@ -1706,6 +1707,8 @@ def use_slot_aware_credit_view(conn: sqlite3.Connection) -> bool:
     (IT ปี 2/2 ได้ 30 ทั้งที่เล่มรวม 18) ส่วน v_semester_credits_full (ที่ CHK1F/CHK7F ใช้ตรวจ 7/7 run) ถูกต้อง
     จึงสร้าง TEMP VIEW ชื่อเดิมชี้ไป _full — temp schema ถูกค้นก่อน main และเขียนได้แม้เปิด DB แบบ mode=ro;
     เทอมที่ไม่มี slot ได้ค่าเท่าเดิมทุกประการ; DB ที่ไม่มีตาราง slot ไม่ถูกแตะ (คืน False)
+    หมายเหตุ n_courses = จำนวน "รายการในตารางแผนตามเล่ม" — ช่อง "เลือก 1 กลุ่มวิชา" และวิชาเลือก wildcard นับเป็น 1 รายการ
+    (ไม่ใช่จำนวนวิชาที่นักศึกษาต้องลงจริงของกลุ่มนั้น); verify_db/CHK เรียก main.v_semester_credits เพื่อไม่ถูกบัง
     """
     try:
         has_full = conn.execute(
@@ -1732,9 +1735,10 @@ def ask(conn: sqlite3.Connection, question: str,
     result: dict[str, Any] = {
         "question": question, "sql": None, "rows": [], "answer": None,
         "error": None, "sql_model_output": None, "answer_model_output": None,
-        "citations": [], "citation_text": "",
+        "citations": [], "citation_text": "", "slot_aware_credits": False,
     }
-    use_slot_aware_credit_view(conn)           # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน)
+    # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน); False = สร้างไม่ได้ → กลับไปใช้ view เดิมใน DB (เห็นได้จากผลลัพธ์)
+    result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
     ddl = DDL.strip()
     # ชื่อวิชาในคำถาม -> รหัส จากตาราง course (course_names.py) — qwen ไม่รู้ว่าชื่อไหนคือรหัสอะไร จึงเคยแต่งรหัสเอง;
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
