@@ -1770,10 +1770,219 @@ def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return f"{_TERM_LABEL.format(y=y, s=s)} — " + "; ".join(lines), rows, sql
 
 
+# ===================== โครงสร้างหน่วยกิตต่อหมวด (ก./ข./ค. → 1) → -) จากหัวข้อ 3.1.3 ของเล่ม =====================
+# โมเดลเคยตอบ "หมวดวิชาเฉพาะกี่หน่วยกิต" เป็น "6, 24" (เล่มบอก 96) — ตารางนี้ไม่อยู่ใน DDL ของ prompt (CREDIT_STRUCTURE_DDL แยก)
+CREDIT_STRUCTURE_DDL = """
+CREATE TABLE IF NOT EXISTS credit_structure (
+    id           INTEGER PRIMARY KEY,
+    parent_id    INTEGER,
+    level        INTEGER NOT NULL CHECK (level BETWEEN 1 AND 3),
+    name_th      TEXT NOT NULL,
+    credits      INTEGER NOT NULL,
+    pdf_page     INTEGER,
+    printed_page TEXT
+);
+"""
+
+_STRUCT_PAGE_RE = re.compile(r"^--- Page (\d+) ---\s*$", re.M)
+_STRUCT_CRED = r"(?P<n>\d{1,3})\s*\S{0,4}?น่วยกิ"                    # ทน OCR "หหน่วยกิต" "ใหน่วยกิต" "ห+ขหน่วยกิต"
+_STRUCT_TOP = re.compile(rf"^[ก-ฮ]\.\s*(?P<t>หมวดวิชา\S*(?:\s+\S+)*?)\s*{_STRUCT_CRED}")
+_STRUCT_TOP_OPEN = re.compile(r"^[ก-ฮ]\.\s*(?P<t>หมวดวิชา\S*)")           # หัวข้อที่ตัวเลขอยู่บรรทัดถัดไป (ประโยคยาว)
+_STRUCT_L2 = re.compile(rf"^\d\)\s*(?P<t>\S.*?)\s*{_STRUCT_CRED}")
+_STRUCT_L3 = re.compile(rf"^[-•]\s*(?P<t>\S.*?)\s*{_STRUCT_CRED}")
+_STRUCT_BARE = re.compile(rf"^(?P<t>กลุ่ม\S.*?)\s+{_STRUCT_CRED}")        # บางเล่ม (AIT) ไม่ใส่หมายเลข/ขีด
+_STRUCT_TOTAL = re.compile(r"จ\S{0,3}านวนหน่วยกิตรวมตลอดหลักสูตร\s*(?P<n>\d{1,3})")
+_STRUCT_NOTE = re.compile(r"จํานวนรวม|จำนวนรวม|ใดก็ได้|ไม่น้อยกว่า|ไม่เกิน|อย่างน้อย")
+_STRUCT_HEAD = re.compile(r"^3\.\d+(?:\.\d+)*\s")
+
+
+def _struct_clean(title: str) -> str:
+    return re.sub(r"\s+", " ", title).strip(" .:")
+
+
+def parse_credit_structure(text: str) -> tuple[int | None, list[dict]]:
+    """(หน่วยกิตรวม, โหนด) จากข้อความ OCR ทั้งเล่ม (มี marker "--- Page N ---", 40 หน้าแรก) — กฎเชิงกำหนด ไม่เดา
+    โหนด = {idx, level 1-3, name_th, credits, pdf_page, parent (ชื่อ), parent_idx}; เจอหัวข้อซ้ำ (เล่มพิมพ์รายละเอียดซ้ำ) เก็บครั้งแรก
+    แต่ย้ายตัวชี้ "หมวด/กลุ่มปัจจุบัน" ไปที่โหนดเดิม เพื่อให้รายการลูกที่ตามมาได้พ่อถูกตัว; กลุ่มที่ไม่มีหมายเลขรับเฉพาะในบล็อก 3.1.2"""
+    total, nodes, index = None, [], {}
+    cur1: dict | None = None
+    cur2: dict | None = None
+    in_block = False
+    marks = list(_STRUCT_PAGE_RE.finditer(text))
+    for i, mk in enumerate(marks):
+        pg = int(mk.group(1))
+        if pg > 40:
+            break
+        lines = [re.sub(r"\s+", " ", ln.strip()) for ln in text[mk.end(): marks[i + 1].start() if i + 1 < len(marks) else len(text)].split("\n")]
+        lines = [ln for ln in lines if ln]
+        for j, line in enumerate(lines):
+            if total is None and (t := _STRUCT_TOTAL.search(line)):
+                total = int(t.group("n"))
+            if re.match(r"^3\.1\.2\s*โครงสร้างหลักสูตร", line):
+                in_block = True
+                continue
+            if _STRUCT_HEAD.match(line):
+                in_block = False
+            level, title, credits = None, None, None
+            if (m1 := _STRUCT_TOP.match(line)):
+                level, title, credits = 1, _struct_clean(m1.group("t")), int(m1.group("n"))
+            elif (m1 := _STRUCT_TOP_OPEN.match(line)):                # "ค. หมวดวิชาเลือกเสรี นักศึกษาสามารถเลือก… / … ไม่น้อยกว่า 6 หน่วยกิต"
+                ahead = " ".join(lines[j: j + 3])
+                m2 = re.search(r"ไม่น้อยกว่า\s*(\d{1,3})\s*\S{0,4}?น่วยกิ", ahead) or re.search(rf"{_STRUCT_CRED}", ahead)
+                if m2:
+                    level, title, credits = 1, _struct_clean(m1.group("t")), int(m2.group(1) if m2.re.groups == 1 else m2.group("n"))
+            elif cur1 is not None and (m1 := _STRUCT_L2.match(line)):
+                level, title, credits = 2, _struct_clean(m1.group("t")), int(m1.group("n"))
+            elif cur1 is not None and (m1 := _STRUCT_L3.match(line)):
+                level, title, credits = 3, _struct_clean(m1.group("t")), int(m1.group("n"))
+            elif in_block and cur1 is not None and (m1 := _STRUCT_BARE.match(line)):
+                level, title, credits = 2, _struct_clean(m1.group("t")), int(m1.group("n"))
+            if level is None or not title or not re.search(r"[ก-๙]", title) or (level > 1 and (len(title) < 3 or _STRUCT_NOTE.search(title))):
+                continue
+            parent = None if level == 1 else (cur1 if level == 2 else (cur2 or cur1))
+            key = (level, title, parent["idx"] if parent else None)
+            node = index.get(key)
+            if node is None:
+                node = {"idx": len(nodes), "level": level, "name_th": title, "credits": credits, "pdf_page": pg,
+                        "parent": parent["name_th"] if parent else None, "parent_idx": parent["idx"] if parent else None}
+                nodes.append(node)
+                index[key] = node
+            if level == 1:
+                cur1, cur2 = node, None
+            elif level == 2:
+                cur2 = node
+    return total, nodes
+
+
+def load_credit_structure(conn: sqlite3.Connection, text: str) -> dict[str, Any]:
+    """โหลดโครงสร้างเข้า credit_structure เมื่อ "ผลรวมหมวดระดับบน = หน่วยกิตรวม" (เลขคณิตของเล่มเอง) — ไม่ตรง = ไม่โหลด (อ่านพลาด/แผนสองแบบ
+    ปนกัน) ปล่อยให้ตอบว่าไม่มีข้อมูล ดีกว่าตอบตัวเลขผิด; รันซ้ำได้ (สร้างตารางใหม่ทุกครั้ง)"""
+    total_text, nodes = parse_credit_structure(text)
+    conn.executescript("DROP TABLE IF EXISTS credit_structure;" + CREDIT_STRUCTURE_DDL)
+    try:
+        total_db = conn.execute("SELECT total_credits FROM program LIMIT 1").fetchone()
+        total = total_db[0] if total_db and total_db[0] else total_text
+    except sqlite3.OperationalError:
+        total = total_text
+    tops = [n for n in nodes if n["level"] == 1]
+    if not tops:
+        return {"loaded": 0, "reason": "ไม่พบหัวข้อหมวดวิชา"}
+    if total is None or sum(n["credits"] for n in tops) != total:
+        return {"loaded": 0, "reason": f"ผลรวมหมวดระดับบน {sum(n['credits'] for n in tops)} ไม่ตรงหน่วยกิตรวม {total}"}
+    citations = _citations_module()
+    pages = {int(mk.group(1)): text[mk.end(): (marks[i + 1].start() if i + 1 < len(marks) else len(text))]
+             for marks in [list(_STRUCT_PAGE_RE.finditer(text))] for i, mk in enumerate(marks)}
+    printed = citations.consistent_printed({pg: citations.printed_page(body) for pg, body in pages.items()})
+    # ชั้นที่สอง: ผลรวมกลุ่มย่อย (ระดับ 2) ของแต่ละหมวดต้องเท่ากับหมวด — ยอมให้เกินได้เฉพาะเท่ากับหน่วยกิตของกลุ่ม "…ทางเลือก"
+    # (IT นับกลุ่มการศึกษาทางเลือกเป็นทางเลือกแทนสหกิจ: 99 = 93 + 6); ผ่านชั้นแรกโดยบังเอิญได้ (BIT: 30+96=126 แต่กลุ่มย่อยรวม 90 → "96" น่าจะเป็น 90)
+    for top in tops:
+        kids = [n for n in nodes if n["parent_idx"] == top["idx"] and n["level"] == 2]
+        if not kids:
+            continue
+        diff = sum(k["credits"] for k in kids) - top["credits"]
+        if diff != 0 and not any(diff == k["credits"] and "ทางเลือก" in k["name_th"] for k in kids):
+            return {"loaded": 0, "reason": f"ผลรวมกลุ่มย่อยของ {top['name_th']} {sum(k['credits'] for k in kids)} ไม่ตรงหมวด {top['credits']}"}
+    ids: dict[int, int] = {}
+    for n in nodes:
+        cur = conn.execute("INSERT INTO credit_structure (parent_id, level, name_th, credits, pdf_page, printed_page) VALUES (?,?,?,?,?,?)",
+                           (ids.get(n["parent_idx"]), n["level"], n["name_th"], n["credits"], n["pdf_page"], printed.get(n["pdf_page"])))
+        ids[n["idx"]] = cur.lastrowid
+    conn.commit()
+    return {"loaded": len(nodes), "reason": None, "total": total}
+
+
+def cmd_load_credit_structure(args) -> None:
+    db = Path(args.database)
+    if not db.exists():
+        raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
+    text = Path(args.text).read_text(encoding="utf-8").replace("\r", "")
+    conn = open_db(db)
+    stats = load_credit_structure(conn, text)
+    conn.close()
+    if stats["loaded"]:
+        print(f"  credit_structure: โหลด {stats['loaded']} โหนด (ผลรวมหมวดระดับบน = {stats['total']} หน่วยกิตตรงกับเล่ม)")
+    else:
+        print(f"  credit_structure: ไม่โหลด — {stats['reason']} (คำถามโครงสร้างหน่วยกิตจะตอบว่าไม่มีข้อมูล ไม่ใช่เดา)")
+
+
+# ---- ทางลัดตอบ ----
+# ศัพท์โครงสร้างจริงเท่านั้น — "กลุ่ม"/"หมวด" เฉย ๆ ชนชื่อวิชา (ชุดเฉลย: "โครงงานกลุ่ม 3", "เทคโนโลยีกลุ่มเมฆ"); กรณีนั้นรับเฉพาะเมื่อชื่อกลุ่มในตารางโครงสร้างปรากฏในคำถาม
+_STRUCT_CUE = re.compile(r"หมวดวิชา|กลุ่มวิชา|เลือกเสรี|ศึกษาทั่วไป|โครงสร้างหลักสูตร|กี่หมวด")
+_STRUCT_CUE_LOOSE = re.compile(r"กลุ่ม|หมวด")
+_STRUCT_CREDIT_ASK = re.compile(r"กี่หน่วยกิต|หน่วยกิตเท่า|หน่วยกิตกี่")
+_STRUCT_COMPOSE_ASK = re.compile(r"ประกอบด้วย|แบ่งเป็น|กี่หมวด|กี่กลุ่ม|โครงสร้างหลักสูตร|หมวดอะไรบ้าง|กลุ่มอะไรบ้าง|มีอะไรบ้าง")
+_STRUCT_OVERVIEW = re.compile(r"โครงสร้างหลักสูตร|กี่หมวด|หมวดอะไรบ้าง")
+_STRUCT_GENERIC = re.compile(r"หมวดวิชาศึกษาทั่วไป|หมวดวิชาเฉพาะ|เลือกเสรี|โครงสร้างหลักสูตร|กลุ่มวิชาแกน|กี่หมวด")
+
+
+def _is_credit_structure_question(question: str, loose: bool = False) -> bool:
+    """ถามหน่วยกิต/องค์ประกอบของหมวด-กลุ่มวิชาตามโครงสร้างหลักสูตร (ไม่ใช่วิชาเดี่ยว/ปี-เทอม/หน่วยกิตรวมทั้งหลักสูตร);
+    loose=True ยอมรับคำว่า "กลุ่ม/หมวด" เฉย ๆ (ผู้เรียกต้องยืนยันด้วยชื่อกลุ่มในตารางเอง)"""
+    return bool((_STRUCT_CUE.search(question) or (loose and _STRUCT_CUE_LOOSE.search(question)))
+                and (_STRUCT_CREDIT_ASK.search(question) or _STRUCT_COMPOSE_ASK.search(question))
+                and not _CODE8.search(question) and not any(_term_numbers(question)))
+
+
+def _credit_structure_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    strict = _is_credit_structure_question(question)
+    if not strict and not _is_credit_structure_question(question, loose=True):
+        return None
+    sql = "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure"
+    try:
+        nodes = [dict(r) for r in conn.execute(
+            "SELECT s.id, s.parent_id, s.level, s.name_th, s.credits, s.pdf_page, s.printed_page, p.name_th AS parent "
+            "FROM credit_structure s LEFT JOIN credit_structure p ON p.id = s.parent_id ORDER BY s.id").fetchall()]
+    except sqlite3.OperationalError:
+        return None                                       # DB ที่ไม่มีตาราง → ทางเดิม
+    if not nodes:                                         # โหลดแล้วแต่ตรวจเลขคณิตไม่ผ่าน → ไม่เดา
+        return ("ไม่มีข้อมูลโครงสร้างหน่วยกิตตามหมวดของหลักสูตรนี้ในระบบ (อ่านจากเล่มได้ไม่น่าเชื่อถือ)", [], sql) \
+            if _STRUCT_GENERIC.search(question) else None
+    q = re.sub(r"\s+", "", question)
+    core = lambda n: re.sub(r"^(?:หมวดวิชา|หมวด|กลุ่มวิชา|กลุ่ม|วิชา)", "", re.sub(r"\s+", "", n["name_th"]))
+    hits = [(len(core(n)), n) for n in nodes if len(core(n)) >= (3 if strict else 6) and core(n) in q]   # คำว่า "กลุ่ม" เฉย ๆ ต้องมีชื่อกลุ่มยาว ≥ 6
+    top = [n for n in nodes if n["level"] == 1]
+    total = sum(n["credits"] for n in top)
+
+    def row(n: dict) -> dict:
+        return {"name_th": n["name_th"], "level": n["level"], "credits": n["credits"], "parent": n["parent"],
+                "pdf_page": n["pdf_page"], "printed_page": n["printed_page"]}
+
+    if not hits:
+        if not strict or not _STRUCT_OVERVIEW.search(question):
+            return None
+        return (f"โครงสร้างหลักสูตรแบ่งเป็น {len(top)} หมวด (รวม {total} หน่วยกิต): " + ", ".join(f"{n['name_th']} {n['credits']}" for n in top),
+                [row(n) for n in top], sql)
+    best = max(h[0] for h in hits)
+    chosen = [n for ln, n in hits if ln == best]
+    parts, rows = [], []
+    for n in chosen:
+        kids = [k for k in nodes if k["parent_id"] == n["id"]]
+        text = f"{n['name_th']}: {n['credits']} หน่วยกิต" + (f" (อยู่ใน{n['parent']})" if n["parent"] else "")
+        if kids:
+            text += " — ประกอบด้วย " + ", ".join(f"{k['name_th']} {k['credits']}" for k in kids)
+            extra = sum(k["credits"] for k in kids) - n["credits"]
+            alt = next((k for k in kids if extra > 0 and k["credits"] == extra and "ทางเลือก" in k["name_th"]), None)
+            if n["level"] == 1 and alt:                       # ผลรวมกลุ่มย่อยเกินหมวดเท่ากับกลุ่ม "…ทางเลือก" พอดี = ไม่นับรวม (ข้อสรุปจากเลขคณิตของเล่ม)
+                text += f" (หมายเหตุ: {alt['name_th']} {alt['credits']} ไม่นับรวมใน {n['credits']})"
+        parts.append(text)
+        rows += [row(n)] + [row(k) for k in kids]
+    return "; ".join(parts), rows, sql
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
     citations = _citations_module()
+    page_rows = [r for r in result["rows"] if isinstance(r, dict) and r.get("pdf_page") and "code" not in r]
+    if page_rows:                                          # คำตอบจากโครงสร้างหน่วยกิต: อ้างหน้าที่พบหัวข้อ (ไม่เกิน MAX_CITED หน้า)
+        seen: list[tuple] = []
+        for r in page_rows:
+            key = (r["pdf_page"], r.get("printed_page"))
+            if key not in seen:
+                seen.append(key)
+        result["citations"] = [{"pdf_page": p, "printed_page": pr, "courses": []} for p, pr in seen[:citations.MAX_CITED]]
+        result["citation_text"] = citations.format_citation(result["citations"])
+        return
     lookup = citations.load_lookup(conn)
     if lookup is not None:
         result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)
@@ -2468,7 +2677,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _catalog_course_answer):
+                     _hours_filter_answer, _prereq_term_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
@@ -3281,6 +3490,12 @@ def main() -> None:
     p.add_argument("-d", "--database", required=True)
     p.add_argument("-o", "--output", help="เขียนรายงานรายวิชา (found/none/not_found/unreadable) เป็น JSON")
 
+    p = sub.add_parser("load-credit-structure",
+                       help="สกัดโครงสร้างหน่วยกิตต่อหมวด (ก./ข./ค. → กลุ่มย่อย) จากข้อความ OCR ทั้งเล่ม เข้าตาราง credit_structure"
+                            " (ตรวจเลขคณิต: ผลรวมหมวดระดับบน = หน่วยกิตรวม ไม่ตรง = ไม่โหลด)")
+    p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt")
+    p.add_argument("-d", "--database", required=True)
+
     p = sub.add_parser("verify", help="ตรวจความสอดคล้อง 7 ข้อ")
     p.add_argument("-d", "--database", required=True)
     p.add_argument("-o", "--output", default="")
@@ -3313,6 +3528,7 @@ def main() -> None:
      "load-plan-slots-md": cmd_load_plan_slots_md,
      "load-course-pages": cmd_load_course_pages,
      "load-prerequisites": cmd_load_prerequisites,
+     "load-credit-structure": cmd_load_credit_structure,
      "verify": cmd_verify, "ask": cmd_ask,
      "ask-batch": cmd_ask_batch, "eval": cmd_eval}[args.cmd](args)
 

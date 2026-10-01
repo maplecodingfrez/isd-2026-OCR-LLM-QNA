@@ -1114,3 +1114,260 @@ def test_real_database_statuses_match_the_extraction_report(rel, sure_none):
     assert got == {k: v["status"] for k, v in report.items()}
     if sure_none:
         assert sum(1 for k in plan if got.get(k) == "none") == sure_none
+
+
+# =============== โครงสร้างหน่วยกิตต่อหมวด (ก. ศึกษาทั่วไป / ข. เฉพาะ / ค. เลือกเสรี และกลุ่มย่อย) จากส่วน 3.1.3 ของเล่ม ===============
+# โมเดลเคยตอบ "6, 24" (หมวดเฉพาะ/เลือกเสรี) และ "99" ผิด; ตรวจความถูกต้องด้วยเลขคณิตของเล่มเอง: ผลรวมหมวดระดับบน = หน่วยกิตรวม
+
+_BOOK_MARKED = """--- Page 1 ---
+3.1.1 จํานวนหน่วยกิตรวมตลอดหลักสูตร 132 หน่วยกิต
+3.1.2 โครงสร้างหลักสูตร
+--- Page 2 ---
+3.1.3 รายวิชา
+ก. หมวดวิชาศึกษาทั่วไป                      30   หน่วยกิต
+1) กลุ่มวิชาพื้นฐาน                           6   หน่วยกิต
+2) กลุ่มวิชาด้านภาษาและการสื่อสาร              9   หน่วยกิต
+3) กลุ่มวิชาตามเกณฑ์ของคณะ                    9   หน่วยกิต
+4) กลุ่มวิชาเลือกหมวดวิชาการศึกษาทั่วไป        6   หน่วยกิต
+--- Page 3 ---
+ข. หมวดวิชาเฉพาะ                            96   หน่วยกิต
+1) กลุ่มวิชาแกน                              45   หน่วยกิต
+- กลุ่มคณิตศาสตร์และสถิติ                    15   หน่วยกิต
+- กลุ่มพื้นฐานเทคโนโลยีสารสนเทศ              30   หน่วยกิต
+2) กลุ่มวิชาพื้นฐานวิชาชีพ                    51   หน่วยกิต
+--- Page 4 ---
+ค. หมวดวิชาเลือกเสรี นักศึกษาสามารถเลือกเรียนในรายวิชาที่เปิดสอนในสถาบัน
+ทหารลาดกระบัง จํานวนไม่น้อยกว่า 6 หน่วยกิต
+"""
+
+_BOOK_BARE_NOISY = """--- Page 1 ---
+3.1.1 จ้านวนหน่วยกิตรวมตลอดหลักสูตร                       120 หน่วยกิต
+3.1.2 โครงสร้างหลักสูตร
+ก. หมวดวิชาศึกษาทั่วไป                           24 หหน่วยกิต
+ข. หมวดวิชาเฉพาะ                                        90 หหน่วยกิต
+กลุ่มวิชาพื้นฐานคณิตศาสตร์และสถิติ                    15 ใหน่วยกิต
+กลุ่มวิชาพื้นฐานปัญญาประดิษฐ์                        75 ห+ขหน่วยกิต
+ค. หมวดวิชาเลือกเสรี                                       6 หน่วยกิต
+3.2 รายวิชา
+กลุ่มวิชาตัวอย่างที่ไม่ใช่โครงสร้าง                 5 หน่วยกิต
+"""
+
+_BOOK_REPEATED = """--- Page 1 ---
+3.3.1.1 จํานวนหน่วยกิตรวมตลอดหลักสูตร 129 หน่วยกิต
+ก. หมวดวิชาศึกษาทั่วไป 30 หน่วยกิต
+ข. หมวดวิชาเฉพาะ 93 หน่วยกิต
+2) กลุ่มวิชาเฉพาะด้าน 87 หน่วยกิต
+5) กลุ่มวิชาการศึกษาทางเลือก 6 หน่วยกิต
+- สหกิจศึกษา 6 หน่วยกิต
+ค. หมวดวิชาเลือกเสรี 6 หน่วยกิต
+--- Page 9 ---
+ก. หมวดวิชาศึกษาทั่วไป 30 หน่วยกิต
+ข. หมวดวิชาเฉพาะ 93 หน่วยกิต
+5) กลุ่มวิชาการศึกษาทางเลือก 6 หน่วยกิต
+- วิชาสหกิจศึกษา 6 หน่วยกิต
+"""
+
+
+def test_parser_reads_marked_headings_into_a_tree_with_pages():
+    total, nodes = m.parse_credit_structure(_BOOK_MARKED)
+    assert total == 132
+    by = {n["name_th"]: n for n in nodes}
+    assert [by[k]["credits"] for k in ("หมวดวิชาศึกษาทั่วไป", "หมวดวิชาเฉพาะ", "หมวดวิชาเลือกเสรี")] == [30, 96, 6]
+    assert by["กลุ่มวิชาแกน"]["parent"] == "หมวดวิชาเฉพาะ" and by["กลุ่มคณิตศาสตร์และสถิติ"]["parent"] == "กลุ่มวิชาแกน"
+    assert by["หมวดวิชาเฉพาะ"]["pdf_page"] == 3 and by["กลุ่มวิชาพื้นฐาน"]["level"] == 2
+
+
+def test_parser_reads_a_free_elective_heading_written_as_a_wrapped_sentence():
+    _total, nodes = m.parse_credit_structure(_BOOK_MARKED)
+    free = [n for n in nodes if n["name_th"] == "หมวดวิชาเลือกเสรี"]
+    assert len(free) == 1 and free[0]["credits"] == 6 and free[0]["level"] == 1
+
+
+def test_parser_tolerates_ocr_noise_and_unmarked_groups_inside_the_structure_block_only():
+    total, nodes = m.parse_credit_structure(_BOOK_BARE_NOISY)
+    by = {n["name_th"]: n for n in nodes}
+    assert total == 120 and by["หมวดวิชาศึกษาทั่วไป"]["credits"] == 24 and by["หมวดวิชาเฉพาะ"]["credits"] == 90
+    assert by["กลุ่มวิชาพื้นฐานคณิตศาสตร์และสถิติ"]["credits"] == 15 and by["กลุ่มวิชาพื้นฐานปัญญาประดิษฐ์"]["credits"] == 75
+    assert "กลุ่มวิชาตัวอย่างที่ไม่ใช่โครงสร้าง" not in by                     # หลังจบส่วน 3.1.2 (เจอหัวข้อ 3.2) ไม่รับกลุ่มที่ไม่มีหมายเลข
+
+
+def test_parser_keeps_the_first_occurrence_and_attaches_repeated_children_to_the_right_parent():
+    _total, nodes = m.parse_credit_structure(_BOOK_REPEATED)
+    assert [n["name_th"] for n in nodes if n["level"] == 1] == ["หมวดวิชาศึกษาทั่วไป", "หมวดวิชาเฉพาะ", "หมวดวิชาเลือกเสรี"]
+    by = {n["name_th"]: n for n in nodes}
+    assert by["วิชาสหกิจศึกษา"]["parent"] == "กลุ่มวิชาการศึกษาทางเลือก"        # อยู่หลัง 5) ของรอบที่สอง ไม่ใช่ใต้ ค.
+    assert by["กลุ่มวิชาการศึกษาทางเลือก"]["parent"] == "หมวดวิชาเฉพาะ"
+
+
+def _load_structure(tmp_path, text, total_credits=132):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.execute("UPDATE program SET total_credits = ?", (total_credits,))
+    c.commit()
+    stats = m.load_credit_structure(c, text)
+    return c, stats
+
+
+def test_loader_stores_the_tree_when_the_top_level_credits_add_up(tmp_path):
+    c, stats = _load_structure(tmp_path, _BOOK_MARKED, 132)
+    assert stats["loaded"] == len(c.execute("SELECT 1 FROM credit_structure").fetchall()) > 8
+    assert c.execute("SELECT credits FROM credit_structure WHERE name_th = 'หมวดวิชาเฉพาะ'").fetchone()[0] == 96
+    c.close()
+
+
+def test_loader_refuses_a_structure_whose_top_level_does_not_add_up_to_the_total(tmp_path):
+    c, stats = _load_structure(tmp_path, _BOOK_MARKED, 129)                   # เล่มบอกรวม 129 แต่หมวดรวมได้ 132 → อ่านพลาด ไม่โหลด
+    assert stats["loaded"] == 0 and "ไม่ตรง" in stats["reason"]
+    assert c.execute("SELECT COUNT(*) FROM credit_structure").fetchone()[0] == 0
+    c.close()
+
+
+def _ask_structure(tmp_path, monkeypatch, question, text=_BOOK_MARKED, total=132, load=True):
+    path = tmp_path / "t.db"
+    c, _ = _load_structure(tmp_path, text, total) if load else (_make_db(path, electives=False), None)
+    c.commit()
+    c.close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question,expect", [
+    ("หมวดวิชาเฉพาะมีกี่หน่วยกิต", "96 หน่วยกิต"),
+    ("หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต", "30 หน่วยกิต"),
+    ("วิชาเลือกเสรีต้องเรียนกี่หน่วยกิต", "6 หน่วยกิต"),
+    ("กลุ่มวิชาแกนมีกี่หน่วยกิต", "45 หน่วยกิต"),
+    ("กลุ่มวิชาด้านภาษาและการสื่อสารกี่หน่วยกิต", "9 หน่วยกิต"),
+])
+def test_category_credits_are_answered_from_the_book_structure(tmp_path, monkeypatch, question, expect):
+    r = _ask_structure(tmp_path, monkeypatch, question)
+    assert expect in r["answer"] and r["model_calls"] == 0
+
+
+def test_a_category_answer_lists_its_sub_groups_and_the_page(tmp_path, monkeypatch):
+    r = _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะประกอบด้วยอะไรบ้าง กี่หน่วยกิต")
+    assert "กลุ่มวิชาแกน 45" in r["answer"] and "กลุ่มวิชาพื้นฐานวิชาชีพ 51" in r["answer"]
+    assert all(x.get("pdf_page") for x in r["rows"])
+
+
+def test_sub_group_names_the_parent_and_its_own_children(tmp_path, monkeypatch):
+    r = _ask_structure(tmp_path, monkeypatch, "กลุ่มวิชาแกนมีอะไรบ้าง")
+    assert "กลุ่มคณิตศาสตร์และสถิติ 15" in r["answer"] and "กลุ่มพื้นฐานเทคโนโลยีสารสนเทศ 30" in r["answer"]
+
+
+def test_overview_question_lists_the_top_level_categories_and_the_total(tmp_path, monkeypatch):
+    r = _ask_structure(tmp_path, monkeypatch, "โครงสร้างหลักสูตรแบ่งเป็นกี่หมวด")
+    assert "3 หมวด" in r["answer"] and "หมวดวิชาเฉพาะ 96" in r["answer"] and "132" in r["answer"]
+
+
+def test_a_structure_answer_cites_the_page_of_the_heading(tmp_path, monkeypatch):
+    assert [c["pdf_page"] for c in _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต")["citations"]] == [3]
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 เรียนกี่หน่วยกิต", "วิชา 06020001 กี่หน่วยกิต", "วิชา แคลคูลัส 1 กี่หน่วยกิต",
+    "หมวดวิชาเฉพาะมีวิชาอะไรบ้าง", "ทั้งหลักสูตรมีกี่วิชา", "หลักสูตรนี้มีหน่วยกิตรวมเท่าไหร่"])
+def test_structure_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert not m._is_credit_structure_question(question)
+
+
+def test_empty_structure_refuses_instead_of_letting_the_model_guess(tmp_path, monkeypatch):
+    r = _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต", total=129)        # โหลดไม่ผ่าน → ตารางว่าง
+    assert "ไม่มีข้อมูลโครงสร้างหน่วยกิต" in r["answer"] and r["model_calls"] == 0 and not any(c.isdigit() for c in r["answer"].split("ไม่มี")[0])
+
+
+def test_database_without_the_structure_table_keeps_the_old_path(tmp_path, monkeypatch):
+    assert _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต", load=False)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_is_a_structure_question(path):
+    for q in json.loads(path.read_text(encoding="utf-8")):
+        assert not m._is_credit_structure_question(q["question"]), q["question"]
+
+
+@pytest.mark.parametrize("rel,top,total", [
+    ("DSBA/coop", {"หมวดวิชาศึกษาทั่วไป": 30, "หมวดวิชาเฉพาะ": 96, "หมวดวิชาเลือกเสรี": 6}, 132),
+    ("DSBA/no_coop", {"หมวดวิชาศึกษาทั่วไป": 30, "หมวดวิชาเฉพาะ": 96, "หมวดวิชาเลือกเสรี": 6}, 132),
+    ("AIT", {"หมวดวิชาศึกษาทั่วไป": 24, "หมวดวิชาเฉพาะ": 90, "หมวดวิชาเลือกเสรี": 6}, 120),
+    ("IT/coop", {"หมวดวิชาศึกษาทั่วไป": 30, "หมวดวิชาเฉพาะ": 93, "หมวดวิชาเลือกเสรี": 6}, 129),
+    ("IT/no_coop", {"หมวดวิชาศึกษาทั่วไป": 30, "หมวดวิชาเฉพาะ": 93, "หมวดวิชาเลือกเสรี": 6}, 129),
+])
+def test_real_databases_hold_the_structure_the_book_states(rel, top, total):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(sqlite3.connect(db)) as c:
+        got = dict(c.execute("SELECT name_th, credits FROM credit_structure WHERE level = 1").fetchall())
+    assert got == top and sum(got.values()) == total
+
+
+# ---- ตัวตรวจต้องไม่ชนชื่อวิชาที่มีคำว่า "กลุ่ม" (ชุดเฉลย: "โครงงานกลุ่ม 3 กี่หน่วยกิต", "เทคโนโลยีกลุ่มเมฆ กี่หน่วยกิต") ----
+@pytest.mark.parametrize("question", ["วิชาโครงงานกลุ่ม 3มีกี่หน่วยกิต", "เทคโนโลยีกลุ่มเมฆ กี่หน่วยกิต"])
+def test_course_names_containing_the_word_group_are_not_structure_questions(tmp_path, monkeypatch, question):
+    assert not m._is_credit_structure_question(question)
+    assert _ask_structure(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def test_a_bare_group_name_from_the_structure_table_is_accepted_when_it_is_long_enough(tmp_path, monkeypatch):
+    r = _ask_structure(tmp_path, monkeypatch, "กลุ่มคณิตศาสตร์และสถิติกี่หน่วยกิต")
+    assert "15 หน่วยกิต" in r["answer"] and "(อยู่ในกลุ่มวิชาแกน)" in r["answer"] and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("rel,gold", [("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                                       ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")])
+def test_no_gold_question_gets_a_structure_answer_on_its_own_database(rel, gold):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+    with closing(m.open_db(db, readonly=True)) as conn:
+        for q in qs:
+            assert m._credit_structure_answer(conn, q["question"]) is None, q["question"]
+
+
+# ---- ตรวจชั้นที่สอง: ผลรวมกลุ่มย่อยของแต่ละหมวด = หมวด (BIT: ข อ่านเป็น 96 แต่กลุ่มย่อยรวม 90 ผ่านชั้นแรกโดยบังเอิญ 30+96=126) ----
+_BOOK_MISREAD = """--- Page 1 ---
+3.1.1 จํานวนหน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต
+ก. หมวดวิชาศึกษาทั่วไป 30 หน่วยกิต
+ข. หมวดวิชาเฉพาะ 96 หน่วยกิต
+1) กลุ่มวิชาแกน 12 หน่วยกิต
+2) กลุ่มวิชาเฉพาะด้าน 72 หน่วยกิต
+3) กลุ่มวิชาเลือกทางเทคโนโลยีสารสนเทศ 6 หน่วยกิต
+"""
+
+
+def test_loader_refuses_when_the_sub_groups_do_not_add_up_to_their_category(tmp_path):
+    c, stats = _load_structure(tmp_path, _BOOK_MISREAD, 126)
+    assert stats["loaded"] == 0 and "กลุ่มย่อย" in stats["reason"] and c.execute("SELECT COUNT(*) FROM credit_structure").fetchone()[0] == 0
+    c.close()
+
+
+def test_loader_allows_an_alternative_group_counted_on_top_of_the_category(tmp_path):
+    book = _BOOK_MARKED.replace("2) กลุ่มวิชาพื้นฐานวิชาชีพ                    51   หน่วยกิต",
+                                "2) กลุ่มวิชาพื้นฐานวิชาชีพ                    51   หน่วยกิต\n3) กลุ่มวิชาการศึกษาทางเลือก                 6   หน่วยกิต")
+    c, stats = _load_structure(tmp_path, book, 132)             # กลุ่มย่อยรวม 96 + 6 (ทางเลือก) = 102 ≠ 96 แต่ส่วนเกิน = กลุ่ม "ทางเลือก" → ยอม
+    assert stats["loaded"] > 0
+    c.close()
+
+
+@pytest.mark.parametrize("rel", ["BIT/coop", "BIT/no_coop"])
+def test_bit_structure_is_not_loaded_because_its_numbers_are_inconsistent(rel):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(sqlite3.connect(db)) as c:
+        assert c.execute("SELECT COUNT(*) FROM credit_structure").fetchone()[0] == 0
+
+
+def test_an_alternative_group_that_exceeds_the_category_total_is_annotated(tmp_path, monkeypatch):
+    book = _BOOK_MARKED.replace("2) กลุ่มวิชาพื้นฐานวิชาชีพ                    51   หน่วยกิต",
+                                "2) กลุ่มวิชาพื้นฐานวิชาชีพ                    51   หน่วยกิต\n3) กลุ่มวิชาการศึกษาทางเลือก                 6   หน่วยกิต")
+    r = _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต", text=book)
+    assert "96 หน่วยกิต" in r["answer"] and "กลุ่มวิชาการศึกษาทางเลือก 6 ไม่นับรวมใน 96" in r["answer"]
+    plain = _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต")
+    assert "ไม่นับรวม" not in plain["answer"]
