@@ -437,3 +437,48 @@ def test_elective_catalog_source_says_the_pages_are_pdf_pages(path):
 def test_the_extractor_writes_the_same_wording_so_a_rerun_keeps_it():
     src = (REPO / "Lab7B_Lab8B_ocr_system" / "src" / "ocr_system" / "extract_elective_catalog.py").read_text(encoding="utf-8")
     assert "PDF หน้า {args.start_page}-{args.end_page}" in src
+
+
+# ---------- แคตตาล็อกหมวดวิชาศึกษาทั่วไป ฉบับ 2566 จาก PDF (text layer) ----------
+
+import extract_elective_catalog as eec
+
+GE_PDF = REPO / "data" / "input" / "GE66_Th_Ed240501.pdf"
+GE_GT = REPO / "data" / "ground_truth" / "general_education_ground_truth.json"
+
+
+def test_fix_pua_restores_thai_tone_marks():
+    assert eec.fix_pua("ด\uf70bาน") == "ด้าน" and eec.fix_pua("กลุ\uf70aม") == "กลุ่ม"
+    assert eec.fix_pua("ฟ\uf704\uf714น") == "ฟื้น" and eec.fix_pua("ฝ\uf703ก") == "ฝึก"
+    assert eec.fix_pua("ไวยากรณ\uf70e") == "ไวยากรณ์"
+
+
+def test_fix_pua_collapses_doubled_marks_both_kinds():
+    assert eec.fix_pua("ขั\uf710้น") == "ขั้น"                 # อักขระเดี่ยวซ้ำ (หลังแปลง PUA)
+    assert eec.fix_pua("ขั้ั้นสูง") == "ขั้นสูง"                # คู่ ั้ ซ้ำ — มาแบบนี้ใน PDF จริง (90642020)
+    assert eec.fix_pua("สร\uf70bางสรรค\uf70e") == "สร้างสรรค์"   # ข้อความปกติไม่ถูกแตะ
+
+
+@pytest.mark.skipif(not GE_PDF.exists(), reason="ไม่มี GE66 PDF")
+def test_ge66_catalog_is_clean_complete_and_consistent_with_the_older_gt():
+    courses = eec.parse_ge_pdf(GE_PDF)
+    assert len(courses) >= 300
+    assert not any(0xF700 <= ord(ch) <= 0xF7FF for c in courses for ch in c["name_th"] + c["name_en"])
+    assert {c["group"] for c in courses} == {1, 2, 3, 4, 5}        # 5 = เรียนรู้ตลอดชีวิต (ภาคผนวก ฉ, เทียบโอน)
+    gt = {c["code"]: c for c in json.loads(GE_GT.read_text(encoding="utf-8"))["courses"]}
+    both = [c for c in courses if c["code"] in gt]
+    assert len(both) >= 200
+    assert all(re.sub(r"\s+", "", c["credit_text"]) == re.sub(r"\s+", "", gt[c["code"]]["credits"]) for c in both)
+    assert sum(c["name_th"] == gt[c["code"]]["name_th"] for c in both) >= 185      # ที่เหลือส่วนใหญ่ GT พิมพ์ผิดเอง
+    by_code = {c["code"]: c for c in courses}
+    assert by_code["90641007"]["graded_su"] is True and by_code["90644009"]["group"] == 4
+
+
+@pytest.mark.skipif(not GE_PDF.exists(), reason="ไม่มี GE66 PDF")
+def test_build_ge_catalog_has_the_shape_the_elective_loader_expects():
+    data = eec.build_ge_catalog(GE_PDF, "2566")
+    assert data["plan_slot"] == "หมวดวิชาศึกษาทั่วไป ฉบับปรับปรุง พ.ศ. 2566" and data["program"] == "GE"
+    assert [g["group_no"] for g in data["groups"]] == [1, 2, 3, 4, 5]
+    assert sum(len(g["courses"]) for g in data["groups"]) == len(eec.parse_ge_pdf(GE_PDF))
+    c = data["groups"][3]["courses"][0]
+    assert set(c) >= {"code", "name_th", "name_en", "credits"} and re.match(r"\d+ \(\d+-\d+-\d+\)", c["credits"])
