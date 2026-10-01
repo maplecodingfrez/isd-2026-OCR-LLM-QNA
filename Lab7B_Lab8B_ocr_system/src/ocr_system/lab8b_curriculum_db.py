@@ -1969,11 +1969,155 @@ def _credit_structure_answer(conn: sqlite3.Connection, question: str) -> tuple[s
     return "; ".join(parts), rows, sql
 
 
+# ===================== คำอธิบายรายวิชาจากภาคผนวกของเล่ม =====================
+# เล่มพิมพ์คำอธิบายทุกวิชา (บรรทัดหัว "รหัส ชื่อ n(a-b-c)" / ชื่ออังกฤษ / วิชาบังคับก่อน / PREREQUISITE / เนื้อหาไทย / เนื้อหาอังกฤษ)
+# แต่ DB ไม่เคยเก็บ (course.description_th ว่างทุกวิชา) → "วิชา X เรียนเกี่ยวกับอะไร" ตอบเป็นรายการวิชา/ปฏิเสธ
+# ตารางแยกจาก DDL ของ prompt (โมเดลไม่เห็น) ตอบด้วยทางลัดเชิงกำหนด ยกข้อความจากเล่ม ไม่สรุปเอง
+COURSE_DESCRIPTION_DDL = """
+CREATE TABLE IF NOT EXISTS course_description (
+    code           TEXT PRIMARY KEY,
+    name_th        TEXT,
+    description_th TEXT,
+    description_en TEXT,
+    pdf_page       INTEGER,
+    printed_page   TEXT
+);
+"""
+
+_DESC_HEADER = re.compile(r"^(?P<code>\d{8})\s+(?P<name>\S.*?)\s+(?P<cr>\d{1,2})\s*\(\d{1,2}-\d{1,2}-\d{1,3}\)\s*$")
+_DESC_PREREQ = re.compile(r"^(?:วิชาบังคับก่อน|PREREQUISITE|CO-?REQUISITE|วิชาเรียนควบ)", re.I)
+
+
+def _latin_ratio(text: str) -> float:
+    letters = [c for c in text if c.isalpha()]
+    return sum(1 for c in letters if c.isascii()) / len(letters) if letters else 0.0
+
+
+def parse_course_descriptions(text: str) -> list[dict]:
+    """คำอธิบายรายวิชาจากข้อความ OCR ทั้งเล่ม (marker "--- Page N ---") — เลือกเฉพาะก้อนที่มีหัวข้อ "วิชาบังคับก่อน/PREREQUISITE"
+    (รหัสเดียวกันปรากฏหลายที่ เช่น รายการวิชาศึกษาทั่วไป/โครงสร้าง ซึ่งไม่มีเนื้อหา) ถ้ามีหลายก้อนเลือกก้อนที่เนื้อหายาวที่สุด
+    ไทย = บรรทัดหลัง PREREQUISITE ที่ไม่ใช่ภาษาอังกฤษ, อังกฤษ = บรรทัดที่เป็นตัวอักษรละติน > 70% (และบรรทัดต่อเนื่อง); ไม่มีเนื้อหาเลย = ไม่คืน"""
+    blocks: dict[str, list[dict]] = {}
+    cur = None
+    marks = list(_STRUCT_PAGE_RE.finditer(text))
+    for i, mk in enumerate(marks):
+        pg = int(mk.group(1))
+        body = text[mk.end(): marks[i + 1].start() if i + 1 < len(marks) else len(text)]
+        for raw in body.split("\n"):
+            line = re.sub(r"\s+", " ", raw.strip())
+            if not line:
+                continue
+            h = _DESC_HEADER.match(line)
+            if h:
+                cur = {"code": h.group("code"), "name_th": h.group("name"), "pdf_page": pg, "lines": []}
+                blocks.setdefault(cur["code"], []).append(cur)
+            elif cur is not None:
+                cur["lines"].append(line)
+    out = []
+    for code, bl in blocks.items():
+        best = None
+        for d in bl:
+            th: list[str] = []
+            en: list[str] = []
+            seen = False
+            for line in d["lines"]:
+                if _DESC_PREREQ.match(line):
+                    seen = True
+                    continue
+                if not seen:
+                    continue
+                if (_latin_ratio(line) > 0.7 and len(line) > 12) or (en and _latin_ratio(line) > 0.5):
+                    en.append(line)
+                elif not en:                                   # ไทยมาก่อนอังกฤษเสมอ — บรรทัดหลังจากเริ่มอังกฤษไม่ใช่ไทย (ส่วนหัว/ท้ายหน้า)
+                    th.append(line)
+            cand = {"code": code, "name_th": d["name_th"], "description_th": " ".join(th), "description_en": " ".join(en),
+                    "pdf_page": d["pdf_page"], "_seen": seen}
+            size = len(cand["description_th"]) + len(cand["description_en"])
+            if seen and size > 0 and (best is None or size > best[0]):
+                best = (size, cand)
+        if best:
+            best[1].pop("_seen")
+            out.append(best[1])
+    return out
+
+
+def load_course_descriptions(conn: sqlite3.Connection, text: str) -> dict[str, Any]:
+    """โหลดตาราง course_description (สร้างใหม่ทุกครั้ง รันซ้ำได้) พร้อมเลขหน้าที่พิมพ์ (consistent_printed)"""
+    rows = parse_course_descriptions(text)
+    conn.executescript("DROP TABLE IF EXISTS course_description;" + COURSE_DESCRIPTION_DDL)
+    citations = _citations_module()
+    marks = list(_STRUCT_PAGE_RE.finditer(text))
+    pages = {int(mk.group(1)): text[mk.end(): marks[i + 1].start() if i + 1 < len(marks) else len(text)] for i, mk in enumerate(marks)}
+    printed = citations.consistent_printed({pg: citations.printed_page(body) for pg, body in pages.items()})
+    conn.executemany("INSERT OR REPLACE INTO course_description VALUES (?,?,?,?,?,?)",
+                     [(r["code"], r["name_th"], r["description_th"], r["description_en"], r["pdf_page"], printed.get(r["pdf_page"])) for r in rows])
+    conn.commit()
+    return {"loaded": len(rows)}
+
+
+def cmd_load_course_descriptions(args) -> None:
+    db = Path(args.database)
+    if not db.exists():
+        raise SystemExit(f"ไม่พบ {db} — ต้อง `load` แผนหลักเข้าไปก่อน")
+    conn = open_db(db)
+    stats = load_course_descriptions(conn, Path(args.text).read_text(encoding="utf-8").replace("\r", ""))
+    conn.close()
+    print(f"  course_description: โหลดคำอธิบาย {stats['loaded']} วิชา (ยกข้อความจากภาคผนวกของเล่ม)")
+
+
+_DESC_ASK = re.compile(r"เกี่ยวกับอะไร|สอนอะไร|เรียนอะไร|เรียนเรื่องอะไร|คำอธิบายรายวิชา|คําอธิบายรายวิชา|เนื้อหา(?:ของ)?วิชา|เนื้อหารายวิชา|รายละเอียดวิชา|description", re.I)
+_DESC_MAX_TH, _DESC_MAX_EN = 1100, 420
+
+
+def _course_description_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามคำอธิบาย/เนื้อหาของวิชา (ระบุรหัส 8 หลัก หรือชื่อวิชา) → ยกข้อความไทย (+อังกฤษ) จากภาคผนวกของเล่มพร้อมเลขหน้า;
+    วิชารู้จักแต่เล่มไม่มีคำอธิบาย = บอกตรง ๆ (ไม่ให้โมเดลเดา); ไม่ได้อ้างวิชา/DB ไม่มีตาราง = None (ทางเดิม)"""
+    if not _DESC_ASK.search(question):
+        return None
+    try:
+        known = {r[0]: (r[1] or "") for r in conn.execute("SELECT code, name_th FROM course")}
+        described = {r["code"]: dict(r) for r in conn.execute(
+            "SELECT code, name_th, description_th, description_en, pdf_page, printed_page FROM course_description").fetchall()}
+        for r in conn.execute("SELECT code, course_name_th FROM main.v_elective_group"):
+            known.setdefault(r[0], r[1] or "")
+    except sqlite3.OperationalError:
+        return None
+    for code, d in described.items():
+        known.setdefault(code, d["name_th"] or "")
+    codes = [c for c in dict.fromkeys(_CODE8.findall(question)) if c in known][:3]
+    if not codes:
+        qn = re.sub(r"\s+", "", question)
+        best = max(((len(re.sub(r"\s+", "", n)), c) for c, n in known.items() if len(re.sub(r"\s+", "", n)) >= 4 and re.sub(r"\s+", "", n) in qn),
+                   default=None)
+        if best is None:
+            return None
+        codes = [c for ln, c in ((len(re.sub(r"\s+", "", n)), c) for c, n in known.items() if re.sub(r"\s+", "", n) and re.sub(r"\s+", "", n) in qn)
+                 if ln == best[0]][:2]
+    if not codes:
+        return None
+    parts, rows = [], []
+    for code in codes:
+        d = described.get(code)
+        name = known.get(code) or (d or {}).get("name_th") or ""
+        if not d or not ((d["description_th"] or "").strip() or (d["description_en"] or "").strip()):
+            parts.append(f"ไม่พบคำอธิบายรายวิชา {code} {name} ในเล่มหลักสูตร".strip())
+            continue
+        th, en = (d["description_th"] or "").strip(), (d["description_en"] or "").strip()
+        text = f"{code} {name}: " + (th[:_DESC_MAX_TH] + ("…" if len(th) > _DESC_MAX_TH else "") if th else en[:_DESC_MAX_TH])
+        if th and en:
+            text += f" (English: {en[:_DESC_MAX_EN]}{'…' if len(en) > _DESC_MAX_EN else ''})"
+        parts.append(text)
+        rows.append({"code": code, "name_th": name, "description_th": th, "description_en": en,
+                     "pdf_page": d["pdf_page"], "printed_page": d["printed_page"]})
+    sql = "SELECT code, name_th, description_th, description_en, pdf_page FROM course_description WHERE code IN (" + ", ".join(f"'{c}'" for c in codes) + ")"
+    return "; ".join(parts), rows, sql
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
     citations = _citations_module()
-    page_rows = [r for r in result["rows"] if isinstance(r, dict) and r.get("pdf_page") and "code" not in r]
+    page_rows = [r for r in result["rows"] if isinstance(r, dict) and r.get("pdf_page")]
     if page_rows:                                          # คำตอบจากโครงสร้างหน่วยกิต: อ้างหน้าที่พบหัวข้อ (ไม่เกิน MAX_CITED หน้า)
         seen: list[tuple] = []
         for r in page_rows:
@@ -2677,7 +2821,7 @@ def ask(conn: sqlite3.Connection, question: str,
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
     for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
-                     _hours_filter_answer, _prereq_term_answer, _catalog_course_answer, _credit_structure_answer):
+                     _hours_filter_answer, _prereq_term_answer, _course_description_answer, _catalog_course_answer, _credit_structure_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
@@ -3496,6 +3640,11 @@ def main() -> None:
     p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt")
     p.add_argument("-d", "--database", required=True)
 
+    p = sub.add_parser("load-course-descriptions",
+                       help="สกัดคำอธิบายรายวิชา (ไทย/อังกฤษ) จากภาคผนวกในข้อความ OCR ทั้งเล่ม เข้าตาราง course_description")
+    p.add_argument("-t", "--text", required=True, help="outputs/<หลักสูตร>/<หลักสูตร>_curriculum_ocr.txt")
+    p.add_argument("-d", "--database", required=True)
+
     p = sub.add_parser("verify", help="ตรวจความสอดคล้อง 7 ข้อ")
     p.add_argument("-d", "--database", required=True)
     p.add_argument("-o", "--output", default="")
@@ -3529,6 +3678,7 @@ def main() -> None:
      "load-course-pages": cmd_load_course_pages,
      "load-prerequisites": cmd_load_prerequisites,
      "load-credit-structure": cmd_load_credit_structure,
+     "load-course-descriptions": cmd_load_course_descriptions,
      "verify": cmd_verify, "ask": cmd_ask,
      "ask-batch": cmd_ask_batch, "eval": cmd_eval}[args.cmd](args)
 

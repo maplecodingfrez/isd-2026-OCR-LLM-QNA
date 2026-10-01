@@ -1371,3 +1371,151 @@ def test_an_alternative_group_that_exceeds_the_category_total_is_annotated(tmp_p
     assert "96 หน่วยกิต" in r["answer"] and "กลุ่มวิชาการศึกษาทางเลือก 6 ไม่นับรวมใน 96" in r["answer"]
     plain = _ask_structure(tmp_path, monkeypatch, "หมวดวิชาเฉพาะมีกี่หน่วยกิต")
     assert "ไม่นับรวม" not in plain["answer"]
+
+
+# =============== คำอธิบายรายวิชา (ภาคผนวกของเล่ม: บรรทัดหัว "รหัส ชื่อ n(a-b-c)" / ชื่ออังกฤษ / วิชาบังคับก่อน / เนื้อหาไทย / เนื้อหาอังกฤษ) ===============
+# ผล probe: "วิชา X เรียนเกี่ยวกับอะไร" ตอบเป็นรายการวิชา/ปฏิเสธ — DB ไม่มีคำอธิบายเลยทั้งที่เล่มมีครบ 150–250 วิชา
+
+_BOOK_DESC = """--- Page 5 ---
+06020001 แคลคูลัส 1 3(3-0-6)
+CALCULUS 1
+06020002 แคลคูลัส 2 3(3-0-6)
+CALCULUS 2
+--- Page 9 ---
+5
+มคอ. 2
+06020001 แคลคูลัส 1 3(3-0-6)
+CALCULUS 1
+วิชาบังคับก่อน : ไม่มี
+PREREQUISITE : None
+ลิมิตและความต่อเนื่อง อนุพันธ์ของฟังก์ชัน
+การประยุกต์ของอนุพันธ์ ปริพันธ์
+Limits and continuity, derivatives of functions,
+applications of derivatives, integration.
+06020002 แคลคูลัส 2 3(3-0-6)
+CALCULUS 2
+วิชาบังคับก่อน : 06020001 แคลคูลัส 1
+PREREQUISITE : 06020001 CALCULUS 1
+ลําดับและอนุกรม ปริพันธ์หลายชั้น
+Sequences and series, multiple integrals.
+06020003 สั้นมาก 1(1-0-2)
+SHORT
+วิชาบังคับก่อน : ไม่มี
+PREREQUISITE : None
+--- Page 10 ---
+06020004 วิชาที่มีแต่ภาษาอังกฤษ 3(3-0-6)
+ENGLISH ONLY
+วิชาบังคับก่อน : ไม่มี
+PREREQUISITE : None
+This course introduces the basics of probability and statistics for engineers and scientists.
+"""
+
+
+def test_description_parser_uses_the_appendix_block_and_splits_thai_from_english():
+    got = {d["code"]: d for d in m.parse_course_descriptions(_BOOK_DESC)}
+    d = got["06020001"]
+    assert d["description_th"] == "ลิมิตและความต่อเนื่อง อนุพันธ์ของฟังก์ชัน การประยุกต์ของอนุพันธ์ ปริพันธ์"
+    assert d["description_en"].startswith("Limits and continuity") and d["description_en"].endswith("integration.")
+    assert d["pdf_page"] == 9 and d["name_th"] == "แคลคูลัส 1"                      # ไม่ใช่รายการวิชาหน้า 5 (ไม่มีหัวข้อวิชาบังคับก่อน)
+    assert "PREREQUISITE" not in d["description_en"] and "วิชาบังคับก่อน" not in d["description_th"]
+
+
+def test_description_parser_keeps_english_only_courses_and_drops_empty_ones():
+    got = {d["code"]: d for d in m.parse_course_descriptions(_BOOK_DESC)}
+    assert got["06020004"]["description_th"] == "" and got["06020004"]["description_en"].startswith("This course introduces")
+    assert "06020003" not in got                                                   # ไม่มีเนื้อหาเลย
+
+
+def _desc_db(tmp_path, with_table=True):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    c.executemany("INSERT INTO course (code, name_th, name_en, credits) VALUES (?, ?, 'EN', 3)",
+                  [("06020001", "แคลคูลัส 1"), ("06020002", "แคลคูลัส 2"), ("06020009", "วิชาที่ไม่มีคำอธิบาย")])
+    if with_table:
+        stats = m.load_course_descriptions(c, _BOOK_DESC)
+        assert stats["loaded"] == 3
+    c.commit()
+    return c
+
+
+def test_loader_is_idempotent_and_records_pages(tmp_path):
+    c = _desc_db(tmp_path)
+    assert m.load_course_descriptions(c, _BOOK_DESC)["loaded"] == 3
+    assert c.execute("SELECT COUNT(*) FROM course_description").fetchone()[0] == 3
+    assert c.execute("SELECT pdf_page FROM course_description WHERE code='06020002'").fetchone()[0] == 9
+    c.close()
+
+
+def _ask_desc(tmp_path, monkeypatch, question, with_table=True):
+    _desc_db(tmp_path, with_table).close()
+    calls = []
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: calls.append(1) or '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา 06020001 เรียนเกี่ยวกับอะไร", "วิชา แคลคูลัส 1 เรียนเกี่ยวกับอะไร", "คำอธิบายรายวิชา แคลคูลัส 1 คืออะไร",
+    "แคลคูลัส 1 สอนอะไรบ้าง", "ขอเนื้อหาวิชา 06020001 หน่อย"])
+def test_course_description_is_answered_from_the_book_text(tmp_path, monkeypatch, question):
+    r = _ask_desc(tmp_path, monkeypatch, question)
+    assert "ลิมิตและความต่อเนื่อง" in r["answer"] and "Limits and continuity" in r["answer"] and r["model_calls"] == 0
+    assert [c["pdf_page"] for c in r["citations"]] == [9]
+
+
+def test_english_description_is_used_when_the_thai_one_is_missing(tmp_path, monkeypatch):
+    r = _ask_desc(tmp_path, monkeypatch, "วิชา 06020004 เรียนเกี่ยวกับอะไร")
+    assert "introduces the basics of probability" in r["answer"] and r["model_calls"] == 0
+
+
+def test_a_known_course_without_a_description_says_so_instead_of_guessing(tmp_path, monkeypatch):
+    r = _ask_desc(tmp_path, monkeypatch, "วิชา วิชาที่ไม่มีคำอธิบาย เรียนเกี่ยวกับอะไร")
+    assert "ไม่พบคำอธิบายรายวิชา" in r["answer"] and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "ปี 2 เทอม 1 เรียนอะไรบ้าง", "หลักสูตรนี้เกี่ยวกับอะไร",
+    "วิชา 99999999 เรียนเกี่ยวกับอะไร"])
+def test_description_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_desc(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+def test_database_without_the_description_table_keeps_the_old_path(tmp_path, monkeypatch):
+    assert _ask_desc(tmp_path, monkeypatch, "วิชา แคลคูลัส 1 เรียนเกี่ยวกับอะไร", with_table=False)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("rel,gold", [("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                                       ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")])
+def test_no_gold_question_gets_a_description_answer_on_its_own_database(rel, gold):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+    with closing(m.open_db(db, readonly=True)) as conn:
+        for q in qs:
+            assert m._course_description_answer(conn, q["question"]) is None, q["question"]
+
+
+@pytest.mark.parametrize("rel,plan_min,elective_min", [("DSBA/coop", 0.85, 0.95), ("DSBA/no_coop", 0.85, 0.95), ("AIT", 0.9, 0.95),
+                                                         ("IT/coop", 0.75, 0.95), ("IT/no_coop", 0.75, 0.95)])
+def test_real_databases_hold_descriptions_for_most_plan_and_elective_courses(rel, plan_min, elective_min):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(sqlite3.connect(db)) as c:
+        have = {r[0] for r in c.execute("SELECT code FROM course_description WHERE length(coalesce(description_th,'')) + length(coalesce(description_en,'')) > 40")}
+        plan = {r[0] for r in c.execute("SELECT DISTINCT code FROM plan_item")}
+        elect = {r[0] for r in c.execute("SELECT DISTINCT code FROM v_elective_group WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'")}
+    assert len(plan & have) / len(plan) >= plan_min and len(elect & have) / len(elect) >= elective_min
+
+
+def test_dsba_description_text_matches_the_book():
+    db = RUNS / "DSBA/coop" / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    with closing(sqlite3.connect(db)) as c:
+        th, en = c.execute("SELECT description_th, description_en FROM course_description WHERE code = '06026206'").fetchone()
+    assert th.startswith("ในภาคทฤษฎี แนะนํา") and "Introduction to business data analytics" in en
