@@ -347,6 +347,16 @@ CREATE TABLE IF NOT EXISTS prerequisite_alt (
 );
 """
 
+# สถานะการอ่านวิชาบังคับก่อนของแต่ละวิชา (ผลของ load-prerequisites): ตาราง prerequisite มีแถวเฉพาะวิชาที่ "พบ" — วิชาที่ไม่มีแถว
+# อาจเป็น none (เล่มเขียนว่าไม่มี) หรือ not_found/unreadable (อ่านจากเล่มไม่ได้ = ไม่ทราบ) ซึ่งแยกกันไม่ได้ถ้าไม่เก็บสถานะ
+# แยกจาก DDL ของ prompt (โมเดลไม่เห็นตารางนี้ → prompt ของทุกคำถามไม่เปลี่ยน) ใช้เฉพาะทางลัดเชิงกำหนด
+PREREQ_STATUS_DDL = """
+CREATE TABLE IF NOT EXISTS prerequisite_status (
+    code   TEXT PRIMARY KEY,
+    status TEXT NOT NULL CHECK (status IN ('found', 'none', 'not_found', 'unreadable'))
+);
+"""
+
 
 # DDL ของช่องแผนที่ plan_item เก็บไม่ตรงเล่ม — แยกออกจาก DDL ด้านบนโดยตั้งใจ
 # เพราะ DDL ถูกยัดทั้งก้อนเข้า prompt ของ NL2SQL (ask/eval, num_ctx 4096) ถ้าเพิ่มตาราง
@@ -1087,6 +1097,10 @@ def cmd_load_prerequisites(args) -> None:
 
     pairs = 0
     conn.executescript(PREREQ_ALT_DDL)  # DB เดิมที่สร้างก่อนมีตารางนี้
+    conn.executescript(PREREQ_STATUS_DDL)
+    conn.execute("DELETE FROM prerequisite_status")
+    conn.executemany("INSERT INTO prerequisite_status (code, status) VALUES (?, ?)",
+                     [(code, r["status"]) for code, r in res.items()])
     conn.execute("DELETE FROM prerequisite_alt")
     or_groups = 0
     for code, r in res.items():
@@ -1504,29 +1518,48 @@ def _is_no_prereq_question(question: str) -> bool:
                 and (_LIST_WORD.search(rest) or _COUNT_WORD.search(rest)))
 
 
+def _prereq_statuses(conn: sqlite3.Connection) -> dict[str, str] | None:
+    """สถานะการอ่านวิชาบังคับก่อนของแต่ละวิชา (prerequisite_status) — None = DB เก่าไม่มีตาราง/ว่าง (ใช้พฤติกรรมเดิม)"""
+    try:
+        got = dict(conn.execute("SELECT code, status FROM prerequisite_status").fetchall())
+    except sqlite3.OperationalError:
+        return None
+    return got or None
+
+
 def _no_prereq_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
-    """วิชาในแผน (ระบุปี/เทอมในคำถามได้) ที่ไม่มีแถว prerequisite (kind='pre') และไม่อยู่ใน prerequisite_alt"""
+    """วิชาในแผน (ระบุปี/เทอมในคำถามได้) ที่ "ยืนยันว่าไม่มีวิชาบังคับก่อน" = ไม่มีแถว prerequisite และไม่อยู่ใน prerequisite_alt และ
+    (ถ้า DB มีสถานะ) สถานะ none — วิชาที่ not_found/unreadable (อ่านจากเล่มไม่ได้) ไม่นับ แต่บอกจำนวน/รายชื่อแยกว่า "ไม่ทราบ" """
     if not _is_no_prereq_question(question):
         return None
     y, s = _term_numbers(question)
     cond = " AND ".join(c for c in (f"year = {y}" if y else "", f"semester = {s}" if s else "") if c)
     plan = "SELECT code FROM plan_item" + (f" WHERE {cond}" if cond else "")
+    statuses = _prereq_statuses(conn)
+    sure = " AND EXISTS (SELECT 1 FROM prerequisite_status st WHERE st.code = c.code AND st.status = 'none')" if statuses else ""
     base = (f"SELECT c.code, c.name_th, c.credits FROM course c WHERE c.code IN ({plan}) "
-            "AND NOT EXISTS (SELECT 1 FROM prerequisite p WHERE p.code = c.code AND p.kind = 'pre') {alt} ORDER BY c.code")
+            "AND NOT EXISTS (SELECT 1 FROM prerequisite p WHERE p.code = c.code AND p.kind = 'pre') {alt}" + sure + " ORDER BY c.code")
     sql = base.format(alt="AND NOT EXISTS (SELECT 1 FROM prerequisite_alt a WHERE a.code = c.code)")
     try:
         rows = [dict(r) for r in conn.execute(sql).fetchall()]
     except sqlite3.OperationalError:                      # DB เก่าไม่มี prerequisite_alt
         sql = base.format(alt="")
         rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    unknown = []
+    if statuses:
+        in_scope = [r[0] for r in conn.execute(f"SELECT DISTINCT p.code FROM plan_item p WHERE p.code IN ({plan}) ORDER BY p.code")]
+        names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course")}
+        unknown = [(c, names.get(c, "")) for c in in_scope if statuses.get(c) in ("not_found", "unreadable")]
     where = f"ใน{_TERM_LABEL.format(y=y, s=s)}" if (y and s) else (f"ในปี {y}" if y else "ในแผนการศึกษา")
-    head = f"มี {len(rows)} วิชา{where}ที่ไม่มีวิชาบังคับก่อน"
-    if not rows:
-        return head, rows, sql
+    head = f"มี {len(rows)} วิชา{where}ที่ระบุว่าไม่มีวิชาบังคับก่อน" if statuses else f"มี {len(rows)} วิชา{where}ที่ไม่มีวิชาบังคับก่อน"
+    note = f" (อีก {len(unknown)} วิชาอ่านวิชาบังคับก่อนจากเล่มไม่ได้ จึงยังไม่ทราบ)" if unknown else ""
     rest = _NO_PREREQ_RE.sub("", question)
-    if _COUNT_WORD.search(rest) and not _LIST_WORD.search(rest):
-        return head, rows, sql
-    return head + ": " + ", ".join(f"{r['code']} {r['name_th']}" for r in rows), rows, sql
+    if not rows or (_COUNT_WORD.search(rest) and not _LIST_WORD.search(rest)):
+        return head + note, rows, sql
+    text = head + ": " + ", ".join(f"{r['code']} {r['name_th']}" for r in rows)
+    if unknown:
+        text += f"; ไม่ทราบ: " + ", ".join(f"{c} {n}".strip() for c, n in unknown)
+    return text, rows, sql
 
 
 # ---- 2. กรองตามชั่วโมง (บรรยาย/ปฏิบัติ/ศึกษาด้วยตนเอง) — โมเดลเคยละเงื่อนไข ได้ 36 วิชาแทน 5 ----
@@ -1688,6 +1721,11 @@ def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     names = {c["code"]: c["name_th"] for c in courses}
     terms = _first_terms(conn)
+    statuses = _prereq_statuses(conn) or {}
+
+    def none_text(code: str) -> str:                       # สถานะ not_found/unreadable = อ่านจากเล่มไม่ได้ ไม่ใช่ "ไม่มี"
+        return "ยังไม่ทราบวิชาบังคับก่อน (อ่านจากเล่มไม่ได้)" if statuses.get(code) in ("not_found", "unreadable") else "ไม่มีวิชาบังคับก่อน"
+
     direction = course_names.prereq_direction(question, course_names.course_hints(question, courses))
 
     def label(code: str) -> str:
@@ -1708,12 +1746,13 @@ def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
             codes = [r[0] for r in conn.execute("SELECT code FROM prerequisite WHERE requires = ? AND kind = 'pre' ORDER BY code", (x,))]
             sql = f"SELECT code FROM prerequisite WHERE requires = '{x}' AND kind = 'pre'"
             text = (f"{names.get(x, x)} เป็นวิชาบังคับก่อนของ: " + ", ".join(label(c) for c in codes)) if codes \
-                else f"ไม่มีวิชาที่ต้องเรียน {names.get(x, x)} ก่อน"
+                else (f"ไม่พบวิชาที่ต้องเรียน {names.get(x, x)} ก่อน" + (" (บางวิชาอ่านวิชาบังคับก่อนจากเล่มไม่ได้ จึงอาจไม่ครบ)"
+                                                                 if any(v in ("not_found", "unreadable") for v in statuses.values()) else ""))
         else:                                              # วิชาที่ x ต้องเรียนมาก่อน
             codes = requires_of(x)
             sql = f"SELECT requires FROM prerequisite WHERE code = '{x}' AND kind = 'pre'"
             text = (f"{names.get(x, x)} ต้องเรียนมาก่อน: " + ", ".join(label(c) for c in codes)) if codes \
-                else f"{names.get(x, x)} ไม่มีวิชาบังคับก่อน"
+                else f"{names.get(x, x)} {none_text(x)}"
         return text, [{"code": c, "name_th": names.get(c), "year": (terms.get(c) or (None, None))[0],
                        "semester": (terms.get(c) or (None, None))[1]} for c in codes], sql
     y, s = _term_numbers(question)                         # รูป "ปี N เทอม M … และวิชาไหนมีวิชาบังคับก่อน"
@@ -1726,7 +1765,7 @@ def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     lines, rows = [], []
     for code in in_term:
         req = requires_of(code)
-        lines.append(f"{code} {names.get(code, '')}: " + (f"ต้องเรียน {', '.join(label(c) for c in req)} มาก่อน" if req else "ไม่มีวิชาบังคับก่อน"))
+        lines.append(f"{code} {names.get(code, '')}: " + (f"ต้องเรียน {', '.join(label(c) for c in req)} มาก่อน" if req else none_text(code)))
         rows.append({"code": code, "name_th": names.get(code), "requires": ", ".join(req) or None})
     return f"{_TERM_LABEL.format(y=y, s=s)} — " + "; ".join(lines), rows, sql
 

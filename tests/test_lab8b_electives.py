@@ -1044,3 +1044,73 @@ def test_no_gold_question_gets_the_topic_hint(path):
         conn.executescript("CREATE TABLE course(code TEXT, name_th TEXT, name_en TEXT);")
         for q in json.loads(path.read_text(encoding="utf-8")):
             assert m._topic_hint_text(conn, q["question"]) == "", q["question"]
+
+
+# =============== วิชาที่ "อ่านวิชาบังคับก่อนไม่ได้" ต้องไม่ถูกนับเป็น "ไม่มีวิชาบังคับก่อน" ===============
+# load-prerequisites เติมแถวเฉพาะวิชาที่พบ; not_found/unreadable = ไม่มีแถวเหมือนกับ none → ต้องเก็บสถานะแยก (prerequisite_status)
+
+def _q_db_with_status(path, statuses):
+    c = _q_db(path)
+    c.executescript(m.PREREQ_STATUS_DDL)
+    c.executemany("INSERT INTO prerequisite_status (code, status) VALUES (?, ?)", list(statuses.items()))
+    c.commit()
+    return c
+
+
+# A,C = none · B,D = found · E = not_found (อ่านไม่ได้)
+_STATUS = {"06020001": "none", "06020002": "found", "06020003": "none", "06020004": "found", "06020005": "not_found"}
+
+
+def _ask_status(tmp_path, monkeypatch, question):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _q_db_with_status(path, _STATUS).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+def test_unreadable_courses_are_not_counted_as_having_no_prerequisite(tmp_path, monkeypatch):
+    r = _ask_status(tmp_path, monkeypatch, "มีกี่วิชาที่ไม่มีวิชาบังคับก่อน")
+    assert "2 วิชา" in r["answer"] and "อีก 1 วิชา" in r["answer"] and "ไม่ทราบ" in r["answer"]
+    assert {x["code"] for x in r["rows"]} == {"06020001", "06020003"}
+
+
+def test_list_names_the_unknown_courses_apart(tmp_path, monkeypatch):
+    r = _ask_status(tmp_path, monkeypatch, "วิชาไหนบ้างที่ไม่มีวิชาบังคับก่อน")
+    assert "06020001" in r["answer"] and "06020003" in r["answer"] and "06020005" in r["answer"].split("ไม่ทราบ")[-1]
+    assert "06020005" not in {x["code"] for x in r["rows"]}
+
+
+def test_prerequisite_term_answer_says_unknown_instead_of_none_for_unreadable_courses(tmp_path, monkeypatch):
+    assert "ไม่ทราบ" in _ask_status(tmp_path, monkeypatch, "วิชา สถิติ ต้องเรียนวิชาอะไรมาก่อน และอยู่เทอมไหน")["answer"]
+    r = _ask_status(tmp_path, monkeypatch, "วิชา แคลคูลัส 1 ต้องเรียนวิชาอะไรมาก่อน และอยู่เทอมไหน")
+    assert "ไม่มีวิชาบังคับก่อน" in r["answer"]                      # สถานะ none = ยืนยันว่าไม่มี
+
+
+def test_the_loader_records_a_status_for_every_course(tmp_path):
+    import argparse
+    path = tmp_path / "t.db"
+    _q_db(path).close()
+    book = tmp_path / "book.txt"
+    book.write_text("--- Page 1 ---\n06020002 แคลคูลัส 2 3(3-0-6)\nวิชาบังคับก่อน : 06020001\n", encoding="utf-8")
+    m.cmd_load_prerequisites(argparse.Namespace(database=str(path), text=str(book), output=None))
+    with closing(sqlite3.connect(path)) as c:
+        got = dict(c.execute("SELECT code, status FROM prerequisite_status").fetchall())
+    assert set(got) == {"06020001", "06020002", "06020003", "06020004", "06020005"}
+    assert got["06020002"] == "found" and set(got.values()) <= {"found", "none", "not_found", "unreadable"}
+
+
+@pytest.mark.parametrize("rel,sure_none", [("DSBA/coop", 24), ("IT/coop", None)])
+def test_real_database_statuses_match_the_extraction_report(rel, sure_none):
+    import json as _j
+    run = RUNS / rel / "lab8b_output"
+    if not (run / "curriculum.db").exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    report = _j.loads((run / "prerequisites_report.json").read_text(encoding="utf-8"))["per_course"]
+    with closing(sqlite3.connect(run / "curriculum.db")) as c:
+        got = dict(c.execute("SELECT code, status FROM prerequisite_status").fetchall())
+        plan = {r[0] for r in c.execute("SELECT code FROM plan_item")}
+    assert got == {k: v["status"] for k, v in report.items()}
+    if sure_none:
+        assert sum(1 for k in plan if got.get(k) == "none") == sure_none
