@@ -7,6 +7,7 @@
   var QUESTION_MAX = 500;
   var NETWORK_ACTION = "ตรวจว่ารัน uvicorn อยู่ แล้วลองใหม่อีกครั้ง";
   var RETRY_ACTION = "ลองใหม่อีกครั้ง";
+  var INITIAL_PROGRAM = "dsba_coop";   // หลักสูตรที่เลือกไว้ตอนเปิดหน้า (ตรงกับ DB ที่เซิร์ฟเวอร์ใช้อยู่) — ผู้ใช้เปลี่ยนเองได้
   var TIMEOUT_ACTION = "โมเดลอาจยังประมวลผลอยู่ รอสักครู่ แล้วกดลองอีกครั้ง (ถ้ายังเป็นอีก เปิดหน้า /api/health)";
   var NOT_READY_ACTION = "แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน";
   // backend ส่ง "Ollama ล่มตอนสร้าง SQL" เป็น 422 ที่ detail ขึ้นต้นด้วยชื่อ error ของ requests
@@ -69,7 +70,7 @@
     if (err.status === 404) {
       return isAsk
         ? { title: "ไม่พบหลักสูตรที่เลือก", action: "รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่" }
-        : { title: "ไม่พบรายวิชารหัสนี้ในหลักสูตรเริ่มต้น", action: "ตรวจรหัส หรือเลือกจากรายการแนะนำ" };
+        : { title: "ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น", action: "ตรวจรหัส หรือเลือกจากรายการแนะนำ" };
     }
     if (err.status >= 500) return { title: "เซิร์ฟเวอร์ขัดข้อง", action: RETRY_ACTION };
     return { title: "ส่งคำขอไม่สำเร็จ (รหัส " + err.status + ")", action: RETRY_ACTION };
@@ -265,7 +266,7 @@
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
       ? "ตอบจาก " + select.selectedOptions[0].textContent
-      : "ตอบจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์";
+      : "ตอบจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้";
     $("sql-text").textContent = data.sql || "-";
     $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
     $("elapsed-text").textContent = "ใช้เวลา " + seconds.toFixed(1) + " วินาที";
@@ -411,7 +412,6 @@
     try {
       var programs = await apiFetch("/api/programs", {}, { timeoutMs: 15000 });
       clear(select);
-      select.appendChild(el("option", { text: "หลักสูตรเริ่มต้นของเซิร์ฟเวอร์", attrs: { value: "" } }));
       programs.forEach(function (program) {
         var option = el("option", {
           text: (program.label || program.id) + (program.available ? "" : " (ไม่มีข้อมูล)"),
@@ -420,9 +420,12 @@
         option.disabled = !program.available;
         select.appendChild(option);
       });
+      var usable = Array.from(select.options).filter(function (o) { return !o.disabled; });
+      var initial = usable.find(function (o) { return o.value === INITIAL_PROGRAM; }) || usable[0];
+      if (initial) select.value = initial.value;
     } catch (e) {
       clear(select);
-      select.appendChild(el("option", { text: "โหลดรายชื่อหลักสูตรไม่ได้ (ใช้หลักสูตรเริ่มต้น)", attrs: { value: "" } }));
+      select.appendChild(el("option", { text: "โหลดรายชื่อหลักสูตรไม่ได้ (ใช้หลักสูตรที่เซิร์ฟเวอร์ตั้งไว้)", attrs: { value: "" } }));
     }
   }
 
@@ -430,7 +433,7 @@
     try {
       var program = await apiFetch("/api/program", {}, { timeoutMs: 10000 });
       if (program && program.name_th) {
-        $("prereq-scope").textContent = "ค้นจากหลักสูตรเริ่มต้นของเซิร์ฟเวอร์: " + program.name_th + " (ไม่ผูกกับตัวเลือกด้านบน)";
+        $("prereq-scope").textContent = "ค้นจากหลักสูตร: " + program.name_th + " (ไม่ตามตัวเลือกด้านบน)";
         $("prereq-scope").hidden = false;
       }
     } catch (e) { /* ซ่อนบรรทัดนี้ไว้ */ }

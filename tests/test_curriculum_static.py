@@ -202,3 +202,23 @@ def test_renderers_guard_missing_fields():
 def test_readme_notes_that_backend_accepts_unicode_digits():
     readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
     assert "isdigit" in readme
+
+
+# ---------- ให้เลือกหลักสูตรเองตั้งแต่ต้น: ไม่มีคำว่า "หลักสูตรเริ่มต้น" ในหน้าเว็บ ----------
+
+def test_page_never_shows_a_server_default_program_wording():
+    js = read("app.js")
+    assert "หลักสูตรเริ่มต้น" not in js
+    assert "เริ่มต้นของเซิร์ฟเวอร์" not in js
+
+
+def test_program_select_starts_on_a_named_program_not_a_default_option():
+    js = read("app.js")
+    assert 'var INITIAL_PROGRAM = "dsba_coop";' in js
+    assert "select.value = " in js             # เลือกค่าเริ่มต้นเป็นหลักสูตรจริง ไม่ใช่ตัวเลือกพิเศษ
+
+
+def test_readme_prereq_404_title_matches_the_new_wording():
+    readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
+    assert "ไม่พบรายวิชารหัสนี้ในหลักสูตรเริ่มต้น" not in readme
+    assert "ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น" in readme
