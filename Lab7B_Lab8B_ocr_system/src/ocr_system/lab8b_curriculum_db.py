@@ -2176,6 +2176,9 @@ _SECTION_TOPICS = (
     ("วัตถุประสงค์", r"^วตถประสงค(?:ของหลกสตร)?$", None),
     ("คุณสมบัติผู้เข้าศึกษา", r"^คณสมบตของผเขาศกษา$", None),
     ("เกณฑ์สำเร็จการศึกษา", r"^เกณฑ(?:การ)?สาเรจการศกษา(?:ตามหลกสตร)?$", None),
+    # ใช้อ้างหน้าของ "ข้อมูลระดับหลักสูตร" (หน่วยกิตรวม/ระยะเวลา) — ไม่มีคำถามเชิงบรรยายผูกกับสองหัวข้อนี้
+    ("หน่วยกิตตลอดหลักสูตร", r"^จานวนหนวยกต(?:ท)?เรยนตลอดหลกสตร$", None),
+    ("ระยะเวลาการศึกษา", r"^ระยะเวลา?การศกษาของหลกสตร$", r"^รปแบบของหลกสตร$"),
 )
 _SECTION_LABEL = {
     "ชื่อหลักสูตร": "ชื่อหลักสูตร", "ชื่อปริญญา": "ชื่อปริญญาและสาขาวิชา", "อาชีพ": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา",
@@ -2485,7 +2488,15 @@ def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     col, label = ("years", "ปี") if years else ("total_credits", "หน่วยกิต")
     if progs[0][col] is None:
         return None
-    return (f"{'หลักสูตรนี้ใช้เวลาเรียนตามแผน' if years else 'หน่วยกิตรวมตลอดหลักสูตร'} {progs[0][col]} {label}", [{col: progs[0][col]}],
+    row: dict[str, Any] = {col: progs[0][col]}
+    try:                                                     # หน้าที่เล่มพิมพ์ข้อมูลนี้ (book_section) — ไม่มีตาราง/หัวข้อ = ไม่อ้างหน้า
+        page = conn.execute("SELECT pdf_page, printed_page FROM book_section WHERE topic = ?",
+                            ("ระยะเวลาการศึกษา" if years else "หน่วยกิตตลอดหลักสูตร",)).fetchone()
+    except sqlite3.OperationalError:
+        page = None
+    if page:
+        row.update(pdf_page=page[0], printed_page=page[1])
+    return (f"{'หลักสูตรนี้ใช้เวลาเรียนตามแผน' if years else 'หน่วยกิตรวมตลอดหลักสูตร'} {progs[0][col]} {label}", [row],
             f"SELECT {col} FROM program")
 
 
@@ -2599,6 +2610,17 @@ def _normalise_semester_words(question: str) -> str:
     return re.sub(r" {2,}", " ", out).strip() if out != question else question
 
 
+_YEAR_CITE_MAX = 4                                          # 4 เทอมของ 2 ปี = หน้าตารางแผนได้ถึง 4 หน้า (เพดานปกติ 3 หน้าตัดทิ้งหนึ่งหน้า)
+
+
+def _question_years(question: str) -> set[int]:
+    """ปีที่ระบุในคำถาม: "ปี 1", "ปี 1 กับปี 2", "ชั้นปีที่ 1–2", "ปี 1 ถึงปี 3" (ไม่มีปี = ว่าง)"""
+    years = {int(y) for y in re.findall(r"ปี(?:ที่)?\s*(\d)", question)}
+    for a, b in re.findall(r"ปี(?:ที่)?\s*(\d)\s*(?:ถึง|-|–|ไปจนถึง)\s*(?:ปี(?:ที่)?\s*)?(\d)", question):
+        years |= set(range(int(a), int(b) + 1))
+    return years
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -2616,6 +2638,10 @@ def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     lookup = citations.load_lookup(conn)
     if lookup is not None:
         result["citations"] = citations.citations_for(result["rows"], result["sql"], lookup)
+        if not result["citations"] and result["rows"]:       # นับ/รวมตามปี ("ปี 1 กับปี 2 มีกี่วิชา"): ไม่มีรหัสวิชาในผล → อ้างหน้าตารางแผนของปีที่ถาม
+            years = _question_years(str(result.get("question") or ""))
+            pages = sorted({p for (y, _s), ps in lookup[1].items() if y in years for p in ps})
+            result["citations"] = [{"pdf_page": p, "printed_page": pr, "courses": []} for p, pr in pages[:_YEAR_CITE_MAX]]
         result["citation_text"] = citations.format_citation(result["citations"])
 
 

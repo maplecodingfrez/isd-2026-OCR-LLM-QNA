@@ -2232,3 +2232,101 @@ def test_more_ways_to_ask_what_a_course_teaches(tmp_path, monkeypatch, question)
     with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
         r = m.ask(conn, question, verbose=False)
     assert "ลิมิตและความต่อเนื่อง" in r["answer"]
+
+
+# =============== การอ้างหน้าที่ขาด: eval ล่าสุด คำตอบถูก 174 ข้อ ไม่มีหน้าอ้างอิง 35 ข้อ (ข้อมูลระดับหลักสูตร 14, นับตามปี 14, นับคู่วิชาบังคับก่อน 7) ===============
+# เกณฑ์ ch1: "LLM ตอบคำถาม 30 คะแนน ต้องตอบถูกและอ้างอิงหน้า/หัวข้อในเล่ม"
+
+_BOOK_PROG = """--- Page 2 ---
+4. จ้านวนหน่วยกิตทีเรียนตลอดหลักสูตร
+129 หน่วยกิต
+--- Page 3 ---
+5. รูปแบบของหลักสูตร
+5.1 รูปแบบ
+[ๆ หลักสูตรปริญญาตรี 4 ปี
+6. สถานภาพของหลักสูตร
+ข้อความอื่น
+--- Page 5 ---
+5.1.1 ระยะเวลการศึกษาของหลักสูตร
+หลักสูตรปริญญาตรี 4 ปี ตามแผน
+5.2 อย่างอื่น
+ไม่เกี่ยว
+"""
+
+
+def test_total_credits_and_duration_sections_are_stored_with_their_pages():
+    got = {d["topic"]: d for d in m.parse_book_sections(_BOOK_PROG)}
+    assert got["หน่วยกิตตลอดหลักสูตร"]["pdf_page"] == 2 and "129" in got["หน่วยกิตตลอดหลักสูตร"]["body"]
+    assert got["ระยะเวลาการศึกษา"]["pdf_page"] == 5 and "4 ปี" in got["ระยะเวลาการศึกษา"]["body"]       # หัวข้อเข้ม 5.1.1 ชนะ "รูปแบบของหลักสูตร"
+    only_format = {d["topic"]: d for d in m.parse_book_sections(_BOOK_PROG.split("--- Page 5 ---")[0])}
+    assert only_format["ระยะเวลาการศึกษา"]["pdf_page"] == 3                                           # ไม่มี 5.1.1 → ใช้หัวข้อ "รูปแบบของหลักสูตร"
+
+
+def _prog_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _make_db(path, electives=False)
+    m.load_book_sections(c, _BOOK_PROG)
+    c.commit()
+    return c
+
+
+@pytest.mark.parametrize("question,answer_part,page", [
+    ("หลักสูตรนี้เรียนกี่ปี", "4 ปี", 5), ("ต้องเรียนกี่หน่วยกิตถึงจะจบหลักสูตรนี้", "129 หน่วยกิต", 2)])
+def test_program_facts_cite_the_page_where_the_book_states_them(tmp_path, monkeypatch, question, answer_part, page):
+    _prog_db(tmp_path).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    assert answer_part in r["answer"] and [c["pdf_page"] for c in r["citations"]] == [page]
+
+
+def test_program_facts_without_the_section_rows_still_answer_without_a_citation(tmp_path, monkeypatch):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _make_db(path, electives=False).close()
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT 1"}')
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, "หลักสูตรนี้เรียนกี่ปี", verbose=False)
+    assert "4 ปี" in r["answer"] and r["citations"] == []
+
+
+def _year_cite_db(tmp_path):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    c = _plan_db(path)
+    c.executescript(m.COURSE_PAGE_DDL)
+    c.executemany("INSERT INTO term_page VALUES (?, ?, ?, ?)",
+                  [(1, 1, 10, "5"), (1, 2, 11, "6"), (2, 1, 12, "7"), (2, 2, 13, "8"), (3, 1, 14, "9")])
+    c.commit()
+    return c
+
+
+def _ask_counting(tmp_path, monkeypatch, question, model_sql="SELECT COUNT(*) AS n FROM plan_item WHERE year IN (1, 2)"):
+    _year_cite_db(tmp_path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "3 วิชา"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(tmp_path / "t.db", readonly=True)) as conn:
+        return m.ask(conn, question, verbose=False)
+
+
+@pytest.mark.parametrize("question,pages", [
+    ("ปี 1 กับปี 2 มีกี่วิชา", [10, 11, 12, 13]), ("ในแผนการศึกษาชั้นปีที่ 1–2 มีวิชากี่วิชา", [10, 11, 12, 13]),
+    ("ปี 3 มีกี่วิชา", [14]), ("ปี 1 ถึงปี 2 นับวิชาได้กี่วิชา", [10, 11, 12, 13])])
+def test_a_count_over_years_cites_the_plan_pages_of_those_years(tmp_path, monkeypatch, question, pages):
+    r = _ask_counting(tmp_path, monkeypatch, question)
+    assert [c["pdf_page"] for c in r["citations"]] == pages
+
+
+def test_no_year_in_the_question_means_no_fallback_citation(tmp_path, monkeypatch):
+    assert _ask_counting(tmp_path, monkeypatch, "ทั้งหลักสูตรมีกี่วิชา", "SELECT COUNT(*) AS n FROM plan_item")["citations"] == []
+
+
+def test_an_answer_that_found_nothing_is_never_cited(tmp_path, monkeypatch):
+    r = _ask_counting(tmp_path, monkeypatch, "ปี 1 มีกี่วิชาที่ชื่อว่า XYZ", "SELECT code FROM course WHERE name_th = 'XYZ'")
+    assert r["citations"] == []
