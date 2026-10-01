@@ -1431,7 +1431,7 @@ def _desc_db(tmp_path, with_table=True):
     path.unlink(missing_ok=True)
     c = _make_db(path, electives=False)
     c.executemany("INSERT INTO course (code, name_th, name_en, credits) VALUES (?, ?, 'EN', 3)",
-                  [("06020001", "แคลคูลัส 1"), ("06020002", "แคลคูลัส 2"), ("06020009", "วิชาที่ไม่มีคำอธิบาย")])
+                  [("06020001", "แคลคูลัส 1"), ("06020002", "แคลคูลัส 2"), ("06020009", "วิชาไม่มีคำอธิบาย")])
     if with_table:
         stats = m.load_course_descriptions(c, _BOOK_DESC)
         assert stats["loaded"] == 3
@@ -1472,7 +1472,7 @@ def test_english_description_is_used_when_the_thai_one_is_missing(tmp_path, monk
 
 
 def test_a_known_course_without_a_description_says_so_instead_of_guessing(tmp_path, monkeypatch):
-    r = _ask_desc(tmp_path, monkeypatch, "วิชา วิชาที่ไม่มีคำอธิบาย เรียนเกี่ยวกับอะไร")
+    r = _ask_desc(tmp_path, monkeypatch, "วิชา วิชาไม่มีคำอธิบาย เรียนเกี่ยวกับอะไร")
     assert "ไม่พบคำอธิบายรายวิชา" in r["answer"] and r["model_calls"] == 0
 
 
@@ -2330,3 +2330,158 @@ def test_no_year_in_the_question_means_no_fallback_citation(tmp_path, monkeypatc
 def test_an_answer_that_found_nothing_is_never_cited(tmp_path, monkeypatch):
     r = _ask_counting(tmp_path, monkeypatch, "ปี 1 มีกี่วิชาที่ชื่อว่า XYZ", "SELECT code FROM course WHERE name_th = 'XYZ'")
     assert r["citations"] == []
+
+
+# =============== รีวิวอิสระ (subagent ตรวจโค้ดช่วง 261a991..HEAD): ทางลัดตอบผิดแทนที่จะปฏิเสธ — เทสต์จากกรณีจริงบน DB จริง ===============
+
+def _chain(conn, question):
+    """จำลองลำดับใน ask(): ทางลัดตัวแรกที่ตอบได้ (ไม่เรียกโมเดล) — None = ปล่อยให้ไปทางโมเดล"""
+    question = m._normalise_semester_words(question)
+    m.scope_elective_view(conn, question)
+    for fn in m._SHORTCUTS:
+        try:
+            r = fn(conn, question)
+        except Exception:
+            r = None
+        if r:
+            return r
+    return None
+
+
+def _real(rel):
+    db = RUNS / rel / "lab8b_output" / "curriculum.db"
+    if not db.exists():
+        pytest.skip("ไม่มีไฟล์ DB")
+    return m.open_db(db, readonly=True)
+
+
+# C1 ชื่อยาว/ชื่อที่ไม่มีในเล่ม ห้ามตกไปเป็นชื่อสั้นที่อยู่ข้างใน
+@pytest.mark.parametrize("rel,question", [
+    ("IT/coop", "Team-Project 1 กี่หน่วยกิต"), ("IT/coop", "วิชา Internet of Things Data Analytics มีชั่วโมงปฏิบัติกี่ชั่วโมง")])
+def test_an_unknown_longer_course_name_is_not_answered_as_the_shorter_name_inside_it(rel, question):
+    with closing(_real(rel)) as c:
+        assert _chain(c, question) is None, question
+
+
+# ชื่อยาวที่มีในแคตตาล็อกจริง (GE "การเตรียมความพร้อมสหกิจศึกษา" 90642160; "การตลาดเซิงดิจิทัลขั้นสูง" 06036142 สะกด "เซิง" ตาม OCR) ต้องได้คำตอบของวิชานั้น ไม่ใช่ชื่อสั้นที่อยู่ข้างใน
+def test_a_long_catalog_name_is_answered_as_itself_not_as_the_shorter_plan_name_inside_it():
+    with closing(_real("IT/coop")) as c:
+        r = _chain(c, "วิชาการเตรียมความพร้อมสหกิจศึกษามีกี่หน่วยกิต")
+    assert r and "90642160" in r[0] and "06016481" not in r[0]
+    with closing(_real("BIT/coop")) as c:
+        r = _chain(c, "รหัสวิชาการตลาดเชิงดิจิทัลขั้นสูง")
+        assert r and "06036142" in r[0] and "06036116" not in r[0]
+        assert _chain(c, "การตลาดเชิงดิจิทัลขั้นสูงกี่หน่วยกิต") is None or "06036116" not in _chain(c, "การตลาดเชิงดิจิทัลขั้นสูงกี่หน่วยกิต")[0]
+
+
+def test_the_same_name_typed_with_or_without_the_two_character_sara_am_finds_the_same_course():
+    with closing(_real("BIT/coop")) as c:
+        a = _chain(c, "รหัสวิชาเครื่องมือและเทคนิคสำหรับการตลาดเชิงดิจิทัล")
+        b = _chain(c, "รหัสวิชาเครื่องมือและเทคนิคสําหรับการตลาดเชิงดิจิทัล")
+    assert a and b and "06036141" in a[0] and "06036141" in b[0]
+
+
+def test_whole_name_boundaries():
+    whole = m._name_is_whole
+    assert whole("วิชาแคลคูลัส1กี่หน่วยกิต", "แคลคูลัส1") and whole("แคลคูลัส1รหัสอะไร", "แคลคูลัส1") and whole("ขอรหัสวิชาของแคลคูลัส1หน่อย", "แคลคูลัส1")
+    assert not whole("การเตรียมความพร้อมสหกิจศึกษากี่หน่วยกิต", "สหกิจศึกษา")             # นำหน้าด้วยอักษรไทยที่ไม่ใช่คำถาม
+    assert not whole("การตลาดเชิงดิจิทัลขั้นสูงกี่หน่วยกิต", "การตลาดเชิงดิจิทัล")           # ตามหลังด้วยส่วนของชื่อที่ยาวกว่า
+    assert not whole("แคลคูลัส1และ2กี่หน่วยกิต", "แคลคูลัส1")                              # "X 1 และ 2" = สองวิชา
+    assert whole("whatisthecoursecodeofcalculus1", "calculus1") is True
+    assert not whole("microcalculus1code", "calculus1")                                    # ติดกับตัวอักษรอังกฤษ = คนละคำ
+
+
+# C2 หัวข้อ มคอ.2 ห้ามแย่งคำถามเรื่องวิชา (รวมวิชา GE) หรือคำถามที่ไม่ได้ถามหัวข้อนั้นจริง
+@pytest.mark.parametrize("question", [
+    "วิชาปรัชญาเศรษฐกิจพอเพียงกี่หน่วยกิต", "รหัสวิชาปรัชญาเศรษฐกิจพอเพียง", "การเขียนและการพูดในงานอาชีพ กี่หน่วยกิต",
+    "วิชาเลือกที่ช่วยเตรียมความพร้อมด้านอาชีพมีอะไรบ้าง", "นักศึกษาสหกิจต้องทำงานอะไรได้บ้าง", "จบปี 3 แล้วทำงานพาร์ทไทม์ได้ไหม",
+    "ได้รับวุฒิอะไรหลังผ่านสหกิจ"])
+def test_section_shortcut_does_not_hijack_course_or_cooperative_questions(question):
+    with closing(_real("IT/coop")) as c:
+        assert m._book_section_answer(c, question) is None, question
+
+
+# C3 คำถามเชิงความสัมพันธ์ (ต่อจาก/เป็นพื้นฐาน/เทอมเดียวกับ/แทน) ห้ามได้คำตอบของวิชาที่ถูกอ้างถึง
+@pytest.mark.parametrize("question", [
+    "ผ่านแคลคูลัส 1 แล้วไปเรียนอะไรต่อ", "ในเทอมที่เรียนแคลคูลัส 2 เรียนอะไรบ้าง", "ถ้าตกแคลคูลัส 1 ต้องเรียนอะไรแทน",
+    "รหัสวิชาที่ต่อจากแคลคูลัส 1", "วิชาที่เรียนเทอมเดียวกับแคลคูลัส 1 มีกี่หน่วยกิต", "วิชาที่ใช้แคลคูลัส 1 เป็นพื้นฐานมีชั่วโมงปฏิบัติกี่ชั่วโมง"])
+def test_relational_questions_are_not_answered_with_the_referenced_course_own_attribute(question):
+    with closing(_real("DSBA/coop")) as c:
+        for fn in (m._course_description_answer, m._code_lookup_answer, m._course_hours_answer, m._course_attr_answer):
+            assert fn(c, question) is None, (fn.__name__, question)
+
+
+# C4 ข้อมูลระดับหลักสูตรต้องเป็นคำถามระดับหลักสูตรจริง ๆ
+@pytest.mark.parametrize("question", [
+    "ปีแรกเรียนรวมกี่หน่วยกิต", "ปีสุดท้ายเรียนรวมกี่หน่วยกิต", "ซัมเมอร์เรียนรวมกี่หน่วยกิต", "แกนรวมกี่หน่วยกิต",
+    "ต้องมีหน่วยกิตสะสมรวมเท่าไหร่ถึงจะออกสหกิจได้", "หลักสูตรนี้เรียนได้นานสุดกี่ปี", "ระยะเวลาการศึกษาสูงสุดไม่เกินกี่ปี", "ต้องเรียนกี่ปีถึงจะได้ออกสหกิจ"])
+def test_program_facts_do_not_answer_sub_scope_or_maximum_duration_questions(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._program_fact_answer(c, question) is None, question
+
+
+@pytest.mark.parametrize("question,part", [
+    ("หลักสูตรนี้ต้องเรียนกี่หน่วยกิตถึงจะจบ", "132"), ("หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "132"),
+    ("หลักสูตรนี้เรียนกี่ปี", "4 ปี"), ("ระยะเวลาการศึกษาตามแผนของหลักสูตรนี้กี่ปี", "4 ปี")])
+def test_program_facts_still_answer_the_plain_program_questions(question, part):
+    with closing(_real("DSBA/coop")) as c:
+        r = m._program_fact_answer(c, question)
+    assert r and part in r[0]
+
+
+# I1 สองวิชาในคำถามเดียว (X 1 และ 2) ห้ามตอบแค่วิชาเดียว
+@pytest.mark.parametrize("question", [
+    "แคลคูลัส 1 และ 2 กี่หน่วยกิต", "แคลคูลัส 1 และ 2 เรียนปีไหน", "รหัสวิชาแคลคูลัส 1 และ 2", "รหัสวิชาภาษาอังกฤษพื้นฐาน 1, 2",
+    "ภาษาอังกฤษพื้นฐาน 1 และ 2 มีชั่วโมงบรรยายกี่ชั่วโมง", "แคลคูลัส 1 และพีชคณิตเชิงเส้นเรียนเกี่ยวกับอะไร"])
+def test_two_courses_in_one_question_are_left_to_the_model(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert _chain(c, question) is None, question
+
+
+# I2 ปีหลายค่า/ปีแบบคำ
+def test_extreme_hours_reads_every_listed_year_and_declines_word_years():
+    with closing(_real("IT/coop")) as c:
+        r = m._extreme_hours_answer(c, "ในปี 1 และ 3 วิชาที่ปฏิบัติมากที่สุดสัปดาห์ละกี่ชั่วโมง")
+        assert r and "36 ชั่วโมง" in r[0]
+        assert m._extreme_hours_answer(c, "ปีสุดท้ายวิชาที่ปฏิบัติมากที่สุดกี่ชั่วโมง") is None
+        assert m._extreme_hours_answer(c, "ปีหนึ่งวิชาที่บรรยายมากที่สุดกี่ชั่วโมง") is None
+        assert m._extreme_hours_answer(c, "ชั่วโมงบรรยายน้อยที่สุดแต่ไม่เป็นศูนย์กี่ชั่วโมง") is None
+    assert m._question_years("ปี 1 และ 3") == {1, 3} and m._question_years("ปี 1, 2 และ 4") == {1, 2, 4}
+
+
+# I3 กลุ่มวิชาเลือกที่ชื่อเหมือนวิชาในแผน
+@pytest.mark.parametrize("question", [
+    "วิชาการตลาดเชิงดิจิทัลเป็นวิชาเลือกหรือเปล่า มีกี่หน่วยกิต", "วิชาการตลาดเชิงดิจิทัลอยู่ในกลุ่มวิชาอะไร"])
+def test_group_shortcut_does_not_answer_about_a_plan_course_that_shares_the_group_name(question):
+    with closing(_real("BIT/coop")) as c:
+        assert m._elective_group_answer(c, question) is None, question
+
+
+# Minor: ตัวโหลดเทียบชั่วโมงต้องไม่ข้ามบรรทัด + ตัวโหลดตารางต้องไม่ทิ้งตารางว่างเมื่อ insert พัง
+def test_hours_vote_does_not_cross_a_line_break():
+    c = _hours_book_db_for_review()
+    book = "--- Page 1 ---\n06020001\n01006505 | 96642015 วิชาอื่น 3(2-2-5)\n06020001\n01006505 | 96642015 วิชาอื่น 3(2-2-5)\n"
+    assert m.reconcile_course_hours(c, book)["fixed"] == []
+    c.close()
+
+
+def _hours_book_db_for_review():
+    c = sqlite3.connect(":memory:")
+    c.executescript(m.DDL)
+    c.execute("INSERT INTO program VALUES ('P', 'โปรแกรมทดสอบ', 'Test', 'วท.บ.', 129, 4)")
+    c.execute("INSERT INTO course (code, name_th, credits, lecture_h, lab_h, self_h) VALUES ('06020001', 'วิชา', 3, 3, 0, 6)")
+    c.commit()
+    return c
+
+
+def test_a_failing_reload_keeps_the_previous_table(tmp_path, monkeypatch):
+    c = _sec_db(tmp_path)
+    before = c.execute("SELECT COUNT(*) FROM book_section").fetchone()[0]
+    assert before == 8
+    monkeypatch.setattr(m, "parse_book_sections", lambda text: [{"topic": "x", "heading": "h", "body": None, "pdf_page": "not-an-int-but-ok"},
+                                                                 {"topic": "x", "heading": "dup", "body": "b", "pdf_page": 1}])      # topic ซ้ำ ไม่ใช่ปัญหา (REPLACE) → บังคับพังด้วยของแปลก
+    monkeypatch.setattr(m, "_citations_module", lambda: (_ for _ in ()).throw(RuntimeError("boom")))
+    with pytest.raises(RuntimeError):
+        m.load_book_sections(c, _BOOK_SEC)
+    assert c.execute("SELECT COUNT(*) FROM book_section").fetchone()[0] == before
+    c.close()
