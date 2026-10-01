@@ -581,7 +581,7 @@ def test_scoping_the_elective_view_does_not_leak_between_questions_on_one_connec
         count = lambda: conn.execute("SELECT COUNT(*) FROM v_elective_group").fetchone()[0]
         assert m.scope_elective_view(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง") is True and count() == 2
         assert m.scope_elective_view(conn, "วิชาเลือกหมวดศึกษาทั่วไปมีอะไรบ้าง") is False and count() == 4
-        assert m.scope_elective_view(conn, "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง") is True and count() == 2
+        assert m.scope_elective_view(conn, "วิชาเลือกที่หลักสูตรเปิดมีอะไรบ้าง") is True and count() == 2
 
 
 # ---------- ช่อง GE/ภาษาฯ ตอบรายชื่อจริงจากแคตตาล็อก 2566 (ต้องมีแคตตาล็อกใน DB; ไม่มี = ข้อความระดับ 1 เดิม) ----------
@@ -767,7 +767,7 @@ def test_a_hint_following_model_gets_the_ge_rows_for_a_ge_count_question(tmp_pat
 
 
 @pytest.mark.parametrize("question,hidden", [
-    ("วิชา DIGITAL INTELLIGENCE QUOTIENT รหัสอะไร", True),     # INTELLIGENCE มีตัวอักษร GE แต่ไม่ใช่คำ GE
+    ("วิชาเลือก DIGITAL INTELLIGENCE มีอะไรบ้าง", True),          # INTELLIGENCE มีตัวอักษร GE แต่ไม่ใช่คำ GE (คำถามวิชาเลือก → ซ่อน GE)
     ("วิชาเลือก GE ของหลักสูตรนี้มีอะไรบ้าง", False),
     ("general education มีวิชาอะไรบ้าง", False),
     ("วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", True),
@@ -836,3 +836,211 @@ def test_ge_pool_answer_still_cites_the_plan_page_of_its_term_and_returns_runnab
 def test_mixed_ge_and_free_answers_return_one_statement(tmp_path, monkeypatch):
     r = _ask_with_catalog(tmp_path, monkeypatch, "ปี 4 เทอม 1 วิชาเลือกศึกษาทั่วไปและวิชาเลือกเสรี เลือกอะไรได้บ้าง")
     assert r["sql"].count("SELECT") == 1 or "/*" in r["sql"]
+
+
+# =============== แก้คำตอบที่ผิด/ปฏิเสธทั้งที่มีข้อมูล (ผลสำรวจ probe 62 ข้อ): ทางลัดเชิงกำหนดทั่วไป ===============
+# ข้อมูลทดสอบ (คำนวณเฉลยมือได้): A แคลคูลัส 1 (ปี1/1) → B แคลคูลัส 2 (ปี1/2) · C ปฏิบัติการเครือข่าย (ปี2/1) → D โครงงาน (ปี2/2) · E สถิติ (ปี2/2)
+
+def _q_db(path):
+    c = _make_db(path, electives=False)
+    c.executescript(m.PLAN_SLOT_DDL)
+    courses = [("06020001", "แคลคูลัส 1", 3, 3, 0, 6), ("06020002", "แคลคูลัส 2", 3, 3, 0, 6),
+               ("06020003", "ปฏิบัติการเครือข่าย", 3, 1, 4, 4), ("06020004", "โครงงาน", 3, 0, 9, 0), ("06020005", "สถิติ", 2, 2, 0, 4)]
+    c.executemany("INSERT INTO course (code, name_th, name_en, credits, lecture_h, lab_h, self_h) VALUES (?, ?, 'EN', ?, ?, ?, ?)", courses)
+    c.executemany("INSERT INTO plan_item (program_id, year, semester, code, credits) VALUES ('P', ?, ?, ?, ?)",
+                  [(1, 1, "06020001", 3), (1, 2, "06020002", 3), (2, 1, "06020003", 3), (2, 2, "06020004", 3), (2, 2, "06020005", 2)])
+    c.executemany("INSERT INTO prerequisite (code, requires, kind) VALUES (?, ?, 'pre')", [("06020002", "06020001"), ("06020004", "06020003")])
+    # แคตตาล็อกวิชาเลือกของหลักสูตร + GE (ไม่อยู่ในตาราง course)
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (40, 'P', 'ช่องวิทยาการข้อมูล', 6, 1, 'กลุ่มวิทยาการข้อมูล')")
+    c.execute("INSERT INTO elective_group(id, program_id, plan_slot, credits_required, group_no, name_th) VALUES (41, 'P', ?, 24, 4, 'กลุ่มทักษะภาษาและการสื่อสาร')", (GE_SLOT,))
+    c.execute("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (40, '06026216', 'ปัญญาประดิษฐ์', 'ARTIFICIAL INTELLIGENCE', 3)")
+    c.execute("INSERT INTO elective_group_course(group_id, code, name_th, name_en, credits) VALUES (41, '90644054', 'การอ่านและเขียนภาษาจีนพื้นฐาน', 'BASIC CHINESE', 3)")
+    c.commit()
+    return c
+
+
+def _ask_q(tmp_path, monkeypatch, question, model_sql="SELECT 1"):
+    path = tmp_path / "t.db"
+    path.unlink(missing_ok=True)
+    _q_db(path).close()
+    calls = []
+
+    def fake(prompt, fmt=None, **kw):
+        calls.append(prompt)
+        return json.dumps({"sql": model_sql}) if len(calls) == 1 else json.dumps({"answer": "ok"})
+
+    monkeypatch.setattr(m, "ollama_generate", fake)
+    with closing(m.open_db(path, readonly=True)) as conn:
+        r = m.ask(conn, question, verbose=False)
+    r["model_calls"] = len(calls)
+    return r
+
+
+# ---- 1. วิชาที่ไม่มีวิชาบังคับก่อน (โมเดลเคยตอบ "0" และลิสต์ปนวิชาที่มี prereq) ----
+def test_count_of_courses_without_prerequisites(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "มีกี่วิชาที่ไม่มีวิชาบังคับก่อน")
+    assert "3 วิชา" in r["answer"] and r["model_calls"] == 0
+
+
+def test_list_of_courses_without_prerequisites_excludes_those_that_have_one(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "วิชาไหนบ้างที่ไม่มีวิชาบังคับก่อน")
+    codes = {x["code"] for x in r["rows"]}
+    assert codes == {"06020001", "06020003", "06020005"} and "06020002" not in r["answer"]
+    assert all(c in r["answer"] for c in codes) and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชาที่ไม่ต้องเรียนแคลคูลัส 1 ก่อนมีอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"])
+def test_no_prereq_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
+    assert not m._is_no_prereq_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+# ---- 2. กรองตามชั่วโมง (โมเดลเคยละเงื่อนไข → 36 วิชาแทน 5) ----
+@pytest.mark.parametrize("question,expected", [
+    ("วิชาที่มีชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมงมีอะไรบ้าง", {"06020003", "06020004"}),
+    ("วิชาที่มีชั่วโมงบรรยายน้อยกว่า 2 ชั่วโมงมีอะไรบ้าง", {"06020003", "06020004"}),
+    ("วิชาที่ไม่มีชั่วโมงปฏิบัติมีอะไรบ้าง", {"06020001", "06020002", "06020005"}),
+    ("วิชาที่มีชั่วโมงศึกษาด้วยตนเองเท่ากับ 6 ชั่วโมงมีอะไรบ้าง", {"06020001", "06020002"}),
+    ("วิชาที่ชั่วโมงบรรยายไม่น้อยกว่า 3 ชั่วโมงมีวิชาอะไรบ้าง", {"06020001", "06020002"}),
+    ("วิชาที่ชั่วโมงปฏิบัติไม่เกิน 4 ชั่วโมงมีวิชาอะไรบ้าง", {"06020001", "06020002", "06020003", "06020005"}),
+])
+def test_hours_filter_applies_the_operator_and_the_right_column(tmp_path, monkeypatch, question, expected):
+    r = _ask_q(tmp_path, monkeypatch, question)
+    assert {x["code"] for x in r["rows"]} == expected and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", ["วิชา 06020003 มีชั่วโมงบรรยายกี่ชั่วโมง", "วิชา แคลคูลัส 1 มีชั่วโมงปฏิบัติกี่ชั่วโมง", "ชั่วโมงเรียนคืออะไร"])
+def test_hours_filter_leaves_single_course_lookups_alone(question):
+    assert m._hours_filter_spec(question) is None
+
+
+# ---- 3. เทอม/ปีที่หน่วยกิตมากสุด-น้อยสุด (ต้องบอกเทอม) ----
+def test_max_credit_term_names_the_term(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "เทอมไหนเรียนหน่วยกิตมากที่สุด")
+    assert "ปี 2 เทอม 2" in r["answer"] and "5 หน่วยกิต" in r["answer"] and r["model_calls"] == 0
+
+
+def test_min_credit_term_lists_every_tied_term(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "ภาคการศึกษาไหนเรียนหน่วยกิตน้อยที่สุด")
+    assert all(t in r["answer"] for t in ("ปี 1 เทอม 1", "ปี 1 เทอม 2", "ปี 2 เทอม 1")) and "3 หน่วยกิต" in r["answer"]
+
+
+def test_max_credit_year_and_year_scoped_term(tmp_path, monkeypatch):
+    assert "ปี 2" in _ask_q(tmp_path, monkeypatch, "ปีไหนเรียนหน่วยกิตมากที่สุด")["answer"]
+    assert "ปี 2 เทอม 2" in _ask_q(tmp_path, monkeypatch, "ปี 2 เทอมไหนเรียนหน่วยกิตมากที่สุด")["answer"]
+
+
+@pytest.mark.parametrize("question", ["ปี 2 เทอม 1 เรียนกี่หน่วยกิต", "วิชาไหนมีหน่วยกิตมากที่สุด", "ปี 2 เทอม 1 มีวิชาอะไรบ้าง"])
+def test_extreme_credit_shortcut_leaves_other_questions_alone(question):
+    assert not m._is_extreme_credits_question(question)
+
+
+# ---- 4. รหัสภายใน lab7b_alt_* ต้องไม่หลุดเข้าแถว/คำตอบ ----
+def test_internal_alt_group_ids_never_reach_the_rows_or_the_answer(tmp_path, monkeypatch):
+    c = sqlite3.connect(tmp_path / "t.db")
+    c.close()
+    r = _ask_q(tmp_path, monkeypatch, "ปี 1 เทอม 1 วิชาอะไรบ้าง",
+               "SELECT code, name_th, 'lab7b_alt_61' AS alt_group FROM course WHERE code = '06020001'")
+    assert all("lab7b" not in json.dumps(x, ensure_ascii=False) for x in r["rows"]) and "lab7b" not in r["answer"]
+    assert r["rows"][0]["code"] == "06020001"
+
+
+def test_alt_group_is_kept_when_it_is_the_only_column_asked_for():
+    rows = [{"alt_group": "lab7b_alt_61"}]
+    assert m._hide_internal_columns(rows) == rows                  # แถวจะว่างเปล่า → คงเดิมดีกว่าตอบว่าง
+
+
+# ---- 5. ค้นวิชาในแคตตาล็อก (วิชาเลือก/GE) จากรหัสหรือชื่อ + ให้ค้นตามหัวข้อเห็น GE ----
+def test_catalog_course_is_found_by_code_and_by_name(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "วิชา 06026216 ชื่ออะไร")
+    assert "ปัญญาประดิษฐ์" in r["answer"] and r["model_calls"] == 0
+    r = _ask_q(tmp_path, monkeypatch, "วิชา ปัญญาประดิษฐ์ กี่หน่วยกิต")
+    assert "3 หน่วยกิต" in r["answer"] and r["model_calls"] == 0
+    r = _ask_q(tmp_path, monkeypatch, "วิชา 06026216 ชื่อภาษาอังกฤษว่าอะไร")
+    assert "ARTIFICIAL INTELLIGENCE" in r["answer"]
+    r = _ask_q(tmp_path, monkeypatch, "90644054 คือวิชาอะไร อยู่กลุ่มไหน")
+    assert "ภาษาจีน" in r["answer"] and "กลุ่มทักษะภาษาและการสื่อสาร" in r["answer"]
+
+
+@pytest.mark.parametrize("question", ["วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 กี่หน่วยกิต", "วิชา 99999999 ชื่ออะไร", "ปี 1 เทอม 1 เรียนอะไรบ้าง"])
+def test_catalog_lookup_leaves_plan_courses_unknown_codes_and_other_questions_alone(tmp_path, monkeypatch, question):
+    assert _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+@pytest.mark.parametrize("question,hidden", [
+    ("มีวิชาภาษาจีนไหม", False),                          # ค้นตามหัวข้อต้องเห็นแคตตาล็อก GE
+    ("วิชา 90644054 ชื่ออะไร", False),
+    ("วิชา DIGITAL INTELLIGENCE QUOTIENT รหัสอะไร", False),
+    ("วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", True),          # ซ่อน GE เฉพาะคำถาม "วิชาเลือกของหลักสูตร"
+    ("วิชาเลือกกลุ่มภาษาและการสื่อสารมีกี่วิชา", False),
+])
+def test_ge_catalog_is_hidden_only_for_program_elective_questions(tmp_path, question, hidden):
+    with closing(_q_db(tmp_path / "t.db")) as conn:
+        assert m.scope_elective_view(conn, question) is hidden
+
+
+# ---- 6. วิชาบังคับก่อน + ปี/เทอมในคำถามเดียว (โมเดลเคย error "ไม่สามารถตอบ") ----
+def test_courses_that_need_x_first_come_with_their_terms(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "วิชา แคลคูลัส 1 ต้องเรียนก่อนวิชาอะไร และวิชานั้นอยู่ปีไหน")
+    assert "06020002" in r["answer"] and "ปี 1 เทอม 2" in r["answer"] and "06020004" not in r["answer"] and r["model_calls"] == 0
+
+
+def test_prerequisites_of_x_come_with_their_terms(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "วิชา โครงงาน ต้องเรียนวิชาอะไรมาก่อน และวิชานั้นอยู่เทอมไหน")
+    assert "06020003" in r["answer"] and "ปี 2 เทอม 1" in r["answer"] and r["model_calls"] == 0
+
+
+def test_a_course_without_dependents_or_prerequisites_says_so(tmp_path, monkeypatch):
+    assert "ไม่มี" in _ask_q(tmp_path, monkeypatch, "วิชา สถิติ ต้องเรียนวิชาอะไรมาก่อน และอยู่เทอมไหน")["answer"]
+
+
+def test_term_listing_with_prerequisites(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "ปี 2 เทอม 2 มีวิชาอะไรบ้าง และวิชาไหนมีวิชาบังคับก่อน")
+    assert "06020004" in r["answer"] and "06020005" in r["answer"] and "06020003" in r["answer"] and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 เรียนปีไหนเทอมไหน", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง"])
+def test_prereq_term_shortcut_leaves_plain_questions_alone(tmp_path, monkeypatch, question):
+    assert not m._is_prereq_term_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
+
+
+# ---- ทุกทางลัดใหม่: ไม่มีคำถามในชุดเฉลย Lab 9 เข้าเงื่อนไข ----
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_hits_the_new_shortcuts(path):
+    for q in json.loads(path.read_text(encoding="utf-8")):
+        text = q["question"]
+        assert not m._is_no_prereq_question(text), text
+        assert m._hours_filter_spec(text) is None, text
+        assert not m._is_extreme_credits_question(text), text
+        assert not m._is_prereq_term_question(text), text
+
+
+# ---- ข้อปรับหลัง probe รอบสอง ----
+def test_count_question_for_courses_without_prerequisites_does_not_dump_the_list(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "มีกี่วิชาที่ไม่มีวิชาบังคับก่อน")
+    assert "3 วิชา" in r["answer"] and "06020001" not in r["answer"] and len(r["rows"]) == 3      # "ไม่มีวิชา…" ไม่ใช่คำขอรายการ
+
+
+def test_no_prereq_question_with_a_term_is_scoped_to_that_term(tmp_path, monkeypatch):
+    r = _ask_q(tmp_path, monkeypatch, "ปี 2 เทอม 2 วิชาอะไรบ้างที่ไม่มีวิชาบังคับก่อน")
+    assert {x["code"] for x in r["rows"]} == {"06020005"} and "ปี 2 เทอม 2" in r["answer"]
+
+
+@pytest.mark.parametrize("question", ["มีวิชาภาษาจีนไหม", "มีวิชาปัญญาประดิษฐ์หรือไม่", "มีรายวิชาเกี่ยวกับเครือข่ายไหม"])
+def test_topic_hint_covers_yes_no_existence_questions(tmp_path, question):
+    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
+        assert MARKER_TOPIC in m._topic_hint_text(conn, question)
+
+
+@pytest.mark.parametrize("question", ["มีวิชาบังคับก่อนไหม", "มีวิชาเลือกไหม", "วิชา แคลคูลัส 1 มีวิชาบังคับก่อนหรือไม่", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"])
+def test_topic_hint_stays_silent_for_non_topic_existence_questions(tmp_path, question):
+    with closing(_db_with_own_and_ge_electives(tmp_path / "t.db")) as conn:
+        assert m._topic_hint_text(conn, question) == ""
+
+
+@pytest.mark.parametrize("path", GOLD, ids=lambda p: p.name)
+def test_no_gold_question_gets_the_topic_hint(path):
+    import sqlite3 as _s
+    with closing(_s.connect(":memory:")) as conn:
+        conn.executescript("CREATE TABLE course(code TEXT, name_th TEXT, name_en TEXT);")
+        for q in json.loads(path.read_text(encoding="utf-8")):
+            assert m._topic_hint_text(conn, q["question"]) == "", q["question"]

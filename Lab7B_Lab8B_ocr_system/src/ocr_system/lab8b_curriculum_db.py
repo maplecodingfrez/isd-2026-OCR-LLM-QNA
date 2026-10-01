@@ -1166,7 +1166,9 @@ def _dedupe_rows(rows: list[dict]) -> list[dict]:
 
 
 _ELECTIVE_Q = re.compile(r"วิชาเลือก(?!เสรี)|elective", re.I)       # วิชาเลือกเสรี ไม่ใช่แคตตาล็อกเฉพาะทาง
-_TOPIC_Q = re.compile(r"วิชา.*(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง)|(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง).*วิชา")
+_TOPIC_Q = re.compile(r"วิชา.*(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง)|(?:เกี่ยวกับ|เกี่ยวข้องกับ|ด้าน|เรื่อง).*วิชา"
+                      # รูป "มีวิชาภาษาจีนไหม" (ถามว่ามีหัวข้อนี้ไหม) — ไม่รวม "มีวิชาบังคับ/เลือก/ก่อน…ไหม" และคำถามที่มีคำขึ้นต้นเป็นคำถามอื่น
+                      r"|มี(?:รายวิชา|วิชา)(?!บังคับ|เลือก|ก่อน|ใด|อะไร|ไหน)\S{2,30}(?:ไหม|หรือไม่)")
 
 
 _TERM_COUNT_Q = re.compile(r"กี่หน่วยกิต|กี่วิชา|กี่ตัว|หน่วยกิตรวม|รวมกี่")
@@ -1469,6 +1471,266 @@ def _ge_category_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return "หมวดวิชาศึกษาทั่วไปในแผนของหลักสูตรนี้ — " + "; ".join(parts), required, sql
 
 
+# ===================== ทางลัดเชิงกำหนดสำหรับคำถามที่โมเดลเล็ก (qwen3:4b) พลาด =====================
+# ที่มา: probe 62 คำถาม (DSBA/IT) พบคำตอบ "มั่นใจแต่ผิด" และ "ปฏิเสธทั้งที่มีข้อมูล" — ทุกทางลัดอิงข้อมูลใน DB ล้วน ๆ ไม่ผูกกับถ้อยคำของคำถามตัวอย่าง;
+# เปิดเฉพาะรูปคำถามที่ชัดเจน (ไม่ชัด = None → ทางโมเดลเดิม) และมีเทสต์ว่าไม่มีคำถามในชุดเฉลย Lab 9 เข้าเงื่อนไข
+
+_CODE8 = re.compile(r"(?<!\d)\d{8}(?!\d)")
+_LIST_WORD = re.compile(r"อะไรบ้าง|วิชาไหน|วิชาอะไร|รายชื่อ|มีวิชา|ได้แก่")
+_COUNT_WORD = re.compile(r"กี่วิชา|กี่ตัว|จำนวน|กี่รายวิชา")
+_TERM_LABEL = "ปี {y} เทอม {s}"
+
+
+def _term_numbers(question: str) -> tuple[int | None, int | None]:
+    y, s = _TERM_YEAR_NUM.search(question), _TERM_SEM_NUM.search(question)
+    return (int(y.group(1)) if y else None), (int(s.group(1)) if s else None)
+
+
+def _first_terms(conn: sqlite3.Connection) -> dict[str, tuple[int, int]]:
+    """ปี/เทอมแรกที่วิชาปรากฏในแผน (plan_item)"""
+    out: dict[str, tuple[int, int]] = {}
+    for code, year, sem in conn.execute("SELECT code, year, semester FROM plan_item ORDER BY year, semester, id"):
+        out.setdefault(code, (year, sem))
+    return out
+
+
+# ---- 1. วิชาที่ไม่มีวิชาบังคับก่อน (นับ/ลิสต์) — โมเดลเคยตอบ "0" และลิสต์ปนวิชาที่มี prereq ----
+_NO_PREREQ_RE = re.compile(r"ไม่(?:มี|ต้องมี).{0,8}(?:วิชาบังคับก่อน|บังคับก่อน|วิชาก่อนหน้า|prerequisite)", re.I)
+
+
+def _is_no_prereq_question(question: str) -> bool:
+    rest = _NO_PREREQ_RE.sub("", question)                # "ไม่มีวิชาบังคับก่อน" มีคำว่า "มีวิชา" อยู่ข้างใน — ไม่ใช่คำขอรายการ
+    return bool(_NO_PREREQ_RE.search(question) and not _CODE8.search(question)
+                and (_LIST_WORD.search(rest) or _COUNT_WORD.search(rest)))
+
+
+def _no_prereq_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชาในแผน (ระบุปี/เทอมในคำถามได้) ที่ไม่มีแถว prerequisite (kind='pre') และไม่อยู่ใน prerequisite_alt"""
+    if not _is_no_prereq_question(question):
+        return None
+    y, s = _term_numbers(question)
+    cond = " AND ".join(c for c in (f"year = {y}" if y else "", f"semester = {s}" if s else "") if c)
+    plan = "SELECT code FROM plan_item" + (f" WHERE {cond}" if cond else "")
+    base = (f"SELECT c.code, c.name_th, c.credits FROM course c WHERE c.code IN ({plan}) "
+            "AND NOT EXISTS (SELECT 1 FROM prerequisite p WHERE p.code = c.code AND p.kind = 'pre') {alt} ORDER BY c.code")
+    sql = base.format(alt="AND NOT EXISTS (SELECT 1 FROM prerequisite_alt a WHERE a.code = c.code)")
+    try:
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    except sqlite3.OperationalError:                      # DB เก่าไม่มี prerequisite_alt
+        sql = base.format(alt="")
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    where = f"ใน{_TERM_LABEL.format(y=y, s=s)}" if (y and s) else (f"ในปี {y}" if y else "ในแผนการศึกษา")
+    head = f"มี {len(rows)} วิชา{where}ที่ไม่มีวิชาบังคับก่อน"
+    if not rows:
+        return head, rows, sql
+    rest = _NO_PREREQ_RE.sub("", question)
+    if _COUNT_WORD.search(rest) and not _LIST_WORD.search(rest):
+        return head, rows, sql
+    return head + ": " + ", ".join(f"{r['code']} {r['name_th']}" for r in rows), rows, sql
+
+
+# ---- 2. กรองตามชั่วโมง (บรรยาย/ปฏิบัติ/ศึกษาด้วยตนเอง) — โมเดลเคยละเงื่อนไข ได้ 36 วิชาแทน 5 ----
+_HOURS_COLS = (("ศึกษาด้วยตนเอง", "self_h", "ศึกษาด้วยตนเอง"), ("นอกชั้นเรียน", "self_h", "ศึกษาด้วยตนเอง"),
+               ("บรรยาย", "lecture_h", "บรรยาย"), ("ปฏิบัติ", "lab_h", "ปฏิบัติ"))
+_HOURS_OPS = ((r"ไม่น้อยกว่า|อย่างน้อย|ตั้งแต่", ">=", "ไม่น้อยกว่า"), (r"ไม่เกิน|อย่างมาก|ไม่มากกว่า", "<=", "ไม่เกิน"),
+              (r"มากกว่า|เกิน|สูงกว่า", ">", "มากกว่า"), (r"น้อยกว่า|ต่ำกว่า", "<", "น้อยกว่า"), (r"เท่ากับ|เท่ากัน", "=", "เท่ากับ"))
+
+
+def _hours_filter_spec(question: str) -> tuple[str, str, int, str, str] | None:
+    """(คอลัมน์, ตัวดำเนินการ, ค่า, ชื่อชั่วโมง, คำบอกเงื่อนไข) จากคำถามแบบ "วิชาที่ชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมง" / "ไม่มีชั่วโมงปฏิบัติ";
+    คำถามเจาะวิชาเดียว (มีรหัส/ไม่มีตัวดำเนินการ+ตัวเลข) หรือไม่ได้ถามรายการ = None"""
+    if "ชั่วโมง" not in question or _CODE8.search(question) or not _LIST_WORD.search(question):
+        return None
+    col = next(((c, label) for w, c, label in _HOURS_COLS if w in question), None)
+    if col is None:
+        return None
+    if re.search(r"ไม่มี(?:ชั่วโมง)?(?:บรรยาย|ปฏิบัติ|ศึกษาด้วยตนเอง|นอกชั้นเรียน)", question):
+        return col[0], "=", 0, col[1], "เท่ากับ"
+    n = re.search(r"(\d+)\s*ชั่วโมง", question)
+    if not n:
+        return None
+    op = next(((o, label) for p, o, label in _HOURS_OPS if re.search(p, question)), None)
+    if op is None and re.search(r"มี\s*\d+\s*ชั่วโมง", question):
+        op = ("=", "เท่ากับ")
+    return (col[0], op[0], int(n.group(1)), col[1], op[1]) if op else None
+
+
+def _hours_filter_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    spec = _hours_filter_spec(question)
+    if spec is None:
+        return None
+    col, op, value, label, op_label = spec                # col/op มาจากตารางคงที่ด้านบน (ไม่ใช่ข้อความผู้ใช้) value เป็น int
+    sql = (f"SELECT c.code, c.name_th, c.credits, c.lecture_h, c.lab_h, c.self_h FROM course c "
+           f"WHERE c.code IN (SELECT code FROM plan_item) AND c.{col} IS NOT NULL AND c.{col} {op} {value} ORDER BY c.code")
+    rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    head = f"วิชาในแผนที่ชั่วโมง{label}{op_label} {value} ชั่วโมง มี {len(rows)} วิชา"
+    if not rows:
+        return head, rows, sql
+    return (head + ": " + ", ".join(f"{r['code']} {r['name_th']} (บรรยาย {r['lecture_h']}-ปฏิบัติ {r['lab_h']}-ศึกษาด้วยตนเอง {r['self_h']})"
+                                    for r in rows), rows, sql)
+
+
+# ---- 3. เทอม/ปีที่หน่วยกิตมากสุด-น้อยสุด — โมเดลเคยตอบแค่ตัวเลข ไม่บอกว่าเทอมไหน ----
+_EXTREME_MAX = re.compile(r"มากที่สุด|มากสุด|สูงสุด|หนักที่สุด")
+_EXTREME_MIN = re.compile(r"น้อยที่สุด|น้อยสุด|ต่ำสุด|เบาที่สุด")
+
+
+def _is_extreme_credits_question(question: str) -> bool:
+    return bool((_EXTREME_MAX.search(question) or _EXTREME_MIN.search(question))
+                and re.search(r"เทอม|ภาคการศึกษา|ภาคเรียน|ภาค|ปีไหน|ปีใด", question) and re.search(r"ไหน|ใด", question)
+                and re.search(r"หน่วยกิต|หนัก|เบา|เรียน", question) and not _CODE8.search(question))
+
+
+def _extreme_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ปี/เทอมที่หน่วยกิตมาก/น้อยที่สุด จาก v_semester_credits_full (นับตามเล่ม — ช่อง "เลือก 1 กลุ่ม" ไม่นับซ้ำ); เท่ากันบอกครบทุกเทอม"""
+    if not _is_extreme_credits_question(question):
+        return None
+    y, _s = _term_numbers(question)
+    per_year = bool(re.search(r"ปีไหน|ปีใด|ชั้นปีไหน", question)) and not re.search(r"เทอมไหน|ภาคไหน|ภาคการศึกษาไหน|ภาคเรียนไหน|เทอมใด", question)
+    want_max = bool(_EXTREME_MAX.search(question))
+    where = f" WHERE year = {y}" if y else ""
+    if per_year:
+        sql = f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full{where} GROUP BY year"
+    else:
+        sql = f"SELECT year, semester, credits FROM main.v_semester_credits_full{where}"
+    try:
+        rows = [dict(r) for r in conn.execute(sql).fetchall() if r["credits"] is not None]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    best = (max if want_max else min)(r["credits"] for r in rows)
+    top = [r for r in rows if r["credits"] == best]
+    names = " และ ".join((f"ปี {r['year']}" if per_year else _TERM_LABEL.format(y=r["year"], s=r["semester"])) for r in top)
+    kind = "ปี" if per_year else "เทอม"
+    return (f"{kind}ที่เรียน{'มาก' if want_max else 'น้อย'}ที่สุดคือ {names} ({best} หน่วยกิต)", top,
+            sql + f" ORDER BY credits {'DESC' if want_max else 'ASC'}")
+
+
+# ---- 4. รหัสภายในจากขั้นตอน Lab 7B (alt_group = "lab7b_alt_61") ต้องไม่หลุดเข้าแถว/คำตอบ ----
+def _hide_internal_columns(rows: list[dict]) -> list[dict]:
+    out = []
+    for r in rows:
+        if len(r) > 1 and isinstance(r.get("alt_group"), str) and r["alt_group"].startswith("lab7b_alt_"):
+            r = {k: v for k, v in r.items() if k != "alt_group"}      # แถวที่มีแต่คอลัมน์นี้คงเดิม (ตัดแล้วจะว่างเปล่า)
+        out.append(r)
+    return out
+
+
+# ---- 5. ค้นวิชาในแคตตาล็อก (วิชาเลือกของหลักสูตร + GE) จากรหัสหรือชื่อ — ไม่อยู่ในตาราง course โมเดลเลยตอบ "ไม่พบ" ----
+_CATALOG_ATTR_RE = re.compile(r"ชื่อ|หน่วยกิต|ภาษาอังกฤษ|รหัส|คือวิชา|กลุ่ม|หมวด|ชั่วโมง")
+
+
+def _catalog_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามชื่อ/หน่วยกิต/ชื่ออังกฤษ/กลุ่มของวิชาที่อยู่ในแคตตาล็อกแต่ไม่อยู่ใน course (วิชาเลือก, GE) — อ้างด้วยรหัส 8 หลัก หรือชื่อวิชาเต็ม
+    (ชื่อยาวกว่าชื่อวิชาในแผนที่อยู่ในคำถาม: "ระบบฐานข้อมูลขั้นสูง" ชนะ "ระบบฐานข้อมูล"); วิชาในแผน/รหัสที่ไม่มีจริง/ไม่ได้ถามคุณสมบัติ = None"""
+    if not _CATALOG_ATTR_RE.search(question):
+        return None
+    try:
+        own = {r[0]: r[1] or "" for r in conn.execute("SELECT code, name_th FROM course")}
+        cat = [dict(r) for r in conn.execute(
+            "SELECT code, course_name_th AS name_th, course_name_en AS name_en, credits, plan_slot, group_name_th "
+            "FROM main.v_elective_group ORDER BY (plan_slot LIKE 'หมวดวิชาศึกษาทั่วไป%'), group_no, code").fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    by_code: dict[str, dict] = {}
+    for r in cat:
+        by_code.setdefault(r["code"], r)                  # วิชาเลือกของหลักสูตรมาก่อน GE (ตาม ORDER BY)
+    codes = list(dict.fromkeys(_CODE8.findall(question)))
+    if codes:
+        if any(c in own for c in codes) or not all(c in by_code for c in codes):
+            return None
+        found = [by_code[c] for c in codes[:5]]
+    else:
+        plan_len = max((len(n) for n in own.values() if len(n) >= 4 and n in question), default=0)
+        match = max((r for r in by_code.values() if len(r["name_th"] or "") >= 6 and r["name_th"] in question),
+                    key=lambda r: len(r["name_th"]), default=None)
+        if match is None or len(match["name_th"]) <= plan_len:
+            return None
+        found = [match]
+    wants_en = bool(re.search(r"ภาษาอังกฤษ|ชื่ออังกฤษ", question))
+    wants_credit = "หน่วยกิต" in question
+    wants_group = bool(re.search(r"กลุ่ม|หมวด", question))
+    parts = []
+    for r in found:
+        bits = [f"{r['code']} {r['name_th']}"]
+        if wants_credit or not (wants_en or wants_group):
+            bits.append(f"{r['credits']} หน่วยกิต")
+        if wants_en:
+            bits.append(f"ชื่ออังกฤษ {r['name_en'] or '-'}")
+        if wants_group or not (wants_en or wants_credit):
+            bits.append(f"อยู่ในกลุ่ม {r['group_name_th']} ({r['plan_slot']})")
+        parts.append(" — ".join(bits))
+    ids = ", ".join(f"'{r['code']}'" for r in found)
+    return "; ".join(parts), found, ("SELECT code, course_name_th AS name_th, course_name_en AS name_en, credits, plan_slot, group_name_th "
+                                     f"FROM main.v_elective_group WHERE code IN ({ids})")
+
+
+# ---- 6. วิชาบังคับก่อน + ปี/เทอมในคำถามเดียว — โมเดลเคย error "ไม่สามารถตอบคำถามนี้ได้" ----
+_TERM_ASK_RE = re.compile(r"ปีไหน|เทอมไหน|ภาคไหน|ภาคการศึกษาไหน|ภาคเรียนไหน|ปีอะไร|เทอมอะไร|ปีใด|เทอมใด")
+_PREREQ_WORD_RE = re.compile(r"บังคับก่อน|ก่อนหน้า|ต้องเรียน.{0,14}ก่อน|ต้องผ่าน|เรียนต่อ|ต่อยอด|prerequisite|เรียนมาก่อน", re.I)
+
+
+def _is_prereq_term_question(question: str) -> bool:
+    if not _PREREQ_WORD_RE.search(question):
+        return False
+    if _TERM_ASK_RE.search(question):
+        return True
+    y, s = _term_numbers(question)                         # "ปี N เทอม M มีวิชาอะไรบ้าง และวิชาไหนมีวิชาบังคับก่อน"
+    return bool(y and s and _LIST_WORD.search(question) and re.search(r"(?:และ|แล้ว|พร้อม).{0,20}(?:บังคับก่อน|prerequisite)", question, re.I))
+
+
+def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    if not _is_prereq_term_question(question):
+        return None
+    import course_names
+    _citations_module()
+    courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    names = {c["code"]: c["name_th"] for c in courses}
+    terms = _first_terms(conn)
+    direction = course_names.prereq_direction(question, course_names.course_hints(question, courses))
+
+    def label(code: str) -> str:
+        t = terms.get(code)
+        return f"{code} {names.get(code, '')} ({_TERM_LABEL.format(y=t[0], s=t[1])})" if t else f"{code} {names.get(code, '')}".strip()
+
+    def requires_of(code: str) -> list[str]:
+        got = [r[0] for r in conn.execute("SELECT requires FROM prerequisite WHERE code = ? AND kind = 'pre' ORDER BY requires", (code,))]
+        try:
+            got += [r[0] for r in conn.execute("SELECT requires FROM prerequisite_alt WHERE code = ? ORDER BY requires", (code,))]
+        except sqlite3.OperationalError:
+            pass
+        return list(dict.fromkeys(got))
+
+    if direction:
+        kind, x = direction
+        if kind == "after":                                # วิชาที่ต้องเรียน x ก่อน (requires = x)
+            codes = [r[0] for r in conn.execute("SELECT code FROM prerequisite WHERE requires = ? AND kind = 'pre' ORDER BY code", (x,))]
+            sql = f"SELECT code FROM prerequisite WHERE requires = '{x}' AND kind = 'pre'"
+            text = (f"{names.get(x, x)} เป็นวิชาบังคับก่อนของ: " + ", ".join(label(c) for c in codes)) if codes \
+                else f"ไม่มีวิชาที่ต้องเรียน {names.get(x, x)} ก่อน"
+        else:                                              # วิชาที่ x ต้องเรียนมาก่อน
+            codes = requires_of(x)
+            sql = f"SELECT requires FROM prerequisite WHERE code = '{x}' AND kind = 'pre'"
+            text = (f"{names.get(x, x)} ต้องเรียนมาก่อน: " + ", ".join(label(c) for c in codes)) if codes \
+                else f"{names.get(x, x)} ไม่มีวิชาบังคับก่อน"
+        return text, [{"code": c, "name_th": names.get(c), "year": (terms.get(c) or (None, None))[0],
+                       "semester": (terms.get(c) or (None, None))[1]} for c in codes], sql
+    y, s = _term_numbers(question)                         # รูป "ปี N เทอม M … และวิชาไหนมีวิชาบังคับก่อน"
+    if not (y and s):
+        return None
+    sql = f"SELECT code FROM plan_item WHERE year = {y} AND semester = {s} ORDER BY id"
+    in_term = list(dict.fromkeys(r[0] for r in conn.execute(sql)))
+    if not in_term:
+        return None
+    lines, rows = [], []
+    for code in in_term:
+        req = requires_of(code)
+        lines.append(f"{code} {names.get(code, '')}: " + (f"ต้องเรียน {', '.join(label(c) for c in req)} มาก่อน" if req else "ไม่มีวิชาบังคับก่อน"))
+        rows.append({"code": code, "name_th": names.get(code), "requires": ", ".join(req) or None})
+    return f"{_TERM_LABEL.format(y=y, s=s)} — " + "; ".join(lines), rows, sql
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -1540,7 +1802,7 @@ def scope_elective_view(conn: sqlite3.Connection, question: str) -> bool:
     คืน True ถ้าตัด GE ออก"""
     try:
         conn.execute("DROP VIEW IF EXISTS temp.v_elective_group")
-        if _GE_Q.search(question) or not _has_view(conn, "v_elective_group"):
+        if _GE_Q.search(question) or not _ELECTIVE_Q.search(question) or not _has_view(conn, "v_elective_group"):
             return False
         conn.execute("CREATE TEMP VIEW v_elective_group AS SELECT * FROM main.v_elective_group "
                      "WHERE plan_slot NOT LIKE 'หมวดวิชาศึกษาทั่วไป%'")
@@ -2166,7 +2428,8 @@ def ask(conn: sqlite3.Connection, question: str,
     scope_elective_view(conn, question)                   # v_elective_group ไม่รวม GE เว้นแต่คำถามพูดถึง GE (ดูเหตุผลที่ฟังก์ชัน)
     # ช่องเลือกเองที่เล่มไม่ระบุรายชื่อ (ระบุชื่อช่อง) หรือสรุปช่องเลือกทั้งเทอม — ตอบตามเล่ม/แคตตาล็อก ไม่ต้องเรียกโมเดล
     open_slot = None
-    for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer):
+    for shortcut in (_open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
+                     _hours_filter_answer, _prereq_term_answer, _catalog_course_answer):
         try:
             open_slot = shortcut(conn, question)
         except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
@@ -2206,7 +2469,7 @@ def ask(conn: sqlite3.Connection, question: str,
             # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
             sql = guard_sql(repair_undefined_aliases(sql))
             result["sql"] = sql
-            rows = _dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()])
+            rows = _hide_internal_columns(_dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()]))
             result["rows"] = rows
             result["error"] = None
             break

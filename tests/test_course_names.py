@@ -150,3 +150,15 @@ def test_new_direction_patterns_do_not_fire_on_other_questions():
     assert direction("แคลคูลัส 1 ปลดล็อกศักยภาพด้านใดของนักศึกษา") is None
     assert direction("เรียนจบแคลคูลัส 1 แล้วไปต่อปริญญาโทได้ไหม") is None
 
+
+
+# Break caught (probe 62 ข้อ): "X ต้องเรียนก่อนวิชาอะไร" = ถามวิชาตัวต่อของ X แต่ไม่มีกฎ → ไม่มีคำสั่งทิศ โมเดลตอบ error
+def test_x_must_be_taken_before_which_course_is_the_after_direction():
+    for q in ("วิชา แคลคูลัส 1 ต้องเรียนก่อนวิชาอะไร", "แคลคูลัส 1 ต้องเรียนก่อนวิชาไหน และวิชานั้นอยู่ปีไหน", "06026200 ต้องผ่านก่อนวิชาอะไร"):
+        assert direction(q) == ("after", "06026200"), q
+
+
+# Break guarded: yes/no phrasing ("ต้องเรียนก่อนไหม") and the opposite direction ("ต้องเรียนวิชาอะไรมาก่อน") must not flip
+def test_new_after_pattern_does_not_touch_other_directions_or_yes_no_questions():
+    assert direction("วิชา แคลคูลัส 1 ต้องเรียนก่อนไหม") is None
+    assert direction("วิชา แคลคูลัส 1 ต้องเรียนวิชาอะไรมาก่อน") == ("before", "06026200")
