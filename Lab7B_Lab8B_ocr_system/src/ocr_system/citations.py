@@ -205,11 +205,28 @@ def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
             for pdf, printed in cited[:MAX_CITED]]
 
 
+def add_course_names(conn: sqlite3.Connection, cites: list[dict]) -> None:
+    """เติม "course_names" (รหัส -> ชื่อไทย) ให้หน้าที่มี courses — ชื่อจากตาราง course เท่านั้น ไม่พบ = ไม่ใส่ (ห้ามเดา)"""
+    codes = sorted({c for cite in cites for c in cite.get("courses") or []})
+    if not codes:
+        return
+    try:
+        names = dict(conn.execute(f"SELECT code, name_th FROM course WHERE code IN ({','.join('?' * len(codes))})", codes).fetchall())
+    except sqlite3.OperationalError:
+        return
+    for cite in cites:
+        found = {c: names[c] for c in cite.get("courses") or [] if names.get(c)}
+        if found:
+            cite["course_names"] = found
+
+
 def format_citation(cites: list[dict]) -> str:
-    """ "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)" — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
+    """ข้อความอ้างอิงแบบบูลเล็ตต่อหน้า (วิชาในหน้านั้นเป็นบูลเล็ตย่อย รหัส + ชื่อ) — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
     if not cites:
         return ""
-    parts = [(f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}")
-             + (f" [{', '.join(c['courses'])}]" if c.get("courses") else "")
-             for c in cites]
-    return f"(อ้างอิง: เล่มหลักสูตร {', '.join(parts)})"
+    lines = ["อ้างอิงเล่มหลักสูตร:"]
+    for c in cites:
+        lines.append("• " + (f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"))
+        names = c.get("course_names") or {}
+        lines += [f"   – {code} {names[code]}" if names.get(code) else f"   – {code}" for code in c.get("courses") or []]
+    return "\n".join(lines)

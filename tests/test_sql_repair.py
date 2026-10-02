@@ -127,7 +127,7 @@ def test_ask_attaches_citations_without_touching_answer(monkeypatch):
     got = lab8b.ask(conn, "ปี 1 เทอม 1 กี่หน่วยกิต", verbose=False)
     assert got["answer"] == "3 หน่วยกิต"
     assert got["citations"] == [{"pdf_page": 38, "printed_page": "33", "courses": []}]
-    assert got["citation_text"] == "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"
+    assert got["citation_text"] == "อ้างอิงเล่มหลักสูตร:\n• หน้า 33 (PDF 38)"
 
 
 def _citation_db():

@@ -131,7 +131,7 @@ def test_citations_empty_for_unknown_code_and_missing_table():
 def test_format_citation():
     assert citations.format_citation([]) == ""
     assert citations.format_citation([{"pdf_page": 38, "printed_page": "33"}, {"pdf_page": 23, "printed_page": None}]) == (
-        "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)")
+        "อ้างอิงเล่มหลักสูตร:\n• หน้า 33 (PDF 38)\n• PDF 23")
 
 
 # Break caught (found in Task 6 on DSBA coop): image files numbered differently from the book PDF
@@ -228,13 +228,26 @@ def test_course_named_in_the_sql_still_comes_first():
     assert citations.citations_for(rows, sql, lookup)[0]["pdf_page"] == 336
 
 
-def test_format_citation_names_the_courses_on_each_page():
-    cites = [{"pdf_page": 335, "printed_page": "334", "courses": ["06026243", "06026244"]},
+def test_format_citation_lists_each_course_under_its_page_with_name():
+    cites = [{"pdf_page": 335, "printed_page": "334", "courses": ["06026243", "06026244"],
+              "course_names": {"06026243": "สถิติ", "06026244": "ข้อมูล"}},
              {"pdf_page": 21, "printed_page": None, "courses": ["06026207"]},
              {"pdf_page": 38, "printed_page": "33", "courses": []}]
     assert citations.format_citation(cites) == (
-        "(อ้างอิง: เล่มหลักสูตร หน้า 334 (PDF 335) [06026243, 06026244], PDF 21 [06026207], หน้า 33 (PDF 38))")
+        "อ้างอิงเล่มหลักสูตร:\n• หน้า 334 (PDF 335)\n   – 06026243 สถิติ\n   – 06026244 ข้อมูล\n"
+        "• PDF 21\n   – 06026207\n• หน้า 33 (PDF 38)")
 
+
+# Break caught: names looked up for the wrong code or crashing when the course has no name row.
+def test_add_course_names_fills_only_known_codes():
+    import sqlite3
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE course (code TEXT, name_th TEXT)")
+    conn.execute("INSERT INTO course VALUES ('06026243', 'สถิติ')")
+    cites = [{"pdf_page": 1, "printed_page": None, "courses": ["06026243", "99999999"]},
+             {"pdf_page": 2, "printed_page": None, "courses": []}]
+    citations.add_course_names(conn, cites)
+    assert cites[0]["course_names"] == {"06026243": "สถิติ"} and "course_names" not in cites[1]
 
 
 # ---------- เลขหน้าในชื่อไฟล์ภาพเลื่อนจากเลขหน้า PDF คงที่ (DSBA สหกิจ: DSBA_28.png = PDF 30; เล่มมีตารางแผนสองชุด) ----------

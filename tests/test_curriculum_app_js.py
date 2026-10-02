@@ -168,7 +168,7 @@ def test_citation_items_are_defensive(tmp_path):
         ]}),
       ];""")
     assert out[:3] == [[], [], []]
-    assert out[3] == [{"printed": 33, "pdf": 38, "courses": []}, {"printed": None, "pdf": 23, "courses": []}]
+    assert out[3] == [{"printed": 33, "pdf": 38, "courses": [], "names": {}}, {"printed": None, "pdf": 23, "courses": [], "names": {}}]
 
 
 # Break caught: backend ส่ง printed_page เป็นสตริง ("334") แต่ UI เช็ค Number.isInteger จึงทิ้งเลขหน้าที่พิมพ์ เหลือแค่ "PDF 335"
@@ -179,9 +179,9 @@ def test_citation_items_accept_numeric_string_pages_and_course_lists(tmp_path):
         {pdf_page: 21, printed_page: "abc", courses: "x"},
         {pdf_page: 22, printed_page: " 5 "},
       ]});""")
-    assert out == [{"printed": 334, "pdf": 335, "courses": ["06026243", "06026244"]},
-                   {"printed": None, "pdf": 21, "courses": []},
-                   {"printed": 5, "pdf": 22, "courses": []}]
+    assert out == [{"printed": 334, "pdf": 335, "courses": ["06026243", "06026244"], "names": {}},
+                   {"printed": None, "pdf": 21, "courses": [], "names": {}},
+                   {"printed": 5, "pdf": 22, "courses": [], "names": {}}]
 
 
 def test_answer_text_and_empty_result(tmp_path):
@@ -303,3 +303,12 @@ def test_with_program_appends_the_encoded_program_param(tmp_path):
         "/api/courses/06016407/prerequisites",
         "/api/courses?program=a%20b%26c%3Dd",
     ]
+
+
+# Break caught: course_names from the server ignored, or names for codes not on the page leaking in.
+def test_citation_items_keep_names_only_for_listed_courses(tmp_path):
+    out = run_js(tmp_path, """
+      return m.citationItems({citations: [
+        {pdf_page: 5, printed_page: "4", courses: ["06026243"], course_names: {"06026243": "สถิติ", "99999999": "x", "06026244": 7}},
+      ]});""")
+    assert out == [{"printed": 4, "pdf": 5, "courses": ["06026243"], "names": {"06026243": "สถิติ"}}]

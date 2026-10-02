@@ -2938,6 +2938,7 @@ def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
             if key not in seen:
                 seen.append(key)
         result["citations"] = [{"pdf_page": p, "printed_page": pr, "courses": []} for p, pr in seen[:citations.MAX_CITED]]
+        citations.add_course_names(conn, result["citations"])
         result["citation_text"] = citations.format_citation(result["citations"])
         return
     lookup = citations.load_lookup(conn)
@@ -2949,6 +2950,7 @@ def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
             result["citations"] = [{"pdf_page": p, "printed_page": pr, "courses": []} for p, pr in pages[:_YEAR_CITE_MAX]]
         if not result["citations"] and result["rows"] and re.search(r"\bFROM\s+prerequisite\b", result["sql"] or "", re.I):
             result["citations"] = _prereq_pair_pages(conn)   # นับคู่วิชาบังคับก่อนทั้งเล่ม: อ้างหน้าคำอธิบายรายวิชาที่พิมพ์บรรทัดวิชาบังคับก่อน
+        citations.add_course_names(conn, result["citations"])
         result["citation_text"] = citations.format_citation(result["citations"])
 
 
