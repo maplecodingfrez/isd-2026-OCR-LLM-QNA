@@ -75,3 +75,32 @@ def test_cmd_load_course_pages_skips_with_message_when_inputs_missing(tmp_path, 
                               data_input=str(tmp_path / "no_dir"), markdown=str(tmp_path / "none.md"))
     lab8b.cmd_load_course_pages(args)
     assert "ข้าม" in capsys.readouterr().out
+
+
+def _pair_db():
+    conn = _db()
+    conn.executescript(lab8b.COURSE_PAGE_DDL)
+    conn.execute("INSERT INTO course (code, name_th, credits) VALUES ('06016402', 'โปรแกรมมิ่ง', 3)")
+    conn.execute("INSERT INTO prerequisite VALUES ('06016402', '06016401', 'pre')")
+    conn.execute("INSERT INTO course_page VALUES ('06016402', 90, '86', 'description')")
+    conn.execute("INSERT INTO course_page VALUES ('06016401', 38, '33', 'plan')")
+    return conn
+
+
+# Break caught: counting all prerequisite pairs answered with no page (the pairs are read from the course-description pages).
+def test_pair_count_cites_description_pages_of_courses_that_have_a_prerequisite():
+    conn = _pair_db()
+    res = {"question": "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่", "rows": [{"n": 1}],
+           "sql": "SELECT COUNT(*) FROM prerequisite WHERE kind='pre'"}
+    lab8b._attach_citations(conn, res)
+    assert [c["pdf_page"] for c in res["citations"]] == [90]
+    assert res["citations"][0]["courses"] == ["06016402"]
+
+
+# Break caught: guessing a page when no description page is known for the pair's course.
+def test_pair_count_cites_nothing_without_description_pages():
+    conn = _pair_db()
+    conn.execute("DELETE FROM course_page WHERE kind='description'")
+    res = {"question": "มีกี่คู่", "rows": [{"n": 1}], "sql": "SELECT COUNT(*) FROM prerequisite"}
+    lab8b._attach_citations(conn, res)
+    assert res["citations"] == []

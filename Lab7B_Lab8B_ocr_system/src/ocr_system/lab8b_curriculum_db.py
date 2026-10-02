@@ -2910,6 +2910,22 @@ def _question_years(question: str) -> set[int]:
     return years
 
 
+def _prereq_pair_pages(conn: sqlite3.Connection) -> list[dict]:
+    """หน้าคำอธิบายรายวิชา (kind='description') ของวิชาที่มีแถวใน prerequisite — ไม่มีหน้าเดียวที่ระบุทั้งคำตอบ จึงอ้างหน้าที่
+    มาของคู่เหล่านั้น (ไม่เกิน _YEAR_CITE_MAX หน้า เรียงตามหน้า); ไม่มีหน้า/ไม่มีตาราง = [] (ไม่เดา)"""
+    try:
+        got = conn.execute("SELECT cp.pdf_page, cp.printed_page, cp.code FROM course_page cp "
+                           "WHERE cp.kind = 'description' AND cp.code IN (SELECT code FROM prerequisite) "
+                           "ORDER BY cp.pdf_page, cp.code").fetchall()
+    except sqlite3.OperationalError:
+        return []
+    by_page: dict[tuple, list[str]] = {}
+    for pdf, printed, code in got:
+        by_page.setdefault((pdf, printed), []).append(code)
+    return [{"pdf_page": p, "printed_page": pr, "courses": codes}
+            for (p, pr), codes in list(by_page.items())[:_YEAR_CITE_MAX]]
+
+
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
     """อ้างอิงหน้าในเล่ม (citations.py) — แนบด้วยโค้ด ไม่ให้ LLM เขียนเลขหน้า; ไม่รวมใน answer
     (ใส่ตัวเลขหน้าในข้อความคำตอบจะทำให้การตรวจคำตอบเจอเลขที่ไม่ใช่คำตอบ)"""
@@ -2931,6 +2947,8 @@ def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
             years = _question_years(str(result.get("question") or ""))
             pages = sorted({p for (y, _s), ps in lookup[1].items() if y in years for p in ps})
             result["citations"] = [{"pdf_page": p, "printed_page": pr, "courses": []} for p, pr in pages[:_YEAR_CITE_MAX]]
+        if not result["citations"] and result["rows"] and re.search(r"\bFROM\s+prerequisite\b", result["sql"] or "", re.I):
+            result["citations"] = _prereq_pair_pages(conn)   # นับคู่วิชาบังคับก่อนทั้งเล่ม: อ้างหน้าคำอธิบายรายวิชาที่พิมพ์บรรทัดวิชาบังคับก่อน
         result["citation_text"] = citations.format_citation(result["citations"])
 
 
