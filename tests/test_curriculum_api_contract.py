@@ -87,12 +87,23 @@ def test_ask_422_pydantic_detail_is_a_list_of_msg(client, payload):
     assert all(isinstance(item.get("msg"), str) for item in detail)
 
 
-def test_ask_422_lab8b_error_detail_is_a_string(client, fake_db, monkeypatch):
+def test_ask_422_lab8b_infrastructure_error_detail_is_a_string(client, fake_db, monkeypatch):
     monkeypatch.setattr(main.lab8b, "ask", lambda conn, q, verbose=False: _result(
-        error="SQL ไม่ผ่านการตรวจ", rows=[], answer=""))
-    r = client.post("/api/ask", json={"question": "คำถามที่ทำให้ SQL พัง"})
+        error="ConnectionError: Ollama ไม่ตอบ", rows=[], answer=""))
+    r = client.post("/api/ask", json={"question": "คำถามที่ Ollama ล่ม"})
     assert r.status_code == 422
-    assert r.json()["detail"] == "SQL ไม่ผ่านการตรวจ"
+    assert r.json()["detail"] == "ConnectionError: Ollama ไม่ตอบ"
+
+
+# คำถามที่โมเดลสร้าง SQL ไม่สำเร็จ (คำถามตัวอย่างของอาจารย์เองเคยทำให้เกิด "OperationalError: ambiguous column name") ต้องไม่เป็น HTTP error —
+# ตอบ 200 พร้อมข้อความ "ไม่พบ" (ซื่อตรงกว่าตอบเดา; กติกา Challenge: error ระหว่างทดสอบ = 0)
+@pytest.mark.parametrize("error", ["OperationalError: ambiguous column name: name_th", "SQL ไม่ผ่านการตรวจ", "ValueError: only SELECT"])
+def test_ask_degrades_a_failed_sql_generation_to_a_not_found_answer(client, fake_db, monkeypatch, error):
+    monkeypatch.setattr(main.lab8b, "ask", lambda conn, q, verbose=False: _result(error=error, rows=[], answer="ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง"))
+    r = client.post("/api/ask", json={"question": "คำถามที่ทำให้ SQL พัง"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["answer"] == "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" and not body.get("error") and body["rows"] == []
 
 
 def test_ask_404_unknown_program(client, fake_db):

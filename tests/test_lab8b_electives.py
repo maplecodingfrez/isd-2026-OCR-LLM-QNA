@@ -2967,3 +2967,49 @@ def test_yes_no_prerequisite_answers_yes_when_the_order_is_the_required_one():
         text, rows, _sql = _chain(c, "เรียนแคลคูลัส 1 ก่อนแคลคูลัส 2 ได้ไหม")
         assert text.startswith("ได้") and "แคลคูลัส 1" in text and "วิชาบังคับก่อน" in text, text
         assert rows[0]["code"] == "06026201" and rows[0]["requires"] == "06026200"
+
+
+# =============== ตัวอย่างคำถามจากสไลด์ ch1 หน้า 7 (เกณฑ์ P2) — เจอจริงว่าระดับ 2-3 ของอาจารย์เองทำให้ error/ตอบผิด ===============
+# "วิชาบังคับชั้นปี 2 ภาคต้นมีอะไรบ้าง?" เดิม error 422 (ambiguous column name: name_th); "วิชาเลือก…" เดิม "ไม่พบ"
+def test_required_courses_of_a_term_list_only_the_required_ones():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, sql = _chain(c, "วิชาบังคับชั้นปี 2 ภาคต้นมีอะไรบ้าง")
+        assert {r["code"] for r in rows} == {"06026206", "06066000", "06066300", "06066302", "06066304"}, rows
+        assert "year = 2" in sql and "semester = 1" in sql and "บังคับ" in text and "xxx" not in text
+
+
+def test_elective_courses_of_a_term_list_the_electives_and_the_open_slots():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, _sql = _chain(c, "วิชาเลือกชั้นปี 3 ภาคปลายมีอะไรบ้าง")
+        for code in ("06026213", "06026214", "06066100", "90643021"):
+            assert code in text, text
+        assert "วิชาเลือกกลุ่มวิทยาการข้อมูล" in text and "ช่องที่นักศึกษาเลือกเอง" in text
+
+
+@pytest.mark.parametrize("question", [
+    "วิชาบังคับก่อนของแคลคูลัส 2 มีอะไรบ้าง", "วิชาบังคับมีอะไรบ้าง", "ปี 2 เทอม 1 วิชาบังคับที่หน่วยกิตมากที่สุดคืออะไร",
+    "ปี 2 เทอม 1 มีวิชาบังคับกี่วิชา", "วิชา 06026206 เป็นวิชาบังคับไหม ปี 2 เทอม 1", "ปี 2 เทอม 1 วิชาบังคับก่อนมีอะไรบ้าง"])
+def test_term_kind_list_refuses_everything_that_is_not_a_plain_list_of_required_or_elective_courses(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._term_kind_list_answer(c, question) is None, question
+
+
+# "ถ้าจะจบใน 3.5 ปี แต่ละเทอมต้องลงวิชาอะไร" (ระดับ 3 ของอาจารย์): ทศนิยม/"ครึ่ง" หลุดตัวดักเดิม แล้วตอบรายชื่อวิชาปนกันมั่ว — ต้อง "ไม่พบ"
+@pytest.mark.parametrize("question", ["ถ้าจะจบใน 3.5 ปี แต่ละเทอมต้องลงวิชาอะไร", "จบภายใน 3 ปีครึ่งต้องลงเทอมละกี่วิชา", "อยากจบ 3.5 ปีทำได้ไหม"])
+def test_graduating_in_a_fractional_number_of_years_is_not_answered(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert _chain(c, question) == m._NOT_FOUND, question
+
+
+# "วิชา X ต้องผ่านวิชาใดก่อน? ถ้ายังไม่ผ่านจะลงทะเบียนได้ไหม" (ระดับ 2 ของอาจารย์): เดิมตอบแค่ลิสต์วิชา ไม่ตอบส่วน "ลงทะเบียนได้ไหม"
+def test_prerequisite_plus_can_i_register_question_answers_both_parts():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, _sql = _chain(c, "วิชาการสร้างคลังข้อมูลต้องผ่านวิชาใดก่อน ถ้ายังไม่ผ่านจะลงทะเบียนได้ไหม")
+        assert "ต้องเรียนมาก่อน: 06066300 แนวคิดระบบฐานข้อมูล" in text and "ลงทะเบียน" in text and "ไม่ได้" in text, text
+        assert rows[0]["code"] == "06066300"
+
+
+def test_prerequisite_plus_can_i_register_for_a_course_without_prerequisite_says_so():
+    with closing(_real("DSBA/coop")) as c:
+        text, _rows, _sql = _chain(c, "วิชาแคลคูลัส 1 ต้องผ่านวิชาใดก่อน ถ้ายังไม่ผ่านจะลงทะเบียนได้ไหม")
+        assert "ไม่มีวิชาบังคับก่อน" in text and "ลงทะเบียนได้" in text, text
