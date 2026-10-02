@@ -124,7 +124,7 @@ cp lab10_fastapi/transcript_app/.env.example lab10_fastapi/transcript_app/.env
 Curriculum App ใช้ค่า:
 
 ```dotenv
-CURRICULUM_DB_PATH=work/lab8b_run/curriculum.db
+CURRICULUM_DB_PATH=Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db   # ไม่ตั้งค่านี้ก็ได้ (เป็นค่าตั้งต้นอยู่แล้ว); หน้าเว็บเลือกหลักสูตรเองได้ทั้ง 7 แผน
 CURRICULUM_OLLAMA_URL=http://127.0.0.1:11434
 CURRICULUM_OLLAMA_MODEL=qwen3:4b
 ```
@@ -295,7 +295,7 @@ http://127.0.0.1:8000/api/courses?search=06026200
 5. **Query วิชาที่ปลดล็อค (Unlocks)**: ดึงข้อมูลจากตาราง `prerequisite` โดยจับคู่ `WHERE requires = ?` และ JOIN กับ `course`
 6. **Data Contract Serialization**: แปลงผลลัพธ์ผ่าน Pydantic Model `CoursePrerequisitesResponse` ส่งคืน Client เป็น JSON
 
-> 💡 **หมายเหตุเกี่ยวกับข้อมูลในระบบ**: ฐานข้อมูลปัจจุบัน (`work/lab8b_run/curriculum.db`) เป็นข้อมูลของ **หลักสูตร IT (เทคโนโลยีสารสนเทศ) แผนปกติ** มี 41 รายวิชาตามแผนการศึกษา 4 ปี โดยมีกฎ Prerequisite อยู่จริง 4 วิชา (`06016407`, `06016418`, `06016419`, `06016420`) วิชาอื่นๆ ในเล่มจะไม่มีวิชาบังคับก่อน และหากค้นหารหัสวิชาของสาขาอื่น (เช่น DSBA, BIT) จะคืนค่า `404 Not Found`
+> 💡 **หมายเหตุเกี่ยวกับข้อมูลในระบบ**: ฐานข้อมูลมี 7 แผน (AIT, BIT สหกิจ/ไม่สหกิจ, DSBA สหกิจ/ไม่สหกิจ, IT สหกิจ/ไม่สหกิจ) ที่ `Lab7B_Lab8B_ocr_system/runs/<หลักสูตร>/<แผน>/lab8b_output/curriculum.db` (ติดมากับ repo) endpoint นี้รับ `?program=<รหัสแผน เช่น dsba_coop>`; ไม่ส่ง `program` = ใช้ค่าตั้งต้น (DSBA สหกิจ); รหัสวิชาที่ไม่อยู่ในแผนที่เลือกคืน `404 Not Found`
 
 ## 10. จุดเปลี่ยนโมเดลของนักศึกษา
 
@@ -354,7 +354,7 @@ ollama list
 ## 13. API Contract (Lab 12)
 
 หน้าเว็บ (`curriculum_app/static/index.html` + `style.css` + `app.js`) คุยกับ backend ผ่าน endpoint ด้านล่าง
-ทุกแถวในตาราง error ถูกตรวจด้วย `tests/test_curriculum_api_contract.py` และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`
+ทุกแถวในตาราง error ถูกตรวจด้วยเทส contract (เก็บในเครื่องผู้พัฒนา) และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`
 
 ### 13.1 รูปแบบ error
 
