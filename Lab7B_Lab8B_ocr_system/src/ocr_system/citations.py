@@ -206,18 +206,22 @@ def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
 
 
 def add_course_names(conn: sqlite3.Connection, cites: list[dict]) -> None:
-    """เติม "course_names" (รหัส -> ชื่อไทย) ให้หน้าที่มี courses — ชื่อจากตาราง course เท่านั้น ไม่พบ = ไม่ใส่ (ห้ามเดา)"""
+    """เติม "course_names" (รหัส -> ชื่อไทย) และ "course_names_en" (รหัส -> ชื่ออังกฤษ) ให้หน้าที่มี courses — ชื่อจากตาราง course เท่านั้น
+    ไม่พบ/ว่าง = ไม่ใส่ (ห้ามเดา) แสดงทั้งสองภาษาเสมอ ไม่ขึ้นกับภาษาของคำถาม"""
     codes = sorted({c for cite in cites for c in cite.get("courses") or []})
     if not codes:
         return
     try:
-        names = dict(conn.execute(f"SELECT code, name_th FROM course WHERE code IN ({','.join('?' * len(codes))})", codes).fetchall())
+        rows = conn.execute(f"SELECT code, name_th, name_en FROM course WHERE code IN ({','.join('?' * len(codes))})", codes).fetchall()
     except sqlite3.OperationalError:
         return
+    th = {r[0]: r[1].strip() for r in rows if r[1] and r[1].strip()}
+    en = {r[0]: r[2].strip() for r in rows if r[2] and r[2].strip()}
     for cite in cites:
-        found = {c: names[c] for c in cite.get("courses") or [] if names.get(c)}
-        if found:
-            cite["course_names"] = found
+        for key, names in (("course_names", th), ("course_names_en", en)):
+            found = {c: names[c] for c in cite.get("courses") or [] if c in names}
+            if found:
+                cite[key] = found
 
 
 def format_citation(cites: list[dict]) -> str:
@@ -227,6 +231,7 @@ def format_citation(cites: list[dict]) -> str:
     lines = ["อ้างอิงเล่มหลักสูตร:"]
     for c in cites:
         lines.append("• " + (f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"))
-        names = c.get("course_names") or {}
-        lines += [f"   – {code} {names[code]}" if names.get(code) else f"   – {code}" for code in c.get("courses") or []]
+        th, en = c.get("course_names") or {}, c.get("course_names_en") or {}
+        lines += ["   – " + " / ".join(x for x in (code + (f" {th[code]}" if th.get(code) else ""), en.get(code)) if x)
+                  for code in c.get("courses") or []]
     return "\n".join(lines)

@@ -116,7 +116,11 @@
       if (c.course_names && typeof c.course_names === "object") {
         courses.forEach(function (code) { if (typeof c.course_names[code] === "string") names[code] = c.course_names[code]; });
       }
-      items.push({ printed: printedPage(c.printed_page), pdf: c.pdf_page, courses: courses, names: names });
+      var namesEn = {};
+      if (c.course_names_en && typeof c.course_names_en === "object") {
+        courses.forEach(function (code) { if (typeof c.course_names_en[code] === "string") namesEn[code] = c.course_names_en[code]; });
+      }
+      items.push({ printed: printedPage(c.printed_page), pdf: c.pdf_page, courses: courses, names: names, namesEn: namesEn });
     });
     return items;
   }
@@ -284,7 +288,7 @@
     items.forEach(function (c) {
       if (!c.courses.length) return;
       detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
-        ": " + c.courses.map(function (code) { return c.names[code] ? code + " " + c.names[code] : code; }).join(", ") }));
+        ": " + c.courses.map(function (code) { return [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / "); }).join(", ") }));
     });
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
     $("answer-text").textContent = answerText(data);
