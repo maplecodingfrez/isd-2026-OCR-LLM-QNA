@@ -3647,9 +3647,32 @@ def _prereq_pair_count_answer(conn: sqlite3.Connection, question: str) -> tuple[
     return f"{n} คู่วิชากับวิชาบังคับก่อนทั้งหมด", [{"pairs": n}], "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'"
 
 
+# ---- "ต่อเนื่อง" กำกวม (วิชาบังคับก่อน หรือ วิชาเรียนควบ?) และวิชาเรียนควบ — ไม่เดา ----
+# ตาราง prerequisite ไม่มีแถว kind='co' เลยทั้ง 7 แผน (ตัวสกัดใส่แต่ 'pre') → "0 วิชาเรียนควบ" แปลว่าไม่ได้สกัด ไม่ใช่เล่มไม่มี จึงห้ามตอบ 0
+_CONT_Q = re.compile(r"(?<!ไม่)ต่อเนื่อง")
+_CONT_PAIR = re.compile(r"คู่|ความสัมพันธ์|เงื่อนไข")
+_COREQ_Q = re.compile(r"(?:เรียน|ลงทะเบียน(?:เรียน)?|วิชา)\s*ควบ(?!คุม)|ควบคู่|ควบกับ|ควบกัน")
+_AMBIGUOUS_TEXT = ("คำถามนี้ตีความได้สองแบบ: วิชาบังคับก่อน (ต้องผ่านวิชาหนึ่งก่อนจึงเรียนอีกวิชาได้) หรือวิชาเรียนควบ "
+                   "(ต้องลงทะเบียนเรียนพร้อมกัน) — กรุณาระบุให้ชัดว่าหมายถึงแบบไหน")
+
+
+def _prereq_ambiguity_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """(ก) "วิชาที่ต้องเรียนต่อเนื่องกันกี่คู่" (ไม่มีคำว่าบังคับก่อน) = ถามกลับว่าหมายถึงวิชาบังคับก่อนหรือวิชาเรียนควบ (ไม่ใส่ตัวเลขในคำตอบ)
+    (ข) คำถามวิชาเรียนควบ = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" (ไม่ตอบ 0); มีรหัสวิชา/ชื่อวิชา/ปี-เทอม (เช่นวิชา "คณิตศาสตร์ไม่ต่อเนื่อง") = None"""
+    if _CODE8.search(question) or _named_courses(conn, question, strict=False) or _term_numbers(question) != (None, None):
+        return None
+    if re.search(r"ปี(?:ที่)?\s*\d", question):
+        return None
+    if _COREQ_Q.search(question):
+        return _NOT_FOUND
+    if _CONT_Q.search(question) and _CONT_PAIR.search(question) and "วิชา" in question and not _PAIR_PREREQ.search(question):
+        return _AMBIGUOUS_TEXT, [], "SELECT NULL WHERE 0"
+    return None
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
-    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer,
+    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer,
     _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,

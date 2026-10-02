@@ -2774,3 +2774,45 @@ def test_the_gold_pair_count_questions_pass_with_the_shortcut():
 def test_pair_count_shortcut_refuses_everything_that_is_not_the_whole_count(question):
     with closing(_real("DSBA/coop")) as c:
         assert m._prereq_pair_count_answer(c, question) is None, question
+
+
+# ---- คำถามกำกวม "ต่อเนื่อง" / วิชาเรียนควบ: ไม่เดา ----
+# ตารางไม่มีแถว kind='co' เลยทั้ง 7 แผน (ตัวสกัดใส่แต่ 'pre') → "0 วิชาเรียนควบ" แปลว่า "ไม่ได้สกัด" ไม่ใช่ "เล่มไม่มี" จึงต้องไม่ตอบ 0
+_AMBIGUOUS = [
+    "ทั้งหลักสูตรมีวิชาที่ต้องเรียนต่อเนื่องกันกี่คู่", "มีวิชาที่เรียนต่อเนื่องกันกี่ความสัมพันธ์", "วิชาที่ต้องเรียนต่อเนื่องกันมีกี่คู่"]
+_COREQ = [
+    "มีวิชาที่ต้องลงทะเบียนเรียนควบคู่กันกี่คู่", "มีวิชาไหนบ้างที่ต้องเรียนควบกับวิชาอื่น", "วิชาเรียนควบมีทั้งหมดกี่คู่",
+    "วิชาที่ต้องลงทะเบียนควบกันมีอะไรบ้าง"]
+
+
+@pytest.mark.parametrize("rel", ("DSBA/coop", "IT/no_coop", "AIT"))
+@pytest.mark.parametrize("question", _AMBIGUOUS)
+def test_ambiguous_continuity_question_asks_which_meaning_instead_of_guessing(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+        assert r is not None and "วิชาบังคับก่อน" in r[0] and "วิชาเรียนควบ" in r[0] and r[1] == [], (question, r)
+        assert not re.search(r"\d", r[0])                       # ไม่ใส่ตัวเลขที่อาจถูกตรวจเป็นคำตอบ
+
+
+@pytest.mark.parametrize("rel", ("DSBA/coop", "IT/no_coop", "AIT"))
+@pytest.mark.parametrize("question", _COREQ)
+def test_corequisite_question_is_not_answered_with_zero_from_an_unextracted_table(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+        assert r == m._NOT_FOUND, (question, r)
+
+
+# ห้ามแย่งคำถามอื่นที่มีคำใกล้เคียง: วิชา "คณิตศาสตร์ไม่ต่อเนื่อง" (06066000) "ควบคุม" "ต่อเนื่อง" ในบริบทอื่น
+@pytest.mark.parametrize("question", [
+    "คณิตศาสตร์ไม่ต่อเนื่องมีกี่หน่วยกิต", "วิชาคณิตศาสตร์ไม่ต่อเนื่องมีวิชาบังคับก่อนกี่คู่", "ปี 1 เทอม 2 เรียนต่อเนื่องกันกี่วิชา",
+    "การควบคุมคุณภาพอยู่ปีไหน", "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "วิชา 06066000 มีวิชาบังคับก่อนกี่คู่"])
+def test_continuity_and_corequisite_guards_leave_other_questions_alone(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._prereq_ambiguity_answer(c, question) is None, question
+
+
+def test_no_gold_question_is_taken_by_the_ambiguity_guard():
+    for gold, rel in (("dsba_coop", "DSBA/coop"), ("it_no_coop", "IT/no_coop"), ("ait", "AIT"), ("bit_coop", "BIT/coop")):
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(_real(rel)) as c:
+            assert [q["id"] for q in qs if m._prereq_ambiguity_answer(c, q["question"])] == []
