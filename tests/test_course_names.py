@@ -188,3 +188,23 @@ def test_those_phrasings_do_not_fire_on_other_questions():
     assert direction("แคลคูลัส 1 เป็นวิชาที่ยากไหม") is None
     assert direction("แคลคูลัส 1 เป็นวิชาบังคับหรือวิชาเลือก") is None
     assert direction("แคลคูลัส 1 เป็นวิชาพื้นฐานที่สำคัญไหม") is None
+
+
+# Break caught (DSBA coop): "DATA WAREHOUSE" (user dropped the ING) matched no course, so the model put the text into code='...' and answered "not found".
+def test_english_name_with_truncated_ending_maps_to_the_one_course_it_starts():
+    assert codes("การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน") == ["06026212"]
+    assert codes("what are the prerequisites of data warehous") == ["06026212"]
+
+
+# Break caught: a stem shared by several courses guessed as one of them (COMPUTER PROGRAM -> two courses), or a single common word.
+def test_truncated_english_name_shared_by_several_courses_is_not_hinted():
+    assert codes("วิชา COMPUTER PROGRAM ต้องผ่านอะไร") == []
+    assert codes("วิชา CALCULUS ต้องผ่านอะไร") == []
+    assert codes("วิชา DATA ต้องผ่านอะไร") == []
+
+
+# Break caught: the fallback firing when the exact name is already found (second hint for the same phrase), or on unrelated words.
+def test_truncated_fallback_does_not_add_to_an_exact_match_or_unrelated_words():
+    assert codes("DATA WAREHOUSING ต้องผ่านอะไร") == ["06026212"]
+    assert codes("WAREHOUSES ARE BIG") == ["06026212"] or codes("WAREHOUSES ARE BIG") == []   # trim <=3 chars only; never guess beyond
+    assert codes("ขอรายละเอียดเพิ่ม MAILBOX") == []

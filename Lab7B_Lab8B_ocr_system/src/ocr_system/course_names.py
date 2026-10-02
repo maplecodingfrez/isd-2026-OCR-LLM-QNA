@@ -26,6 +26,43 @@ def _matches(question: str, name: str, lang: str):
     return [(m.start(), m.end()) for m in re.finditer(rf"(?<![A-Z0-9]){re.escape(name)}(?![A-Z0-9])", question)]
 
 
+MAX_TRIM = 3                                  # ตัดท้ายคำสุดท้ายได้ไม่เกินกี่ตัว (WAREHOUSE -> WAREHOUS)
+MIN_STEM = 5                                  # คำสุดท้ายหลังตัดต้องยาวอย่างน้อยเท่านี้
+MIN_PHRASE = 8                                # วลีที่ลองต้องมีตัวอักษรอย่างน้อยเท่านี้ (ไม่นับช่องว่าง)
+
+
+def _truncated_english(en_question: str, courses: list[dict], typed: set[str],
+                       claimed: list[tuple[str, int, int]]) -> list[tuple[int, str, str]]:
+    """ชื่ออังกฤษที่ผู้ใช้พิมพ์ตกท้าย ("DATA WAREHOUSE" แทน "DATA WAREHOUSING") — เทียบแบบ LIKE 'วลี%' ที่ต้นคำ หลังตัดท้ายคำสุดท้ายทีละตัว (<= MAX_TRIM)
+    ใช้เมื่อวลีไม่ทับชื่อที่จับตรงได้แล้ว และชี้วิชา "เดียว" เท่านั้น (หลายรหัส = กำกวม = ไม่ใส่ ห้ามเดา)"""
+    names = [(str(c["code"]), c["name_en"], _norm_en(c["name_en"])) for c in courses
+             if re.fullmatch(r"\d{8}", str(c.get("code") or "")) and str(c["code"]) not in typed and c.get("name_en")]
+    out = []
+    for m in re.finditer(r"(?<![A-Z0-9])[A-Z]{3,}(?: [A-Z]{2,})*(?![A-Z0-9])", en_question):
+        if any(k[1] < m.end() and m.start() < k[2] for k in claimed):
+            continue
+        words = m.group().split(" ")
+        done = False
+        for first in range(len(words)):                       # คำถามภาษาอังกฤษมีคำนำหน้า ("WHAT ARE THE ... DATA WAREHOUS") — ลองเริ่มจากทุกคำ
+            run = " ".join(words[first:])
+            start = m.start() + len(" ".join(words[:first])) + (1 if first else 0)
+            for trim in range(1, MAX_TRIM + 1):
+                phrase = run[: len(run) - trim]
+                last = phrase.split(" ")[-1]
+                if len(last) < MIN_STEM or len(phrase.replace(" ", "")) < MIN_PHRASE:
+                    break
+                hit = {code: raw for code, raw, norm in names if re.search(rf"(?<![A-Z0-9]){re.escape(phrase)}", norm)}
+                if hit:
+                    if len(hit) == 1:
+                        code, raw = next(iter(hit.items()))
+                        out.append((start, code, raw))
+                    done = True
+                    break
+            if done:
+                break
+    return out
+
+
 def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     """[(ชื่อวิชาตามฐานข้อมูล, รหัส)] ของวิชาที่ชื่ออยู่ในคำถาม — ชื่อยาวชนะชื่อสั้นที่อยู่ข้างใน,
     ชื่อซ้ำกันหลายวิชา = ให้ทุกรหัส (ไม่เลือกเอง), วิชาที่ผู้ใช้พิมพ์รหัสมาแล้วไม่ต้องบอก"""
@@ -51,6 +88,7 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
             continue
         claimed[(lang, start, end)] = norm
         picked.append((start, code, raw))
+    picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
     out, seen = [], set()
     for _, code, raw in sorted(picked, key=lambda p: (p[0], p[1])):
         if code not in seen:
