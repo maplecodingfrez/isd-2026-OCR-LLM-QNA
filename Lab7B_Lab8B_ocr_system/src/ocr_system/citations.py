@@ -29,7 +29,7 @@ def printed_page(text: str) -> str | None:
 
 
 # หน้าคำอธิบายรายวิชามีบรรทัดวิชาบังคับก่อนของแต่ละวิชา — ตารางเทียบหลักสูตรในภาคผนวก (เช่น DSBA PDF 353) ไม่มี
-DESCRIPTION_RE = re.compile(r"วิชาบังคับก่อน|prerequisite", re.I)
+DESCRIPTION_RE = re.compile(r"(?:วิชาบังคับก่อน|prerequisite)\s*[:：]", re.I)   # ต้องเป็นบรรทัดมีป้าย ":" — เชิงอรรถ "เป็นรายวิชาบังคับก่อน ที่ไม่นับหน่วยกิต" (AIT PDF 19/120) ไม่ใช่
 
 
 def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:

@@ -351,3 +351,15 @@ def test_plan_pages_stays_silent_when_page_numbers_cannot_break_the_tie():
     assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], untagged, printed, book) == []
     one_tag = _tagged_md([29, 99, 98])                                       # ตรงแค่หน้าเดียว (< 2 หน้า) → หลักฐานไม่พอ
     assert citations.plan_pages(["X_28.png", "X_29.png", "X_30.png"], one_tag, printed, book) == []
+
+
+# Break caught (AIT PDF 19/120): a plan/structure page whose footnote says "...เป็นรายวิชาบังคับก่อน ที่ไม่นับหน่วยกิต"
+# was classed as a course-description page; only the labelled line "วิชาบังคับก่อน :" marks a description page.
+def test_course_pages_footnote_mentioning_prerequisite_is_not_a_description_page():
+    courses = [{"code": "06046401", "name_th": "แคลคูลัส 2", "name_en": "CALCULUS 2"}]
+    footnote = {"page": "19", "text": "15\n06046401 แคลคูลัส 2 3(3-0-6)\n**90641008 เป็นรายวิชาบังคับก่อน ที่ไม่นับหน่วยกิต"}
+    desc = {"page": "287", "text": "283\n06046401 แคลคูลัส 2 3(3-0-6)\nวิชาบังคับก่อน : 06046400 แคลคูลัส 1"}
+    got = {r["pdf_page"]: r["kind"] for r in citations.course_pages([footnote, desc], courses)}
+    assert got == {19: "primary", 287: "description"}
+    desc_en = {"page": "300", "text": "296\n06046401 แคลคูลัส 2\nPREREQUISITE : 06046400 CALCULUS 1"}
+    assert citations.course_pages([desc_en], courses)[0]["kind"] == "description"
