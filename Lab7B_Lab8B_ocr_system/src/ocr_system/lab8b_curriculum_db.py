@@ -1754,7 +1754,8 @@ def _prereq_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         else:                                              # วิชาที่ x ต้องเรียนมาก่อน
             codes = requires_of(x)
             sql = f"SELECT requires FROM prerequisite WHERE code = '{x}' AND kind = 'pre'"
-            text = (f"{names.get(x, x)} ต้องเรียนมาก่อน: " + ", ".join(label(c) for c in codes)) if codes \
+            own = f" ({_TERM_LABEL.format(y=terms[x][0], s=terms[x][1])})" if x in terms and re.search(r"ปีไหน|เทอมไหน|ภาคไหน|ปีอะไร|เทอมอะไร", question) else ""
+            text = (f"{names.get(x, x)}{own} ต้องเรียนมาก่อน: " + ", ".join(label(c) for c in codes)) if codes \
                 else f"{names.get(x, x)} {none_text(x)}"
         return text, [{"code": c, "name_th": names.get(c), "year": (terms.get(c) or (None, None))[0],
                        "semester": (terms.get(c) or (None, None))[1]} for c in codes], sql
@@ -3670,9 +3671,57 @@ def _prereq_ambiguity_answer(conn: sqlite3.Connection, question: str) -> tuple[s
     return None
 
 
+# ---- เปรียบเทียบสองวิชา ("X กับ Y ต่างกันอย่างไร [และแต่ละวิชามีรหัสอะไร]") — ยกคำอธิบายรายวิชาของทั้งสอง ไม่สรุปความต่างเอง ----
+_COMPARE_WORD = re.compile(r"ต่างกัน|แตกต่าง|เปรียบเทียบ|เหมือนกัน|ต่างจาก")
+_COMPARE_TAIL = re.compile(r"ต่างกัน|แตกต่างกัน|แตกต่าง|เปรียบเทียบกัน|เปรียบเทียบ|เหมือนกัน|ต่างจาก|อย่างไร|ยังไง|หรือไม่|ไหม|และ|กับ|แต่ละ|ทั้งสอง|สอง|"
+                           r"วิชา|มี|รหัส|อะไร|คือ|ของ|ขอ|ช่วย|หน่อย|ครับ|ค่ะ|คะ|นะ|หรือ")
+
+
+def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """คำถามเปรียบเทียบ "สองวิชาพอดี" (ชื่อเต็มทั้งคู่) → ยกคำอธิบายรายวิชาของทั้งสองตามเล่ม + บอกตรง ๆ ว่าเล่มไม่ได้ระบุข้อแตกต่างไว้
+    ส่วนที่ถามเพิ่ม (รหัส/ชื่อวิชา) ตอบให้ในข้อความ; คำที่เหลือนอกเหนือจากนั้น (ก่อน/หน่วยกิต/ปี/ชื่อไม่ครบ/ตัวขยาย) = None ไม่ตอบครึ่งเดียวแบบเงียบ"""
+    if not _COMPARE_WORD.search(question) or _CODE8.search(question):
+        return None
+    _citations_module()
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        described = {r["code"]: dict(r) for r in conn.execute(
+            "SELECT code, name_th, description_th, description_en, pdf_page, printed_page FROM course_description")}
+    except sqlite3.OperationalError:
+        return None
+    qn = _name_key(question)
+    hints = course_names.course_hints(question, courses)       # ชื่อเต็มตรงตัว; ตัวขยายที่ติดชื่อ ("…ขั้นสูง") จะค้างในส่วนที่เหลือด้านล่าง → ปฏิเสธ
+    if len({c for _, c in hints}) != 2 or len({_name_key(r) for r, _ in hints}) != 2:
+        return None
+    rest = qn
+    for raw, _ in sorted(hints, key=lambda h: -len(h[0])):
+        rest = rest.replace(_name_key(raw), "")
+    if _strip_punct(_COMPARE_TAIL.sub("", rest)):
+        return None
+    codes = [c for _, c in hints]
+    names = {c["code"]: c["name_th"] for c in courses}
+    parts, rows = [], []
+    for code in codes:
+        d = described.get(code)
+        th = ((d or {}).get("description_th") or "").strip() or ((d or {}).get("description_en") or "").strip()
+        if not d or not th:
+            parts.append(f"ไม่พบคำอธิบายรายวิชา {code} {names.get(code, '')} ในเล่มหลักสูตร".strip())
+            continue
+        th = re.sub(r"^[A-Z][A-Z\- ]*(?=\s+[ก-๙])\s*", "", th)               # ชื่ออังกฤษที่ขึ้นบรรทัดใหม่ติดหน้าคำอธิบาย ("CONCEPTS ลักษณะ…")
+        th = re.sub(r"\s*วท\.บ\.?\s*\(.*$", "", th, flags=re.S).strip() or th   # ท้ายกระดาษ ("วท.บ (…) … สจล. 323 มคอ. 2") ที่ OCR ต่อท้ายคำอธิบายหน้าสุดท้าย
+        parts.append(f"{code} {names.get(code, '')}: " + th[:_DESC_MAX_TH] + ("…" if len(th) > _DESC_MAX_TH else ""))
+        rows.append({"code": code, "name_th": names.get(code), "description_th": d["description_th"], "description_en": d["description_en"],
+                     "pdf_page": d["pdf_page"], "printed_page": d["printed_page"]})
+    if not rows:
+        return None
+    text = "; ".join(parts) + " — เล่มหลักสูตรไม่ได้ระบุข้อแตกต่างระหว่างสองวิชานี้ไว้โดยตรง เปรียบเทียบได้จากคำอธิบายรายวิชาข้างต้น"
+    return text, rows, "SELECT code, name_th, description_th, description_en, pdf_page FROM course_description WHERE code IN (" + ", ".join(f"'{c}'" for c in codes) + ")"
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
-    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer,
+    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,

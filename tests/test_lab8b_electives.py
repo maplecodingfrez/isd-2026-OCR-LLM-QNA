@@ -2816,3 +2816,42 @@ def test_no_gold_question_is_taken_by_the_ambiguity_guard():
         qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
         with closing(_real(rel)) as c:
             assert [q["id"] for q in qs if m._prereq_ambiguity_answer(c, q["question"])] == []
+
+
+# ---- คำถามสองส่วน: เปรียบเทียบสองวิชา (ยกคำอธิบายรายวิชาของทั้งสอง ไม่สรุปความต่างเอง) + ปี/เทอมของวิชาที่ถาม ----
+_DW, _BIG = "การสร้างคลังข้อมูล", "ระบบข้อมูลมหัต"
+
+
+def test_comparing_two_courses_quotes_both_descriptions_and_says_the_book_does_not_compare():
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, f"{_DW}กับ{_BIG}ต่างกันอย่างไร และแต่ละวิชามีรหัสอะไร")
+        assert r is not None
+        text, rows, _sql = r
+        assert "06026212" in text and "06026213" in text and _DW in text and _BIG in text
+        assert "ลักษณะของคลังข้อมูล" in text and "การติดตั้ง การพัฒนา" in text         # ข้อความจากคำอธิบายรายวิชาจริงของแต่ละวิชา
+        assert "ไม่ได้ระบุ" in text and "เปรียบเทียบ" in text
+        assert "สจล" not in text and "CONCEPTS" not in text and "มคอ. 2" not in text         # ไม่เอาท้ายกระดาษ/ชื่ออังกฤษที่ OCR ติดมากับคำอธิบาย                          # บอกตรง ๆ ว่าเล่มไม่ได้เทียบให้
+        assert {x["code"] for x in rows} == {"06026212", "06026213"} and all(x["pdf_page"] for x in rows)
+
+
+@pytest.mark.parametrize("question", [
+    f"{_DW}กับ{_BIG}ต่างกันอย่างไร และต้องผ่านวิชาอะไรก่อน",         # มีส่วนที่สามที่ทางลัดนี้ตอบไม่ได้ → ไม่รับ (ไม่ตอบครึ่งเดียวแบบเงียบ)
+    f"{_DW}กับ{_BIG}ต่างกันอย่างไร และกี่หน่วยกิต",
+    f"{_DW}ต่างกับวิชาอื่นอย่างไร", f"{_DW}ต่างกันอย่างไร", "ปี 1 กับปี 2 ต่างกันอย่างไร",
+    f"{_DW}ขั้นสูงกับ{_BIG}ต่างกันอย่างไร"])                              # ชื่อที่มีตัวขยาย/ไม่ครบสองวิชา
+def test_compare_shortcut_refuses_anything_that_is_not_exactly_two_whole_course_names(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._compare_courses_answer(c, question) is None, question
+
+
+def test_prerequisite_and_term_question_names_the_term_of_the_asked_course_too():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, _sql = _chain(c, f"วิชา{_DW}ต้องผ่านวิชาอะไรก่อน และเรียนในปีไหนเทอมไหน")
+        assert text.startswith(f"{_DW} (ปี 3 เทอม 1) ต้องเรียนมาก่อน: 06066300 แนวคิดระบบฐานข้อมูล (ปี 2 เทอม 1)"), text
+
+
+def test_no_gold_question_is_taken_by_the_compare_shortcut():
+    for gold, rel in (("dsba_coop", "DSBA/coop"), ("it_no_coop", "IT/no_coop"), ("ait", "AIT"), ("bit_coop", "BIT/coop")):
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(_real(rel)) as c:
+            assert [q["id"] for q in qs if m._compare_courses_answer(c, q["question"])] == []
