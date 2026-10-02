@@ -10,6 +10,7 @@ from pathlib import Path
 
 import requests
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -49,6 +50,12 @@ app = FastAPI(
     title=f"{settings.app_name} — Curriculum",
     description="Qwen text-to-SQL + SQLite curriculum application",
     version="1.0.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 database = CurriculumDatabase(lab8b, settings.db_path, settings.max_rows)
