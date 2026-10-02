@@ -2856,18 +2856,25 @@ def test_no_gold_question_is_taken_by_the_compare_shortcut():
 
 
 
-# ---- ตอบครึ่งเดียว: เปรียบเทียบได้ แต่ส่วนที่ถามเพิ่มที่ตอบรวมไม่ได้ ต้องบอกตรง ๆ ไม่เงียบ ----
-@pytest.mark.parametrize("extra,label", [
-    ("และกี่หน่วยกิต", "หน่วยกิต"), ("และต้องผ่านวิชาอะไรก่อน", "วิชาบังคับก่อน"), ("และเรียนปีไหนเทอมไหน", "ปี/เทอม")])
-def test_compare_with_an_extra_unsupported_part_answers_the_comparison_and_says_what_it_left_out(extra, label):
+# ---- ตอบรวมในข้อเดียว: เปรียบเทียบ + ส่วนที่ถามเพิ่มซึ่งตอบได้จริง (หน่วยกิต / วิชาบังคับก่อน / ปี-เทอม); ที่ตอบไม่ได้ (ชั่วโมง) ยังบอกตรง ๆ ว่าไม่ได้ตอบ ----
+@pytest.mark.parametrize("extra,needles", [
+    ("และกี่หน่วยกิต", ["06026212 การสร้างคลังข้อมูล 3 หน่วยกิต", "06026213 ระบบข้อมูลมหัต 3 หน่วยกิต"]),
+    ("และต้องผ่านวิชาอะไรก่อน", ["การสร้างคลังข้อมูล ต้องเรียนมาก่อน: 06066300 แนวคิดระบบฐานข้อมูล", "ระบบข้อมูลมหัต ต้องเรียนมาก่อน:"]),
+    ("และเรียนปีไหนเทอมไหน", ["การสร้างคลังข้อมูล: ปี 3 เทอม 1", "ระบบข้อมูลมหัต: ปี"])])
+def test_compare_answers_the_extra_parts_it_can_answer_in_the_same_reply(extra, needles):
     with closing(_real("DSBA/coop")) as c:
-        r = _chain(c, f"{_DW}กับ{_BIG}ต่างกันอย่างไร {extra}")
-        assert r is not None
-        text, rows, _sql = r
-        assert "ลักษณะของคลังข้อมูล" in text and "การติดตั้ง การพัฒนา" in text            # ส่วนเปรียบเทียบยังตอบครบ
-        tail = text.split("ส่วนที่ยังไม่ได้ตอบ")[1]                                        # และมีประโยคบอกว่าตัดอะไรออก
-        assert label in tail and "ถามแยก" in tail
-        assert {x["code"] for x in rows} == {"06026212", "06026213"}
+        text, rows, _sql = _chain(c, f"{_DW}กับ{_BIG}ต่างกันอย่างไร {extra}")
+        assert "ลักษณะของคลังข้อมูล" in text and "การติดตั้ง การพัฒนา" in text            # ส่วนเปรียบเทียบยังครบ
+        for n in needles:
+            assert n in text, (extra, n, text[-400:])
+        assert "ส่วนที่ยังไม่ได้ตอบ" not in text
+        assert {x["code"] for x in rows if x.get("pdf_page")} == {"06026212", "06026213"}
+
+
+def test_compare_still_says_what_it_cannot_answer_for_hours():
+    with closing(_real("DSBA/coop")) as c:
+        text, _rows, _sql = _chain(c, f"{_DW}กับ{_BIG}ต่างกันอย่างไร และกี่ชั่วโมง")
+        assert "ส่วนที่ยังไม่ได้ตอบ: ชั่วโมงเรียน" in text and "ถามแยก" in text
 
 
 # ส่วนที่ค้างไม่ใช่คำถามเพิ่มที่รู้จัก (ตัวขยายชื่อ/คำแปลก) = ยังปฏิเสธ ไม่เสี่ยงตอบผิดวิชา

@@ -3726,6 +3726,43 @@ def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     if not rows:
         return None
     text = "; ".join(parts) + " — เล่มหลักสูตรไม่ได้ระบุข้อแตกต่างระหว่างสองวิชานี้ไว้โดยตรง เปรียบเทียบได้จากคำอธิบายรายวิชาข้างต้น"
+    extra_parts: list[str] = []
+    try:
+        if "จำนวนหน่วยกิต" in omitted:
+            cr = {r[0]: r[1] for r in conn.execute("SELECT code, credits FROM course WHERE code IN (?, ?)", codes)}
+            if all(cr.get(c) is not None for c in codes):
+                extra_parts.append("หน่วยกิต: " + "; ".join(f"{c} {names.get(c, '')} {cr[c]} หน่วยกิต" for c in codes))
+                omitted.remove("จำนวนหน่วยกิต")
+        if "วิชาบังคับก่อน" in omitted:
+            statuses = _prereq_statuses(conn) or {}
+            segs = []
+            for c in codes:
+                req = [r[0] for r in conn.execute("SELECT requires FROM prerequisite WHERE code = ? AND kind = 'pre' ORDER BY requires", (c,))]
+                req += [r[0] for r in conn.execute("SELECT requires FROM prerequisite_alt WHERE code = ? ORDER BY requires", (c,))]
+                req = list(dict.fromkeys(req))
+                if req:
+                    segs.append(f"{names.get(c, c)} ต้องเรียนมาก่อน: " + ", ".join(f"{r} {names.get(r, '')}".strip() for r in req))
+                elif statuses.get(c) in ("not_found", "unreadable"):
+                    segs.append(f"{names.get(c, c)} ยังไม่ทราบวิชาบังคับก่อน (อ่านจากเล่มไม่ได้)")
+                else:
+                    segs.append(f"{names.get(c, c)} ไม่มีวิชาบังคับก่อน")
+            extra_parts.append("วิชาบังคับก่อน: " + "; ".join(segs))
+            omitted.remove("วิชาบังคับก่อน")
+        if "ปี/เทอมที่เรียน" in omitted:
+            segs = []
+            for c in codes:
+                places = [tuple(r) for r in conn.execute("SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (c,))]
+                if not places:
+                    segs = []
+                    break
+                segs.append(f"{names.get(c, c)}: " + " และ ".join(f"ปี {y} เทอม {s}" for y, s in places))
+            if segs:
+                extra_parts.append("ปี/เทอมที่เรียน: " + "; ".join(segs))
+                omitted.remove("ปี/เทอมที่เรียน")
+    except sqlite3.OperationalError:
+        pass
+    if extra_parts:
+        text += " — " + " — ".join(extra_parts)
     if omitted:
         text += f" — ส่วนที่ยังไม่ได้ตอบ: {', '.join(omitted)} (ตอบรวมกับการเปรียบเทียบในคำถามเดียวไม่ได้ กรุณาถามแยกเป็นอีกคำถาม)"
     return text, rows, "SELECT code, name_th, description_th, description_en, pdf_page FROM course_description WHERE code IN (" + ", ".join(f"'{c}'" for c in codes) + ")"
