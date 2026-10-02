@@ -3354,3 +3354,33 @@ def test_asking_about_the_other_plan_answers_from_that_plans_database(monkeypatc
         assert r["answer"].startswith("(ตอบตามแผนสหกิจ)") and "12 หน่วยกิต" in r["answer"], r["answer"]       # coop y4s1 = 12, no_coop = 9
         r2 = m.ask(c, "ปี 4 เทอม 1 แผนไม่สหกิจเรียนรวมกี่หน่วยกิต", verbose=False)
         assert not r2["answer"].startswith("(ตอบตาม") and "9 หน่วยกิต" in r2["answer"], r2["answer"]
+
+
+# ---- แก้ตามชุดคำถามอิสระชุดที่ 3 (75/100) ----
+# ลูกโซ่วิชาบังคับก่อนที่ไม่ได้ถามปี/เทอม และ "วางแผนลงวิชาอะไรไว้ก่อน"
+@pytest.mark.parametrize("rel,question,codes", [
+    ("AIT", "อยากลง Team-Project 3 ต้องผ่านอะไรมาก่อนบ้าง ไล่ให้ดูตั้งแต่ต้นหน่อยครับ", ("90641005", "90641004")),
+    ("AIT", "อยากเรียน Fundamentals of Deep Learning ในเทอมแรกของปี 2 ต้องวางแผนลงวิชาอะไรในปี 1 ไว้ก่อน เทอมไหนบ้าง", ("06046400", "06046402", "06046401")),
+    ("DSBA/coop", "ก่อนจะลงโครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 ต้องผ่านอะไรมาก่อน ไล่ทั้งสายให้หน่อย", ("06026214",))])
+def test_prerequisite_chain_without_a_term_ask(rel, question, codes):
+    text = _txt(rel, question)[0]
+    assert all(c in text for c in codes) and "ปี" in text, text
+
+
+def test_prerequisite_chain_refuses_unrelated_or_ambiguous_questions():
+    with closing(_real("AIT")) as c:
+        for q in ("วิชาไหนบ้างที่ต้องผ่านแคลคูลัส 1 ก่อน", "ไล่ให้ดูหน่อยว่าปี 1 เรียนอะไรบ้าง", "ไล่ให้ดูตั้งแต่ต้นว่าต้องผ่านอะไรบ้าง"):
+            assert m._prereq_chain_answer(c, q) is None, q
+
+
+# ขอรหัสและหน่วยกิตของวิชาเดียวพร้อมกัน (เดิมตอบแค่รหัสแล้วทิ้งหน่วยกิต)
+def test_code_and_credits_of_one_course_in_one_question():
+    text = _txt("BIT/coop", "สหกิจศึกษาแผนสหกิจ BIT รหัสอะไร กี่หน่วยกิต")[0]
+    assert "06036147" in text and "6 หน่วยกิต" in text, text
+    assert "06026201" in _txt("DSBA/coop", "แคลคูลัส 2 รหัสอะไร กี่หน่วยกิต")[0]
+
+
+# ขอวิชาบังคับและวิชาเลือกของเทอมพร้อมกัน
+def test_required_and_elective_of_one_term_in_one_question():
+    text = _txt("DSBA/coop", "ปี 4 เทอม 1 (แผนสหกิจ) มีวิชาบังคับกับวิชาเลือกอะไรบ้าง")[0]
+    assert "06026215" in text and "เลือกเสรี" in text and "บังคับ" in text and "เลือก" in text, text

@@ -2607,6 +2607,80 @@ def _name_prefix_list_answer(conn: sqlite3.Connection, question: str) -> tuple[s
     return f"วิชาที่ชื่อขึ้นต้นด้วย \"{mt.group('p').strip()}\" มี {len(rows)} วิชา: " + "; ".join(f"{c} {n}" for c, n in rows), out, sql
 
 
+# ---- ลูกโซ่วิชาบังคับก่อนทุกชั้น โดยไม่ต้องถามปี/เทอม ("ไล่ให้ดูตั้งแต่ต้น", "ต้องวางแผนลงวิชาอะไรไว้ก่อน") ----
+_CHAIN_Q = re.compile(r"ตั้งแต่ต้น|ตั้งแต่ปีแรก|ไล่(?:ให้ดู|ดู|ให้)|chain|ทั้งสาย|ย้อนไป|ลูกโซ่|ตลอดสาย|วางแผน.{0,45}ก่อน", re.I)
+_CHAIN_PREREQ = re.compile(r"ต้องผ่าน|ผ่านอะไร|ผ่านวิชา|บังคับก่อน|prerequisite|มาก่อน|ไว้ก่อน|ลงวิชาอะไร|ต้องลง", re.I)
+
+
+def _prereq_chain_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชาเดียว + คำว่า ตั้งแต่ต้น/ไล่/chain/ทั้งสาย/วางแผน…ไว้ก่อน → วิชาบังคับก่อนทุกชั้น (ชั้นที่ 1 = โดยตรง) พร้อมปี/เทอมที่เรียนตามแผน;
+    ถามทิศตรงข้าม (ผ่านแล้วลงอะไรต่อ) / ไม่มีวิชาเดียว / วิชาไม่มีวิชาบังคับก่อน (ที่ยืนยันไม่ได้) = None"""
+    if not _CHAIN_Q.search(question) or not _CHAIN_PREREQ.search(question):
+        return None
+    _citations_module()
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        req, alt = _requires_map(conn)
+    except sqlite3.OperationalError:
+        return None
+    known = {c["code"] for c in courses}
+    hints = course_names.course_hints(question, courses)
+    codes = list(dict.fromkeys([c for _, c in hints] + [c for c in _CODE8.findall(question) if c in known]))
+    if len(codes) != 1:
+        return None
+    direction = course_names.prereq_direction(question, hints)
+    if direction and direction[0] == "after":
+        return None
+    target = codes[0]
+    names = {c["code"]: c["name_th"] for c in courses}
+    terms = _first_terms(conn)
+    if target not in req:
+        if (_prereq_statuses(conn) or {}).get(target) == "none":
+            return f"{names.get(target, target)} ({target}) ไม่มีวิชาบังคับก่อน", [{"code": target, "name_th": names.get(target), "requires": None}], \
+                f"SELECT requires FROM prerequisite WHERE code = '{target}' AND kind = 'pre'"
+        return None
+
+    def label(c: str) -> str:
+        t = terms.get(c)
+        return f"{names.get(c, c)} ({c})" + (f" {_TERM_LABEL.format(y=t[0], s=t[1])}" if t else "")
+    levels: list[list[str]] = []
+    seen = {target}
+    frontier = sorted(req[target])
+    while frontier:
+        levels.append(frontier)
+        seen |= set(frontier)
+        frontier = sorted({r for c in frontier for r in req.get(c, set())} - seen)
+    parts = []
+    for i, lv in enumerate(levels, 1):
+        tag = "โดยตรง" if i == 1 else f"ชั้นที่ {i}"
+        note = " (มีทางเลือก \"หรือ\" — ผ่านอย่างใดอย่างหนึ่ง)" if i == 1 and target in alt else ""
+        parts.append(f"{tag}{note}: " + "; ".join(label(c) for c in lv))
+    rows = [{"code": c, "name_th": names.get(c), "level": i, "year": (terms.get(c) or (None, None))[0], "semester": (terms.get(c) or (None, None))[1]}
+            for i, lv in enumerate(levels, 1) for c in lv]
+    return (f"ก่อนลง {label(target)} ต้องผ่าน — " + " | ".join(parts), rows,
+            "SELECT code, requires FROM prerequisite WHERE kind = 'pre'")
+
+
+# ---- "X รหัสอะไร กี่หน่วยกิต" (วิชาเดียว ชื่อเต็ม) — รหัสและหน่วยกิตในคำตอบเดียว ----
+def _code_and_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    if "รหัส" not in question or not re.search(r"กี่หน่วยกิต|หน่วยกิตเท่า|หน่วยกิตกี่", question) or _CODE8.search(question) or any(_term_numbers(question)):
+        return None
+    if re.search(r"ก่อน|ชั่วโมง|ปีไหน|เทอมไหน|ภาคไหน|ทั้งหมด|รวม", question):
+        return None
+    named = _named_courses(conn, question)
+    if not named or len(named) != 1:
+        return None
+    code = next(iter(named))
+    try:
+        row = conn.execute("SELECT code, name_th, credits FROM course WHERE code = ?", (code,)).fetchone()
+    except sqlite3.OperationalError:
+        return None
+    if row is None or row["credits"] is None:
+        return None
+    return f"{row['code']} {row['name_th']}: {row['credits']} หน่วยกิต", [dict(row)], f"SELECT code, name_th, credits FROM course WHERE code = '{code}'"
+
+
 # ---- ผ่านวิชา A (และ B) แล้วลงอะไรได้ / สอบตก A แล้วลงอะไรต่อไม่ได้-กระทบวิชาไหน ----
 _UNLOCK_PASS_Q = re.compile(r"(?<!ไม่)ผ่าน.{0,90}?แล้ว.{0,14}?(?:ลง|เรียน)(?:ทะเบียน)?(?:วิชา)?(?:อะไร|ไหน|ใด)(?:บ้าง)?(?:ได้|เพิ่ม|ต่อ|ที่ต้องใช้)")
 _UNLOCK_FAIL_Q = re.compile(r"(?:สอบตก|ไม่ผ่าน|ตก).{0,90}?(?:กระทบ|ลง(?:ต่อ)?ไม่ได้|เรียนต่อไม่ได้|ลงทะเบียนต่อไม่ได้)")
@@ -4466,12 +4540,28 @@ _KIND_CATEGORY = re.compile(r"หมวด(?:วิชา)?(เฉพาะ|ศ�
 
 
 def _term_kind_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามหลายประเภทพร้อมกัน ("มีวิชาบังคับกับวิชาเลือกอะไรบ้าง") = ตอบทีละประเภทแล้วต่อกัน; ประเภทเดียว = _term_kind_list_one; ประเภทใดตอบไม่ได้ = None ทั้งข้อ"""
+    kinds = list(dict.fromkeys(_KIND_LIST_Q.findall(question)))
+    if len(kinds) <= 1:
+        return _term_kind_list_one(conn, question)
+    parts, rows, sql = [], [], ""
+    for k in kinds:
+        r = _term_kind_list_one(conn, question, k)
+        if r is None:
+            return None
+        parts.append(r[0])
+        rows += r[1]
+        sql = sql or r[2]
+    return "; ".join(parts), rows, sql
+
+
+def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | None = None) -> tuple[str, list[dict], str] | None:
     """รายวิชา (หรือจำนวนวิชา) บังคับ/เลือก/เลือกเสรี ของ "ปี Y [เทอม S]" ตามหมายเหตุช่องในแผน (plan_item.note); กรองหมวด (เฉพาะ/ศึกษาทั่วไป/เลือกเสรี)
     ได้เมื่อคำถามระบุ; รองรับ "ปีแรก/ปีสุดท้าย/เทอมแรก"; วิชาเลือกรวมช่องที่นักศึกษาเลือกเอง (plan_slot)
     ไม่ระบุปี / มีรหัส / ชื่อวิชา / เทียบ / บังคับก่อน / วิชาในเทอมมีหมายเหตุไม่ครบ = None (ไม่เดา); เทอมที่ไม่มีวิชาประเภทนั้น = บอกตรง ๆ ว่าไม่มี"""
     mt = _KIND_LIST_Q.search(question)
     count_q = bool(_KIND_COUNT_ASK.search(question))
-    if not mt or not (count_q or _KIND_LIST_ASK.search(question)) or _KIND_LIST_NOT.search(question) or _CODE8.search(question):
+    if (not mt and not _kind) or not (count_q or _KIND_LIST_ASK.search(question)) or _KIND_LIST_NOT.search(question) or _CODE8.search(question):
         return None
     try:
         last_year = conn.execute("SELECT MAX(year) FROM plan_item").fetchone()[0]
@@ -4482,7 +4572,7 @@ def _term_kind_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str
     y, s = _term_numbers(q)
     if not y or _named_courses(conn, question, strict=False):
         return None
-    kind = mt.group(1)
+    kind = _kind or mt.group(1)
     cm = _KIND_CATEGORY.search(question)
     category = cm.group(1) if cm else None
     where = "year = ?" + (" AND semester = ?" if s else "")
@@ -4566,8 +4656,8 @@ _SHORTCUTS = (
     _other_program_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
-    _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
+    _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
+    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer,
 )
