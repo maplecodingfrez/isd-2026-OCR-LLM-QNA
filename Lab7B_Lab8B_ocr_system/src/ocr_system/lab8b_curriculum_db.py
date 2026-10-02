@@ -1622,7 +1622,8 @@ def _extreme_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     y, _s = _term_numbers(question)
     per_year = bool(re.search(r"ปีไหน|ปีใด|ชั้นปีไหน", question)) and not re.search(r"เทอมไหน|ภาคไหน|ภาคการศึกษาไหน|ภาคเรียนไหน|เทอมใด", question)
     want_max = bool(_EXTREME_MAX.search(question))
-    where = f" WHERE year = {y}" if y else ""
+    first_n = re.search(r"(?:ใน|ช่วง)?\s*(\d|สอง|สาม|สี่)\s*ปีแรก", question)             # "ในสองปีแรก" = ปี 1..N (เดิมถูกเมิน → ตอบค่าสุดของทั้งหลักสูตร)
+    where = f" WHERE year = {y}" if y else (f" WHERE year <= {({'สอง': 2, 'สาม': 3, 'สี่': 4}.get(first_n.group(1)) or int(first_n.group(1)))}" if first_n else "")
     if per_year:
         sql = f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full{where} GROUP BY year"
     else:
@@ -2523,7 +2524,8 @@ _FACT_SUBSCOPE_RE = re.compile(r"ปีแรก|ปีสุดท้าย|ป
 def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """ "หลักสูตรนี้เรียนกี่ปี" / "ต้องเรียนกี่หน่วยกิตถึงจะจบ" → ค่าจากตาราง program (หน่วยกิตรวมตลอดหลักสูตร, จำนวนปี);
     มีปี/เทอม/หมวด/กลุ่ม/วิชาเลือก/ชื่อวิชา/รหัสวิชาในคำถาม = None (ไปทางทางลัดอื่นหรือโมเดล)"""
-    if _FACT_NOT_RE.search(question) or _FACT_SUBSCOPE_RE.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question):
+    # ชื่อหลักสูตร (DSBA/AIT/BIT/IT) ไม่นับเป็น "คำอังกฤษ 4 ตัวขึ้นไป" ของ _FACT_NOT_RE — ชื่อของหลักสูตรอื่นถูกดักไปแล้วโดย _other_program_answer
+    if _FACT_NOT_RE.search(_PROGRAM_TOKEN.sub("", question)) or _FACT_SUBSCOPE_RE.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question):
         return None
     years = bool(re.search(r"กี่ปี", question) and re.search(r"เรียน|ใช้เวลา|ระยะเวลา|หลักสูตร|จบ|ศึกษา", question))
     credits = bool("หน่วยกิต" in question and re.search(r"หลักสูตร|ถึงจะจบ|จึงจะจบ|เพื่อจบ", question))
@@ -3729,9 +3731,98 @@ def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     return text, rows, "SELECT code, name_th, description_th, description_en, pdf_page FROM course_description WHERE code IN (" + ", ".join(f"'{c}'" for c in codes) + ")"
 
 
+# ---- ระดับ 3 (วางแผน/กฎ) ที่เล่มไม่มี: เพดานการลงทะเบียน / แผนจบเร็ว → ไม่ตอบ ----
+# เจอจริง: "ถ้าอยากจบใน 3 ปีต้องลงเทอมละกี่หน่วยกิต" ตอบ 18 (SUM ของเทอมเดียว), "ปี 3 เทอม 1 ลงทะเบียนได้สูงสุดกี่หน่วยกิต" ตอบ 3 (MAX หน่วยกิตของวิชาเดียว)
+_PLANNING_NOT = re.compile(r"จบ(?:ใน|ภายใน)\s*\d+\s*ปี|จบเร็ว|จบก่อนกำหนด|ลง(?:ทะเบียน)?(?:เรียน)?(?:ได้)?(?:สูงสุด|ไม่เกิน|มากสุด|เกิน)|เพดานหน่วยกิต")
+
+
+def _planning_unsupported_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    return _NOT_FOUND if _PLANNING_NOT.search(question) else None
+
+
+# ---- ถามถึงหลักสูตรอื่นนอกแผนที่เลือก: เดิมตอบด้วยข้อมูลของแผนที่เลือกเงียบ ๆ ("IT ต้องเรียนกี่หน่วยกิต" ตอบ 132 ของ DSBA) ----
+_PROGRAM_TOKEN = re.compile(r"(?<![A-Za-z])(DSBA|AIT|BIT|IT)(?![A-Za-z])")           # ตัวพิมพ์ใหญ่เท่านั้น ("it"/"bit" เป็นคำอังกฤษทั่วไป)
+
+
+def _other_program_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """คำถามที่พูดถึงหลักสูตรอื่น (DSBA/AIT/BIT/IT ที่ไม่ใช่แผนของ DB นี้) หรือเทียบข้ามหลักสูตร = ไม่ตอบด้วยข้อมูลแผนนี้ แต่บอกให้เลือกหลักสูตรก่อน
+    ตัดชื่อวิชาออกจากคำถามก่อนหา (กันชื่อวิชาที่มีคำพวกนี้อยู่ข้างใน)"""
+    try:
+        pid = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()
+        names = [r[0] for r in conn.execute("SELECT name_th FROM course UNION SELECT name_en FROM course") if r[0] and len(r[0]) >= 5]
+    except sqlite3.OperationalError:
+        return None
+    mine = (re.match(r"[A-Za-z]+", pid[0] or "") or [None])[0] if pid else None
+    if mine is None or mine.upper() not in ("DSBA", "AIT", "BIT", "IT"):          # ไม่รู้ว่า DB นี้คือแผนไหน = ไม่ตัดสิน
+        return None
+    text = question
+    for n in sorted(names, key=len, reverse=True):
+        text = text.replace(n, " ")
+    other = [t for t in dict.fromkeys(_PROGRAM_TOKEN.findall(text)) if t != mine.upper()]
+    if not other:
+        return None
+    return (f"คำถามนี้พูดถึงหลักสูตรอื่น ({', '.join(other)}) ที่ไม่ใช่หลักสูตรที่เลือกอยู่ ({mine}) — ตอบข้ามหลักสูตรในคำถามเดียวไม่ได้ "
+            "กรุณาเลือกหลักสูตรที่ต้องการในช่องเลือกหลักสูตรแล้วถามใหม่"), [], "SELECT NULL WHERE 0"
+
+
+# ---- ใช่/ไม่ใช่เรื่องวิชาบังคับก่อน: "สอบตก X จะเรียน Y ได้ไหม" / "เรียน Y ก่อน X ได้ไหม" — ตอบ "ไม่ได้" ได้เมื่อ X เป็นวิชาบังคับก่อนของ Y แน่ ๆ เท่านั้น ----
+_YESNO = re.compile(r"ได้ไหม|ได้หรือไม่|ได้หรือเปล่า|ได้มั้ย|ได้รึเปล่า")
+_FAIL_WORD = re.compile(r"สอบตก|ยังไม่ผ่าน|ไม่ผ่าน")
+
+
+def _prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """สองวิชาพอดีในคำถามใช่/ไม่ใช่: (ก) "สอบตก/ไม่ผ่าน X … เรียน Y ได้ไหม" (ข) "เรียน Y ก่อน X ได้ไหม" — ถ้า X ∈ วิชาบังคับก่อนของ Y (kind='pre' และ Y ไม่มีทางเลือก
+    "หรือ" ใน prerequisite_alt) → "ไม่ได้ — Y มี X เป็นวิชาบังคับก่อน"; กรณีอื่น (ลำดับถูกต้อง/ไม่มีความสัมพันธ์/กำกวม) = None ไม่ตอบ "ไม่ได้" มั่ว"""
+    if not _YESNO.search(question) or _CODE8.search(question):
+        return None
+    _citations_module()
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    except sqlite3.OperationalError:
+        return None
+    hints = course_names.course_hints(question, courses)
+    if len({c for _, c in hints}) != 2:
+        return None
+    (raw1, c1), (raw2, c2) = hints[0], hints[1]
+    p1, p2 = question.find(raw1), question.find(raw2)
+    if p1 < 0 or p2 < 0 or p1 >= p2:
+        return None
+    between = question[p1 + len(raw1): p2]
+    if "ก่อน" in between and re.search(r"เรียน", question[:p1]):          # (ข) เรียน c1 ก่อน c2 → ถามว่า c1 เรียนก่อน c2 ได้ไหม: ต้องมี c2 เป็นวิชาบังคับก่อนของ c1
+        target, cand = c1, c2
+    elif _FAIL_WORD.search(question[:p1]) and re.search(r"เรียน", between + question[p2:]):   # (ก) ตก c1 แล้วเรียน c2
+        target, cand = c2, c1
+    else:
+        return None
+    try:
+        needs = conn.execute("SELECT 1 FROM prerequisite WHERE code = ? AND requires = ? AND kind = 'pre'", (target, cand)).fetchone()
+        alt = conn.execute("SELECT 1 FROM prerequisite_alt WHERE code = ?", (target,)).fetchone()
+    except sqlite3.OperationalError:
+        return None
+    names = {c["code"]: c["name_th"] for c in courses}
+    if not needs and "ก่อน" in between and not alt:                       # (ข) ลำดับที่ถูกต้อง: c1 เป็นวิชาบังคับก่อนของ c2 → "ได้" (ต้องเรียน c1 ก่อนอยู่แล้ว)
+        try:
+            ok = conn.execute("SELECT 1 FROM prerequisite WHERE code = ? AND requires = ? AND kind = 'pre'", (c2, c1)).fetchone()
+        except sqlite3.OperationalError:
+            return None
+        if ok:
+            return (f"ได้ — {names.get(c1, c1)} เป็นวิชาบังคับก่อนของ {names.get(c2, c2)} จึงต้องเรียน {names.get(c1, c1)} ก่อนอยู่แล้ว",
+                    [{"code": c2, "name_th": names.get(c2), "requires": c1, "requires_name_th": names.get(c1)}],
+                    f"SELECT code, requires FROM prerequisite WHERE code = '{c2}' AND requires = '{c1}' AND kind = 'pre'")
+    if not needs or alt:
+        return None
+    text = (f"ไม่ได้ — {names.get(target, target)} มี {names.get(cand, cand)} เป็นวิชาบังคับก่อน "
+            f"(ต้องผ่าน {names.get(cand, cand)} ก่อนจึงจะเรียน {names.get(target, target)} ได้)")
+    return text, [{"code": target, "name_th": names.get(target), "requires": cand, "requires_name_th": names.get(cand)}], \
+        f"SELECT code, requires FROM prerequisite WHERE code = '{target}' AND requires = '{cand}' AND kind = 'pre'"
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
+    _other_program_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _prereq_yesno_answer,
     _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,

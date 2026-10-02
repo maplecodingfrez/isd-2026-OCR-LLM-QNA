@@ -2875,3 +2875,88 @@ def test_compare_with_an_extra_unsupported_part_answers_the_comparison_and_says_
 def test_compare_with_an_unrecognised_leftover_is_still_refused(question):
     with closing(_real("DSBA/coop")) as c:
         assert m._compare_courses_answer(c, question) is None, question
+
+
+
+# ---- ระดับ 3 (วางแผน/กฎ): เล่มไม่มีกฎเพดานการลงทะเบียน/แผนจบเร็ว → ห้ามตอบเลขจากตารางอื่นแบบมั่นใจ ----
+# เจอจริง: "ถ้าอยากจบใน 3 ปีต้องลงเทอมละกี่หน่วยกิต" ตอบ 18 (SUM ปี 3 เทอมหนึ่ง), "ปี 3 เทอม 1 ลงทะเบียนได้สูงสุดกี่หน่วยกิต" ตอบ 3 (MAX หน่วยกิตของวิชาเดียว)
+@pytest.mark.parametrize("question", [
+    "ถ้าอยากจบใน 3 ปีต้องลงเทอมละกี่หน่วยกิต", "จบเร็วกว่ากำหนดได้ไหม ต้องลงกี่หน่วยกิต", "ปี 3 เทอม 1 ลงทะเบียนได้สูงสุดกี่หน่วยกิต",
+    "เทอมหนึ่งลงทะเบียนได้ไม่เกินกี่หน่วยกิต", "ลงได้สูงสุดกี่หน่วยกิตต่อเทอม", "ถ้าลงเกิน 22 หน่วยกิตได้ไหม"])
+def test_planning_and_registration_limit_questions_are_not_answered_from_the_plan_table(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert _chain(c, question) == m._NOT_FOUND, question
+
+
+# ไม่แย่งคำถามที่เล่มตอบได้จริง
+@pytest.mark.parametrize("question", [
+    "ต้องเรียนกี่หน่วยกิตถึงจะจบ", "ปี 3 เทอม 1 ต้องเรียนกี่หน่วยกิต", "เทอมไหนเรียนหน่วยกิตมากที่สุด", "ระยะเวลาการศึกษากี่ปี"])
+def test_planning_guard_leaves_answerable_questions_alone(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._planning_unsupported_answer(c, question) is None, question
+
+
+# ---- ถามถึงหลักสูตรอื่นนอกแผนที่เลือก: เดิมตอบด้วยข้อมูลแผนที่เลือกเงียบ ๆ ("IT ต้องเรียนกี่หน่วยกิต" ตอบ 132 ของ DSBA) ----
+@pytest.mark.parametrize("rel,question", [
+    ("DSBA/coop", "IT ต้องเรียนกี่หน่วยกิตถึงจะจบ"), ("DSBA/coop", "หลักสูตร AIT เรียนกี่ปี"), ("IT/coop", "DSBA ต้องเรียนกี่หน่วยกิต"),
+    ("DSBA/coop", "BIT มีวิชาอะไรบ้างในปี 1 เทอม 1")])
+def test_a_question_about_another_program_is_not_answered_with_the_selected_programs_data(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+        assert r is not None and "หลักสูตรอื่น" in r[0] and r[1] == [], (question, r)
+
+
+@pytest.mark.parametrize("rel,question", [
+    ("DSBA/coop", "DSBA ต้องเรียนกี่หน่วยกิต"), ("IT/coop", "หลักสูตร IT เรียนกี่ปี"), ("DSBA/coop", "ต้องเรียนกี่หน่วยกิตถึงจะจบ"),
+    ("DSBA/coop", "วิชาเทคโนโลยีสารสนเทศเพื่อธุรกิจกี่หน่วยกิต"), ("AIT/x", "")])
+def test_the_selected_programs_own_name_and_unrelated_words_do_not_trigger_the_guard(rel, question):
+    if rel == "AIT/x":
+        return
+    with closing(_real(rel)) as c:
+        assert m._other_program_answer(c, question) is None, question
+
+
+# ---- ใช่/ไม่ใช่เรื่องวิชาบังคับก่อน (ระดับ 3): ตอบได้/ไม่ได้ตรง ๆ ไม่ใช่ลิสต์วิชา ----
+@pytest.mark.parametrize("question", [
+    "ถ้าสอบตกแคลคูลัส 1 จะเรียนแคลคูลัส 2 ได้ไหม", "เรียนแคลคูลัส 2 ก่อนแคลคูลัส 1 ได้ไหม", "ไม่ผ่านแคลคูลัส 1 เรียนแคลคูลัส 2 ได้หรือเปล่า"])
+def test_yes_no_prerequisite_question_answers_no_and_names_the_requirement(question):
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, _sql = _chain(c, question)
+        assert text.startswith("ไม่ได้") and "แคลคูลัส 1" in text and "แคลคูลัส 2" in text and "วิชาบังคับก่อน" in text, text
+        assert rows and rows[0]["code"] == "06026201" and rows[0]["requires"] == "06026200"
+
+
+@pytest.mark.parametrize("question", [
+    "ถ้าสอบตกการสร้างคลังข้อมูลจะเรียนแคลคูลัส 2 ได้ไหม",   # สองวิชานี้ไม่มีความสัมพันธ์วิชาบังคับก่อน → ไม่ตอบ "ไม่ได้" มั่ว
+    "แคลคูลัส 1 ต้องเรียนก่อนแคลคูลัส 2 ไหม"])
+def test_yes_no_prerequisite_shortcut_refuses_when_it_cannot_say_no_for_sure(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._prereq_yesno_answer(c, question) is None, question
+
+
+# ---- "ในสองปีแรก/สามปีแรก": ขอบเขตปีต้องถูกใช้ (เดิมถูกเมินแล้วตอบค่าสุดของทั้งหลักสูตร — เทอมน้อยที่สุดทั้งหลักสูตรคือปี 4 เทอม 2 = 6 ทั้งที่ถามแค่สองปีแรก) ----
+def test_the_first_n_years_scope_is_applied_to_extreme_credits():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, sql = _chain(c, "เทอมไหนเรียนน้อยที่สุดในสองปีแรก")
+        assert "18 หน่วยกิต" in text and "ปี 1 เทอม 1" in text and "ปี 4" not in text and "year <= 2" in sql
+        text3, _r, _s = _chain(c, "เทอมไหนเรียนหนักที่สุดในสามปีแรก")
+        assert "21 หน่วยกิต" in text3 and "year <= 3" in _s
+        assert "6 หน่วยกิต" in _chain(c, "เทอมไหนเรียนน้อยที่สุด")[0]                     # ไม่ระบุขอบเขต = ทั้งหลักสูตรเหมือนเดิม
+
+
+# ---- ชื่อหลักสูตรของแผนที่เลือกเอง (DSBA ยาว 4 ตัวอักษร) เคยทำให้ทางลัดข้อมูลระดับหลักสูตรปฏิเสธเพราะกฎ "คำอังกฤษ 4 ตัวขึ้นไป" ----
+@pytest.mark.parametrize("question,needle", [
+    ("DSBA ต้องเรียนกี่หน่วยกิตถึงจะจบ", "132 หน่วยกิต"), ("หลักสูตร DSBA ต้องเรียนกี่หน่วยกิตถึงจะจบ", "132 หน่วยกิต"),
+    ("หลักสูตร DSBA เรียนกี่ปี", "4 ปี")])
+def test_program_fact_accepts_the_selected_programs_own_name(question, needle):
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, question)
+        assert r is not None and needle in r[0], (question, r)
+
+
+# ลำดับที่ถูกต้อง ("เรียน X ก่อน Y ได้ไหม" เมื่อ X เป็นวิชาบังคับก่อนของ Y) ตอบ "ได้" ตรง ๆ — เดิมตอบแค่ลิสต์วิชา "06026201 (แคลคูลัส 2)" ไม่ตอบใช่/ไม่ใช่
+def test_yes_no_prerequisite_answers_yes_when_the_order_is_the_required_one():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, _sql = _chain(c, "เรียนแคลคูลัส 1 ก่อนแคลคูลัส 2 ได้ไหม")
+        assert text.startswith("ได้") and "แคลคูลัส 1" in text and "วิชาบังคับก่อน" in text, text
+        assert rows[0]["code"] == "06026201" and rows[0]["requires"] == "06026200"
