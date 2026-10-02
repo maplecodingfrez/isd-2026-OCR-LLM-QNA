@@ -2835,8 +2835,6 @@ def test_comparing_two_courses_quotes_both_descriptions_and_says_the_book_does_n
 
 
 @pytest.mark.parametrize("question", [
-    f"{_DW}กับ{_BIG}ต่างกันอย่างไร และต้องผ่านวิชาอะไรก่อน",         # มีส่วนที่สามที่ทางลัดนี้ตอบไม่ได้ → ไม่รับ (ไม่ตอบครึ่งเดียวแบบเงียบ)
-    f"{_DW}กับ{_BIG}ต่างกันอย่างไร และกี่หน่วยกิต",
     f"{_DW}ต่างกับวิชาอื่นอย่างไร", f"{_DW}ต่างกันอย่างไร", "ปี 1 กับปี 2 ต่างกันอย่างไร",
     f"{_DW}ขั้นสูงกับ{_BIG}ต่างกันอย่างไร"])                              # ชื่อที่มีตัวขยาย/ไม่ครบสองวิชา
 def test_compare_shortcut_refuses_anything_that_is_not_exactly_two_whole_course_names(question):
@@ -2855,3 +2853,25 @@ def test_no_gold_question_is_taken_by_the_compare_shortcut():
         qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
         with closing(_real(rel)) as c:
             assert [q["id"] for q in qs if m._compare_courses_answer(c, q["question"])] == []
+
+
+
+# ---- ตอบครึ่งเดียว: เปรียบเทียบได้ แต่ส่วนที่ถามเพิ่มที่ตอบรวมไม่ได้ ต้องบอกตรง ๆ ไม่เงียบ ----
+@pytest.mark.parametrize("extra,label", [
+    ("และกี่หน่วยกิต", "หน่วยกิต"), ("และต้องผ่านวิชาอะไรก่อน", "วิชาบังคับก่อน"), ("และเรียนปีไหนเทอมไหน", "ปี/เทอม")])
+def test_compare_with_an_extra_unsupported_part_answers_the_comparison_and_says_what_it_left_out(extra, label):
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, f"{_DW}กับ{_BIG}ต่างกันอย่างไร {extra}")
+        assert r is not None
+        text, rows, _sql = r
+        assert "ลักษณะของคลังข้อมูล" in text and "การติดตั้ง การพัฒนา" in text            # ส่วนเปรียบเทียบยังตอบครบ
+        tail = text.split("ส่วนที่ยังไม่ได้ตอบ")[1]                                        # และมีประโยคบอกว่าตัดอะไรออก
+        assert label in tail and "ถามแยก" in tail
+        assert {x["code"] for x in rows} == {"06026212", "06026213"}
+
+
+# ส่วนที่ค้างไม่ใช่คำถามเพิ่มที่รู้จัก (ตัวขยายชื่อ/คำแปลก) = ยังปฏิเสธ ไม่เสี่ยงตอบผิดวิชา
+@pytest.mark.parametrize("question", [f"{_DW}ขั้นสูงกับ{_BIG}ต่างกันอย่างไร และกี่หน่วยกิต", f"{_DW}กับ{_BIG}ต่างกันอย่างไร และใครสอน"])
+def test_compare_with_an_unrecognised_leftover_is_still_refused(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._compare_courses_answer(c, question) is None, question

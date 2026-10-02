@@ -3677,6 +3677,12 @@ _COMPARE_TAIL = re.compile(r"ต่างกัน|แตกต่างกั�
                            r"วิชา|มี|รหัส|อะไร|คือ|ของ|ขอ|ช่วย|หน่อย|ครับ|ค่ะ|คะ|นะ|หรือ")
 
 
+# ส่วนที่ถามเพิ่มในคำถามเปรียบเทียบที่รู้จัก (ตอบรวมไม่ได้ จึงบอกว่าไม่ได้ตอบ) — คำอื่นที่ค้าง = ไม่แน่ใจ → ปฏิเสธทั้งข้อ
+_COMPARE_EXTRAS = (("จำนวนหน่วยกิต", r"หน่วยกิต"), ("วิชาบังคับก่อน", r"ก่อน|ต้องผ่าน|ต้องเรียน"),
+                   ("ปี/เทอมที่เรียน", r"ปีไหน|เทอมไหน|ภาคไหน|ในปี"), ("ชั่วโมงเรียน", r"ชั่วโมง"))
+_COMPARE_EXTRA_WORDS = re.compile(r"หน่วยกิต|กี่|ก่อน|ต้องผ่าน|ต้องเรียน|ปีไหน|เทอมไหน|ภาคไหน|ในปี|ชั่วโมง|เรียน|ปี|เทอม|ภาค")
+
+
 def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """คำถามเปรียบเทียบ "สองวิชาพอดี" (ชื่อเต็มทั้งคู่) → ยกคำอธิบายรายวิชาของทั้งสองตามเล่ม + บอกตรง ๆ ว่าเล่มไม่ได้ระบุข้อแตกต่างไว้
     ส่วนที่ถามเพิ่ม (รหัส/ชื่อวิชา) ตอบให้ในข้อความ; คำที่เหลือนอกเหนือจากนั้น (ก่อน/หน่วยกิต/ปี/ชื่อไม่ครบ/ตัวขยาย) = None ไม่ตอบครึ่งเดียวแบบเงียบ"""
@@ -3697,7 +3703,9 @@ def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     rest = qn
     for raw, _ in sorted(hints, key=lambda h: -len(h[0])):
         rest = rest.replace(_name_key(raw), "")
-    if _strip_punct(_COMPARE_TAIL.sub("", rest)):
+    left = _COMPARE_TAIL.sub("", rest)
+    omitted = [label for label, rx in _COMPARE_EXTRAS if re.search(rx, left)]          # ส่วนที่ถามเพิ่มซึ่งตอบรวมในข้อเดียวไม่ได้ → บอกตรง ๆ
+    if _strip_punct(_COMPARE_EXTRA_WORDS.sub("", left)):
         return None
     codes = [c for _, c in hints]
     names = {c["code"]: c["name_th"] for c in courses}
@@ -3716,6 +3724,8 @@ def _compare_courses_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     if not rows:
         return None
     text = "; ".join(parts) + " — เล่มหลักสูตรไม่ได้ระบุข้อแตกต่างระหว่างสองวิชานี้ไว้โดยตรง เปรียบเทียบได้จากคำอธิบายรายวิชาข้างต้น"
+    if omitted:
+        text += f" — ส่วนที่ยังไม่ได้ตอบ: {', '.join(omitted)} (ตอบรวมกับการเปรียบเทียบในคำถามเดียวไม่ได้ กรุณาถามแยกเป็นอีกคำถาม)"
     return text, rows, "SELECT code, name_th, description_th, description_en, pdf_page FROM course_description WHERE code IN (" + ", ".join(f"'{c}'" for c in codes) + ")"
 
 
