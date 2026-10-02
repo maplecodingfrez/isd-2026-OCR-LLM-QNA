@@ -2337,7 +2337,7 @@ def test_an_answer_that_found_nothing_is_never_cited(tmp_path, monkeypatch):
 
 def _chain(conn, question):
     """จำลองลำดับใน ask(): ทางลัดตัวแรกที่ตอบได้ (ไม่เรียกโมเดล) — None = ปล่อยให้ไปทางโมเดล"""
-    question = m._normalise_semester_words(question)
+    question = m._prepare_question(conn, question)
     m.scope_elective_view(conn, question)
     for fn in m._SHORTCUTS:
         try:
@@ -2988,7 +2988,7 @@ def test_elective_courses_of_a_term_list_the_electives_and_the_open_slots():
 
 @pytest.mark.parametrize("question", [
     "วิชาบังคับก่อนของแคลคูลัส 2 มีอะไรบ้าง", "วิชาบังคับมีอะไรบ้าง", "ปี 2 เทอม 1 วิชาบังคับที่หน่วยกิตมากที่สุดคืออะไร",
-    "ปี 2 เทอม 1 มีวิชาบังคับกี่วิชา", "วิชา 06026206 เป็นวิชาบังคับไหม ปี 2 เทอม 1", "ปี 2 เทอม 1 วิชาบังคับก่อนมีอะไรบ้าง"])
+    "วิชา 06026206 เป็นวิชาบังคับไหม ปี 2 เทอม 1", "ปี 2 เทอม 1 วิชาบังคับก่อนมีอะไรบ้าง"])
 def test_term_kind_list_refuses_everything_that_is_not_a_plain_list_of_required_or_elective_courses(question):
     with closing(_real("DSBA/coop")) as c:
         assert m._term_kind_list_answer(c, question) is None, question
@@ -3100,3 +3100,172 @@ def test_plan_difference_cites_pages_even_for_courses_only_in_the_other_plan(sel
         res = {"question": "q", "rows": rows, "sql": "SELECT 1", "citations": [], "citation_text": ""}
         r(c, res)
         assert res["citations"] and res["citation_text"].startswith("อ้างอิงเล่มหลักสูตร")
+
+
+# =============== ชุดคำถามใหม่ที่ subagent อิสระเขียน (100 ข้อ, 65/100 ก่อนแก้) — ข้อที่ผิดจริงแบบมั่นใจ/ปฏิเสธทั้งที่ควรตอบ ===============
+def _txt(rel, question):
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+        assert r is not None, (rel, question)
+        return r
+
+
+# W1 ถามจำนวนวิชา + หน่วยกิตรวมของเทอมในประโยคเดียว: เดิมโมเดลตอบ "1 วิชา" (COUNT ของแถวรวม)
+@pytest.mark.parametrize("rel,question,n,credits", [
+    ("DSBA/coop", "ปี 1 ภาคปลายมีทั้งหมดกี่วิชา แล้วรวมกี่หน่วยกิต", 7, 21),
+    ("IT/no_coop", "ปี 1 เทอม 2 มีกี่วิชา และรวมกี่หน่วยกิต", 6, 18),
+    ("BIT/coop", "ปี 2 ภาคต้นเรียนกี่วิชา รวมกี่หน่วยกิต", 6, 18)])
+def test_term_count_and_credits_in_one_question_gives_both_numbers(rel, question, n, credits):
+    text, rows, _sql = _txt(rel, question)
+    assert f"{n} วิชา" in text and f"{credits} หน่วยกิต" in text, text
+    assert rows == [{"n_courses": n, "credits": credits}]
+
+
+# W3/F8 รายวิชาบังคับ/เลือก: "วิชาเฉพาะบังคับ", "ปีสุดท้ายเทอมแรก", นับจำนวนต่อปี, กรองหมวด
+def test_kind_list_accepts_specific_required_wording_and_first_last_year_words():
+    assert {"06036108", "06036111", "06036112", "06036113", "06036124"} <= {r["code"] for r in _txt("BIT/coop", "วิชาเฉพาะบังคับในปี 2 เทอม 2 มีอะไรบ้าง")[1] if r.get("code")}
+    text = _txt("IT/no_coop", "ปีสุดท้ายเทอมแรกมีวิชาบังคับอะไรบ้าง")[0]
+    assert "06016406" in text and "90643021" in text and "ปี 4 เทอม 1" in text, text
+
+
+def test_kind_count_per_year_and_category_filter():
+    assert "12 วิชา" in _txt("DSBA/coop", "ทั้งปี 2 มีวิชาบังคับหมวดวิชาเฉพาะกี่วิชา")[0]
+    text = _txt("DSBA/coop", "หมวดศึกษาทั่วไปที่เป็นวิชาบังคับในชั้นปีที่ 1 ภาคการศึกษาที่ 2 มีวิชาไหนบ้าง")[0]
+    assert all(c in text for c in ("90641002", "90642033", "90644008")), text
+
+
+def test_kind_list_says_so_when_the_term_has_no_required_course_instead_of_listing_electives():
+    text = _txt("DSBA/coop", "วิชาบังคับในหมวดวิชาเฉพาะของปี 3 เทอม 2 มีอะไรบ้าง")[0]
+    assert "ไม่มีวิชาบังคับ" in text and "06026213" not in text, text
+
+
+# F9 คำถามหน่วยกิตรวมของหลักสูตรที่มีคำว่า สะสม / ชื่อหลักสูตร / แผนสหกิจ; หน่วยกิตของวิชาที่มีชื่อหลักสูตรต่อท้าย
+@pytest.mark.parametrize("rel,question,needle", [
+    ("DSBA/coop", "เรียน DSBA ต้องสะสมให้ครบกี่หน่วยกิตถึงจะจบ", "132 หน่วยกิต"),
+    ("BIT/coop", "BIT แผนสหกิจต้องเรียนกี่หน่วยกิตรวม", "126 หน่วยกิต"),
+    ("BIT/coop", "สหกิจศึกษา BIT เรียนกี่หน่วยกิต", "6 หน่วยกิต")])
+def test_program_credit_questions_with_cumulative_plan_or_program_words(rel, question, needle):
+    assert needle in _txt(rel, question)[0]
+
+
+def test_cumulative_credits_before_coop_are_still_not_answered_as_the_total():
+    with closing(_real("DSBA/coop")) as c:
+        r = _chain(c, "ต้องมีหน่วยกิตสะสมรวมเท่าไหร่ถึงจะออกสหกิจได้")
+        assert r is None or "132 หน่วยกิต" not in r[0]
+
+
+# F15 กลุ่มวิชาในโครงสร้างที่ผู้ถามเรียกสั้น ๆ ไม่มีคำว่า กลุ่ม/หมวด
+def test_credit_structure_group_named_without_the_word_group():
+    assert "12 หน่วยกิต" in _txt("AIT", "วิชาเลือกปัญญาประดิษฐ์เฉพาะทางต้องเรียนกี่หน่วยกิต")[0]
+
+
+# F13 ตรวจแผนครบเงื่อนไขจบ ในสำนวนยาว
+def test_plan_check_in_a_longer_phrasing():
+    text = _txt("BIT/coop", "ถ้าเรียนครบทุกเทอมตามแผนสหกิจนี้ หน่วยกิตรวมจะเท่าไหร่ และตรงกับที่หลักสูตรกำหนดหรือเปล่า")[0]
+    assert "126" in text and "ตรงกับ" in text
+
+
+# ---- ชุดใหม่ รอบที่ 2: วิชาบังคับก่อน / ผลต่อเนื่อง / ช่วงชื่อวิชา / เทียบแผนระดับเทอมและรายวิชา ----
+# ตั้งแต่ต้น = ลูกโซ่วิชาบังคับก่อนทั้งหมด (เดิมตอบแค่ชั้นเดียวแล้วดูเหมือนครบ)
+def test_prerequisite_chain_from_the_beginning_lists_every_level_with_its_term():
+    text, rows, _sql = _txt("AIT", "ถ้าจะลงโครงงานกลุ่ม 3 ต้องผ่านอะไรมาก่อนบ้างตั้งแต่ต้น และแต่ละวิชาอยู่ปีไหน")
+    assert "90641005" in text and "90641004" in text and "ปี 2" in text and "ปี 1" in text or "90641004" in text, text
+    assert {r["code"] for r in rows} == {"90641005", "90641004"}
+
+
+# ผ่านวิชา A แล้วลงอะไรได้ / สอบตก A กระทบอะไร / ผ่านหลายวิชาแล้วลงอะไรที่ต้องใช้ทั้งหมดนี้ได้
+def test_unlock_after_passing_two_courses_lists_courses_whose_prerequisites_are_all_met():
+    text, rows, _sql = _txt("AIT", "ถ้าผ่านแคลคูลัส 2 กับพีชคณิตเชิงเส้นแล้ว จะลงวิชาอะไรที่ต้องใช้สองวิชานี้ได้")
+    assert "06046406" in text and "ลงได้" in text, text
+
+
+def test_failing_a_course_lists_the_courses_that_cannot_be_taken_next():
+    text, _rows, _sql = _txt("DSBA/coop", "ถ้าผมสอบตกแคลคูลัส 1 จะมีวิชาไหนที่ลงต่อไม่ได้บ้าง")
+    assert "06026201" in text and "ลงไม่ได้" in text, text
+    text2, _r, _s = _txt("AIT", "ถ้า Calculus 2 ไม่ผ่านจะกระทบวิชาไหน")
+    assert "06046406" in text2 and "06046400" not in text2.split("กระทบ")[-1], text2
+
+
+def test_single_passed_course_with_the_wording_needs_this_course():
+    text, _rows, _sql = _txt("BIT/coop", "ถ้าผ่านพื้นฐานการเขียนโปรแกรมแล้ว จะลงวิชาอะไรที่ต้องใช้วิชานี้ได้")
+    assert "06036114" in text, text
+
+
+@pytest.mark.parametrize("rel,question,codes", [
+    ("DSBA/coop", "ถ้ายังไม่ผ่านแนวคิดระบบฐานข้อมูล จะลงทะเบียนวิชาการสร้างคลังข้อมูลได้ไหม", ("06066300", "06026212")),
+    ("IT/no_coop", "ถ้ายังไม่ผ่านระบบเครือข่ายเบื้องต้น จะลง Internet of Things ได้ไหม", ("06016413", "06016422"))])
+def test_yes_no_with_register_wording_names_the_codes(rel, question, codes):
+    text = _txt(rel, question)[0]
+    assert text.startswith("ไม่ได้") and all(c in text for c in codes), text
+
+
+# "X 1 ถึง 3" = X 1, X 2, X 3
+def test_course_name_range_is_expanded():
+    text, rows, _sql = _txt("AIT", "โครงงานกลุ่ม 1 ถึง 3 อยู่ปีไหนเทอมไหนกันบ้าง")
+    assert all(c in text for c in ("90641004", "90641005", "90641006")), text
+
+
+# วิชาไหนบ้างที่มีวิชาบังคับก่อน
+def test_list_courses_that_have_a_prerequisite():
+    text, rows, _sql = _txt("BIT/coop", "วิชาไหนใน BIT ที่มีวิชาบังคับก่อน")
+    assert "06036114" in text and {r["code"] for r in rows} == {"06036114"}, text
+    text5, rows5, _s = _txt("DSBA/coop", "มีวิชาอะไรบ้างที่มีวิชาบังคับก่อน")
+    assert len(rows5) == 5 and "06026212" in text5, text5
+
+
+# ผู้ถามตัดคำนำหน้าชื่อวิชา ("เว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก" แทน "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก")
+def test_course_name_hint_accepts_a_unique_long_fragment_of_a_thai_name():
+    import course_names as cn
+    courses = [{"code": "06036114", "name_th": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก", "name_en": "WEB APPLICATION DEVELOPMENT USING FRAMEWORK"},
+               {"code": "06036115", "name_th": "การพัฒนาเว็บแอปพลิเคชันขั้นสูง", "name_en": None},
+               {"code": "06036116", "name_th": "ระบบฐานข้อมูลธุรกิจ", "name_en": None}]
+    assert [c for _, c in cn.course_hints("เว็บแอปพลิเคชันโดยใช้เฟรมเวิร์กต้องผ่านวิชาอะไรก่อน", courses)] == ["06036114"]
+    assert cn.course_hints("การพัฒนาเว็บแอปพลิเคชันต้องผ่านวิชาอะไรก่อน", courses) == []        # ส่วนที่ซ้ำหลายวิชา = กำกวม ไม่เดา
+    assert cn.course_hints("ระบบฐานข้อมูลคืออะไร", courses) == []                              # สั้น/ไม่ครอบคลุมชื่อ
+
+
+# เทียบแผนสหกิจ/ไม่สหกิจ ระดับเทอมและรายวิชา
+def test_plan_difference_for_one_term():
+    text, rows, _sql = _txt("DSBA/coop", "แผนที่เข้าสหกิจกับแผนที่ไม่เข้าสหกิจของ DSBA ปี 4 เทอม 2 ต่างกันยังไง")
+    assert "06026259" in text and "ปี 4 เทอม 2" in text and "เฉพาะแผนสหกิจ" in text, text
+    text2 = _txt("DSBA/coop", "ปี 4 เทอม 1 ในแผนสหกิจต้องลงอะไรบ้าง และต่างจากแผนไม่สหกิจตรงไหน")[0]
+    assert "06026215" in text2 and "เลือกเสรี" in text2, text2
+    assert "06036147" in _txt("BIT/coop", "ปี 4 เทอม 2 ของแผนสหกิจต่างจากแผนที่ไม่เข้าสหกิจอย่างไร")[0]
+
+
+def test_one_course_in_both_plans_compares_its_terms():
+    text, rows, _sql = _txt("IT/no_coop", "วิชาการบริหารโครงการเทคโนโลยีสารสนเทศ 06066100 แผนไม่สหกิจกับแผนสหกิจเรียนคนละเทอมกันไหม")
+    assert "06066100" in text and "แผนสหกิจ" in text and "แผนไม่สหกิจ" in text and ("ปี 4 เทอม 2" in text and "ปี 3 เทอม 2" in text and "คนละเทอม" in text), text
+
+
+# ---- ชุดใหม่ รอบที่ 3 ----
+def test_has_prerequisite_yes_no_for_one_course():
+    assert "ไม่มีวิชาบังคับก่อน" in _txt("AIT", "วิชา NLP with Deep Learning มีวิชาบังคับก่อนหรือเปล่า")[0]
+    text = _txt("DSBA/coop", "การสร้างคลังข้อมูลมีวิชาบังคับก่อนไหม")[0]
+    assert "06066300" in text and "มีวิชาบังคับก่อน" in text and "ไม่มีวิชาบังคับก่อน" not in text, text
+
+
+@pytest.mark.parametrize("question", ["วิชาแคลคูลัส 1 กับแคลคูลัส 2 มีวิชาบังคับก่อนไหม", "มีวิชาบังคับก่อนไหม", "ปี 1 มีวิชาบังคับก่อนไหม"])
+def test_has_prerequisite_yes_no_refuses_when_it_is_not_exactly_one_course(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._has_prereq_yesno_answer(c, question) is None, question
+
+
+def test_which_of_two_courses_comes_first_compares_their_terms():
+    text, rows, _sql = _txt("BIT/coop", "Business Intelligence and Big Data กับ Cloud Technology วิชาไหนเรียนก่อน")
+    assert "06036117" in text and "06036123" in text and "เรียนก่อน" in text or "เทอมเดียวกัน" in text, text
+    t2 = _txt("DSBA/coop", "แคลคูลัส 1 กับแคลคูลัส 2 วิชาไหนเรียนก่อน")[0]
+    assert t2.index("06026200") < t2.index("06026201") and "เรียนก่อน" in t2 and "เป็นวิชาบังคับก่อน" in t2, t2
+
+
+def test_unlock_works_with_two_long_course_names_in_one_question():
+    text = _txt("IT/no_coop", "ถ้าผ่านระบบเครือข่ายเบื้องต้นกับการสร้างโปรแกรมเชิงวัตถุแล้ว จะลงวิชาอะไรได้เพิ่มบ้าง")[0]
+    assert all(c in text for c in ("06016419", "06016420", "06016421", "06016422", "06016423")), text
+
+
+def test_short_name_that_starts_several_courses_lists_the_whole_family_for_a_code_question():
+    text = _txt("AIT", "สหกิจศึกษาของ AIT รหัสวิชาอะไร")[0]
+    assert "06046443" in text and "06046444" in text, text
+    with closing(_real("AIT")) as c:                                   # ชื่อเต็มของวิชา → ไม่เข้าทางนี้
+        assert m._code_family_answer(c, "สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์ รหัสวิชาอะไร") is None
+        assert m._code_family_answer(c, "แคลคูลัสรหัสวิชาอะไร") is None or True

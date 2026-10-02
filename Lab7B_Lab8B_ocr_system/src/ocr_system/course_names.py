@@ -63,6 +63,29 @@ def _truncated_english(en_question: str, courses: list[dict], typed: set[str],
     return out
 
 
+FRAG_MIN = 10                                 # ท่อนชื่อวิชาไทยที่ผู้ถามพิมพ์ (ตัดคำนำหน้า/ท้าย) ต้องยาวอย่างน้อยเท่านี้ (อักขระ ไม่นับช่องว่าง)
+FRAG_COVER = 0.75                             # และครอบคลุมชื่อเต็มอย่างน้อยสัดส่วนนี้
+
+
+def _thai_fragments(th_question: str, courses: list[dict], typed: set[str], already: set[str]) -> list[tuple[int, str, str]]:
+    """ผู้ถามตัดคำนำหน้าชื่อวิชา ("เว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก" แทน "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"): หา "ท่อนร่วมยาวสุด" ระหว่างคำถามกับชื่อไทยของแต่ละวิชา
+    รับเมื่อท่อนนั้นยาว >= FRAG_MIN, ครอบคลุมชื่อ >= FRAG_COVER, และ **ปรากฏในชื่อวิชาเดียวเท่านั้น** (ท่อนที่ซ้ำหลายวิชา = กำกวม = ไม่เดา); วิชาที่จับชื่อเต็มได้แล้วข้าม"""
+    import difflib
+    names = [(str(c["code"]), _norm_th(c.get("name_th"))) for c in courses
+             if re.fullmatch(r"\d{8}", str(c.get("code") or "")) and str(c["code"]) not in typed and str(c["code"]) not in already and c.get("name_th")]
+    all_names = [_norm_th(c.get("name_th")) for c in courses if c.get("name_th")]
+    out = []
+    for code, nm in names:
+        if len(nm) < FRAG_MIN:
+            continue
+        mt = difflib.SequenceMatcher(None, th_question, nm, autojunk=False).find_longest_match(0, len(th_question), 0, len(nm))
+        frag = th_question[mt.a: mt.a + mt.size]
+        if mt.size < FRAG_MIN or mt.size < FRAG_COVER * len(nm) or sum(1 for other in all_names if frag in other) != 1:
+            continue
+        out.append((mt.a, code, frag))
+    return out if len({c for _, c, _ in out}) == 1 else []
+
+
 def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     """[(ชื่อวิชาตามฐานข้อมูล, รหัส)] ของวิชาที่ชื่ออยู่ในคำถาม — ชื่อยาวชนะชื่อสั้นที่อยู่ข้างใน,
     ชื่อซ้ำกันหลายวิชา = ให้ทุกรหัส (ไม่เลือกเอง), วิชาที่ผู้ใช้พิมพ์รหัสมาแล้วไม่ต้องบอก"""
@@ -89,6 +112,7 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
         claimed[(lang, start, end)] = norm
         picked.append((start, code, raw))
     picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
+    picked += _thai_fragments(spaces["th"], courses, typed, {code for _, code, _ in picked})
     out, seen = [], set()
     for _, code, raw in sorted(picked, key=lambda p: (p[0], p[1])):
         if code not in seen:
@@ -124,7 +148,10 @@ _AFTER = [r"ต่อจาก@", r"ตัวต่อ", r"หลัง(?:จา
           # "X ต้องเรียน/ผ่านก่อนวิชาอะไร" = วิชาตัวต่อของ X (ผูกกับ อะไร/ไหน/ใด — "ต้องเรียนก่อนไหม" ไม่เข้า)
           r"@ต้อง(?:เรียน|ผ่าน)ก่อน(?:วิชา)?(?:อะไร|ไหน|ใด)",
           # "X เป็นเงื่อนไข(ก่อนเรียน)ของวิชาไหน" = วิชาตัวต่อของ X (ต้องลงท้ายด้วย "วิชา(อะไร|ไหน|ใด)" กันชนคำถามอื่น)
-          r"@เป็น(?:วิชา)?(?:เงื่อนไข|ข้อกำหนด)(?:ก่อน(?:เรียน|ลง(?:ทะเบียน)?)?)?(?:ของ)?(?:วิชา)?(?:อะไร|ไหน|ใด)"]
+          r"@เป็น(?:วิชา)?(?:เงื่อนไข|ข้อกำหนด)(?:ก่อน(?:เรียน|ลง(?:ทะเบียน)?)?)?(?:ของ)?(?:วิชา)?(?:อะไร|ไหน|ใด)",
+          # ผ่าน/ตก X แล้วกระทบ/ลงต่อไม่ได้/ลงวิชาอะไรได้ (ผูกกับคำถามหาวิชา ไม่ชนคำถามวิชาบังคับก่อนของ X)
+          r"(?:ไม่ผ่าน|สอบตก|ตก)@.*(?:กระทบ|ลง(?:ต่อ)?ไม่ได้|เรียนต่อไม่ได้)", r"@(?:ไม่ผ่าน|สอบตก).*กระทบ(?:วิชา)?(?:อะไร|ไหน|ใด)",
+          r"@แล้ว.*(?:ลง|เรียน)(?:ทะเบียน)?(?:วิชา)?(?:อะไร|ไหน|ใด)(?:บ้าง)?(?:ได้|เพิ่ม|ที่ต้องใช้)"]
 _BEFORE = [r"ก่อน(?:จะ)?(?:ลง)?(?:ทะเบียน)?(?:เรียน)?(?:วิชา)?@", r"บังคับก่อน(?:ของ)?(?:วิชา)?@",
            r"@(?:มี|ต้อง(?:เรียน|ผ่าน))(?:วิชา)?(?:อะไร|ไหน|ใด|บังคับก่อน)",
            r"(?:ถึง|จึง)จะ(?:ลง)?(?:ทะเบียน)?(?:เรียน)?(?:วิชา)?@"]
