@@ -1,11 +1,11 @@
 # Lab 10 — FastAPI + Qwen text-to-SQL + SQLite + Frontend
 
-Lab นี้มีสอง application แยก `main.py` และ `index.html` ออกจากกัน
+Lab นี้แยก `main.py` และ `index.html` ออกจากกัน
 
 ```text
-Curriculum App                 Transcript App
-คำถาม → SQL → SQLite          Upload PDF/Image
-       → rows → คำตอบ          → preprocess → OCR → postprocess → JSON
+Curriculum App
+คำถาม → SQL → SQLite
+       → rows → คำตอบ
 ```
 
 > ระบบนี้ยังไม่ใช่ vector RAG: ไม่มี embedding หรือ vector database โมเดลทำหน้าที่แปลงคำถามเป็น SQL และสรุปผลจาก SQLite
@@ -21,17 +21,10 @@ lab10_fastapi/
 │   ├── requirements.txt
 │   ├── README.md
 │   └── static/index.html
-├── transcript_app/
-│   ├── main.py         Transcript upload API
-│   ├── config.py / .env.example
-│   ├── pipeline_service.py / schemas.py
-│   ├── requirements.txt
-│   ├── README.md
-│   └── static/index.html
 └── README.md
 ```
 
-แต่ละกลุ่มสามารถก็อปเฉพาะโฟลเดอร์ application ของตนเองได้ แต่ต้องมีโฟลเดอร์ `src/ocr_system` ที่เก็บ Lab 8 อยู่ในโปรเจกต์เดียวกัน
+สามารถก็อปเฉพาะโฟลเดอร์ application ได้ แต่ต้องมีโฟลเดอร์ `src/ocr_system` ที่เก็บ Lab 8 อยู่ในโปรเจกต์เดียวกัน
 
 ## 2. สิ่งที่ต้องมีก่อนเริ่ม
 
@@ -39,7 +32,6 @@ lab10_fastapi/
 - VS Code
 - Ollama
 - โมเดล `qwen3:4b`
-- ฝั่ง Transcript ต้องมีโมเดล `scb10x/typhoon-ocr1.5-3b` ด้วย
 - ฐานข้อมูล `curriculum.db` จาก Lab 8B — มีใน repo แล้วทั้ง 7 แผนที่
   `Lab7B_Lab8B_ocr_system/runs/<หลักสูตร>/<แผน>/lab8b_output/curriculum.db`
   ชี้ด้วย `CURRICULUM_DB_PATH` ใน `curriculum_app/.env` (ดู `.env.example`)
@@ -94,7 +86,6 @@ source .venv/bin/activate
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r lab10_fastapi/curriculum_app/requirements.txt
-python -m pip install -r lab10_fastapi/transcript_app/requirements.txt
 ```
 
 ตรวจว่า FastAPI และ Uvicorn พร้อม:
@@ -111,14 +102,12 @@ python -c "import fastapi, uvicorn; print('Lab 10 packages OK')"
 
 ```powershell
 Copy-Item lab10_fastapi\curriculum_app\.env.example lab10_fastapi\curriculum_app\.env
-Copy-Item lab10_fastapi\transcript_app\.env.example lab10_fastapi\transcript_app\.env
 ```
 
 ### macOS/Linux
 
 ```bash
 cp lab10_fastapi/curriculum_app/.env.example lab10_fastapi/curriculum_app/.env
-cp lab10_fastapi/transcript_app/.env.example lab10_fastapi/transcript_app/.env
 ```
 
 Curriculum App ใช้ค่า:
@@ -128,8 +117,6 @@ CURRICULUM_DB_PATH=Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum
 CURRICULUM_OLLAMA_URL=http://127.0.0.1:11434
 CURRICULUM_OLLAMA_MODEL=qwen3:4b
 ```
-
-Transcript App ใช้ `TRANSCRIPT_OLLAMA_URL`, `TRANSCRIPT_OCR_MODEL` และ `TRANSCRIPT_TEXT_MODEL` ใน `.env` ของตนเอง
 
 Path ของฐานข้อมูลแบบ relative จะเริ่มจากรากโปรเจกต์
 
@@ -170,18 +157,6 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --host 127.0.0.
 - Swagger API: <http://127.0.0.1:8000/docs>
 - ตรวจสถานะ: <http://127.0.0.1:8000/api/health>
 
-### Transcript Application
-
-เปิด Terminal ของ VS Code อีกหน้าหนึ่ง activate `.venv` แล้วรัน:
-
-```bash
-python -m uvicorn lab10_fastapi.transcript_app.main:app --reload --host 127.0.0.1 --port 8001
-```
-
-- หน้า upload: <http://127.0.0.1:8001/>
-- Swagger API: <http://127.0.0.1:8001/docs>
-- ตรวจสถานะ: <http://127.0.0.1:8001/api/health>
-
 หยุด server ด้วย `Ctrl+C`
 
 ## 9. API ที่มีให้
@@ -196,13 +171,6 @@ python -m uvicorn lab10_fastapi.transcript_app.main:app --reload --host 127.0.0.
 | POST | `/api/courses` | เพิ่มรายวิชาลง SQLite |
 | POST | `/api/ask` | ให้ Qwen สร้าง SQL และตอบคำถาม |
 | GET | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
-
-### Transcript API
-
-| Method | Path | หน้าที่ |
-|---|---|---|
-| GET | `/api/health` | ตรวจ config ของ Transcript App |
-| POST | `/api/transcript/extract` | อัปโหลดและสกัด Transcript |
 
 ทดลอง GET:
 
@@ -311,7 +279,7 @@ MODEL INTEGRATION POINT
 QwenTextToSQL._chat()
 ```
 
-จากนั้นแก้ `_chat()` ให้เรียกฟังก์ชัน inference ของโมเดลและคืน Python `dict` รูปแบบเดิม ส่วน FastAPI, SQLite และ frontend ไม่ต้องแก้ ส่วน Transcript App ใช้โมเดลผ่าน `lab8a_denoise.py` และ `lab7a_transcript.py` โดยตรง
+จากนั้นแก้ `_chat()` ให้เรียกฟังก์ชัน inference ของโมเดลและคืน Python `dict` รูปแบบเดิม ส่วน FastAPI, SQLite และ frontend ไม่ต้องแก้
 
 ## 11. ลำดับการทำงานของ `/api/ask`
 
@@ -331,7 +299,6 @@ QwenTextToSQL._chat()
 
 ```bash
 python -m pip install -r lab10_fastapi/curriculum_app/requirements.txt
-python -m pip install -r lab10_fastapi/transcript_app/requirements.txt
 ```
 
 ### `ไม่พบฐานข้อมูล`
@@ -351,7 +318,7 @@ ollama list
 เปิด `/api/health` แล้วดูว่า `database_ready` และ `ollama_ready` เป็น `true` หรือไม่
 
 
-## 13. API Contract (Lab 12)
+## 13. API Contract (Lab 11)
 
 หน้าเว็บ (`curriculum_app/static/index.html` + `style.css` + `app.js`) คุยกับ backend ผ่าน endpoint ด้านล่าง
 ทุกแถวในตาราง error ถูกตรวจด้วยเทส contract (เก็บในเครื่องผู้พัฒนา) และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`
