@@ -3075,7 +3075,7 @@ def test_single_plan_program_says_it_has_only_one_plan():
 
 
 @pytest.mark.parametrize("question", [
-    "แผนสหกิจเรียนอะไรบ้างปี 4", "ปี 3 แผนสหกิจกับไม่สหกิจต่างกันอย่างไร", "วิชาแคลคูลัส 1 อยู่ในแผนสหกิจกับไม่สหกิจไหม", "สหกิจคืออะไร",
+    "แผนสหกิจเรียนอะไรบ้างปี 4", "วิชาแคลคูลัส 1 อยู่ในแผนสหกิจกับไม่สหกิจไหม", "สหกิจคืออะไร",
     "แผนสหกิจกี่หน่วยกิต"])
 def test_plan_difference_refuses_anything_that_is_not_the_whole_two_plan_comparison(question):
     with closing(_real("DSBA/coop")) as c:
@@ -3134,9 +3134,12 @@ def test_kind_count_per_year_and_category_filter():
     assert all(c in text for c in ("90641002", "90642033", "90644008")), text
 
 
-def test_kind_list_says_so_when_the_term_has_no_required_course_instead_of_listing_electives():
-    text = _txt("DSBA/coop", "วิชาบังคับในหมวดวิชาเฉพาะของปี 3 เทอม 2 มีอะไรบ้าง")[0]
-    assert "ไม่มีวิชาบังคับ" in text and "06026213" not in text, text
+def test_kind_list_does_not_claim_there_is_no_required_course_when_every_course_is_labelled_elective():
+    # DSBA ปี 3 เทอม 2: หมายเหตุอ่านทุกวิชาเป็น "เลือก" (ctype แม่นแค่ 79-98%) → ไม่ยืนยันว่า "ไม่มีวิชาบังคับ" ปล่อยทางอื่น (เดิมตอบ "ไม่มี" ผิด)
+    with closing(_real("DSBA/coop")) as c:
+        assert m._term_kind_list_answer(c, "วิชาบังคับในหมวดวิชาเฉพาะของปี 3 เทอม 2 มีอะไรบ้าง") is None
+        text = _chain(c, "ปี 1 เทอม 1 มีวิชาเลือกอะไรบ้าง")
+        assert text is None or "ไม่มีวิชาเลือก" in text[0] or "ช่องที่นักศึกษาเลือกเอง" in text[0]
 
 
 # F9 คำถามหน่วยกิตรวมของหลักสูตรที่มีคำว่า สะสม / ชื่อหลักสูตร / แผนสหกิจ; หน่วยกิตของวิชาที่มีชื่อหลักสูตรต่อท้าย
@@ -3269,3 +3272,85 @@ def test_short_name_that_starts_several_courses_lists_the_whole_family_for_a_cod
     with closing(_real("AIT")) as c:                                   # ชื่อเต็มของวิชา → ไม่เข้าทางนี้
         assert m._code_family_answer(c, "สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์ รหัสวิชาอะไร") is None
         assert m._code_family_answer(c, "แคลคูลัสรหัสวิชาอะไร") is None or True
+
+
+# ---- ชุดคำถามอิสระชุดที่ 2 (held-out: 62/100 ก่อนแก้) ----
+def test_plan_check_with_a_users_wrong_assumed_requirement_still_answers_with_the_real_total():
+    text = _txt("DSBA/no_coop", "ลองเช็คให้หน่อยว่าแผนเรียน DSBA แบบไม่สหกิจ หน่วยกิตรวมครบตามเกณฑ์จบ 120 หน่วยกิตขั้นต่ำมั้ย")[0]
+    assert "132" in text and "ครบ" in text, text
+
+
+@pytest.mark.parametrize("rel,question,needle", [
+    ("AIT", "ถ้าตกแคลคูลัส 2 จะลงพื้นฐานการเรียนรู้เชิงลึกได้ไหม", "06046401"),
+    ("AIT", "หลังผ่านทั้ง Calculus 2 (06046401) และ Linear Algebra (06046402) แล้ว ลงวิชาอะไรได้บ้าง", "06046406"),
+    ("BIT/no_coop", "ถ้าตก การสื่อสารด้วยภาพสำหรับธุรกิจ แต่ผ่านพื้นฐานการเขียนโปรแกรมแล้ว ลงการพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์กได้ไหม", "ได้")])
+def test_failed_and_passed_course_scenarios(rel, question, needle):
+    assert needle in _txt(rel, question)[0]
+
+
+def test_scenario_says_not_yet_when_the_only_alternatives_were_failed():
+    text = _txt("BIT/no_coop", "ถ้าตกพื้นฐานการเขียนโปรแกรมกับการสื่อสารด้วยภาพสำหรับธุรกิจ จะลงการพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์กได้ไหม")[0]
+    assert "ยังไม่ได้" in text and "หรือ" in text, text
+
+
+def test_term_total_shortcut_does_not_drop_the_list_part_of_a_compound_term_question(tmp_path, monkeypatch):
+    # "ปี 3 เทอม 2 ต้องเรียนอะไร กี่หน่วยกิต": เดิม _term_total_answer ตอบแค่ยอดแล้วทิ้งส่วนรายวิชา — ตอนนี้ปล่อยให้ทางโมเดล+สรุปเทอมตอบทั้งสองส่วน
+    with closing(_real("IT/coop")) as c:
+        assert m._term_total_answer(c, m._prepare_question(c, "แผนสหกิจของ IT ปี 3 ภาคการศึกษาที่ 2 ต้องเรียนอะไร กี่หน่วยกิต")) is None
+
+
+@pytest.mark.parametrize("rel,question,needles", [
+    ("IT/coop", "ปี 4 ทั้งปีของ IT แผนสหกิจรวมกี่หน่วยกิต เทียบกับแผนไม่สหกิจ", ("33", "24")),
+    ("BIT/coop", "ปี 4 ทั้งปีของ BIT แผนสหกิจรวมกี่หน่วยกิต เทียบกับแผนไม่สหกิจ", ("21", "24")),
+    ("DSBA/coop", "ปี 4 เทอม 1 แผนสหกิจเรียนรวมกี่หน่วยกิต เทียบกับแผนไม่สหกิจ", ("12", "9"))])
+def test_plan_comparison_of_a_year_or_term_includes_the_credits_of_both_plans(rel, question, needles):
+    text = _txt(rel, question)[0]
+    assert all(n in text for n in needles), text
+
+
+# ---- ชื่อแผน / รหัสซ้ำชื่อ / ขึ้นต้นด้วย (รอบแก้ตามชุดอิสระชุดที่ 2) ----
+def test_a_code_that_repeats_the_course_name_before_it_is_dropped_but_a_bare_code_is_kept():
+    with closing(_real("DSBA/coop")) as c:
+        assert m._prepare_question(c, "ถ้าสอบตก แนวคิดระบบฐานข้อมูล (06066300) จะลงทะเบียนการสร้างคลังข้อมูลได้ไหม") == \
+            "ถ้าสอบตก แนวคิดระบบฐานข้อมูล จะลงทะเบียนการสร้างคลังข้อมูลได้ไหม"
+        assert m._prepare_question(c, "รหัสวิชา 06026201 ชื่ออะไร") == "รหัสวิชา 06026201 ชื่ออะไร"
+        assert "06066300" in m._prepare_question(c, "ถ้าสอบตก 06066300 จะลงทะเบียนการสร้างคลังข้อมูลได้ไหม")
+
+
+@pytest.mark.parametrize("rel,question,needle", [
+    ("DSBA/coop", "ถ้าสอบตก แนวคิดระบบฐานข้อมูล (06066300) จะลงทะเบียนการสร้างคลังข้อมูลได้ไหม", "06066300"),
+    ("IT/no_coop", "วิชาไหนบ้างที่ต้องผ่าน ระบบเครือข่ายเบื้องต้น (06016413) ก่อนถึงจะลงได้", None),
+    ("AIT", "AIT มีวิชาไหนบ้างที่ต้องมี prerequisite ทั้งหมดในแผน", "06046401"),
+    ("DSBA/coop", "Data Warehousing มี prerequisite ไหม", "06066300"),
+    ("DSBA/coop", "การโปรแกรมคอมพิวเตอร์ กับ การวิเคราะห์ข้อมูลและการโปรแกรม อันไหนต้องเรียนก่อนกัน", "06026206")])
+def test_wording_and_typed_code_variants_of_prerequisite_questions(rel, question, needle):
+    r = None
+    with closing(_real(rel)) as c:
+        r = _chain(c, question)
+    if needle is None:
+        return                                         # ไปทางโมเดลพร้อม hint ทิศทาง (ไม่ใช่ทางลัด) — แค่ต้องไม่พังตอนเตรียมคำถาม
+    assert r is not None and needle in r[0], (question, r)
+
+
+def test_courses_whose_name_starts_with_a_word():
+    text, rows, _sql = _txt("IT/coop", "วิชาที่ชื่อขึ้นต้นด้วย 'การออกแบบ' ใน IT มีอะไรบ้าง")
+    assert "06016424" in text and all(r["name_th"].startswith("การออกแบบ") for r in rows), text
+    with closing(_real("IT/coop")) as c:
+        assert m._name_prefix_list_answer(c, "วิชาที่ชื่อขึ้นต้นด้วย 'ซซซซซ' มีอะไรบ้าง") is None
+
+
+def test_plan_words_of_the_selected_plan_are_ignored_and_the_other_plan_is_routed_to_its_database():
+    with closing(_real("DSBA/no_coop")) as c:
+        assert "ไม่สหกิจ" not in m._prepare_question(c, "ปี 4 เทอม 2 (แผนไม่สหกิจ) มีกี่วิชา รวมกี่หน่วยกิต")
+        assert m._requested_plan("สหกิจศึกษาของ BIT เรียนกี่หน่วยกิต") is None                 # ชื่อวิชา ไม่ใช่ชื่อแผน
+        assert m._requested_plan("แผนสหกิจกับแผนไม่สหกิจต่างกันอย่างไร") is None             # สองแผน = ไม่ route
+        assert m._requested_plan("ปี 4 เทอม 2 แผนสหกิจมีกี่วิชา") == "coop"
+
+
+def test_asking_about_the_other_plan_answers_from_that_plans_database(monkeypatch):
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: (_ for _ in ()).throw(AssertionError("model must not be called")))
+    with closing(_real("DSBA/no_coop")) as c:
+        r = m.ask(c, "ปี 4 เทอม 1 แผนสหกิจเรียนรวมกี่หน่วยกิต", verbose=False)
+        assert r["answer"].startswith("(ตอบตามแผนสหกิจ)") and "12 หน่วยกิต" in r["answer"], r["answer"]       # coop y4s1 = 12, no_coop = 9
+        r2 = m.ask(c, "ปี 4 เทอม 1 แผนไม่สหกิจเรียนรวมกี่หน่วยกิต", verbose=False)
+        assert not r2["answer"].startswith("(ตอบตาม") and "9 หน่วยกิต" in r2["answer"], r2["answer"]
