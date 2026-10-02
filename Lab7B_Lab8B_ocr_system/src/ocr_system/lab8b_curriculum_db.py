@@ -2330,6 +2330,139 @@ _SECTION_Q = (
 _SECTION_NOT = re.compile(r"(?<!สาขา)วิชา|หน่วยกิต|รหัส|ปี\s*\d|ชั้นปี|เทอม|ภาคการศึกษา|ภาคเรียน|ชั่วโมง|สหกิจ|ฝึกงาน|พาร์ทไทม์|ฝึกประสบการณ์")
 
 
+def _clean_book_body(body: str) -> str:
+    """ตัดขยะ OCR ท้ายข้อความหัวข้อที่แสดงให้ผู้ใช้: ถ้ามีเส้นประยาว (----) ตัดตั้งแต่ตรงนั้นแล้วถอยไปจบที่ ")" ล่าสุด
+    (IT: "…(ภาคผนวก ก ) เนดทหคุพ ๒6 ------- ------ง6งธง…" → "…(ภาคผนวก ก )"); ไม่มีเส้นประ = ไม่แตะ"""
+    mt = re.search(r"-{4,}", body or "")
+    if not mt:
+        return body
+    head = body[:mt.start()].rstrip()
+    cut = head.rfind(")")
+    return (head[:cut + 1] if cut >= 0 else head).strip()
+
+
+# ---- ระดับ 3 ของอาจารย์ (สไลด์ ch1 หน้า 7): "ตรวจว่าแผนเรียนนี้ครบเงื่อนไขจบหรือไม่" — หน่วยกิตรวมตามแผน (นับช่องตามเล่ม) เทียบที่หลักสูตรกำหนด + เกณฑ์ตามข้อบังคับ ----
+_PLAN_CHECK_Q = re.compile(r"แผน(?:การ)?(?:เรียน|ศึกษา).{0,12}(?:ครบ|ตรง|พอ|เพียงพอ).{0,14}(?:เงื่อนไข|หน่วยกิต|จบ|เกณฑ์)|"
+                           r"(?:ตรวจ|เช็ก|เช็ค|ตรวจสอบ).{0,10}แผน(?:การ)?(?:เรียน|ศึกษา)|เรียนตามแผน(?:การ)?(?:เรียน|ศึกษา)?.{0,12}จบได้(?:ไหม|หรือไม่|มั้ย)")
+
+
+def _plan_check_text(plan_total: int, declared: int, criteria: str) -> str:
+    if plan_total == declared:
+        head = f"แผนการเรียนตามเล่มรวม {plan_total} หน่วยกิต ตรงกับที่หลักสูตรกำหนด {declared} หน่วยกิต → ครบด้านหน่วยกิต"
+    else:
+        diff = declared - plan_total
+        head = f"แผนการเรียนตามเล่มรวม {plan_total} หน่วยกิต ไม่ตรงกับที่หลักสูตรกำหนด {declared} หน่วยกิต ({'ขาด' if diff > 0 else 'เกิน'} {abs(diff)} หน่วยกิต)"
+    return f"{head}; เกณฑ์การสำเร็จการศึกษา: {criteria} (ระบบตรวจเฉพาะหน่วยกิตรวมตามแผน; เงื่อนไขอื่น เช่น เกรดเฉลี่ย ต้องตรวจตามข้อบังคับ)"
+
+
+def _plan_check_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ตรวจว่าแผนเรียนนี้ครบเงื่อนไขจบหรือไม่" (ทั้งแผน ไม่ระบุปี/เทอม/วิชา/หลักสูตรอื่น) → หน่วยกิตรวมตามแผนเทียบที่หลักสูตรกำหนด + ข้อความเกณฑ์จบจากเล่ม
+    หน่วยกิตรวมนับด้วย v_semester_credits_full (ช่องเลือกตามเล่ม); ไม่มีข้อมูลครบ/ระบุปี-เทอม-วิชา-รหัส-หลักสูตรอื่น = None"""
+    if not _PLAN_CHECK_Q.search(question) or _CODE8.search(question) or _PROGRAM_TOKEN.search(question):
+        return None
+    if re.search(r"ปี\s*\d|เทอม|ภาค(?:การศึกษา)?\s*\d|วิชา", question) or _named_courses(conn, question, strict=False):
+        return None
+    try:
+        plan_total = conn.execute("SELECT SUM(credits) FROM main.v_semester_credits_full").fetchone()[0]
+        declared = conn.execute("SELECT total_credits FROM program LIMIT 1").fetchone()
+        secs = {r["topic"]: dict(r) for r in conn.execute(
+            "SELECT topic, body, pdf_page, printed_page FROM book_section WHERE topic IN ('หน่วยกิตตลอดหลักสูตร', 'เกณฑ์สำเร็จการศึกษา')")}
+    except sqlite3.OperationalError:
+        return None
+    if plan_total is None or not declared or declared[0] is None or "เกณฑ์สำเร็จการศึกษา" not in secs:
+        return None
+    criteria = _clean_book_body(secs["เกณฑ์สำเร็จการศึกษา"]["body"])
+    rows = [{"topic": "เกณฑ์สำเร็จการศึกษา", "body": criteria, "pdf_page": secs["เกณฑ์สำเร็จการศึกษา"]["pdf_page"],
+             "printed_page": secs["เกณฑ์สำเร็จการศึกษา"]["printed_page"]}]
+    if "หน่วยกิตตลอดหลักสูตร" in secs:
+        s = secs["หน่วยกิตตลอดหลักสูตร"]
+        rows.insert(0, {"topic": "หน่วยกิตตลอดหลักสูตร", "plan_total": int(plan_total), "declared": declared[0],
+                        "pdf_page": s["pdf_page"], "printed_page": s["printed_page"]})
+    return (_plan_check_text(int(plan_total), int(declared[0]), criteria), rows,
+            "SELECT (SELECT SUM(credits) FROM main.v_semester_credits_full) AS plan_total, (SELECT total_credits FROM program) AS declared")
+
+
+# ---- ระดับ 3-4: เทียบ "แผนสหกิจ กับ ไม่สหกิจ" ของหลักสูตรเดียวกัน (แผนหนึ่งเล่ม = คนละฐานข้อมูล runs/<หลักสูตร>/{coop,no_coop}) ----
+_COOP_WORD = re.compile(r"(?<!ไม่)(?<!ไม่มี)(?<!ไม่ทำ)สหกิจ")
+_NOCOOP_WORD = re.compile(r"ไม่(?:มี|ทำ|เป็น|ใช่)?(?:แผน)?สหกิจ|แผนปกติ|แผนทั่วไป")
+_PLAN_DIFF_ASK = re.compile(r"ต่างกัน|ต่างจาก|แตกต่าง|เปรียบเทียบ|เหมือนกัน|ไม่มีใน|มีเฉพาะ|เพิ่มจาก|มีเพิ่ม|ที่มีใน")
+_PLAN_DIFF_NOT = re.compile(r"ปี\s*\d|ชั้นปี|เทอม|ภาค(?:การศึกษา)?\s*\d|หน่วยกิตเท่า|วิชา(?:แคลคูลัส|[ก-๙]{5,})\S*\s*อยู่")
+
+
+def _sibling_plan_db(conn: sqlite3.Connection) -> tuple[str, Path | None] | None:
+    """(ชื่อแผนของ DB นี้ "coop"/"no_coop", path ของ DB แผนคู่ — None ถ้าไม่มี) จากโครงโฟลเดอร์ runs/<หลักสูตร>/<แผน>/lab8b_output/curriculum.db;
+    หาโครงนี้ไม่เจอ (DB ทดสอบ/ในหน่วยความจำ) = None"""
+    try:
+        file = next((r[2] for r in conn.execute("PRAGMA database_list") if r[1] == "main"), "")
+    except sqlite3.Error:
+        return None
+    if not file:
+        return None
+    p = Path(file)
+    if len(p.parents) < 3 or p.parent.name != "lab8b_output" or p.parents[1].name not in ("coop", "no_coop"):
+        return None
+    mine = p.parents[1].name
+    sib = p.parents[2] / ("no_coop" if mine == "coop" else "coop") / "lab8b_output" / p.name
+    return mine, (sib if sib.exists() else None)
+
+
+def _other_plan_diff_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """เปรียบเทียบแผนสหกิจกับไม่สหกิจของหลักสูตรเดียวกัน (พูดถึงทั้งสองแผน + ถามความต่าง): วิชาที่มีเฉพาะแต่ละแผน (plan_item) + หน่วยกิตรวมของแต่ละแผน;
+    หลักสูตรที่มีแผนเดียว (AIT) = บอกว่ามีแผนเดียว; มีปี/เทอม/วิชา/รหัส/พูดถึงแผนเดียว = None"""
+    if not (_COOP_WORD.search(question) and _NOCOOP_WORD.search(question)) or not _PLAN_DIFF_ASK.search(question):
+        return None
+    if _CODE8.search(question) or _PLAN_DIFF_NOT.search(question) or _named_courses(conn, question, strict=False):
+        return None
+    where = _sibling_plan_db(conn)
+    if where is None:
+        try:                                                         # DB ที่ไม่มีโครงโฟลเดอร์แผนคู่: หลักสูตรเดียวแผนเดียวเท่านั้นที่ตอบได้ (program_id ไม่ลงท้าย -coop)
+            pid = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()[0] or ""
+        except (sqlite3.Error, TypeError):
+            return None
+        return ("หลักสูตรนี้มีแผนการเรียนแผนเดียว ไม่แยกแผนสหกิจ/ไม่สหกิจ", [], "SELECT program_id FROM program") if pid.upper() == "AIT" else None
+    mine, sib_path = where
+    if sib_path is None:
+        return None
+    other = open_db(sib_path, readonly=True)
+    try:
+        def load(c: sqlite3.Connection):
+            codes = {r[0] for r in c.execute("SELECT DISTINCT code FROM plan_item") if re.fullmatch(r"\d{8}", r[0] or "")}
+            names = {r[0]: r[1] for r in c.execute("SELECT code, name_th FROM course")}
+            total = c.execute("SELECT SUM(credits) FROM main.v_semester_credits_full").fetchone()[0]
+            return codes, names, total
+        a, a_names, a_total = load(conn)
+        b, b_names, b_total = load(other)
+    except sqlite3.OperationalError:
+        other.close()
+        return None
+    coop, no_coop = (a, b) if mine == "coop" else (b, a)
+    names = {**(a_names if mine == "no_coop" else b_names), **(a_names if mine == "coop" else b_names)}
+    totals = {"coop": a_total if mine == "coop" else b_total, "no_coop": b_total if mine == "coop" else a_total}
+    only_coop, only_no = sorted(coop - no_coop), sorted(no_coop - coop)
+
+    def fmt(codes: list[str]) -> str:
+        return "; ".join(f"{c} {names.get(c, '')}".strip() for c in codes) if codes else "ไม่มี"
+    text = (f"เฉพาะแผนสหกิจ {len(only_coop)} วิชา: {fmt(only_coop)} | เฉพาะแผนไม่สหกิจ {len(only_no)} วิชา: {fmt(only_no)} | "
+            f"หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ {totals['coop']}, แผนไม่สหกิจ {totals['no_coop']} "
+            "(เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)")
+    owner = {"สหกิจ": conn if mine == "coop" else other, "ไม่สหกิจ": conn if mine == "no_coop" else other}
+
+    def page_of(code: str, plan: str) -> dict:
+        """หน้าอ้างอิงของวิชาจากฐานข้อมูลของแผนที่วิชานี้อยู่ (ตารางแผน > คำอธิบาย > หน้าที่พบวิชา); ไม่พบ = ไม่ใส่ (ไม่เดา)"""
+        try:
+            got = owner[plan].execute("SELECT pdf_page, printed_page FROM course_page WHERE code = ? ORDER BY CASE kind WHEN 'plan' THEN 0 "
+                                      "WHEN 'description' THEN 1 WHEN 'primary' THEN 2 ELSE 3 END, pdf_page LIMIT 1", (code,)).fetchone()
+        except sqlite3.OperationalError:
+            got = None
+        return {"pdf_page": got[0], "printed_page": got[1]} if got else {}
+    try:
+        rows = [{"code": c, "name_th": names.get(c), "only_in": "สหกิจ", **page_of(c, "สหกิจ")} for c in only_coop] + \
+               [{"code": c, "name_th": names.get(c), "only_in": "ไม่สหกิจ", **page_of(c, "ไม่สหกิจ")} for c in only_no]
+    finally:
+        other.close()
+    return text, rows, "SELECT DISTINCT code FROM plan_item"
+
+
 def _book_section_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """ถามหัวข้อมาตรฐาน มคอ.2 (ชื่อหลักสูตร/ปริญญา/อาชีพ/ปรัชญา/วัตถุประสงค์/คุณสมบัติผู้เข้าศึกษา/เกณฑ์จบ/สถานที่) → ยกข้อความตามเล่มพร้อมหน้า;
     หัวข้อที่อ่านไม่ได้จากเล่ม = บอกตรง ๆ; ไม่มีตาราง/ไม่เข้าหัวข้อ/อ้างรหัสวิชา = None (ทางเดิม)"""
@@ -2354,8 +2487,9 @@ def _book_section_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
             parts.append(f"ไม่พบหัวข้อ{label}ในเล่มหลักสูตร")
             continue
         d = have[t]
-        parts.append(f"{label}: {d['body']}")
-        rows.append({"topic": t, "heading": d["heading"], "body": d["body"], "pdf_page": d["pdf_page"], "printed_page": d["printed_page"]})
+        body = _clean_book_body(d["body"])
+        parts.append(f"{label}: {body}")
+        rows.append({"topic": t, "heading": d["heading"], "body": body, "pdf_page": d["pdf_page"], "printed_page": d["printed_page"]})
     sql = "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN (" + ", ".join(f"'{t}'" for t in topics) + ")"
     return "\n".join(parts), rows, sql
 
@@ -3945,7 +4079,7 @@ def _prereq_register_answer(conn: sqlite3.Connection, question: str) -> tuple[st
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
     _other_program_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
@@ -4023,7 +4157,7 @@ def ask(conn: sqlite3.Connection, question: str,
             if verbose:
                 print(f"    รอบที่ {attempt + 1} รันไม่ผ่าน: {e}")
             if attempt == 1:
-                result["answer"] = "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง"
+                result["answer"] = _NOT_FOUND_TEXT                   # SQL สร้าง/รันไม่สำเร็จหลังลองซ้ำ = ตอบแบบเดียวกับ "ไม่พบ" (judge/ผู้ใช้เห็นข้อความเดียว; error ยังเก็บไว้ในฟิลด์ error สำหรับตรวจ)
                 return result
             prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")

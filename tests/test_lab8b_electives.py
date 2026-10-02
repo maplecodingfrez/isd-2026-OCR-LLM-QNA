@@ -3013,3 +3013,90 @@ def test_prerequisite_plus_can_i_register_for_a_course_without_prerequisite_says
     with closing(_real("DSBA/coop")) as c:
         text, _rows, _sql = _chain(c, "วิชาแคลคูลัส 1 ต้องผ่านวิชาใดก่อน ถ้ายังไม่ผ่านจะลงทะเบียนได้ไหม")
         assert "ไม่มีวิชาบังคับก่อน" in text and "ลงทะเบียนได้" in text, text
+
+
+# =============== ระดับ 3 ของอาจารย์ (สไลด์ ch1 หน้า 7): "ตรวจว่าแผนเรียนนี้ครบเงื่อนไขจบหรือไม่" ===============
+# เดิมตอบแค่ข้อความเกณฑ์จบ (และของ IT มี OCR ขยะปน "เนดทหคุพ ๒6 -------") — ตอนนี้ตรวจหน่วยกิตรวมตามแผน (นับช่องตามเล่ม) เทียบที่หลักสูตรกำหนด + เกณฑ์ตามข้อบังคับ
+@pytest.mark.parametrize("rel,total", [("DSBA/coop", 132), ("IT/coop", 129), ("AIT", 120), ("BIT/no_coop", 126)])
+@pytest.mark.parametrize("question", [
+    "ตรวจว่าแผนเรียนนี้ครบเงื่อนไขจบหรือไม่", "แผนการเรียนนี้ครบหน่วยกิตตามที่หลักสูตรกำหนดไหม", "เรียนตามแผนการศึกษาแล้วจบได้ไหม"])
+def test_plan_check_compares_plan_credits_with_the_required_total_and_quotes_the_criteria(rel, total, question):
+    with closing(_real(rel)) as c:
+        text, rows, _sql = _chain(c, question)
+        assert f"แผนการเรียนตามเล่มรวม {total} หน่วยกิต" in text and f"หลักสูตรกำหนด {total} หน่วยกิต" in text and "ครบ" in text, text
+        assert "เกณฑ์การสำเร็จการศึกษา" in text and "ภาคผนวก" in text
+        assert "-----" not in text and "เนดทหคุพ" not in text                              # ไม่มี OCR ขยะ
+        assert any(r.get("pdf_page") for r in rows)                                       # อ้างหน้าที่เล่มพิมพ์หัวข้อเหล่านี้
+
+
+def test_plan_check_says_when_the_plan_does_not_match_the_required_total():
+    with closing(_real("DSBA/coop")) as c:
+        c.execute("CREATE TEMP TABLE _x AS SELECT 1")                                      # readonly connection: เปลี่ยน program ไม่ได้ → ทดสอบฟังก์ชันตรง ๆ ด้วยตัวเลขที่ไม่ตรง
+        text = m._plan_check_text(plan_total=126, declared=132, criteria="เป็นไปตามข้อบังคับ (ภาคผนวก ก)")
+        assert "ไม่ตรง" in text and "ขาด 6 หน่วยกิต" in text and "ครบ" not in text.split("ไม่ตรง")[0]
+
+
+@pytest.mark.parametrize("question", [
+    "ปี 2 เทอม 1 ครบเงื่อนไขหรือไม่", "วิชาแคลคูลัส 1 ครบเงื่อนไขหรือไม่", "ตรวจแผนเรียนของ IT ว่าครบเงื่อนไขจบหรือไม่", "ตรวจวิชา 06026201 ว่าผ่านเงื่อนไขไหม"])
+def test_plan_check_refuses_scoped_questions(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._plan_check_answer(c, question) is None, question
+
+
+def test_graduation_criteria_text_has_the_ocr_garbage_cut_off_for_the_it_book():
+    with closing(_real("IT/coop")) as c:
+        text, _rows, _sql = _chain(c, "เกณฑ์การสำเร็จการศึกษาคืออะไร")
+        assert "ภาคผนวก" in text and "-----" not in text and "เนดทหคุพ" not in text, text
+
+
+# =============== ระดับ 3-4: เทียบ "แผนสหกิจ กับ ไม่สหกิจ" ของหลักสูตรเดียวกัน (หลายเวอร์ชันของเล่มเดียว) ===============
+def _plan_codes(rel):
+    with closing(_real(rel)) as c:
+        return {r[0] for r in c.execute("SELECT DISTINCT code FROM plan_item") if re.fullmatch(r"\d{8}", r[0] or "")}
+
+
+@pytest.mark.parametrize("prog,selected", [("DSBA", "coop"), ("DSBA", "no_coop"), ("IT", "coop"), ("BIT", "no_coop")])
+@pytest.mark.parametrize("question", [
+    "วิชาที่มีในแผนสหกิจแต่ไม่มีในแผนไม่สหกิจมีอะไรบ้าง", "แผนสหกิจกับแผนไม่สหกิจต่างกันอย่างไร", "แผนสหกิจเรียนต่างจากแผนปกติอย่างไร"])
+def test_coop_vs_no_coop_plan_difference_lists_the_courses_unique_to_each_plan(prog, selected, question):
+    coop, no_coop = _plan_codes(f"{prog}/coop"), _plan_codes(f"{prog}/no_coop")
+    with closing(_real(f"{prog}/{selected}")) as c:
+        text, rows, _sql = _chain(c, question)
+        got = {r["code"]: r["only_in"] for r in rows}
+        assert {k for k, v in got.items() if v == "สหกิจ"} == coop - no_coop, text
+        assert {k for k, v in got.items() if v == "ไม่สหกิจ"} == no_coop - coop, text
+        assert "เฉพาะแผนสหกิจ" in text and "เฉพาะแผนไม่สหกิจ" in text and "หน่วยกิตรวม" in text
+
+
+def test_single_plan_program_says_it_has_only_one_plan():
+    with closing(_real("AIT")) as c:
+        text, rows, _sql = _chain(c, "แผนสหกิจกับแผนไม่สหกิจต่างกันอย่างไร")
+        assert "แผนเดียว" in text and rows == []
+
+
+@pytest.mark.parametrize("question", [
+    "แผนสหกิจเรียนอะไรบ้างปี 4", "ปี 3 แผนสหกิจกับไม่สหกิจต่างกันอย่างไร", "วิชาแคลคูลัส 1 อยู่ในแผนสหกิจกับไม่สหกิจไหม", "สหกิจคืออะไร",
+    "แผนสหกิจกี่หน่วยกิต"])
+def test_plan_difference_refuses_anything_that_is_not_the_whole_two_plan_comparison(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._other_plan_diff_answer(c, question) is None, question
+
+
+# SQL สร้าง/รันไม่สำเร็จหลังลองซ้ำ: คำตอบต้องเป็นข้อความ "ไม่พบ" มาตรฐาน (เดิม "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง" ซึ่ง judge อ่านแล้วเหมือนระบบพัง)
+def test_exhausted_sql_retries_answer_with_the_standard_not_found_text(monkeypatch):
+    with closing(_real("DSBA/coop")) as c:
+        monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT nope FROM nowhere"}')
+        r = m.ask(c, "คำถามประหลาดที่ต้องไปทางโมเดลแน่นอน xyzzy", verbose=False)
+        assert r["answer"] == m._NOT_FOUND_TEXT and r["error"]
+
+
+# เทียบแผน: วิชาที่มีเฉพาะอีกแผนต้องมีหน้าอ้างอิงด้วย (หาจากฐานข้อมูลของแผนที่วิชานั้นอยู่) — เดิมเลือกแผนไม่สหกิจแล้วไม่มีหน้าอ้างอิงเลย
+@pytest.mark.parametrize("selected", ["coop", "no_coop"])
+def test_plan_difference_cites_pages_even_for_courses_only_in_the_other_plan(selected):
+    with closing(_real(f"IT/{selected}")) as c:
+        text, rows, _sql = _chain(c, "แผนสหกิจกับแผนไม่สหกิจต่างกันอย่างไร")
+        assert rows and all(r.get("pdf_page") for r in rows), rows
+        r = m.ask.__globals__["_attach_citations"]                                      # เส้นทางเดียวกับ ask()
+        res = {"question": "q", "rows": rows, "sql": "SELECT 1", "citations": [], "citation_text": ""}
+        r(c, res)
+        assert res["citations"] and res["citation_text"].startswith("อ้างอิงเล่มหลักสูตร")
