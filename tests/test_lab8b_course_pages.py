@@ -104,3 +104,18 @@ def test_pair_count_cites_nothing_without_description_pages():
     res = {"question": "มีกี่คู่", "rows": [{"n": 1}], "sql": "SELECT COUNT(*) FROM prerequisite"}
     lab8b._attach_citations(conn, res)
     assert res["citations"] == []
+
+
+# Break caught: the 4-page cap dropping courses from the pair-count citation (IT cited 6 of 8 courses) — every course with a prerequisite row must be cited.
+def test_pair_count_cites_every_course_with_a_prerequisite_without_a_page_cap():
+    conn = _pair_db()
+    for i in range(10):
+        code = f"0602620{i}"
+        conn.execute("INSERT INTO course (code, name_th, credits) VALUES (?, ?, 3)", (code, f"วิชา{i}"))
+        conn.execute("INSERT INTO prerequisite VALUES (?, '06016401', 'pre')", (code,))
+        conn.execute("INSERT INTO course_page VALUES (?, ?, NULL, 'description')", (code, 100 + i))
+    res = {"question": "มีกี่คู่", "rows": [{"n": 11}], "sql": "SELECT COUNT(*) FROM prerequisite"}
+    lab8b._attach_citations(conn, res)
+    cited = {c for cit in res["citations"] for c in cit["courses"]}
+    assert cited == {"06016402"} | {f"0602620{i}" for i in range(10)}
+    assert [c["pdf_page"] for c in res["citations"]] == sorted(c["pdf_page"] for c in res["citations"])

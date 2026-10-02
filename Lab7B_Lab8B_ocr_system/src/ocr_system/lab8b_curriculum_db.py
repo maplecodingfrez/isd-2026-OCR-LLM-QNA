@@ -2912,7 +2912,7 @@ def _question_years(question: str) -> set[int]:
 
 def _prereq_pair_pages(conn: sqlite3.Connection) -> list[dict]:
     """หน้าคำอธิบายรายวิชา (kind='description') ของวิชาที่มีแถวใน prerequisite — ไม่มีหน้าเดียวที่ระบุทั้งคำตอบ จึงอ้างหน้าที่
-    มาของคู่เหล่านั้น (ไม่เกิน _YEAR_CITE_MAX หน้า เรียงตามหน้า); ไม่มีหน้า/ไม่มีตาราง = [] (ไม่เดา)"""
+    มาของคู่เหล่านั้น (ไม่จำกัดจำนวนหน้า เพื่อให้ไม่มีวิชาตกหล่น เรียงตามหน้า); ไม่มีหน้า/ไม่มีตาราง = [] (ไม่เดา)"""
     try:
         got = conn.execute("SELECT cp.pdf_page, cp.printed_page, cp.code FROM course_page cp "
                            "WHERE cp.kind = 'description' AND cp.code IN (SELECT code FROM prerequisite) "
@@ -2923,7 +2923,7 @@ def _prereq_pair_pages(conn: sqlite3.Connection) -> list[dict]:
     for pdf, printed, code in got:
         by_page.setdefault((pdf, printed), []).append(code)
     return [{"pdf_page": p, "printed_page": pr, "courses": codes}
-            for (p, pr), codes in list(by_page.items())[:_YEAR_CITE_MAX]]
+            for (p, pr), codes in by_page.items()]
 
 
 def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
