@@ -3622,9 +3622,34 @@ def use_slot_aware_credit_view(conn: sqlite3.Connection) -> bool:
         return False
 
 
+# ---- นับคู่วิชาบังคับก่อน "ทั้งหมด" — โมเดลเคยตีความ "ต่อเนื่อง/เงื่อนไข" เป็นวิชาเรียนควบ (kind='co') แล้วตอบ 0 ----
+_PAIR_WORD = re.compile(r"กี่คู่|กี่ความสัมพันธ์|กี่เงื่อนไข|จำนวนคู่|คู่วิชา")
+_PAIR_PREREQ = re.compile(r"บังคับก่อน|ต้อง(?:เรียน|ผ่าน)(?:วิชา)?(?:อื่น)?(?:ใด)?ก่อน|เงื่อนไข(?:ต้อง)?เรียนก่อน|prerequisite", re.I)
+# ขอบเขตอื่น/คำถามอื่น: เรียนควบ ต่อเนื่อง ขอรายชื่อ ไม่มี ถามจำนวนวิชา (ไม่ใช่คู่) เปรียบเทียบ ค่าสูงสุด ฯลฯ → ปฏิเสธ
+_PAIR_NOT = re.compile(r"ควบ|ต่อเนื่อง|ต่อยอด|หรือ|ไม่มี|ไม่ผ่าน|ไม่ได้|บ้าง|รายชื่อ|รายการ|ลิสต์|คู่ไหน|วิชาไหน|วิชาอะไร|อะไร|"
+                       r"มากที่สุด|น้อยที่สุด|มากสุด|น้อยสุด|ที่สุด|ต่างกัน|เท่ากับ|เทียบ|กับ|และ|แต่ละ|เฉลี่ย|กี่วิชา|กี่ตัว|กี่รายวิชา|"
+                       r"ปี|เทอม|ภาค|สหกิจ|ฤดูร้อน|เลือก|GE|ทั่วไป")
+
+
+def _prereq_pair_count_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"มีวิชาบังคับก่อนทั้งหมดกี่คู่" (ทั้งเล่ม ไม่ระบุปี/เทอม/วิชา) = COUNT(*) ของ prerequisite kind='pre' — ตามที่ตาราง prerequisite เก็บ
+    (แถวละคู่ รหัสวิชา+รหัสวิชาบังคับก่อน; "A หรือ B" นับเป็นสองแถว); ต้องมีทั้งคำว่า "คู่/ความสัมพันธ์" และวิชาบังคับก่อน
+    มีรหัส/ชื่อวิชา(ไม่ใช้ _RELATIONAL_NOT เพราะมันจับ "วิชาอื่น…ก่อน" ซึ่งเป็นสำนวนปกติของคำถามนี้)/ปี/เทอม/เรียนควบ/ต่อเนื่อง/ขอรายชื่อ/ไม่มี/ถามจำนวนวิชา = None (ไม่เดา)"""
+    if not (_PAIR_WORD.search(question) and _PAIR_PREREQ.search(question)):
+        return None
+    rest = _PAIR_PREREQ.sub("", question).replace("คู่วิชากับ", "")
+    if _CODE8.search(question) or _PAIR_NOT.search(rest) or _named_courses(conn, question, strict=False):
+        return None
+    try:
+        n = conn.execute("SELECT COUNT(*) FROM prerequisite WHERE kind = 'pre'").fetchone()[0]
+    except sqlite3.OperationalError:
+        return None
+    return f"{n} คู่วิชากับวิชาบังคับก่อนทั้งหมด", [{"pairs": n}], "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'"
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
-    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer,
+    _open_slot_answer, _term_choices_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer,
     _hours_filter_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,

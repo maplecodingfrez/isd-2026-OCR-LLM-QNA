@@ -2724,3 +2724,53 @@ def test_a_question_about_which_course_is_not_answered_with_which_term(question)
 def test_which_term_or_year_questions_are_still_answered(question):
     with closing(_real("DSBA/coop")) as c:
         assert m._extreme_credits_answer(c, question) is not None, question
+
+
+# ---- ทางลัด "นับคู่วิชาบังคับก่อนทั้งหมด" (ปี/ชื่อวิชา/รหัส/ควบ/ต่อเนื่อง = ปฏิเสธ) ----
+_ALL_PROGRAMS = ("AIT", "BIT/coop", "BIT/no_coop", "DSBA/coop", "DSBA/no_coop", "IT/coop", "IT/no_coop")
+_PAIR_QUESTIONS = [
+    "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่",
+    "หลักสูตรนี้มีวิชาที่ต้องเรียนวิชาอื่นก่อนทั้งหมดกี่คู่", "มีวิชาที่ต้องผ่านวิชาอื่นก่อนทั้งหมดกี่คู่คะ",
+    "วิชาที่มีเงื่อนไขต้องเรียนก่อน มีทั้งหมดกี่ความสัมพันธ์", "สรุปให้หน่อย มีวิชาบังคับก่อนรวมกันกี่คู่"]
+
+
+@pytest.mark.parametrize("rel", _ALL_PROGRAMS)
+@pytest.mark.parametrize("question", _PAIR_QUESTIONS)
+def test_counting_all_prerequisite_pairs_is_answered_from_the_table(rel, question):
+    with closing(_real(rel)) as c:
+        n = c.execute("SELECT COUNT(*) FROM prerequisite WHERE kind = 'pre'").fetchone()[0]
+        r = _chain(c, question)
+        assert r is not None and r[0].startswith(f"{n} คู่"), (rel, question, r)
+        assert r[1] == [{"pairs": n}] and "kind = 'pre'" in r[2]
+
+
+def test_the_gold_pair_count_questions_pass_with_the_shortcut():
+    taken = 0
+    for rel, gold in (("DSBA/coop", "dsba_coop"), ("DSBA/no_coop", "dsba_no_coop"), ("AIT", "ait"), ("IT/coop", "it_coop"),
+                      ("IT/no_coop", "it_no_coop"), ("BIT/coop", "bit_coop"), ("BIT/no_coop", "bit_no_coop")):
+        db = RUNS / rel / "lab8b_output" / "curriculum.db"
+        if not db.exists():
+            continue
+        qs = json.loads((REPO / "Lab9_evaluation" / "gold_questions" / f"{gold}_gold_questions.json").read_text(encoding="utf-8"))
+        with closing(m.open_db(db, readonly=True)) as conn:
+            for q in qs:
+                if "คู่" not in q["question"] or "บังคับก่อน" not in q["question"]:
+                    continue
+                r = _chain(conn, q["question"])
+                assert r is not None, (rel, q["question"])
+                taken += 1
+                ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
+                assert ok, (rel, q["id"], q["question"], r[0], q["expect"], why)
+    assert taken >= 1
+
+
+# ทุกข้อนี้ไม่ใช่ "นับคู่ทั้งหมด": มีปี/เทอม รหัส ชื่อวิชา เรียนควบ ต่อเนื่อง ขอรายชื่อ ไม่มี หรือถามจำนวนวิชา (ไม่ใช่คู่) — ต้องปล่อยทางอื่น
+@pytest.mark.parametrize("question", [
+    "ปี 2 มีวิชาที่ต้องเรียนก่อนกี่คู่", "ปี 1 เทอม 2 มีวิชาบังคับก่อนกี่คู่", "วิชา 06026201 มีวิชาบังคับก่อนกี่คู่",
+    "วิชาแคลคูลัส 2 มีวิชาบังคับก่อนกี่คู่", "ทั้งหลักสูตรมีวิชาที่ต้องเรียนต่อเนื่องกันกี่คู่", "มีวิชาที่ต้องเรียนควบกันกี่คู่",
+    "วิชาบังคับก่อนมีคู่ไหนบ้าง", "ขอรายชื่อคู่วิชาบังคับก่อนทั้งหมด", "มีวิชาที่ไม่มีวิชาบังคับก่อนกี่คู่",
+    "มีวิชาที่มีวิชาบังคับก่อนกี่วิชา", "คู่วิชาบังคับก่อนคู่ไหนมากที่สุด", "ถ้าไม่ผ่านวิชาบังคับก่อนแล้วต้องทำอย่างไร",
+    "มีกี่คู่", "คู่วิชาบังคับก่อนของ IT กับ DSBA ต่างกันกี่คู่"])
+def test_pair_count_shortcut_refuses_everything_that_is_not_the_whole_count(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._prereq_pair_count_answer(c, question) is None, question
