@@ -4666,13 +4666,34 @@ def _prereq_register_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     return None
 
 
+_COOP_PLACE_ASK = re.compile(r"ปีไหน|ปีใด|ชั้นปีไหน|เทอมไหน|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|เทอมใด|ปีอะไร|เทอมอะไร")
+_COOP_PLACE_NOT = re.compile(r"แผน|ไม่|ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|หน่วยกิต|ชั่วโมง|ก่อน|รหัส|ฝึกงาน|เปลี่ยน|ย้าย|ต่างประเทศ")
+
+
+def _coop_place_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามว่าสหกิจศึกษาอยู่/ต้องลงปีไหนเทอมไหน โดยพิมพ์ชื่อสั้น "สหกิจ" (ไม่ตรงชื่อเต็มของวิชา) → ตอบปี/เทอมของตระกูลวิชา "สหกิจศึกษา…" จากแผนของ DB ตัวเอง;
+    มีรหัส/ปีเทอมเป็นตัวเลข/คำว่าแผน/ไม่สหกิจ/ต่างประเทศ หรือแผนนี้ไม่มีวิชาสหกิจ = None (ทางเดิม)"""
+    if not _COOP_WORD.search(question) or not _COOP_PLACE_ASK.search(question) or _COOP_PLACE_NOT.search(question) or _CODE8.search(question):
+        return None
+    rows = [tuple(r) for r in conn.execute(
+        "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code "
+        "WHERE c.name_th LIKE 'สหกิจศึกษา%' ORDER BY p.year, p.semester, c.code")]
+    if not rows or len({(y, s) for y, s, _, _ in rows}) != 1:     # ไม่มีในแผน / อยู่หลายเทอม = ไม่เดา
+        return None
+    y, s = rows[0][0], rows[0][1]
+    names = "; ".join(f"{c} {n}" for _, _, c, n in rows)
+    return (f"สหกิจศึกษาอยู่ปี {y} เทอม {s}: {names}",
+            [{"code": c, "name_th": n, "year": y, "semester": s} for _, _, c, n in rows],
+            "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'")
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
     _other_program_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _course_attr_answer,
+    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer,
 )
