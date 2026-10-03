@@ -59,3 +59,11 @@ Lab7B_Lab8B_ocr_system/_local_reference/
 
 # สำเนาอัตโนมัติก่อนซ่อมข้อมูล (lab7b_curriculum.py เขียนเก็บทุกครั้ง) — ไม่ใช่ผลที่ใช้ อยู่ใน git history แล้ว
 Lab7B_Lab8B_ocr_system/runs/**/*.before_*.json
+
+# ชุดเทส pytest เก็บไว้ในเครื่องผู้พัฒนา ไม่ใช่งานที่ต้องส่ง
+tests/
+
+# ชุดเทสรวมของเพื่อน (ต้องมี API รันอยู่) + รายงานผล — เก็บในเครื่องเท่านั้น ไม่ใช่งานที่ต้องส่ง
+run_all_tests.py
+test.md
+test_master_results.json

@@ -29,7 +29,7 @@ def printed_page(text: str) -> str | None:
 
 
 # หน้าคำอธิบายรายวิชามีบรรทัดวิชาบังคับก่อนของแต่ละวิชา — ตารางเทียบหลักสูตรในภาคผนวก (เช่น DSBA PDF 353) ไม่มี
-DESCRIPTION_RE = re.compile(r"วิชาบังคับก่อน|prerequisite", re.I)
+DESCRIPTION_RE = re.compile(r"(?:วิชาบังคับก่อน|prerequisite)\s*[:：]", re.I)   # ต้องเป็นบรรทัดมีป้าย ":" — เชิงอรรถ "เป็นรายวิชาบังคับก่อน ที่ไม่นับหน่วยกิต" (AIT PDF 19/120) ไม่ใช่
 
 
 def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:
@@ -52,6 +52,7 @@ def course_pages(ocr_pages: list[dict], courses: list[dict]) -> list[dict]:
 
 HEADING_RE = re.compile(r"ปีที่\s*(\d)\s*ภาค(?:การศึกษา|เรียน)?\s*ที่\s*(\d)")
 IMAGE_PAGE_RE = re.compile(r"(\d+)\.(?:jpe?g|png)$", re.I)
+PAGE_NUMBER_TAG_RE = re.compile(r"<page_number>\s*(\d+)\s*</page_number>")      # เลขหน้าที่พิมพ์ ที่ VLM (Lab 7B) อ่านติดมาในแต่ละหน้า
 
 
 def _confirmed(chunk: str, terms: list[tuple[int, int]], book_text: str) -> bool:
@@ -76,20 +77,56 @@ def plan_pages(image_names: list[str], md_text: str,
     chunks = md_text.split("\n---\n")
     if len(pages) != len(chunks):
         return []
+    out, _confirmed_n = _plan_rows(pages, chunks, printed_by_pdf, book_text_by_pdf)
+    if out or book_text_by_pdf is None:
+        return out
+    # ไม่มีหน้าไหนผ่านการยืนยันเลย → เลขในชื่อไฟล์ภาพอาจเลื่อนจากเลขหน้า PDF "คงที่" (DSBA สหกิจ: DSBA_28.png = PDF 30 เพราะเล่มมีตารางแผน
+    # สองชุด และภาพชุดนี้นับต่างจากไฟล์ PDF) — ลองเลื่อน ±5 แล้วรับเฉพาะค่าที่ยืนยัน "ทุกหน้าที่มีหัวเทอม" ได้ และมีค่าเดียว
+    # (กำกวม/หลักฐานน้อยกว่า 3 หน้า = ไม่อ้าง ไม่เดา); ถ้าเลขเดิมยืนยันได้แม้แต่หน้าเดียวจะไม่เข้าทางนี้
+    n_term_chunks = sum(1 for c in chunks if HEADING_RE.search(c))
+    if n_term_chunks < 3:
+        return []
+    fits = []
+    for k in (d for d in range(-5, 6) if d):
+        rows, n_ok = _plan_rows([p + k for p in pages], chunks, printed_by_pdf, book_text_by_pdf)
+        if rows and n_ok == n_term_chunks:
+            fits.append((k, rows))
+    if len(fits) == 1:
+        return fits[0][1]
+    if len(fits) > 1:
+        # เล่มมีตารางแผนซ้ำหลายชุด (DSBA: ไม่สหกิจ PDF 23–29 / สหกิจ PDF 30–36 หัวเทอมเหมือนกัน) → หลายค่าเลื่อนผ่านพร้อมกัน
+        # ตัดสินด้วยเลขหน้าที่พิมพ์ซึ่ง VLM อ่านติดมา (<page_number>) เทียบกับเลขที่พิมพ์ของหน้าเล่ม: ต้องตรงมากกว่าอย่างชัดเจนและ
+        # ตรงอย่างน้อย 2 หน้า (ยอมให้ VLM อ่านเลขพลาดบางหน้า); ไม่ชัด = ไม่อ้าง (ใช้รหัสวิชาตัดสินไม่ได้: OCR ของเล่มอ่านรหัสคลาดเคลื่อน
+        # วัดแล้วค่าที่ผิดได้คะแนนสูงกว่า)
+        tags = [(m.group(1) if (m := PAGE_NUMBER_TAG_RE.search(c)) else None) for c in chunks]
+        scored = sorted(((sum(t is not None and printed_by_pdf.get(p + k) == t for p, t in zip(pages, tags)), rows)
+                         for k, rows in fits), key=lambda x: -x[0])
+        if scored[0][0] >= 2 and scored[0][0] > scored[1][0]:
+            return scored[0][1]
+    return []
+
+
+def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, str | None],
+               book_text_by_pdf: dict[int, str] | None) -> tuple[list[dict], int]:
+    """แถว term_page จากคู่ (เลขหน้า, ส่วน Markdown) + จำนวนหน้าที่มีหัวเทอมและผ่านการยืนยัน"""
     out: list[dict] = []
     last = None
+    n_confirmed = 0
     for pdf, chunk in zip(pages, chunks):
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
+        has_heading = bool(terms)
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
         if terms and book_text_by_pdf is not None and not _confirmed(chunk, terms, book_text_by_pdf.get(pdf, "")):
             last = None
             continue
+        if has_heading:
+            n_confirmed += 1
         for y, s in dict.fromkeys(terms):
             out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed_by_pdf.get(pdf)})
         if terms:
             last = terms[-1]
-    return out
+    return out, n_confirmed
 
 
 def consistent_printed(printed_by_pdf: dict[int, str | None]) -> dict[int, str | None]:
@@ -143,7 +180,9 @@ def load_lookup(conn: sqlite3.Connection):
 
 def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
     """หน้าอ้างอิงของคำตอบ: หน้าตารางแผนของเทอมที่ SQL กรอง (year= และ semester=) ก่อน แล้วหน้าของรหัสวิชา
-    ที่อยู่ใน SQL หรือในแถวผลลัพธ์ — ไม่เกิน MAX_CITED หน้า; ไม่มีข้อมูล = [] (ไม่เดา)"""
+    ที่อยู่ใน SQL หรือในแถวผลลัพธ์ — ไม่เกิน MAX_CITED หน้า; ไม่มีข้อมูล = [] (ไม่เดา)
+    แต่ละหน้าบอก "courses" = รหัสวิชาของคำตอบที่พบในหน้านั้น (ผู้ใช้จะรู้ว่าหน้านี้อ้างข้อมูลใด)
+    ลำดับคงที่: รหัสที่ระบุใน SQL ก่อน แล้วรหัสจากแถวเรียงตามรหัส — โมเดลเรียงแถวต่างกันในแต่ละรอบ ห้ามทำให้หน้าเปลี่ยน"""
     course, term = lookup
     cited: list[tuple[int, str | None]] = []
 
@@ -156,19 +195,43 @@ def citations_for(rows: list[dict], sql: str | None, lookup) -> list[dict]:
     y, s = YEAR_SQL_RE.search(sql), SEM_SQL_RE.search(sql)
     if y and s and not NEGATED_SQL_RE.search(sql):
         add(term.get((int(y.group(1)), int(s.group(1))), []))
-    codes = CODE_RE.findall(sql)
-    for r in rows:
-        for v in r.values():
-            codes += CODE_RE.findall(str(v))
-    for code in dict.fromkeys(codes):
+    sql_codes = list(dict.fromkeys(CODE_RE.findall(sql)))
+    row_codes = {c for r in rows for v in r.values() for c in CODE_RE.findall(str(v))}
+    codes = sql_codes + sorted(row_codes - set(sql_codes))
+    for code in codes:
         add(course.get(code, []))
-    return [{"pdf_page": pdf, "printed_page": printed} for pdf, printed in cited[:MAX_CITED]]
+    return [{"pdf_page": pdf, "printed_page": printed,
+             "courses": [c for c in codes if (pdf, printed) in course.get(c, [])]}
+            for pdf, printed in cited[:MAX_CITED]]
+
+
+def add_course_names(conn: sqlite3.Connection, cites: list[dict]) -> None:
+    """เติม "course_names" (รหัส -> ชื่อไทย) และ "course_names_en" (รหัส -> ชื่ออังกฤษ) ให้หน้าที่มี courses — ชื่อจากตาราง course เท่านั้น
+    ไม่พบ/ว่าง = ไม่ใส่ (ห้ามเดา) แสดงทั้งสองภาษาเสมอ ไม่ขึ้นกับภาษาของคำถาม"""
+    codes = sorted({c for cite in cites for c in cite.get("courses") or []})
+    if not codes:
+        return
+    try:
+        rows = conn.execute(f"SELECT code, name_th, name_en FROM course WHERE code IN ({','.join('?' * len(codes))})", codes).fetchall()
+    except sqlite3.OperationalError:
+        return
+    th = {r[0]: r[1].strip() for r in rows if r[1] and r[1].strip()}
+    en = {r[0]: r[2].strip() for r in rows if r[2] and r[2].strip()}
+    for cite in cites:
+        for key, names in (("course_names", th), ("course_names_en", en)):
+            found = {c: names[c] for c in cite.get("courses") or [] if c in names}
+            if found:
+                cite[key] = found
 
 
 def format_citation(cites: list[dict]) -> str:
-    """ "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38), PDF 23)" — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
+    """ข้อความอ้างอิงแบบบูลเล็ตต่อหน้า (วิชาในหน้านั้นเป็นบูลเล็ตย่อย รหัส + ชื่อ) — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
     if not cites:
         return ""
-    parts = [f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"
-             for c in cites]
-    return f"(อ้างอิง: เล่มหลักสูตร {', '.join(parts)})"
+    lines = ["อ้างอิงเล่มหลักสูตร:"]
+    for c in cites:
+        lines.append("• " + (f"หน้า {c['printed_page']} (PDF {c['pdf_page']})" if c["printed_page"] else f"PDF {c['pdf_page']}"))
+        th, en = c.get("course_names") or {}, c.get("course_names_en") or {}
+        lines += ["   – " + " / ".join(x for x in (code + (f" {th[code]}" if th.get(code) else ""), en.get(code)) if x)
+                  for code in c.get("courses") or []]
+    return "\n".join(lines)

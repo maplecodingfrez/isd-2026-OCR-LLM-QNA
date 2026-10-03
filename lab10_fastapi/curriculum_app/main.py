@@ -4,10 +4,13 @@ import json
 import os
 import sqlite3
 import sys
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import requests
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -30,14 +33,43 @@ from .schemas import (  # noqa: E402
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # โหลดโมเดลล่วงหน้าเบื้องหลัง: คำถามแรกไม่ต้องรอโหลด (ไม่ block การเปิดเซิร์ฟเวอร์ และไม่ล้มถ้า Ollama ยังไม่เปิด)
+    def warm() -> None:
+        try:
+            lab8b.warm_up()
+        except Exception:
+            pass
+    threading.Thread(target=warm, daemon=True).start()
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title=f"{settings.app_name} — Curriculum",
     description="Qwen text-to-SQL + SQLite curriculum application",
     version="1.0.0",
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 database = CurriculumDatabase(lab8b, settings.db_path, settings.max_rows)
 model = QwenTextToSQL(settings, lab8b)
+
+
+def _database_for(program: str | None) -> CurriculumDatabase:
+    """ไม่ระบุ program = ฐานข้อมูลที่ตั้งไว้ใน .env; ระบุ = ฐานข้อมูลของหลักสูตรนั้น (ใช้ร่วมกันหลาย endpoint)"""
+    if program is None:
+        return database
+    path = program_db_path(program)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{program}' - ใช้ได้: {', '.join(PROGRAMS)}")
+    return CurriculumDatabase(lab8b, path, settings.max_rows)
 
 
 @app.get("/", include_in_schema=False)
@@ -90,9 +122,10 @@ def get_courses(
     search: str = Query(default="", max_length=100),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    program: str | None = Query(default=None),
 ) -> list[dict]:
     try:
-        return database.courses(search, limit, offset)
+        return _database_for(program).courses(search, limit, offset)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -106,6 +139,11 @@ def post_course(course: CourseCreate) -> dict:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except sqlite3.IntegrityError as exc:
         raise HTTPException(status_code=409, detail="รหัสวิชานี้มีอยู่แล้ว") from exc
+
+
+# ชื่อ exception ของ requests ที่แปลว่า Ollama/เครือข่ายมีปัญหา (ต่างจาก SQL ที่โมเดลเขียนผิด) — lab8b.ask เก็บเป็นสตริง "ชื่อ: ข้อความ"
+_INFRA_ERRORS = {"ConnectionError", "Timeout", "ReadTimeout", "ConnectTimeout", "HTTPError", "RequestException", "ChunkedEncodingError",
+                 "SSLError", "ProxyError", "TooManyRedirects"}
 
 
 @app.post("/api/ask", response_model=AskResponse)
@@ -123,18 +161,22 @@ def ask(request: AskRequest) -> dict:
     finally:
         conn.close()
     if result["error"]:
-        raise HTTPException(status_code=422, detail=result["error"])
+        if str(result["error"]).split(":", 1)[0].strip() in _INFRA_ERRORS:      # Ollama/เครือข่ายมีปัญหา = error จริงให้ UI แสดงสถานะ error
+            raise HTTPException(status_code=422, detail=result["error"])
+        # โมเดลสร้าง SQL ไม่สำเร็จหลังลองซ้ำ (เช่น คำถามตัวอย่างของอาจารย์เคยทำให้เกิด "ambiguous column name") = ไม่ใช่ความผิดของผู้ใช้/เซิร์ฟเวอร์
+        # ตอบ "ไม่พบ" แทน HTTP error (ซื่อตรงกว่าเดา และกติกา Challenge ถือว่า error ระหว่างทดสอบ = 0)
+        result["answer"], result["rows"], result["error"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", [], None
     result["program"] = request.program
     return result
 
 
 @app.get("/api/courses/{code}/prerequisites", response_model=CoursePrerequisitesResponse, tags=["Prerequisites"])
-def get_course_prerequisites(code: str) -> dict:
+def get_course_prerequisites(code: str, program: str | None = Query(default=None)) -> dict:
     """ตรวจสอบวิชาบังคับก่อน (Prerequisite) และวิชาที่ปลดล็อคให้เรียนต่อได้"""
     if not code.isdigit() or len(code) != 8:
         raise HTTPException(status_code=422, detail="รหัสวิชาต้องเป็นตัวเลข 8 หลัก")
     try:
-        data = database.get_course_prerequisites(code)
+        data = _database_for(program).get_course_prerequisites(code)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

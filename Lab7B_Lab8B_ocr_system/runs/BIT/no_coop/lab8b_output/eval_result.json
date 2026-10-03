@@ -8,17 +8,23 @@
       "type": "value",
       "value": "126"
     },
-    "sql": "SELECT total_credits FROM program LIMIT 200",
+    "sql": "SELECT total_credits FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT total_credits FROM program\"}",
-    "answer_model_output": "{\"answer\": \"126 หน่วยกิต\"}",
-    "answer": "126 หน่วยกิต",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 6,
+        "printed_page": "1",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 6)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 0.0
   },
   {
     "id": "A2",
@@ -29,17 +35,23 @@
       "type": "value",
       "value": "4"
     },
-    "sql": "SELECT years FROM program LIMIT 200",
+    "sql": "SELECT years FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT years FROM program\"}",
-    "answer_model_output": "{\"answer\": \"4 ปี\"}",
-    "answer": "4 ปี",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
+    "citations": [
+      {
+        "pdf_page": 6,
+        "printed_page": "1",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 6)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 0.0
   },
   {
     "id": "B1",
@@ -63,13 +75,14 @@
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 1.5
   },
   {
     "id": "B2",
@@ -84,22 +97,23 @@
       1,
       2
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 2",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=1 AND semester=2\"}",
-    "answer_model_output": "{\"answer\": \"18 หน่วยกิต\"}",
-    "answer": "18 หน่วยกิต",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 1 เทอม 2 รวม 18 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 0.0
   },
   {
     "id": "B3",
@@ -121,30 +135,72 @@
       1,
       2
     ],
-    "sql": "SELECT code FROM v_plan WHERE year=1 AND semester=2 LIMIT 200",
+    "sql": "SELECT p.code, c.name_th, c.name_en FROM v_plan p JOIN course c ON p.code = c.code WHERE p.year = 1 AND p.semester = 2 LIMIT 200",
     "n_rows": 6,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM v_plan WHERE year=1 AND semester=2\"}",
+    "sql_model_output": "{\"sql\": \"SELECT p.code, c.name_th, c.name_en FROM v_plan p JOIN course c ON p.code = c.code WHERE p.year = 1 AND p.semester = 2\"}",
     "answer_model_output": "{\"answer\": \"06036102, 06036109, 06036119, 06036125, 96641002, 96644008\"}",
-    "answer": "06036102 (การวิเคราะห์เชิงสถิติสำหรับธุรกิจ), 06036109 (กระบวนการและโมเดลทางธุรกิจ), 06036119 (พื้นฐานการเขียนโปรแกรม), 06036125 (สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ), 96641002 (ความฉลาดทางดิจิทัล), 96644008 (ภาษาอังกฤษพื้นฐาน 2)",
+    "answer": "06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ STATISTICAL ANALYSIS FOR BUSINESS; 06036109 กระบวนการและโมเดลทางธุรกิจ BUSINESS PROCESSES AND BUSINESS MODEL; 06036119 พื้นฐานการเขียนโปรแกรม PROGRAMMING FUNDAMENTALS; 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ COMPUTER ARCHITECTURE AND OPERATING SYSTEM; 96641002 ความฉลาดทางดิจิทัล DIGITAL INTELLIGENCE QUOTIENT; 96644008 ภาษาอังกฤษพื้นฐาน 2 FOUNDATION ENGLISH 2",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036102",
+          "06036109",
+          "06036119",
+          "06036125",
+          "96641002",
+          "96644008"
+        ],
+        "course_names": {
+          "06036102": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ",
+          "06036109": "กระบวนการและโมเดลทางธุรกิจ",
+          "06036119": "พื้นฐานการเขียนโปรแกรม",
+          "06036125": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ",
+          "96641002": "ความฉลาดทางดิจิทัล",
+          "96644008": "ภาษาอังกฤษพื้นฐาน 2"
+        },
+        "course_names_en": {
+          "06036102": "STATISTICAL ANALYSIS FOR BUSINESS",
+          "06036109": "BUSINESS PROCESSES AND BUSINESS MODEL",
+          "06036119": "PROGRAMMING FUNDAMENTALS",
+          "06036125": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
+          "96641002": "DIGITAL INTELLIGENCE QUOTIENT",
+          "96644008": "FOUNDATION ENGLISH 2"
+        }
       },
       {
         "pdf_page": 239,
-        "printed_page": "234"
+        "printed_page": "234",
+        "courses": [
+          "06036102"
+        ],
+        "course_names": {
+          "06036102": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036102": "STATISTICAL ANALYSIS FOR BUSINESS"
+        }
       },
       {
         "pdf_page": 21,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06036102"
+        ],
+        "course_names": {
+          "06036102": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036102": "STATISTICAL ANALYSIS FOR BUSINESS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 234 (PDF 239), หน้า 16 (PDF 21))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM\n   – 96641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 234 (PDF 239)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 3.0
+    "seconds": 3.4
   },
   {
     "id": "B4",
@@ -168,10 +224,11 @@
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)",
     "correct": true,
     "why": "ตรง",
     "seconds": 2.0
@@ -189,22 +246,23 @@
       2,
       1
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1\"}",
-    "answer_model_output": "{\"answer\": \"18 หน่วยกิจ\"}",
-    "answer": "18 หน่วยกิจ",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 1 รวม 18 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 0.0
   },
   {
     "id": "B6",
@@ -235,21 +293,63 @@
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036103",
+          "06036104",
+          "06036105",
+          "06036117",
+          "06036120",
+          "06036122"
+        ],
+        "course_names": {
+          "06036103": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
+          "06036104": "องค์กรและการจัดการ",
+          "06036105": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
+          "06036117": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่",
+          "06036120": "หลักการโครงสร้างข้อมูลและอัลกอริทึม",
+          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036103": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
+          "06036104": "MANAGEMENT AND ORGANIZATIONS",
+          "06036105": "FINANCIAL ACCOUNTING FOR NON-AccountANTS",
+          "06036117": "BUSINESS INTELLIGENCE AND BIG DATA",
+          "06036120": "DATA STRUCTURES AND ALGORITHMS PRINCIPLES",
+          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
+        }
       },
       {
         "pdf_page": 239,
-        "printed_page": "234"
+        "printed_page": "234",
+        "courses": [
+          "06036103"
+        ],
+        "course_names": {
+          "06036103": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036103": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS"
+        }
       },
       {
         "pdf_page": 21,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06036103"
+        ],
+        "course_names": {
+          "06036103": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036103": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 234 (PDF 239), หน้า 16 (PDF 21))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n   – 06036104 องค์กรและการจัดการ / MANAGEMENT AND ORGANIZATIONS\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n   – 06036120 หลักการโครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS PRINCIPLES\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 234 (PDF 239)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.9
+    "seconds": 2.2
   },
   {
     "id": "C1",
@@ -263,30 +363,57 @@
     "about_codes": [
       "06036105"
     ],
-    "sql": "SELECT c.name_th FROM course c WHERE c.code = '06036105' LIMIT 200",
+    "sql": "SELECT name_th FROM course WHERE code = '06036105' LIMIT 200",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT c.name_th FROM course c WHERE c.code = '06036105'\" }",
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06036105'\" }",
     "answer_model_output": "{\"answer\": \"บัญชีการเงินสำหรับผู้มิใช่นักบัญชี\"}",
     "answer": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036105"
+        ],
+        "course_names": {
+          "06036105": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
+        },
+        "course_names_en": {
+          "06036105": "FINANCIAL ACCOUNTING FOR NON-AccountANTS"
+        }
       },
       {
         "pdf_page": 240,
-        "printed_page": "235"
+        "printed_page": "235",
+        "courses": [
+          "06036105"
+        ],
+        "course_names": {
+          "06036105": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
+        },
+        "course_names_en": {
+          "06036105": "FINANCIAL ACCOUNTING FOR NON-AccountANTS"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036105"
+        ],
+        "course_names": {
+          "06036105": "บัญชีการเงินสำหรับผู้มิใช่นักบัญชี"
+        },
+        "course_names_en": {
+          "06036105": "FINANCIAL ACCOUNTING FOR NON-AccountANTS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 235 (PDF 240), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 235 (PDF 240)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 17 (PDF 22)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.4
+    "seconds": 1.7
   },
   {
     "id": "C2",
@@ -309,21 +436,48 @@
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036113"
+        ],
+        "course_names": {
+          "06036113": "การออกแบบส่วนต่อประสานกับมนุษย์"
+        },
+        "course_names_en": {
+          "06036113": "HUMAN INTERFACE DESIGN"
+        }
       },
       {
         "pdf_page": 244,
-        "printed_page": "239"
+        "printed_page": "239",
+        "courses": [
+          "06036113"
+        ],
+        "course_names": {
+          "06036113": "การออกแบบส่วนต่อประสานกับมนุษย์"
+        },
+        "course_names_en": {
+          "06036113": "HUMAN INTERFACE DESIGN"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036113"
+        ],
+        "course_names": {
+          "06036113": "การออกแบบส่วนต่อประสานกับมนุษย์"
+        },
+        "course_names_en": {
+          "06036113": "HUMAN INTERFACE DESIGN"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036113 การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN\n• หน้า 239 (PDF 244)\n   – 06036113 การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN\n• หน้า 17 (PDF 22)\n   – 06036113 การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.2
   },
   {
     "id": "C3",
@@ -346,21 +500,48 @@
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036110"
+        ],
+        "course_names": {
+          "06036110": "การวางแผนทรัพยากรองค์กร"
+        },
+        "course_names_en": {
+          "06036110": "ENTERPRISE RESOURCE PLANNING"
+        }
       },
       {
         "pdf_page": 243,
-        "printed_page": "238"
+        "printed_page": "238",
+        "courses": [
+          "06036110"
+        ],
+        "course_names": {
+          "06036110": "การวางแผนทรัพยากรองค์กร"
+        },
+        "course_names_en": {
+          "06036110": "ENTERPRISE RESOURCE PLANNING"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036110"
+        ],
+        "course_names": {
+          "06036110": "การวางแผนทรัพยากรองค์กร"
+        },
+        "course_names_en": {
+          "06036110": "ENTERPRISE RESOURCE PLANNING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 238 (PDF 243), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036110 การวางแผนทรัพยากรองค์กร / ENTERPRISE RESOURCE PLANNING\n• หน้า 238 (PDF 243)\n   – 06036110 การวางแผนทรัพยากรองค์กร / ENTERPRISE RESOURCE PLANNING\n• หน้า 17 (PDF 22)\n   – 06036110 การวางแผนทรัพยากรองค์กร / ENTERPRISE RESOURCE PLANNING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.0
   },
   {
     "id": "D1",
@@ -375,30 +556,57 @@
       "06036112"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'แนวคิดระบบฐานข้อมูล' LIMIT 200",
+    "sql": "SELECT code, name_th FROM course WHERE code IN ('06036112')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'แนวคิดระบบฐานข้อมูล'\" }",
-    "answer_model_output": "{\"answer\": \"06036112\"}",
+    "sql_model_output": null,
+    "answer_model_output": null,
     "answer": "06036112 (แนวคิดระบบฐานข้อมูล)",
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036112"
+        ],
+        "course_names": {
+          "06036112": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06036112": "DATABASE SYSTEM CONCEPTS"
+        }
       },
       {
         "pdf_page": 243,
-        "printed_page": "238"
+        "printed_page": "238",
+        "courses": [
+          "06036112"
+        ],
+        "course_names": {
+          "06036112": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06036112": "DATABASE SYSTEM CONCEPTS"
+        }
       },
       {
         "pdf_page": 249,
-        "printed_page": "244"
+        "printed_page": "244",
+        "courses": [
+          "06036112"
+        ],
+        "course_names": {
+          "06036112": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06036112": "DATABASE SYSTEM CONCEPTS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 238 (PDF 243), หน้า 244 (PDF 249))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036112 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n• หน้า 238 (PDF 243)\n   – 06036112 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n• หน้า 244 (PDF 249)\n   – 06036112 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "D2",
@@ -413,30 +621,57 @@
       "06036124"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น' LIMIT 200",
+    "sql": "SELECT code, name_th FROM course WHERE code IN ('06036124')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น'\" }",
-    "answer_model_output": "{\"answer\": \"06036124\"}",
+    "sql_model_output": null,
+    "answer_model_output": null,
     "answer": "06036124 (เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น)",
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036124"
+        ],
+        "course_names": {
+          "06036124": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06036124": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
+        }
       },
       {
         "pdf_page": 248,
-        "printed_page": "243"
+        "printed_page": "243",
+        "courses": [
+          "06036124"
+        ],
+        "course_names": {
+          "06036124": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06036124": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
+        }
       },
       {
         "pdf_page": 23,
-        "printed_page": "18"
+        "printed_page": "18",
+        "courses": [
+          "06036124"
+        ],
+        "course_names": {
+          "06036124": "เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06036124": "INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY\n• หน้า 243 (PDF 248)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY\n• หน้า 18 (PDF 23)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.5
+    "seconds": 0.0
   },
   {
     "id": "D3",
@@ -451,17 +686,57 @@
       "06036106"
     ],
     "name_key": "name_en",
-    "sql": "SELECT code FROM course WHERE name_th = 'MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES' LIMIT 200",
-    "n_rows": 0,
+    "sql": "SELECT code, name_th FROM course WHERE code IN ('06036106')",
+    "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 06036106 (ได้ [])",
-    "seconds": 0.9
+    "answer": "06036106 (การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่)",
+    "citations": [
+      {
+        "pdf_page": 29,
+        "printed_page": "24",
+        "courses": [
+          "06036106"
+        ],
+        "course_names": {
+          "06036106": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่"
+        },
+        "course_names_en": {
+          "06036106": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES"
+        }
+      },
+      {
+        "pdf_page": 241,
+        "printed_page": "236",
+        "courses": [
+          "06036106"
+        ],
+        "course_names": {
+          "06036106": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่"
+        },
+        "course_names_en": {
+          "06036106": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES"
+        }
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17",
+        "courses": [
+          "06036106"
+        ],
+        "course_names": {
+          "06036106": "การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่"
+        },
+        "course_names_en": {
+          "06036106": "MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 24 (PDF 29)\n   – 06036106 การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ / MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES\n• หน้า 236 (PDF 241)\n   – 06036106 การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ / MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES\n• หน้า 17 (PDF 22)\n   – 06036106 การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ / MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 0.0
   },
   {
     "id": "E1",
@@ -476,30 +751,57 @@
       "06036117"
     ],
     "name_key": "name_th",
-    "sql": "SELECT p.year FROM v_plan p WHERE p.code = '06036117' LIMIT 200",
+    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '06036117'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT p.year FROM v_plan p WHERE p.code = '06036117'\" }",
-    "answer_model_output": "{\"answer\": \"ปีที่ 2\"}",
-    "answer": "ปีที่ 2",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่: ปี 2 เทอม 1",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036117"
+        ],
+        "course_names": {
+          "06036117": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่"
+        },
+        "course_names_en": {
+          "06036117": "BUSINESS INTELLIGENCE AND BIG DATA"
+        }
       },
       {
         "pdf_page": 245,
-        "printed_page": "240"
+        "printed_page": "240",
+        "courses": [
+          "06036117"
+        ],
+        "course_names": {
+          "06036117": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่"
+        },
+        "course_names_en": {
+          "06036117": "BUSINESS INTELLIGENCE AND BIG DATA"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036117"
+        ],
+        "course_names": {
+          "06036117": "อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่"
+        },
+        "course_names_en": {
+          "06036117": "BUSINESS INTELLIGENCE AND BIG DATA"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 240 (PDF 245), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 240 (PDF 245)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 17 (PDF 22)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "E2",
@@ -514,30 +816,57 @@
       "06036109"
     ],
     "name_key": "name_th",
-    "sql": "SELECT credits FROM v_plan WHERE code = '06036109' LIMIT 200",
+    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '06036109'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_plan WHERE code = '06036109'\" }",
-    "answer_model_output": "{\"answer\": \"3 หน่วยกิต\"}",
-    "answer": "3 หน่วยกิต",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06036109 กระบวนการและโมเดลทางธุรกิจ: 3 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036109"
+        ],
+        "course_names": {
+          "06036109": "กระบวนการและโมเดลทางธุรกิจ"
+        },
+        "course_names_en": {
+          "06036109": "BUSINESS PROCESSES AND BUSINESS MODEL"
+        }
       },
       {
         "pdf_page": 242,
-        "printed_page": "237"
+        "printed_page": "237",
+        "courses": [
+          "06036109"
+        ],
+        "course_names": {
+          "06036109": "กระบวนการและโมเดลทางธุรกิจ"
+        },
+        "course_names_en": {
+          "06036109": "BUSINESS PROCESSES AND BUSINESS MODEL"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036109"
+        ],
+        "course_names": {
+          "06036109": "กระบวนการและโมเดลทางธุรกิจ"
+        },
+        "course_names_en": {
+          "06036109": "BUSINESS PROCESSES AND BUSINESS MODEL"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 237 (PDF 242), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL\n• หน้า 237 (PDF 242)\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL\n• หน้า 17 (PDF 22)\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "E3",
@@ -552,30 +881,57 @@
       "06036123"
     ],
     "name_key": "name_th",
-    "sql": "SELECT lab_h FROM course WHERE code = '06036123' LIMIT 200",
+    "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06036123'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT lab_h FROM course WHERE code = '06036123'\" }",
-    "answer_model_output": "{\"answer\": \"0 ชั่วโมง\"}",
-    "answer": "0 ชั่วโมง",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06036123 เทคโนโลยีกลุ่มเมฆ: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036123"
+        ],
+        "course_names": {
+          "06036123": "เทคโนโลยีกลุ่มเมฆ"
+        },
+        "course_names_en": {
+          "06036123": "CLOUD TECHNOLOGY"
+        }
       },
       {
         "pdf_page": 248,
-        "printed_page": "243"
+        "printed_page": "243",
+        "courses": [
+          "06036123"
+        ],
+        "course_names": {
+          "06036123": "เทคโนโลยีกลุ่มเมฆ"
+        },
+        "course_names_en": {
+          "06036123": "CLOUD TECHNOLOGY"
+        }
       },
       {
         "pdf_page": 23,
-        "printed_page": "18"
+        "printed_page": "18",
+        "courses": [
+          "06036123"
+        ],
+        "course_names": {
+          "06036123": "เทคโนโลยีกลุ่มเมฆ"
+        },
+        "course_names_en": {
+          "06036123": "CLOUD TECHNOLOGY"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036123 เทคโนโลยีกลุ่มเมฆ / CLOUD TECHNOLOGY\n• หน้า 243 (PDF 248)\n   – 06036123 เทคโนโลยีกลุ่มเมฆ / CLOUD TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06036123 เทคโนโลยีกลุ่มเมฆ / CLOUD TECHNOLOGY",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "E4",
@@ -599,21 +955,48 @@
     "citations": [
       {
         "pdf_page": 27,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06036125"
+        ],
+        "course_names": {
+          "06036125": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ"
+        },
+        "course_names_en": {
+          "06036125": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM"
+        }
       },
       {
         "pdf_page": 248,
-        "printed_page": "243"
+        "printed_page": "243",
+        "courses": [
+          "06036125"
+        ],
+        "course_names": {
+          "06036125": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ"
+        },
+        "course_names_en": {
+          "06036125": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM"
+        }
       },
       {
         "pdf_page": 23,
-        "printed_page": "18"
+        "printed_page": "18",
+        "courses": [
+          "06036125"
+        ],
+        "course_names": {
+          "06036125": "สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ"
+        },
+        "course_names_en": {
+          "06036125": "COMPUTER ARCHITECTURE AND OPERATING SYSTEM"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 27), หน้า 243 (PDF 248), หน้า 18 (PDF 23))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM\n• หน้า 243 (PDF 248)\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM\n• หน้า 18 (PDF 23)\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "F1",
@@ -642,21 +1025,54 @@
     "citations": [
       {
         "pdf_page": 29,
-        "printed_page": "24"
+        "printed_page": "24",
+        "courses": [
+          "06036146",
+          "06036145"
+        ],
+        "course_names": {
+          "06036146": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
+          "06036145": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1"
+        },
+        "course_names_en": {
+          "06036146": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
+          "06036145": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1"
+        }
       },
       {
         "pdf_page": 256,
-        "printed_page": "251"
+        "printed_page": "251",
+        "courses": [
+          "06036146",
+          "06036145"
+        ],
+        "course_names": {
+          "06036146": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2",
+          "06036145": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1"
+        },
+        "course_names_en": {
+          "06036146": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
+          "06036145": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1"
+        }
       },
       {
         "pdf_page": 23,
-        "printed_page": "18"
+        "printed_page": "18",
+        "courses": [
+          "06036146"
+        ],
+        "course_names": {
+          "06036146": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2"
+        },
+        "course_names_en": {
+          "06036146": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 24 (PDF 29), หน้า 251 (PDF 256), หน้า 18 (PDF 23))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 24 (PDF 29)\n   – 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2\n   – 06036145 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1\n• หน้า 251 (PDF 256)\n   – 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2\n   – 06036145 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 1\n• หน้า 18 (PDF 23)\n   – 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "F2",
@@ -687,21 +1103,54 @@
     "citations": [
       {
         "pdf_page": 28,
-        "printed_page": "23"
+        "printed_page": "23",
+        "courses": [
+          "06036114"
+        ],
+        "course_names": {
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
+        },
+        "course_names_en": {
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
+        }
       },
       {
         "pdf_page": 244,
-        "printed_page": "239"
+        "printed_page": "239",
+        "courses": [
+          "06036114",
+          "06036119",
+          "06036122"
+        ],
+        "course_names": {
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
+          "06036119": "พื้นฐานการเขียนโปรแกรม",
+          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+          "06036119": "PROGRAMMING FUNDAMENTALS",
+          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06036114"
+        ],
+        "course_names": {
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
+        },
+        "course_names_en": {
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 23 (PDF 28), หน้า 239 (PDF 244), หน้า 17 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 23 (PDF 28)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 17 (PDF 22)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.5
+    "seconds": 2.4
   },
   {
     "id": "F3",
@@ -721,17 +1170,60 @@
       "06036122"
     ],
     "direction": "reverse",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06036122' AND kind='co' LIMIT 200",
-    "n_rows": 0,
+    "sql": "SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre' LIMIT 200",
+    "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06036122' AND kind='co'\" }",
-    "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ขาด 06036114 เกิน -",
-    "seconds": 0.9
+    "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre'\" }",
+    "answer_model_output": "{\"answer\": \"06036114\"}",
+    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
+    "citations": [
+      {
+        "pdf_page": 27,
+        "printed_page": "22",
+        "courses": [
+          "06036122"
+        ],
+        "course_names": {
+          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
+        }
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239",
+        "courses": [
+          "06036122",
+          "06036114"
+        ],
+        "course_names": {
+          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ",
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
+        },
+        "course_names_en": {
+          "06036122": "VISUAL COMMUNICATION FOR BUSINESS",
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
+        }
+      },
+      {
+        "pdf_page": 247,
+        "printed_page": "242",
+        "courses": [
+          "06036122"
+        ],
+        "course_names": {
+          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 27)\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 239 (PDF 244)\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n• หน้า 242 (PDF 247)\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 2.2
   },
   {
     "id": "F4",
@@ -742,17 +1234,44 @@
       "type": "value",
       "value": "3"
     },
-    "sql": "SELECT COUNT(*) FROM prerequisite LIMIT 200",
+    "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
-    "answer_model_output": "{\"answer\": \"3 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
+    "sql_model_output": null,
+    "answer_model_output": null,
     "answer": "3 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 244,
+        "printed_page": "239",
+        "courses": [
+          "06036114"
+        ],
+        "course_names": {
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
+        },
+        "course_names_en": {
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
+        }
+      },
+      {
+        "pdf_page": 256,
+        "printed_page": "251",
+        "courses": [
+          "06036146"
+        ],
+        "course_names": {
+          "06036146": "โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2"
+        },
+        "course_names_en": {
+          "06036146": "PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n• หน้า 251 (PDF 256)\n   – 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 / PROJECT IN BUSINESS INFORMATION TECHNOLOGY 2",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "G1",
@@ -769,11 +1288,27 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND credits = 3\"}",
     "answer_model_output": "{\"answer\": \"22 วิชา\"}",
     "answer": "22 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 26,
+        "printed_page": "21",
+        "courses": []
+      },
+      {
+        "pdf_page": 27,
+        "printed_page": "22",
+        "courses": []
+      },
+      {
+        "pdf_page": 28,
+        "printed_page": "23",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 26)\n• หน้า 22 (PDF 27)\n• หน้า 23 (PDF 28)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 1.4
   },
   {
     "id": "G2",
@@ -784,17 +1319,72 @@
       "type": "value",
       "value": "3"
     },
-    "sql": "SELECT MAX(lecture_h + lab_h + self_h) FROM course WHERE name_th LIKE '%วิชาเรียนควบ%' OR name_en LIKE '%elective%' OR name_th LIKE '%วิชาเรียนควบ%' OR name_en LIKE '%elective' LIMIT 200",
-    "n_rows": 1,
+    "sql": "SELECT DISTINCT c.code, c.name_th, c.lecture_h FROM course c JOIN plan_item p ON p.code = c.code WHERE c.lecture_h IS NOT NULL AND p.year IN (1, 2) ORDER BY c.lecture_h DESC",
+    "n_rows": 16,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT MAX(lecture_h + lab_h + self_h) FROM course WHERE name_th LIKE '%วิชาเรียนควบ%' OR name_en LIKE '%elective%' OR name_th LIKE '%วิชาเรียนควบ%' OR name_en LIKE '%elective'\"}",
-    "answer_model_output": "{\"answer\": \"ไม่พบข้อมูลนี้ในเล่มหลักสูตร\"}",
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 3 (ได้ [])",
-    "seconds": 3.0
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06036101 คณิตศาสตร์สำหรับธุรกิจ และ 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ และ 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ และ 06036104 องค์กรและการจัดการ และ 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี และ 06036108 เศรษฐศาสตร์เทคโนโลยีสารสนเทศ และ 06036109 กระบวนการและโมเดลทางธุรกิจ และ 06036111 เทคโนโลยีดิจิทัลสำหรับธุรกิจ และ 06036113 การออกแบบส่วนต่อประสานกับมนุษย์ และ 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ และ 06036120 หลักการโครงสร้างข้อมูลและอัลกอริทึม และ 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น และ 96641002 ความฉลาดทางดิจิทัล และ 96644007 ภาษาอังกฤษพื้นฐาน 1 และ 96644008 ภาษาอังกฤษพื้นฐาน 2 และ 96644042 การสื่อสารและการนำเสนออย่างมืออาชีพ (3 ชั่วโมงต่อสัปดาห์)",
+    "citations": [
+      {
+        "pdf_page": 26,
+        "printed_page": "21",
+        "courses": [
+          "06036101",
+          "96644007",
+          "96644042"
+        ],
+        "course_names": {
+          "06036101": "คณิตศาสตร์สำหรับธุรกิจ",
+          "96644007": "ภาษาอังกฤษพื้นฐาน 1",
+          "96644042": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+        },
+        "course_names_en": {
+          "06036101": "MATHEMATICS FOR BUSINESS",
+          "96644007": "FOUNDATION ENGLISH 1",
+          "96644042": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+        }
+      },
+      {
+        "pdf_page": 238,
+        "printed_page": "233",
+        "courses": [
+          "06036101"
+        ],
+        "course_names": {
+          "06036101": "คณิตศาสตร์สำหรับธุรกิจ"
+        },
+        "course_names_en": {
+          "06036101": "MATHEMATICS FOR BUSINESS"
+        }
+      },
+      {
+        "pdf_page": 21,
+        "printed_page": "16",
+        "courses": [
+          "06036101",
+          "06036102",
+          "06036103",
+          "96644042"
+        ],
+        "course_names": {
+          "06036101": "คณิตศาสตร์สำหรับธุรกิจ",
+          "06036102": "การวิเคราะห์เชิงสถิติสำหรับธุรกิจ",
+          "06036103": "บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ",
+          "96644042": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+        },
+        "course_names_en": {
+          "06036101": "MATHEMATICS FOR BUSINESS",
+          "06036102": "STATISTICAL ANALYSIS FOR BUSINESS",
+          "06036103": "INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
+          "96644042": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 26)\n   – 06036101 คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS\n   – 96644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1\n   – 96644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION\n• หน้า 233 (PDF 238)\n   – 06036101 คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036101 คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n   – 96644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 0.0
   },
   {
     "id": "G3",
@@ -811,11 +1401,27 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND name_th LIKE '%ข้อมูล%'\" }",
     "answer_model_output": "{\"answer\": \"3 วิชา\"}",
     "answer": "3 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 26,
+        "printed_page": "21",
+        "courses": []
+      },
+      {
+        "pdf_page": 27,
+        "printed_page": "22",
+        "courses": []
+      },
+      {
+        "pdf_page": 28,
+        "printed_page": "23",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 26)\n• หน้า 22 (PDF 27)\n• หน้า 23 (PDF 28)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.0
   },
   {
     "id": "H1",
@@ -868,17 +1474,17 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT name_th, name_en, credits FROM course WHERE code = '06033437' LIMIT 200",
+    "sql": "SELECT name_th FROM course WHERE code = '06033437' LIMIT 200",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT name_th, name_en, credits FROM course WHERE code = '06033437'\" }",
+    "sql_model_output": "{\"sql\": \"SELECT name_th FROM course WHERE code = '06033437'\" }",
     "answer_model_output": null,
     "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
     "citations": [],
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.6
   },
   {
     "id": "H4",
@@ -910,16 +1516,16 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาดาราศาสตร์วิทยุเบื้องต้น' LIMIT 200",
+    "sql": "SELECT credits FROM course WHERE name_th = 'ดาราศาสตร์วิทยุเบื้องต้น' LIMIT 200",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาดาราศาสตร์วิทยุเบื้องต้น'\" }",
+    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'ดาราศาสตร์วิทยุเบื้องต้น'\" }",
     "answer_model_output": null,
     "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
     "citations": [],
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.7
   }
 ]
