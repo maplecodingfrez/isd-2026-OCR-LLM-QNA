@@ -86,18 +86,60 @@ def _thai_fragments(th_question: str, courses: list[dict], typed: set[str], alre
     return out if len({c for _, c, _ in out}) == 1 else []
 
 
-ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
-    (re.compile(r"(?<![A-Z0-9])MIS(?![A-Z0-9])", re.IGNORECASE), ("MANAGEMENT INFORMATION SYSTEMS", "ระบบสารสนเทศเพื่อการจัดการ")),
-    (re.compile(r"(?<![A-Z0-9])OOP(?![A-Z0-9])", re.IGNORECASE), ("OBJECT-ORIENTED PROGRAMMING", "การสร้างโปรแกรมเชิงวัตถุ")),
-    (re.compile(r"(?<![A-Z0-9])SE(?![A-Z0-9])", re.IGNORECASE), ("SOFTWARE ENGINEERING", "วิศวกรรมซอฟต์แวร์")),
-    (re.compile(r"(?<![A-Z0-9])ML(?![A-Z0-9])", re.IGNORECASE), ("MACHINE LEARNING", "การเรียนรู้ของเครื่อง")),
-    (re.compile(r"(?<![A-Z0-9])DW(?![A-Z0-9])", re.IGNORECASE), ("DATA WAREHOUS", "คลังข้อมูล")),
-    (re.compile(r"(?<![A-Z0-9])SAD(?![A-Z0-9])", re.IGNORECASE), ("ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ")),
-    (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*1(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 1", "แคลคูลัส 1")),
-    (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*2(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 2", "แคลคูลัส 2")),
-    (re.compile(r"(?<![A-Z0-9])ENG\s*1(?![A-Z0-9])", re.IGNORECASE), ("ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),
-    (re.compile(r"อิ้ง\s*1"), ("ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),
-]
+# ชื่อวิชาที่พิมพ์ไม่ครบ/ภาษาพูด -> (regex ในคำถาม, ส่วนของชื่อไทยที่ต้องอยู่ในชื่อวิชาของแผนนั้น)
+# ใช้เฉพาะเมื่อไม่มีชื่อวิชาใดตรงเลย; กฎแรกที่ตรงตัดสิน (เฉพาะเจาะจงก่อนทั่วไป) และต้องชี้วิชา "เดียว" ในแผนที่ถาม — มีหลายวิชา/ไม่มี = ไม่ตอบ (ผิดวิชา = 0)
+COLLOQUIAL_RULES: tuple[tuple[re.Pattern, str], ...] = (
+    (re.compile(r"โนเอสคิวแอล|nosql", re.I), "โนเอสคิวแอล"),
+    (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
+    (re.compile(r"วิชา\s*ฐานข้อมูล(?!นี้)"), "ฐานข้อมูล"),     # คำกว้าง: ต้องขึ้นต้นด้วย "วิชา" (กัน "ในฐานข้อมูลนี้", "ระบบฐานข้อมูลคืออะไร")
+    (re.compile(r"โปรแกรมมิ่ง\s*1(?!\d)"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
+    (re.compile(r"อิ้ง\s*1(?!\d)|ภาษาอังกฤษ\s*1(?!\d)"), "ภาษาอังกฤษพื้นฐาน1"),
+    (re.compile(r"วิชา\s*สถิติ"), "สถิติ"),
+)
+
+
+def colloquial_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]:
+    """[(รหัส, ชื่อไทย)] ของวิชาเดียวที่ชื่อภาษาพูด/ไม่ครบในคำถามชี้ถึง — ไม่ตรงกฎ, ไม่มีวิชาในแผน, หรือมีหลายวิชา = []"""
+    for pat, part in COLLOQUIAL_RULES:
+        if not pat.search(question):
+            continue
+        part = _norm_th(part)
+        found = {str(c["code"]): c.get("name_th") or "" for c in courses
+                 if c.get("code") and part in _norm_th(c.get("name_th"))}
+        return list(found.items()) if len(found) == 1 else []
+    return []
+
+
+
+# ชื่อย่อภาษาอังกฤษ/คำแสลง -> (regex ในคำถาม, ส่วนของชื่ออังกฤษ, ส่วนของชื่อไทย) ของวิชาที่ต้องอยู่ในแผนที่ถาม
+# ใช้เฉพาะเมื่อไม่มีชื่อวิชาใดตรงเลย และต้องชี้วิชา "เดียว" ในแผน — มีหลายวิชา/ไม่มี = ไม่ตอบ (ผิดวิชา = 0)
+# คำย่อที่เป็นคำอังกฤษทั่วไป (SE, ML, SAD) ต้องพิมพ์ตัวใหญ่ล้วน กัน "se"/"ml"/"sad" ในประโยคอังกฤษหลุดเป็นชื่อวิชา
+_AC = r"(?<![A-Za-z0-9])"
+_AE = r"(?![A-Za-z0-9])"
+ACRONYM_MAP: tuple[tuple[re.Pattern, str, str], ...] = (
+    (re.compile(_AC + r"MIS" + _AE, re.I), "MANAGEMENT INFORMATION SYSTEMS", "ระบบสารสนเทศเพื่อการจัดการ"),
+    (re.compile(_AC + r"OOP" + _AE, re.I), "OBJECT-ORIENTED PROGRAMMING", "การสร้างโปรแกรมเชิงวัตถุ"),
+    (re.compile(_AC + r"SE" + _AE), "SOFTWARE ENGINEERING", "วิศวกรรมซอฟต์แวร์"),
+    (re.compile(_AC + r"ML" + _AE), "MACHINE LEARNING", "การเรียนรู้ของเครื่อง"),
+    (re.compile(_AC + r"DW" + _AE, re.I), "DATA WAREHOUS", "คลังข้อมูล"),
+    (re.compile(_AC + r"SAD" + _AE), "ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ"),
+    (re.compile(_AC + r"(?:CAL|แคล)\s*1(?!\d)", re.I), "CALCULUS 1", "แคลคูลัส 1"),
+    (re.compile(_AC + r"(?:CAL|แคล)\s*2(?!\d)", re.I), "CALCULUS 2", "แคลคูลัส 2"),
+    (re.compile(_AC + r"ENG\s*1(?!\d)", re.I), "ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1"),
+    (re.compile(r"อิ้ง\s*1(?!\d)"), "ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1"),
+)
+
+
+def acronym_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]:
+    """[(รหัส, ชื่อไทย)] ของวิชาเดียวที่ชื่อย่อในคำถามชี้ถึง — ไม่ตรงกฎ, ไม่มีวิชาในแผน, หรือมีหลายวิชา = []"""
+    for pat, en_part, th_part in ACRONYM_MAP:
+        if not pat.search(question):
+            continue
+        en_part, th_part = _norm_en(en_part), _norm_th(th_part)
+        found = {str(c["code"]): c.get("name_th") or c.get("name_en") or "" for c in courses
+                 if c.get("code") and (en_part in _norm_en(c.get("name_en")) or th_part in _norm_th(c.get("name_th")))}
+        return list(found.items()) if len(found) == 1 else []
+    return []
 
 
 def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
@@ -128,37 +170,7 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
     picked += _thai_fragments(spaces["th"], courses, typed, {code for _, code, _ in picked})
     if not picked:
-        for pat, (en_target, th_target) in ACRONYM_MAP:
-            m = pat.search(question)
-            if m:
-                en_norm = _norm_en(en_target)
-                th_norm = _norm_th(th_target)
-                for c in courses:
-                    c_en = _norm_en(c.get("name_en") or "")
-                    c_th = _norm_th(c.get("name_th") or "")
-                    if (en_norm and en_norm in c_en) or (th_norm and th_norm in c_th):
-                        picked.append((m.start(), str(c["code"]), c.get("name_th") or c.get("name_en") or ""))
-                        break
-    if not picked:
-        _COLLOQUIAL_RULES = [
-            (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"ฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"โปรแกรมมิ่ง\s*1"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
-            (re.compile(r"อิ้ง\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"ภาษาอังกฤษ\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"สถิติ"), "ความน่าจะเป็นและสถิติ"),
-        ]
-        for pat, target_name in _COLLOQUIAL_RULES:
-            m = pat.search(question)
-            if m:
-                target_norm = _norm_th(target_name)
-                for c in courses:
-                    c_norm = _norm_th(c.get("name_th") or "")
-                    if target_norm in c_norm or c_norm in target_norm:
-                        picked.append((m.start(), str(c["code"]), c["name_th"]))
-                        break
-                if picked:
-                    break
+        picked += [(0, code, name) for code, name in acronym_courses(question, courses) or colloquial_courses(question, courses)]
     out, seen = [], set()
     for _, code, raw in sorted(picked, key=lambda p: (p[0], p[1])):
         if code not in seen:
