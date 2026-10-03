@@ -33,9 +33,10 @@ git checkout feature/lab11-frontend          # ถ้ายังไม่ merge
 
 python -m venv .venv
 .venv\Scripts\Activate.ps1                   # Windows PowerShell (macOS/Linux: source .venv/bin/activate)
+# *หาก Windows แจ้งข้อผิดพลาด execution policy ให้รัน: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r lab10_fastapi/curriculum_app/requirements.txt
 
-ollama pull qwen3:4b                         # ครั้งแรกครั้งเดียว
+ollama pull qwen3:4b                         # ครั้งแรกครั้งเดียว (และเปิดแอปพลิเคชัน Ollama ไว้)
 python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
 ```
 

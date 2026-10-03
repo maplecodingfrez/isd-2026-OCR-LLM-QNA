@@ -113,6 +113,26 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
         picked.append((start, code, raw))
     picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
     picked += _thai_fragments(spaces["th"], courses, typed, {code for _, code, _ in picked})
+    if not picked:
+        _COLLOQUIAL_RULES = [
+            (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
+            (re.compile(r"ฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
+            (re.compile(r"โปรแกรมมิ่ง\s*1"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
+            (re.compile(r"อิ้ง\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
+            (re.compile(r"ภาษาอังกฤษ\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
+            (re.compile(r"สถิติ"), "ความน่าจะเป็นและสถิติ"),
+        ]
+        for pat, target_name in _COLLOQUIAL_RULES:
+            m = pat.search(question)
+            if m:
+                target_norm = _norm_th(target_name)
+                for c in courses:
+                    c_norm = _norm_th(c.get("name_th") or "")
+                    if target_norm in c_norm or c_norm in target_norm:
+                        picked.append((m.start(), str(c["code"]), c["name_th"]))
+                        break
+                if picked:
+                    break
     out, seen = [], set()
     for _, code, raw in sorted(picked, key=lambda p: (p[0], p[1])):
         if code not in seen:
