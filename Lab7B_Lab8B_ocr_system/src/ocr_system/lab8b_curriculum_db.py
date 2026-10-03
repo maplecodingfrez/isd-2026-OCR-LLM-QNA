@@ -3001,22 +3001,12 @@ def _named_courses(conn: sqlite3.Connection, question: str, catalog: bool = True
             if len(key) >= 5 and key in qn and (not strict or _name_is_whole(qn, key)):
                 hits.setdefault(key, {}).setdefault(code, th or en)
     maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
+    if not maximal and strict:                              # ไม่มีชื่อตรงเลย → ลองชื่อภาษาพูด/ไม่ครบ (ต้องชี้วิชาเดียวในแผน — ดู course_names.COLLOQUIAL_RULES)
+        import course_names
+        plan = [{"code": r[0], "name_th": r[1]} for r in conn.execute("SELECT code, name_th FROM course")]
+        got = course_names.colloquial_courses(question, plan)
+        return dict(got) or None
     if not maximal or len({frozenset(hits[k]) for k in maximal}) != 1:
-        # Fallback สำหรับชื่อวิชาไม่ครบ / ภาษาพูด (fuzzy match 6 ข้อ)
-        _COLLOQUIAL_RULES = [
-            (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"ฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"โปรแกรมมิ่ง\s*1"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
-            (re.compile(r"อิ้ง\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"ภาษาอังกฤษ\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"สถิติ"), "ความน่าจะเป็นและสถิติ"),
-        ]
-        for pat, target_name in _COLLOQUIAL_RULES:
-            if pat.search(question):
-                target_key = _name_key(target_name)
-                matched = {code: th for code, th, en in pairs if target_key in _name_key(th) or _name_key(th) in target_key}
-                if matched:
-                    return matched
         return None
     return {c: n for k in maximal for c, n in hits[k].items()}
 

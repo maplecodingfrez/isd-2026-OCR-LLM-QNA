@@ -86,6 +86,31 @@ def _thai_fragments(th_question: str, courses: list[dict], typed: set[str], alre
     return out if len({c for _, c, _ in out}) == 1 else []
 
 
+# ชื่อวิชาที่พิมพ์ไม่ครบ/ภาษาพูด -> (regex ในคำถาม, ส่วนของชื่อไทยที่ต้องอยู่ในชื่อวิชาของแผนนั้น)
+# ใช้เฉพาะเมื่อไม่มีชื่อวิชาใดตรงเลย; กฎแรกที่ตรงตัดสิน (เฉพาะเจาะจงก่อนทั่วไป) และต้องชี้วิชา "เดียว" ในแผนที่ถาม — มีหลายวิชา/ไม่มี = ไม่ตอบ (ผิดวิชา = 0)
+COLLOQUIAL_RULES: tuple[tuple[re.Pattern, str], ...] = (
+    (re.compile(r"โนเอสคิวแอล|nosql", re.I), "โนเอสคิวแอล"),
+    (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
+    (re.compile(r"วิชา\s*ฐานข้อมูล(?!นี้)"), "ฐานข้อมูล"),     # คำกว้าง: ต้องขึ้นต้นด้วย "วิชา" (กัน "ในฐานข้อมูลนี้", "ระบบฐานข้อมูลคืออะไร")
+    (re.compile(r"โปรแกรมมิ่ง\s*1(?!\d)"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
+    (re.compile(r"อิ้ง\s*1(?!\d)|ภาษาอังกฤษ\s*1(?!\d)"), "ภาษาอังกฤษพื้นฐาน1"),
+    (re.compile(r"วิชา\s*สถิติ"), "สถิติ"),
+)
+
+
+def colloquial_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]:
+    """[(รหัส, ชื่อไทย)] ของวิชาเดียวที่ชื่อภาษาพูด/ไม่ครบในคำถามชี้ถึง — ไม่ตรงกฎ, ไม่มีวิชาในแผน, หรือมีหลายวิชา = []"""
+    for pat, part in COLLOQUIAL_RULES:
+        if not pat.search(question):
+            continue
+        part = _norm_th(part)
+        found = {str(c["code"]): c.get("name_th") or "" for c in courses
+                 if c.get("code") and part in _norm_th(c.get("name_th"))}
+        return list(found.items()) if len(found) == 1 else []
+    return []
+
+
+
 def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     """[(ชื่อวิชาตามฐานข้อมูล, รหัส)] ของวิชาที่ชื่ออยู่ในคำถาม — ชื่อยาวชนะชื่อสั้นที่อยู่ข้างใน,
     ชื่อซ้ำกันหลายวิชา = ให้ทุกรหัส (ไม่เลือกเอง), วิชาที่ผู้ใช้พิมพ์รหัสมาแล้วไม่ต้องบอก"""
@@ -114,25 +139,7 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
     picked += _thai_fragments(spaces["th"], courses, typed, {code for _, code, _ in picked})
     if not picked:
-        _COLLOQUIAL_RULES = [
-            (re.compile(r"แนวคิดฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"ฐานข้อมูล"), "แนวคิดระบบฐานข้อมูล"),
-            (re.compile(r"โปรแกรมมิ่ง\s*1"), "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์"),
-            (re.compile(r"อิ้ง\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"ภาษาอังกฤษ\s*1"), "ภาษาอังกฤษพื้นฐาน 1"),
-            (re.compile(r"สถิติ"), "ความน่าจะเป็นและสถิติ"),
-        ]
-        for pat, target_name in _COLLOQUIAL_RULES:
-            m = pat.search(question)
-            if m:
-                target_norm = _norm_th(target_name)
-                for c in courses:
-                    c_norm = _norm_th(c.get("name_th") or "")
-                    if target_norm in c_norm or c_norm in target_norm:
-                        picked.append((m.start(), str(c["code"]), c["name_th"]))
-                        break
-                if picked:
-                    break
+        picked += [(0, code, name) for code, name in colloquial_courses(question, courses)]
     out, seen = [], set()
     for _, code, raw in sorted(picked, key=lambda p: (p[0], p[1])):
         if code not in seen:
