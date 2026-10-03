@@ -110,6 +110,19 @@ def colloquial_courses(question: str, courses: list[dict]) -> list[tuple[str, st
     return []
 
 
+ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
+    (re.compile(r"(?<![A-Z0-9])MIS(?![A-Z0-9])", re.IGNORECASE), ("MANAGEMENT INFORMATION SYSTEMS", "ระบบสารสนเทศเพื่อการจัดการ")),
+    (re.compile(r"(?<![A-Z0-9])OOP(?![A-Z0-9])", re.IGNORECASE), ("OBJECT-ORIENTED PROGRAMMING", "การสร้างโปรแกรมเชิงวัตถุ")),
+    (re.compile(r"(?<![A-Z0-9])SE(?![A-Z0-9])", re.IGNORECASE), ("SOFTWARE ENGINEERING", "วิศวกรรมซอฟต์แวร์")),
+    (re.compile(r"(?<![A-Z0-9])ML(?![A-Z0-9])", re.IGNORECASE), ("MACHINE LEARNING", "การเรียนรู้ของเครื่อง")),
+    (re.compile(r"(?<![A-Z0-9])DW(?![A-Z0-9])", re.IGNORECASE), ("DATA WAREHOUS", "คลังข้อมูล")),
+    (re.compile(r"(?<![A-Z0-9])SAD(?![A-Z0-9])", re.IGNORECASE), ("ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ")),
+    (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*1(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 1", "แคลคูลัส 1")),
+    (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*2(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 2", "แคลคูลัส 2")),
+    (re.compile(r"(?<![A-Z0-9])ENG\s*1(?![A-Z0-9])", re.IGNORECASE), ("ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),
+    (re.compile(r"อิ้ง\s*1"), ("ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),
+]
+
 
 def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
     """[(ชื่อวิชาตามฐานข้อมูล, รหัส)] ของวิชาที่ชื่ออยู่ในคำถาม — ชื่อยาวชนะชื่อสั้นที่อยู่ข้างใน,
@@ -138,6 +151,18 @@ def course_hints(question: str, courses: list[dict]) -> list[tuple[str, str]]:
         picked.append((start, code, raw))
     picked += _truncated_english(spaces["en"], courses, typed, [k for k in claimed if k[0] == "en"])
     picked += _thai_fragments(spaces["th"], courses, typed, {code for _, code, _ in picked})
+    if not picked:
+        for pat, (en_target, th_target) in ACRONYM_MAP:
+            m = pat.search(question)
+            if m:
+                en_norm = _norm_en(en_target)
+                th_norm = _norm_th(th_target)
+                for c in courses:
+                    c_en = _norm_en(c.get("name_en") or "")
+                    c_th = _norm_th(c.get("name_th") or "")
+                    if (en_norm and en_norm in c_en) or (th_norm and th_norm in c_th):
+                        picked.append((m.start(), str(c["code"]), c.get("name_th") or c.get("name_en") or ""))
+                        break
     if not picked:
         picked += [(0, code, name) for code, name in colloquial_courses(question, courses)]
     out, seen = [], set()
