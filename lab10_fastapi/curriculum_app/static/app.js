@@ -130,85 +130,8 @@
     return text || "(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)";
   }
 
-  // แยกเฉพาะตัวคั่นนอกวงเล็บ ไม่ตัด comma ในตัวเลขหรือรายละเอียดภายในชื่อวิชา
-  function splitAnswerParts(text, courses) {
-    var parts = [];
-    var start = 0;
-    var depth = 0;
-    for (var i = 0; i < text.length; i++) {
-      var ch = text[i];
-      if ("([{（".indexOf(ch) !== -1) depth++;
-      if (")]}）".indexOf(ch) !== -1) depth = Math.max(0, depth - 1);
-      var boundary = courses
-        ? ch === "," && /^\s*\d{8}\b/.test(text.slice(i + 1))
-        : ch === ";" || (ch === "|" && /\s/.test(text[i - 1] || "") && /\s/.test(text[i + 1] || ""));
-      if (depth === 0 && boundary) {
-        parts.push(text.slice(start, i).trim());
-        start = i + 1;
-      }
-    }
-    parts.push(text.slice(start).trim());
-    return parts.filter(Boolean);
-  }
-
-  function answerBlocks(data) {
-    var blocks = [];
-    answerText(data).split(/\r?\n/).forEach(function (line) {
-      splitAnswerParts(line, false).forEach(function (part) {
-        var bullet = /^[-*•]\s+(.+)$/.exec(part);
-        if (bullet) {
-          var previous = blocks[blocks.length - 1];
-          if (previous && previous.type === "list") previous.items.push(bullet[1]);
-          else blocks.push({ type: "list", items: [bullet[1]] });
-          return;
-        }
-        var heading = /^(.*?:)\s*(\d{8}\b[\s\S]*)$/.exec(part);
-        var body = heading ? heading[2] : part;
-        var courses = splitAnswerParts(body, true);
-        if (courses.length > 1 && courses.every(function (item) { return /^\d{8}\b/.test(item); })) {
-          if (heading) blocks.push({ type: "paragraph", text: heading[1] });
-          blocks.push({ type: "list", items: courses });
-        } else {
-          blocks.push({ type: "paragraph", text: part });
-        }
-      });
-    });
-    return blocks;
-  }
-
   function isEmptyResult(data) {
     return !(data && Array.isArray(data.rows) && data.rows.length > 0);
-  }
-
-  function electiveGroups(data) {
-    var rows = data && Array.isArray(data.rows) ? data.rows : [];
-    if (!rows.length || !rows.every(function (row) {
-      return row && typeof row.group_name_th === "string" && row.group_name_th.trim() &&
-        typeof row.code === "string" && /^\d{8}$/.test(row.code) &&
-        ((typeof row.course_name_th === "string" && row.course_name_th.trim()) ||
-         (typeof row.name_th === "string" && row.name_th.trim()));
-    })) return [];
-    var groups = [];
-    var byKey = new Map();
-    rows.forEach(function (row) {
-      var slot = typeof row.plan_slot === "string" ? row.plan_slot : "";
-      var key = JSON.stringify([row.group_no, row.group_name_th, slot]);
-      var group = byKey.get(key);
-      if (!group) {
-        group = { name: row.group_name_th, slot: slot, courses: [] };
-        byKey.set(key, group);
-        groups.push(group);
-      }
-      group.courses.push({
-        code: row.code,
-        name: typeof row.course_name_th === "string" && row.course_name_th.trim() ? row.course_name_th : row.name_th,
-        nameEn: typeof row.course_name_en === "string" && row.course_name_en.trim() ? row.course_name_en.trim() :
-          (typeof row.name_en === "string" ? row.name_en.trim() : ""),
-        credits: Number.isFinite(row.credits) ? row.credits : null,
-        creditLabel: typeof row.credits_display === "string" && /^\d+ \(\d+-\d+-\d+\)$/.test(row.credits_display) ? row.credits_display : null
-      });
-    });
-    return groups;
   }
 
   // สิ่งที่ปุ่ม "คัดลอกผล" ส่งออก — 5 คีย์ตายตัว (ไม่รวม sql/rows ให้สั้นพอวางใน Discord)
@@ -272,8 +195,6 @@
     validateCode: validateCode,
     citationItems: citationItems,
     answerText: answerText,
-    answerBlocks: answerBlocks,
-    electiveGroups: electiveGroups,
     isEmptyResult: isEmptyResult,
     buildCopyPayload: buildCopyPayload
   };
@@ -330,46 +251,6 @@
   var prereqControls = [$("prereq-button"), $("course-code")];
   var lastResult = null;
   var copyTimer = null;
-  var withdrawPanel = $("withdraw-panel");
-  var withdrawControls = [$("withdraw-button"), $("withdraw-code")];
-
-  async function runWithdrawal() {
-    if (withdrawPanel.dataset.state === "loading") return;
-    var check = validateCode($("withdraw-code").value);
-    if (!check.ok) {
-      showError(withdrawPanel, withdrawControls, "withdraw", new ApiError("http", 422, check.message, check.message), "prereq", { local: true });
-      $("withdraw-code").focus();
-      return;
-    }
-    var program = $("program").value;
-    setState(withdrawPanel, "loading", withdrawControls);
-    try {
-      var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/withdrawal-impact", program));
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
-      $("withdraw-course").textContent = courseDisplay(data.course);
-      $("withdraw-note").textContent = data.note;
-      ["direct", "indirect"].forEach(function (key) {
-        var list = $("withdraw-" + key);
-        clear(list);
-        if (!data[key].length) list.appendChild(el("li", { text: "ไม่พบความสัมพันธ์ตัวต่อประเภทนี้ในข้อมูลหลักสูตร" }));
-        data[key].forEach(function (course) {
-          var path = [data.course.code].concat(course.path.map(function (edge) { return edge.code; })).join(" → ");
-          var conditions = course.path.map(function (edge) {
-            return edge.code + ": " + (edge.kind === "co" ? "เรียนร่วมกัน" : "วิชาบังคับก่อน") + (edge.alternative ? " (มีทางเลือกอื่นในเงื่อนไขเดียวกัน)" : "");
-          }).join("; ");
-          list.appendChild(el("li", {}, [
-            el("p", { text: courseDisplay(course) }),
-            el("p", { className: "muted", text: "ตัวอย่างเส้นทาง: " + path + " — " + conditions })
-          ]));
-        });
-      });
-      $("withdraw-citations").textContent = data.citations.length ? "อ้างอิง: " + data.citations.map(function (c) { return "PDF " + c.pdf_page + " (" + c.courses.join(", ") + ")"; }).join("; ") : "ไม่พบเลขหน้าอ้างอิงที่ยืนยันได้";
-      setState(withdrawPanel, "success", withdrawControls);
-    } catch (err) {
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
-      showError(withdrawPanel, withdrawControls, "withdraw", err, "prereq");
-    }
-  }
 
   // opts.local = ตรวจไม่ผ่านในหน้าเว็บเอง (ไม่ได้ส่งคำขอ): ไม่มี "รายละเอียดจากเซิร์ฟเวอร์" และไม่มีปุ่มลองอีกครั้ง
   // (ส่งซ้ำก็ผิดเหมือนเดิม) — ให้แก้ช่องแล้วกดปุ่มหลักแทน
@@ -391,77 +272,31 @@
   }
 
   // ---------- แผง 1: ถามเรื่องหลักสูตร ----------
-  function renderElectiveGroups(answer, groups, data) {
-    var total = groups.reduce(function (n, group) { return n + group.courses.length; }, 0);
-    answer.appendChild(el("p", { className: "group-overview", text: groups.length + " กลุ่ม รวม " + total + " รายการ — กดชื่อกลุ่มเพื่อดูรายวิชา" }));
-    if (groups.some(function (group) { return group.courses.some(function (course) { return course.creditLabel; }); })) {
-      answer.appendChild(el("p", { className: "muted", text: "หน่วยกิต (ชั่วโมงบรรยาย–ปฏิบัติ–ศึกษาด้วยตนเองต่อสัปดาห์)" }));
-    }
-    var firstGroup = answerText(data).indexOf(groups[0].name);
-    var preamble = firstGroup > 0 ? answerText(data).slice(0, firstGroup).trim() : "";
-    if (/[ก-๙]/.test(preamble) && !/\d{8}/.test(preamble)) {
-      answer.appendChild(el("p", { className: "group-overview", text: preamble }));
-    }
-    groups.forEach(function (group) {
-      var section = el("details", { className: "elective-section" });
-      section.open = groups.length === 1;
-      section.appendChild(el("summary", {}, [
-        el("span", { className: "elective-title", text: group.name }),
-        el("span", { className: "elective-count", text: group.courses.length + " รายการ" })
-      ]));
-      if (group.slot) section.appendChild(el("p", { className: "muted elective-slot", text: group.slot }));
-      section.appendChild(el("ul", { className: "elective-courses" }, group.courses.map(function (course) {
-        var content = [
-          el("span", { className: "code", text: course.code }),
-          el("span", { className: "elective-name", text: course.name })
-        ];
-        if (course.nameEn) content.push(el("span", { className: "elective-name-en", text: course.nameEn, attrs: { lang: "en" } }));
-        if (course.credits !== null) content.push(el("span", { className: "elective-credits", text: (course.creditLabel || course.credits) + " หน่วยกิต" }));
-        return el("li", {}, content);
-      })));
-      answer.appendChild(section);
-    });
-    answer.appendChild(el("details", { className: "original-answer" }, [
-      el("summary", { text: "ดูคำตอบต้นฉบับ" }),
-      el("p", { text: answerText(data) })
-    ]));
-  }
-
+  // การ์ดอ้างอิงต่อหน้า: เลขหน้าตัวใหญ่เด่น + รายวิชาที่พบในหน้านั้นเป็น chip อยู่ในการ์ดเดียวกัน
+  // (เดิมแยกเป็น tab เลขหน้า + list รายวิชาสองที่ ทำให้กรรมการต้องจับคู่เอาเอง)
   function renderAnswer(data, seconds) {
-    var tabs = $("cite-tabs");
-    clear(tabs);
+    var cards = $("cite-cards");
+    clear(cards);
     var items = citationItems(data);
     items.forEach(function (c) {
-      var tab = el("li", { className: "cite-tab" }, [
-        el("span", { text: c.printed !== null ? "หน้า " + c.printed : "PDF " + c.pdf })
+      var pageLabel = c.printed !== null ? "หน้า " + c.printed : "PDF " + c.pdf;
+      var head = el("div", { className: "cite-card-head" }, [
+        el("span", { className: "cite-page", text: pageLabel })
       ]);
-      if (c.printed !== null) tab.appendChild(el("span", { className: "pdf", text: "PDF " + c.pdf }));
-      tabs.appendChild(tab);
-    });
-    var detail = $("cite-detail");                           // หน้าไหนอ้างวิชาไหน (ไม่มีรหัสวิชา = ไม่แสดงบรรทัดนั้น)
-    clear(detail);
-    items.forEach(function (c) {
-      if (!c.courses.length) return;
-      detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
-        ": " + c.courses.map(function (code) { return [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / "); }).join(", ") }));
+      if (c.printed !== null) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf }));
+      var card = el("li", { className: "cite-card" }, [head]);
+      if (c.courses.length) {
+        var chipList = el("ul", { className: "cite-chip-list" });
+        c.courses.forEach(function (code) {
+          var label = [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / ");
+          chipList.appendChild(el("li", { className: "cite-chip", text: label }));
+        });
+        card.appendChild(chipList);
+      }
+      cards.appendChild(card);
     });
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
-    var answer = $("answer-text");
-    clear(answer);
-    var groupedQuestion = /วิชาเลือก|กลุ่มวิชา/.test(data.question || "") && /อะไรบ้าง|วิชาอะไร|รายชื่อ|ให้เลือก/.test(data.question || "");
-    var groups = groupedQuestion ? electiveGroups(data) : [];
-    if (groups.length) renderElectiveGroups(answer, groups, data);
-    else answerBlocks(data).forEach(function (block) {
-      if (block.type === "list") {
-        answer.appendChild(el("ul", { className: "answer-list" }, block.items.map(function (item) {
-          return el("li", { text: item });
-        })));
-      } else {
-        answer.appendChild(el("p", { text: block.text }));
-      }
-    });
-    $("citation-details").hidden = detail.childElementCount === 0;
-    $("citation-details").open = groups.length === 0;
+    $("answer-text").textContent = answerText(data);
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
@@ -470,7 +305,7 @@
       : "ตอบจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้";
     $("sql-text").textContent = data.sql || "-";
     $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
-    $("elapsed-text").textContent = "ใช้เวลา " + seconds.toFixed(1) + " วินาที";
+    $("elapsed-text").textContent = "⏱️ ตอบใน " + seconds.toFixed(2) + " วินาที" + (seconds < 5.0 ? " (< 5s Bonus ⭐)" : "");
     resetCopyUi();
   }
 
@@ -485,17 +320,33 @@
     var program = $("program").value || null;
     var started = performance.now();
     setState(askPanel, "loading", askControls);
+
+    var loadingMsgs = [
+      "กำลังสืบค้นฐานข้อมูลหลักสูตรและวิเคราะห์คำตอบ…",
+      "กำลังตรวจสอบโครงสร้างแผนการศึกษา…",
+      "กำลังสรุปข้อมูลและเตรียมเล่มอ้างอิง…"
+    ];
+    var msgIdx = 0;
+    var msgEl = $("loading-msg-text");
+    if (msgEl) msgEl.textContent = loadingMsgs[0];
+    var msgInterval = setInterval(function () {
+      msgIdx = (msgIdx + 1) % loadingMsgs.length;
+      if (msgEl) msgEl.textContent = loadingMsgs[msgIdx];
+    }, 1800);
+
     try {
       var data = await apiFetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: check.value, program: program })
       });
+      clearInterval(msgInterval);
       var seconds = (performance.now() - started) / 1000;
       lastResult = buildCopyPayload(check.value, program, data, seconds);
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
       setState(askPanel, "success", askControls);
     } catch (err) {
+      clearInterval(msgInterval);
       showError(askPanel, askControls, "ask", err, "ask");
     }
   }
@@ -504,7 +355,6 @@
   function resetCopyUi() {
     clearTimeout(copyTimer);
     $("copy-button").textContent = "คัดลอกผล";
-    $("copy-button").classList.remove("is-copied");
     $("copy-fallback").hidden = true;
     $("copy-hint").hidden = true;
   }
@@ -535,13 +385,9 @@
       $("copy-fallback").hidden = true;
       $("copy-hint").hidden = true;
       $("copy-button").textContent = "คัดลอกแล้ว";
-      $("copy-button").classList.add("is-copied");
       $("live-status").textContent = "คัดลอกผลแล้ว";     // ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ
       clearTimeout(copyTimer);
-      copyTimer = setTimeout(function () {
-        $("copy-button").textContent = "คัดลอกผล";
-        $("copy-button").classList.remove("is-copied");
-      }, 2000);
+      copyTimer = setTimeout(function () { $("copy-button").textContent = "คัดลอกผล"; }, 2000);
       return;
     }
     var box = $("copy-fallback");     // คัดลอกอัตโนมัติไม่ได้ (เช่น เปิดผ่านที่อยู่ IP ของเครื่อง ไม่ใช่ localhost) → ให้เลือกไว้ให้แล้ว
@@ -554,12 +400,6 @@
   }
 
   // ---------- แผง 2: ตรวจวิชาบังคับก่อน ----------
-  function courseDisplay(course) {
-    var title = (course.name_th || "วิชาในหลักสูตร") + (course.name_en ? " / " + course.name_en : "");
-    var credits = course.credits_display || (course.credits != null ? String(course.credits) : "");
-    return (course.code || "") + " " + title + (credits ? " — " + credits + " หน่วยกิต" : "");
-  }
-
   function fillCourseList(list, items, emptyText) {
     clear(list);
     var courses = Array.isArray(items) ? items : [];
@@ -568,18 +408,18 @@
       return;
     }
     courses.forEach(function (course) {
+      var credits = course.credits != null ? " (" + course.credits + " หน่วยกิต)" : "";
       list.appendChild(el("li", {}, [
         el("span", { className: "code", text: course.code || "" }),
-        document.createTextNode(courseDisplay(course).slice((course.code || "").length))
+        document.createTextNode(" " + (course.name_th || "วิชาในหลักสูตร") + credits)
       ]));
     });
   }
 
   function renderPrereq(data) {
-    $("prereq-course").textContent = "[" + (data.code || "") + "] " + (data.name_th || "") + (data.name_en ? " / " + data.name_en : "");
+    $("prereq-course").textContent = "[" + (data.code || "") + "] " + (data.name_th || "");
     $("prereq-meta").textContent =
-      (data.credits_display || (data.credits != null ? data.credits : "")) + " หน่วยกิต" +
-      (data.credits_display ? " · (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)" : "");
+      (data.credits != null ? data.credits + " หน่วยกิต" : "") + (data.name_en ? " (" + data.name_en + ")" : "");
     fillCourseList($("prereq-required"), data.prerequisites_required, "ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที");
     fillCourseList($("prereq-unlocks"), data.unlocked_courses, "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน");
   }
@@ -648,7 +488,10 @@
     var show = !!(select.value && option);
     $("prereq-scope").hidden = !show;
     if (show) $("prereq-scope").textContent = "ค้นจากหลักสูตร: " + option.textContent;
-    $("withdraw-scope").textContent = show ? "ตรวจจากหลักสูตร: " + option.textContent : "ตรวจจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้";
+    var planName = $("dash-plan-name");
+    if (planName && option) planName.textContent = option.textContent;
+    var planBadge = $("dash-program-badge");
+    if (planBadge && option) planBadge.textContent = select.value || "แผนหลัก";
   }
 
   var coursesRequest = 0;
@@ -661,11 +504,7 @@
       var datalist = $("courses-list");
       clear(datalist);
       courses.forEach(function (course) {
-        var names = [course.name_th, course.name_en].filter(function (name) {
-          return typeof name === "string" && name.trim();
-        }).map(function (name) { return name.trim(); });
-        var label = [course.code || "", names.join(" / ")].filter(Boolean).join(" ");
-        datalist.appendChild(el("option", { text: label, attrs: { value: course.code || "", label: label } }));
+        datalist.appendChild(el("option", { attrs: { value: course.code || "", label: (course.code || "") + " " + (course.name_th || "") } }));
       });
       var samples = $("prereq-samples");
       clear(samples);
@@ -673,6 +512,27 @@
         samples.appendChild(el("button", { className: "link-button", text: course.code || "", attrs: { type: "button", "data-code": course.code || "" } }));
       });
       $("prereq-samples-wrap").hidden = courses.length === 0;
+
+      // อัปเดตตัวอย่างรายวิชาใน Dashboard Card ทันที
+      var previewBox = $("dash-course-preview");
+      if (previewBox) {
+        clear(previewBox);
+        courses.slice(0, 4).forEach(function (course) {
+          var row = el("div", { className: "course-mini-row" }, [
+            el("span", { className: "mini-code", text: course.code || "" }),
+            el("span", { className: "mini-name", text: course.name_th || "" }),
+            el("span", { className: "mini-credits", text: course.credits != null ? course.credits + " น." : "" })
+          ]);
+          previewBox.appendChild(row);
+        });
+        if (courses.length > 4) {
+          previewBox.appendChild(el("div", { className: "course-mini-row", attrs: { style: "color:var(--text-tertiary);font-size:11.5px;" } }, [
+            el("span", { text: "+ อีก " + (courses.length - 4) + " รายวิชาในหลักสูตร", attrs: { style: "grid-column:1/-1;" } })
+          ]));
+        }
+      }
+      var countBadge = $("dash-course-count");
+      if (countBadge) countBadge.textContent = courses.length + " รายวิชา";
     } catch (e) {
       if (mine !== coursesRequest) return;
       clear($("courses-list"));            // ไม่มี autocomplete ก็ใช้งานได้ (และไม่ค้างรายการของหลักสูตรก่อนหน้า)
@@ -683,6 +543,12 @@
 
   // ---------- ผูกเหตุการณ์ ----------
   $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
+  $("question").addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      runAsk();
+    }
+  });
   $("ask-retry").addEventListener("click", runAsk);
   $("copy-button").addEventListener("click", copyResult);
   document.querySelectorAll("[data-question]").forEach(function (button) {
@@ -696,12 +562,9 @@
     loadCourses();
     // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: กลับไปสถานะ Idle (ถ้ากำลังตรวจอยู่ปล่อยให้เสร็จก่อน)
     if (prereqPanel.dataset.state !== "loading") setState(prereqPanel, "idle", prereqControls);
-    if (withdrawPanel.dataset.state !== "loading") setState(withdrawPanel, "idle", withdrawControls);
   });
   $("prereq-form").addEventListener("submit", function (event) { event.preventDefault(); runPrereq(); });
   $("prereq-retry").addEventListener("click", runPrereq);
-  $("withdraw-form").addEventListener("submit", function (event) { event.preventDefault(); runWithdrawal(); });
-  $("withdraw-retry").addEventListener("click", runWithdrawal);
   $("prereq-samples").addEventListener("click", function (event) {
     var button = event.target.closest("[data-code]");
     if (!button) return;
