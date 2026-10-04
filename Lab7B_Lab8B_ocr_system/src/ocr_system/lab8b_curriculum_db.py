@@ -1648,6 +1648,8 @@ def _hide_internal_columns(rows: list[dict]) -> list[dict]:
     for r in rows:
         if len(r) > 1 and isinstance(r.get("alt_group"), str) and r["alt_group"].startswith("lab7b_alt_"):
             r = {k: v for k, v in r.items() if k != "alt_group"}      # แถวที่มีแต่คอลัมน์นี้คงเดิม (ตัดแล้วจะว่างเปล่า)
+        if len(r) > 1 and "code" in r and isinstance(r.get("id"), int):
+            r = {k: v for k, v in r.items() if k != "id"}            # id ลำดับแถวภายในตาราง ไม่ใช่ข้อมูลของวิชา
         out.append(r)
     return out
 
@@ -2899,7 +2901,7 @@ def _other_plan_diff_answer(conn: sqlite3.Connection, question: str) -> tuple[st
                 rows += [{"code": c, "name_th": names.get(c), "plan": pl, "only_here": c in only[pl], **page_of(c, pl)} for c, _ in data[pl][0]]
             if not any(data[pl][0] or data[pl][1] for pl in data):
                 return None
-            return text, rows, f"SELECT code, note FROM plan_item WHERE year = {y} AND semester = {sm}"
+            return text, rows, f"SELECT code, note FROM plan_item WHERE year = {y} AND semester = {sm} -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบกัน"
         # ---- ทั้งแผน ----
         sets = {pl: {r[0] for r in c.execute("SELECT DISTINCT code FROM plan_item") if re.fullmatch(r"\d{8}", r[0] or "")} for pl, c in plans.items()}
         totals = {pl: c.execute("SELECT SUM(credits) FROM main.v_semester_credits_full").fetchone()[0] for pl, c in plans.items()}
@@ -2909,7 +2911,7 @@ def _other_plan_diff_answer(conn: sqlite3.Connection, question: str) -> tuple[st
                 "(เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)")
         rows = [{"code": c, "name_th": names.get(c), "only_in": "สหกิจ", **page_of(c, "สหกิจ")} for c in only_coop] + \
                [{"code": c, "name_th": names.get(c), "only_in": "ไม่สหกิจ", **page_of(c, "ไม่สหกิจ")} for c in only_no]
-        return text, rows, "SELECT DISTINCT code FROM plan_item"
+        return text, rows, "SELECT DISTINCT code FROM plan_item -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบรหัสวิชาสองชุดนี้"
     except sqlite3.OperationalError:
         return None
     finally:
@@ -3185,8 +3187,13 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
                          **({"credits": course["credits"]} if want_credits else {})})
     else:
         rows.append({"code": course["code"], "name_th": course["name_th"], "credits": course["credits"]})
-    return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows,
-            f"SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '{code}'")
+    if want_credits and (want_year or want_sem):                # SQL ที่โชว์ = คอลัมน์ที่ใช้ตอบจริง (ผลคำนวณจาก course + plan_item สองคำสั่ง)
+        shown = f"SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '{code}'"
+    elif want_year or want_sem:
+        shown = f"SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '{code}' ORDER BY p.year, p.semester"
+    else:
+        shown = f"SELECT code, name_th, credits FROM course WHERE code = '{code}'"
+    return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows, shown)
 
 
 # ---- 14. กลุ่มวิชาเลือกถามด้วยชื่อกลุ่ม (รายชื่อวิชา / จำนวนวิชา / หน่วยกิตที่ต้องเลือก) ----
@@ -4711,6 +4718,40 @@ _SHORTCUTS = (
 )
 
 
+_EQ_LITERAL = re.compile(r"(?:\b([A-Za-z_]\w*)\.)?\b([A-Za-z_]\w*)\s*=\s*'((?:[^']|'')*)'")
+_GROUNDED_COLUMNS = {"code", "requires", "name_th", "name_en", "alt_group", "program_id"}
+
+
+def _ungrounded_literal(conn: sqlite3.Connection, sql: str) -> str | None:
+    """ค่าใน `คอลัมน์ = '...'` ที่ไม่มีอยู่ในตาราง/วิวใด ๆ ของ SQL นี้เลย (รหัสวิชาที่ไม่มีใน DB, ชื่ออังกฤษใส่ช่อง name_th,
+    alt_group/ชื่อหลักสูตรที่ไม่มีจริง = ค่าที่โมเดลแต่งเอง); ตรวจไม่ได้ (main.view, ไม่รู้ตาราง) หรือไม่ผิด = None"""
+    sources: dict[str, str] = {}
+    for table, alias in _SQL_SOURCE.findall(sql):
+        alias = "" if alias.lower() in _SQL_KEYWORDS else alias.lower()
+        sources[alias or table.lower()] = table
+        sources.setdefault(table.lower(), table)
+    for qual, col, lit in _EQ_LITERAL.findall(_SQL_STRING.sub(lambda m: m.group(0), sql)):
+        if col.lower() not in _GROUNDED_COLUMNS:
+            continue
+        lit = lit.replace("''", "'")
+        tables = [sources[qual.lower()]] if qual and qual.lower() in sources else list(dict.fromkeys(sources.values()))
+        checked = False
+        for table in tables:
+            try:
+                if col.lower() not in {r[1].lower() for r in conn.execute(f"PRAGMA table_info({table})")}:
+                    continue
+                checked = True
+                if conn.execute(f"SELECT 1 FROM {table} WHERE {col} = ? LIMIT 1", (lit,)).fetchone():
+                    break
+            except sqlite3.Error:
+                checked = False
+                break
+        else:
+            if checked:
+                return lit
+    return None
+
+
 def ask(conn: sqlite3.Connection, question: str,
         verbose: bool = True) -> dict:
     """
@@ -4801,6 +4842,8 @@ def ask(conn: sqlite3.Connection, question: str,
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
         result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+        if _ungrounded_literal(conn, result["sql"] or ""):     # SQL ที่โมเดลแต่งค่าเอง (ไม่มีใน DB) — โชว์ SQL มาตรฐานของ "ไม่พบ" แทน (ผลเดิม ไม่เปลี่ยนคำตอบ)
+            result["sql_rejected"], result["sql"] = result["sql"], _NOT_FOUND[2]
         return result
 
     raw_answer = ollama_generate(
