@@ -62,6 +62,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import levels  # noqa: E402  ระดับคำถาม ch1 + หน้าอ้างอิงที่คาดหวัง (levels.py ข้างไฟล์นี้)

@@ -44,6 +44,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 # ═══════════════════════════════════════════════════════════════════════
 #  ค่าคงที่
 # ═══════════════════════════════════════════════════════════════════════
@@ -3244,6 +3256,35 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows, shown)
 
 
+def _course_program_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชา <รหัส หรือ ชื่อ> อยู่ใน/มีในหลักสูตรไหน -> ตอบ program_id จาก plan_item"""
+    if not re.search(r"(?:มีใน)?หลักสูตร(?:ไหน|ใด|อะไร)", question):
+        return None
+    if _RELATIONAL_NOT.search(question):
+        return None
+    codes = list(dict.fromkeys(_CODE8.findall(question)))
+    if len(codes) > 1:
+        return None
+    if codes:
+        code = codes[0]
+    else:
+        named = _named_courses(conn, question)
+        if not named or len(named) != 1:
+            return None
+        code = next(iter(named))
+    try:
+        rows = [dict(r) for r in conn.execute("SELECT DISTINCT program_id FROM plan_item WHERE code = ? ORDER BY program_id", (code,)).fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    prog_ids = [r["program_id"] for r in rows if r.get("program_id")]
+    if not prog_ids:
+        return None
+    shown = f"SELECT program_id FROM plan_item WHERE code = '{code}' LIMIT 200"
+    return (", ".join(prog_ids), rows, shown)
+
+
 # ---- 13b. ชื่อวิชาพิมพ์ไม่ครบ/กำกวม: "ไม่พบ" + วิชาใกล้เคียงพร้อมค่าที่ถาม ให้ผู้ใช้ยืนยันเอง (ไม่เลือกวิชาให้) ----
 _NEAR_MAX = 5
 _NEAR_NOT = re.compile(r"ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|ภาค\S*\s*\d|รวม|ทั้งหมด|กี่วิชา|หมวด|ชั่วโมง|ก่อน|ชื่อ|อะไรบ้าง|วิชาไหนบ้าง|วิชา(?:อะไร|ใด)")
@@ -4884,7 +4925,7 @@ _SHORTCUTS = (
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
+    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )

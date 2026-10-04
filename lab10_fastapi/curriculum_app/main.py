@@ -53,7 +53,16 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -132,9 +141,9 @@ def get_courses(
 
 @app.post("/api/courses", response_model=CourseResponse,
           status_code=status.HTTP_201_CREATED)
-def post_course(course: CourseCreate) -> dict:
+def post_course(course: CourseCreate, program: str | None = Query(default=None)) -> dict:
     try:
-        return database.create_course(course.model_dump())
+        return _database_for(program).create_course(course.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except sqlite3.IntegrityError as exc:
