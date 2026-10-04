@@ -153,6 +153,8 @@ ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
     (re.compile(r"(?<![A-Za-z0-9])SAD(?![A-Za-z0-9])"), ("ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ")),
     (re.compile(r"(?<![A-Za-z0-9])OS(?![A-Za-z0-9])"), ("OPERATING SYSTEM", "ระบบปฏิบัติการ")),
     (re.compile(r"(?<![A-Za-z0-9])DIQ(?![A-Za-z0-9])"), ("DIGITAL INTELLIGENCE QUOTIENT", "ความฉลาดทางดิจิทัล")),
+    (re.compile(r"(?<![A-Za-z0-9])AML(?![A-Za-z0-9])"), ("APPLIED MACHINE LEARNING", "การเรียนรู้ของเครื่องเชิงประยุกต์")),
+    (re.compile(r"(?<![A-Za-z0-9])BFIT(?![A-Za-z0-9])"), ("BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY", "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ")),
     (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*1(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 1", "แคลคูลัส 1")),
     (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*2(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 2", "แคลคูลัส 2")),
     (re.compile(r"(?<![A-Z0-9])ENG\s*1(?![A-Z0-9])", re.IGNORECASE), ("FOUNDATION ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),
