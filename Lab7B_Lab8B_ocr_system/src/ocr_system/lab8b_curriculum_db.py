@@ -4381,6 +4381,36 @@ def repair_undefined_aliases(sql: str) -> str:
     return "".join(out)
 
 
+def repair_course_search_sql(sql: str) -> str:
+    """แก้ SQL ที่โมเดลค้นหาคำภาษาอังกฤษใน name_th หรือลืมใส่เครื่องหมาย % ใน LIKE
+    - ถ้าค้นหาด้วยคำภาษาอังกฤษใน name_th หรือ course_name_th ให้เปลี่ยนไปค้นใน name_en / course_name_en
+    - ถ้าเป็น LIKE 'คำ' ที่ไม่มี % และคำยาว >= 3 ตัวอักษร ให้ใส่ % ครอบคำค้นหาเสมอ"""
+    def replace_match(m: re.Match) -> str:
+        col_prefix = m.group(1) or ""
+        col = m.group(2)
+        val = m.group(3)
+        has_latin = bool(re.search(r"[A-Za-z]", val))
+        has_thai = bool(re.search(r"[\u0e00-\u0e7f]", val))
+
+        # คำค้นหาภาษาอังกฤษล้วน (ไม่มีภาษาไทยปน)
+        if has_latin and not has_thai:
+            term = val.strip("%")
+            # ถ้าเป็นคำสั้น 1-2 ตัวอักษร ไม่ใส่ % ครอบ เพื่อไม่ให้ชนกฎ SHORT_CONTAINS_LIKE
+            if len(term) <= 2:
+                return m.group(0)
+            target_col = "course_name_en" if "course_name" in col.lower() else "name_en"
+            return f"{col_prefix}{target_col} LIKE '%{term}%'"
+
+        # ถ้ามี % ด้านหน้าแต่ลืมด้านหลัง (เช่น LIKE '%ข้อมูล' -> LIKE '%ข้อมูล%')
+        if val.startswith("%") and not val.endswith("%"):
+            return f"{col_prefix}{col} LIKE '{val}%'"
+
+        return m.group(0)
+
+    pattern = re.compile(r"\b([A-Za-z_]\w*\.)?(name_th|name_en|course_name_th|course_name_en)\s*(?:LIKE|=)\s*'([^']*)'", re.I)
+    return pattern.sub(replace_match, sql)
+
+
 SQL_PROMPT = """คุณคือผู้ช่วยแปลงคำถามภาษาไทยเป็นคำสั่ง SQL ของ SQLite
 
 โครงสร้างฐานข้อมูล
@@ -4423,6 +4453,11 @@ SQL: SELECT NULL WHERE 0
   ถามว่าเรียน X แล้วเรียนอะไรต่อได้ / X ปลดล็อกวิชาอะไร / วิชาไหนต้องใช้ X ก่อน
   -> กรอง requires = X แล้วเลือกคอลัมน์ code
   (ทั้งสองทิศใช้ kind='pre' ยกเว้นถามวิชาเรียนควบ ใช้ kind='co')
+- การค้นหาชื่อวิชาด้วย LIKE:
+  * ถ้าคีย์เวิร์ดที่ค้นหาเป็นภาษาอังกฤษ (เช่น Machine, Network, Data, Cloud) ให้ค้นหาในคอลัมน์ name_en เสมอ
+    และต้องใส่เครื่องหมาย % ครอบคำค้นหาเสมอ เช่น WHERE name_en LIKE '%Machine%'
+    ห้ามค้นหาคำภาษาอังกฤษใน name_th เพราะ name_th เก็บเฉพาะชื่อภาษาไทย
+  * ห้ามใช้ LIKE 'คำ' โดยไม่มี % เด็ดขาด เพราะจะไม่พบข้อมูล
 - ถ้าคำถามถามถึงสิ่งที่ "ไม่มีคอลัมน์หรือตารางรองรับในโครงสร้างข้างบนเลย"
   (เช่น ค่าเทอม/ค่าธรรมเนียม, ชื่ออาจารย์ผู้สอน, ห้องเรียน, ตำราเรียน, ตารางสอบ)
   ห้ามเดา SQL ที่ดูใกล้เคียง ให้ตอบว่า  SELECT NULL WHERE 0  เท่านั้น
@@ -4993,7 +5028,8 @@ def ask(conn: sqlite3.Connection, question: str,
                 str(parsed_sql.get("sql", "")) if isinstance(parsed_sql, dict)
                 else raw_sql)
             # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
-            sql = guard_sql(repair_undefined_aliases(sql))
+            # แก้ไขการค้นหาคำภาษาอังกฤษใน name_th และเติม % ให้ LIKE
+            sql = guard_sql(repair_course_search_sql(repair_undefined_aliases(sql)))
             result["sql"] = sql
             rows = _hide_internal_columns(_dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()]))
             result["rows"] = rows
