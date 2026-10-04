@@ -346,7 +346,7 @@
     try {
       var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/withdrawal-impact", program));
       if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
-      $("withdraw-course").textContent = data.course.code + " " + data.course.name_th + (data.course.name_en ? " / " + data.course.name_en : "");
+      $("withdraw-course").textContent = courseDisplay(data.course);
       $("withdraw-note").textContent = data.note;
       ["direct", "indirect"].forEach(function (key) {
         var list = $("withdraw-" + key);
@@ -358,7 +358,7 @@
             return edge.code + ": " + (edge.kind === "co" ? "เรียนร่วมกัน" : "วิชาบังคับก่อน") + (edge.alternative ? " (มีทางเลือกอื่นในเงื่อนไขเดียวกัน)" : "");
           }).join("; ");
           list.appendChild(el("li", {}, [
-            el("p", { text: course.code + " " + (course.name_th || "ไม่พบชื่อวิชา") + (course.name_en ? " / " + course.name_en : "") }),
+            el("p", { text: courseDisplay(course) }),
             el("p", { className: "muted", text: "ตัวอย่างเส้นทาง: " + path + " — " + conditions })
           ]));
         });
@@ -554,6 +554,12 @@
   }
 
   // ---------- แผง 2: ตรวจวิชาบังคับก่อน ----------
+  function courseDisplay(course) {
+    var title = (course.name_th || "วิชาในหลักสูตร") + (course.name_en ? " / " + course.name_en : "");
+    var credits = course.credits_display || (course.credits != null ? String(course.credits) : "");
+    return (course.code || "") + " " + title + (credits ? " — " + credits + " หน่วยกิต" : "");
+  }
+
   function fillCourseList(list, items, emptyText) {
     clear(list);
     var courses = Array.isArray(items) ? items : [];
@@ -562,18 +568,18 @@
       return;
     }
     courses.forEach(function (course) {
-      var credits = course.credits != null ? " (" + course.credits + " หน่วยกิต)" : "";
       list.appendChild(el("li", {}, [
         el("span", { className: "code", text: course.code || "" }),
-        document.createTextNode(" " + (course.name_th || "วิชาในหลักสูตร") + credits)
+        document.createTextNode(courseDisplay(course).slice((course.code || "").length))
       ]));
     });
   }
 
   function renderPrereq(data) {
-    $("prereq-course").textContent = "[" + (data.code || "") + "] " + (data.name_th || "");
+    $("prereq-course").textContent = "[" + (data.code || "") + "] " + (data.name_th || "") + (data.name_en ? " / " + data.name_en : "");
     $("prereq-meta").textContent =
-      (data.credits != null ? data.credits + " หน่วยกิต" : "") + (data.name_en ? " (" + data.name_en + ")" : "");
+      (data.credits_display || (data.credits != null ? data.credits : "")) + " หน่วยกิต" +
+      (data.credits_display ? " · (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)" : "");
     fillCourseList($("prereq-required"), data.prerequisites_required, "ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที");
     fillCourseList($("prereq-unlocks"), data.unlocked_courses, "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน");
   }

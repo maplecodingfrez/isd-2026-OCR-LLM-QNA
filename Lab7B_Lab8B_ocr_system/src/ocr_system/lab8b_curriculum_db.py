@@ -2706,6 +2706,8 @@ def withdrawal_graph(conn: sqlite3.Connection, code: str) -> dict | None:
     courses = {r["code"]: dict(r) for r in conn.execute("SELECT code, name_th, name_en, credits FROM course")}
     if code not in courses:
         return None
+    from course_display import add_course_display
+    add_course_display(conn, list(courses.values()))
     alternatives = set()
     if conn.execute("SELECT 1 FROM sqlite_master WHERE name='prerequisite_alt'").fetchone():
         alternatives = {(r[0], r[1]) for r in conn.execute("SELECT code, requires FROM prerequisite_alt")}
@@ -2743,6 +2745,8 @@ def _withdrawal_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
         return _NOT_FOUND
     course = data["course"]
     title = f"{code} {course['name_th']}" + (f" / {course['name_en']}" if course.get("name_en") else "")
+    if course.get("credits") is not None:
+        title += f" — {course.get('credits_display', course['credits'])} หน่วยกิต"
     answer = f"หากถอน {title} และยังไม่เคยผ่านวิชานี้ วิชาตัวต่อที่อาจได้รับผลกระทบมีดังนี้"
     for key, label in (("direct", "โดยตรง"), ("indirect", "ทางอ้อม")):
         answer += f"\n{label}:"
@@ -2755,7 +2759,8 @@ def _withdrawal_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
                 flags.append("มีเงื่อนไขทางเลือก หรือ ไม่ใช่ถูกปิดสิทธิ์แน่นอน")
             if any(edge["kind"] == "co" for edge in row["path"]):
                 flags.append("มีเงื่อนไขเรียนร่วมกัน")
-            answer += f"\n- {row['code']} {row.get('name_th') or ''}" + (f" / {row['name_en']}" if row.get("name_en") else "") + f" (เส้นทาง {chain})" + ("; " + "; ".join(flags) if flags else "")
+            credit = f" — {row.get('credits_display', row['credits'])} หน่วยกิต" if row.get("credits") is not None else ""
+            answer += f"\n- {row['code']} {row.get('name_th') or ''}" + (f" / {row['name_en']}" if row.get("name_en") else "") + credit + f" (เส้นทาง {chain})" + ("; " + "; ".join(flags) if flags else "")
     answer += "\nหากเคยผ่านวิชานี้แล้วหรือผ่านวิชาทางเลือก ผลอาจต่างออกไป ไม่ใช่การยืนยันสิทธิ์ลงทะเบียนหรือการเลื่อนจบ"
     rows = data["direct"] + data["indirect"]
     sql = (f"WITH RECURSIVE affected(code) AS (SELECT code FROM prerequisite WHERE requires = '{code}' "

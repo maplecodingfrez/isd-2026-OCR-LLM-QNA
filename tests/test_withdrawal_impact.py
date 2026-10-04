@@ -6,6 +6,29 @@ import lab8b_curriculum_db as m
 from prereq_from_book import extract_prerequisites
 
 
+def test_course_display_preserves_zero_hours_and_never_fills_missing_hours():
+    from course_display import add_course_display
+    from lab10_fastapi.curriculum_app.schemas import CoursePrerequisitesResponse
+    with sqlite3.connect(":memory:") as conn:
+        conn.row_factory = sqlite3.Row
+        conn.executescript("""
+        CREATE TABLE course(code TEXT, name_th TEXT, name_en TEXT, credits INTEGER,
+                            lecture_h INTEGER, lab_h INTEGER, self_h INTEGER);
+        INSERT INTO course VALUES ('00000001','ไทย','ENGLISH',3,3,0,6),
+                                  ('00000002','ขาด','MISSING',3,3,NULL,6);
+        """)
+        rows = [{"code": "00000001", "name_th": "ไทย", "credits": 3},
+                {"code": "00000002", "credits": 3},
+                {"code": "00000001", "credits": 2}]
+        add_course_display(conn, rows)
+        assert rows[0]["credits_display"] == "3 (3-0-6)"
+        assert rows[0]["name_en"] == "ENGLISH"
+        assert "credits_display" not in rows[1]
+        assert "credits_display" not in rows[2]
+        response = CoursePrerequisitesResponse(**rows[0], prerequisites_required=[rows[0]])
+        assert response.model_dump()["prerequisites_required"][0]["credits_display"] == "3 (3-0-6)"
+
+
 def test_reverse_impact_handles_branch_cycle_alternative_and_corequisite(tmp_path):
     path = tmp_path / "curriculum.db"
     with sqlite3.connect(path) as conn:
@@ -52,6 +75,26 @@ def test_name_prerequisite_requires_exact_unique_name():
     damaged = ["90644007 ภาษาอังกฤษพื้นฐาน 1 36306)", "FOUNDATION ENGLISH 1", "PREREQUISITE : NONE"]
     names.pop("99999999")
     assert extract_prerequisites(damaged, ["90644007"], course_names=names)["90644007"]["status"] == "none"
+
+
+def test_named_prerequisite_lists_resolve_every_title():
+    names = {"00000001": ["FIRST COURSE", "วิชาแรก"], "00000002": ["SECOND COURSE", "วิชาที่สอง"]}
+    header = "00000003 TARGET 3 (3-0-6)"
+    for value, op in [("FIRST COURSE OR SECOND COURSE", "or"),
+                      ("FIRST COURSE AND SECOND COURSE", "and"),
+                      ("วิชาแรก หรือ วิชาที่สอง", "or"),
+                      ("วิชาแรก และ วิชาที่สอง", "and")]:
+        result = extract_prerequisites([header, "PREREQUISITE : " + value], ["00000003"], course_names=names)["00000003"]
+        assert result["requires"] == ["00000001", "00000002"]
+        assert result["op"] == op
+    for value in ["FIRST COURSE OR UNKNOWN", "FIRST OR SECOND COURSE",
+                  "FIRST COURSE OR SECOND COURSE AND FIRST COURSE"]:
+        result = extract_prerequisites([header, "PREREQUISITE : " + value], ["00000003"], course_names=names)["00000003"]
+        assert result["status"] == "unreadable"
+        assert result["requires"] == []
+    names["00000004"] = ["SECOND COURSE"]
+    result = extract_prerequisites([header, "PREREQUISITE : FIRST COURSE OR SECOND COURSE"], ["00000003"], course_names=names)["00000003"]
+    assert result["status"] == "unreadable"
 
 
 def test_withdrawal_question_uses_graph_without_model(monkeypatch):

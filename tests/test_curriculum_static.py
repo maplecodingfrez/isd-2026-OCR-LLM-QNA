@@ -49,7 +49,10 @@ def test_each_panel_starts_idle_and_has_the_four_state_blocks(panel_id):
     assert opening and 'data-state="idle"' in opening.group(0)
     body = html[opening.end():html.index("</section>", opening.end())]
     for state in ("idle", "loading", "success", "error"):
-        assert body.count(f'class="state-{state}"') == 1, (panel_id, state)
+        expected = 0 if panel_id == "ask-panel" and state == "idle" else 1
+        assert body.count(f'class="state-{state}"') == expected, (panel_id, state)
+    if panel_id == "ask-panel":
+        assert '<div class="question-examples">' in body
 
 
 # ---------- style.css ----------

@@ -134,6 +134,7 @@ button:disabled, select:disabled, textarea:disabled, input:disabled { opacity: 0
 .inline-form label { grid-column: 1 / -1; }
 .inline-form button { margin-top: 0; }
 
+.question-examples { margin-top: var(--space-3); }
 .examples { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
 .examples li { max-width: 100%; }
 .examples .link-button {

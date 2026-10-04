@@ -59,6 +59,7 @@ class PrerequisiteItem(BaseModel):
     name_th: str | None = None
     name_en: str | None = None
     credits: int | None = None
+    credits_display: str | None = None
     kind: str = "pre"
 
 
@@ -67,6 +68,7 @@ class CoursePrerequisitesResponse(BaseModel):
     name_th: str
     name_en: str | None = None
     credits: int
+    credits_display: str | None = None
     citations: list[dict[str, Any]] = Field(default_factory=list)
     prerequisites_required: list[PrerequisiteItem] = Field(
         default_factory=list,

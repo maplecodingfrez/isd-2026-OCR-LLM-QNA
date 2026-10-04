@@ -158,6 +158,8 @@ def ask(request: AskRequest) -> dict:
     conn = lab8b.open_db(str(db_path), readonly=True)
     try:
         result = lab8b.ask(conn, request.question, verbose=False)
+        from course_display import format_course_answer
+        format_course_answer(conn, result)
     except requests.RequestException as exc:
         raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้") from exc
     finally:

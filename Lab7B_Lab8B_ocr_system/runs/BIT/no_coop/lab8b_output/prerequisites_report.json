@@ -2,12 +2,12 @@
   "source_text": "outputs/bit/bit_curriculum_ocr.txt",
   "courses": 36,
   "counts": {
-    "found": 2,
+    "found": 3,
     "none": 27,
     "not_found": 6,
-    "unreadable": 1
+    "unreadable": 0
   },
-  "pairs_inserted": 3,
+  "pairs_inserted": 4,
   "or_groups": 1,
   "per_course": {
     "06036100": {
@@ -288,8 +288,10 @@
       "dropped": []
     },
     "96644008": {
-      "status": "unreadable",
-      "requires": [],
+      "status": "found",
+      "requires": [
+        "96644007"
+      ],
       "op": null,
       "note": null,
       "occurrences": 1,

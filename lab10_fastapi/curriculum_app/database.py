@@ -101,6 +101,8 @@ class CurriculumDatabase:
                 ORDER BY p.code
             """
             unlocked_courses = [dict(r) for r in conn.execute(unlock_sql, (code,)).fetchall()]
+            from course_display import add_course_display
+            add_course_display(conn, [course_info] + prerequisites_required + unlocked_courses)
             source_codes = {code} | {r["code"] for r in unlocked_courses}
             cites = []
             for page in self.lab8b._prereq_pair_pages(conn):
@@ -114,6 +116,7 @@ class CurriculumDatabase:
                 "name_th": course_info["name_th"],
                 "name_en": course_info["name_en"],
                 "credits": course_info["credits"],
+                "credits_display": course_info.get("credits_display"),
                 "prerequisites_required": prerequisites_required,
                 "unlocked_courses": unlocked_courses,
                 "citations": cites,

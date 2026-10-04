@@ -77,6 +77,16 @@ def _parse_value(text: str, none_re: re.Pattern[str], names: dict | None = None)
         candidates = names.get(re.sub(r"\s+", "", text).casefold(), set())
         if len(candidates) == 1:
             cs = list(candidates)
+        elif not candidates:
+            # Split only explicit conjunctions; resolve every full title, never
+            # keep a partial dependency list when one title is unknown/ambiguous.
+            if re.search(r"หรือ|\bOR\b", text, re.I) and re.search(r"และ|\bAND\b", text, re.I):
+                return "unreadable", [], None
+            parts = re.split(r"\s+(?:OR|AND)\s+|\s*(?:หรือ|และ|[,;])\s*", text, flags=re.I)
+            if len(parts) > 1:
+                resolved = [names.get(re.sub(r"\s+", "", part).casefold(), set()) for part in parts]
+                if all(len(matches) == 1 for matches in resolved):
+                    cs = list(dict.fromkeys(next(iter(matches)) for matches in resolved))
     if not cs:
         return "unreadable", [], None
     op = None

@@ -3247,7 +3247,7 @@ def test_course_name_range_is_expanded():
 # วิชาไหนบ้างที่มีวิชาบังคับก่อน
 def test_list_courses_that_have_a_prerequisite():
     text, rows, _sql = _txt("BIT/coop", "วิชาไหนใน BIT ที่มีวิชาบังคับก่อน")
-    assert "06036114" in text and {r["code"] for r in rows} == {"06036114"}, text
+    assert "06036114" in text and {r["code"] for r in rows} == {"06036114", "96644008"}, text
     text5, rows5, _s = _txt("DSBA/coop", "มีวิชาอะไรบ้างที่มีวิชาบังคับก่อน")
     assert len(rows5) == 6 and "06026212" in text5 and "90644008" in text5, text5
 
