@@ -1,6 +1,6 @@
 """Curriculum App HTTP request and response schemas."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,8 @@ class AskResponse(BaseModel):
     answer: str
     citations: list[dict[str, Any]] = []
     citation_text: str = ""
+    answer_type: Literal["database", "rule", "ocr", "ai", "hybrid"] | None = None
+    processing_seconds: float | None = None
 
 
 class CourseCreate(BaseModel):
@@ -65,6 +67,7 @@ class CoursePrerequisitesResponse(BaseModel):
     name_th: str
     name_en: str | None = None
     credits: int
+    citations: list[dict[str, Any]] = Field(default_factory=list)
     prerequisites_required: list[PrerequisiteItem] = Field(
         default_factory=list,
         description="รายวิชาที่ต้องเรียนผ่านก่อน จึงจะสามารถลงเรียนวิชานี้ได้"

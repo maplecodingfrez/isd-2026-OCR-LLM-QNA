@@ -89,6 +89,27 @@ import sqlite3  # noqa: E402
 import lab8b_curriculum_db as lab8b  # noqa: E402
 
 
+def test_catalog_citations_cover_all_source_pages_without_description_or_appendix():
+    courses = [{"code": "06026216", "name_th": "ก", "name_en": None},
+               {"code": "06026230", "name_th": "ข", "name_en": None}]
+    pages = [{"page": 19, "text": "18\n06026216 ก"}, {"page": 20, "text": "19\n06026230 ข"},
+             {"page": 21, "text": "20\n06026216 ก"}, {"page": 22, "text": "21\n06026230 ข"}]
+    got = citations.catalog_citations([{"code": c["code"]} for c in courses], courses, pages)
+    assert [c["pdf_page"] for c in got] == [19, 20, 21, 22]
+    assert got[0]["courses"] == ["06026216"]
+    assert got[0]["course_names"] == {"06026216": "ก"}
+    assert citations.catalog_citations([{"code": "99999999"}], courses, pages) == []
+
+
+def test_catalog_citations_are_order_independent_and_require_actual_code_on_page():
+    courses = [{"code": "06026216", "name_th": "ก"}, {"code": "06026230", "name_th": "ข"}]
+    pages = [{"page": 19, "text": "18\nก ข ไม่มีรหัส"}, {"page": 20, "text": "19\n06026216 ก 06026230 ข"}]
+    rows = [{"code": "06026216"}, {"code": "06026230"}]
+    got = citations.catalog_citations(rows, courses, pages)
+    assert got == citations.catalog_citations(list(reversed(rows)), courses, pages)
+    assert [c["pdf_page"] for c in got] == [20]
+
+
 def _db_with_pages():
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row

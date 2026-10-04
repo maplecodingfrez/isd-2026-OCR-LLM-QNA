@@ -78,6 +78,17 @@ def test_ask_accepts_length_boundaries(client, fake_db, monkeypatch, question):
     assert client.post("/api/ask", json={"question": question}).status_code == 200
 
 
+@pytest.mark.parametrize("answer_type", ["database", "rule", "ocr", "ai", "hybrid", None])
+def test_ask_provenance_is_additive_and_keeps_existing_result(client, fake_db, monkeypatch, answer_type):
+    monkeypatch.setattr(main.lab8b, "ask", lambda conn, q, verbose=False: _result(answer_type=answer_type))
+    response = client.post("/api/ask", json={"question": "หลักสูตรนี้มีกี่หน่วยกิต"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["answer_type"] == answer_type
+    assert data["processing_seconds"] >= 0
+    assert {"question", "program", "sql", "rows", "answer", "citations", "citation_text"} <= data.keys()
+
+
 @pytest.mark.parametrize("payload", [{"question": "ก"}, {"question": "ก" * 501}, {}])
 def test_ask_422_pydantic_detail_is_a_list_of_msg(client, payload):
     r = client.post("/api/ask", json=payload)

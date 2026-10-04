@@ -68,11 +68,15 @@ def _read_block(lines: list[str], start: int, first_tail: str, join_tail: re.Pat
     return text
 
 
-def _parse_value(text: str, none_re: re.Pattern[str]) -> tuple[str, list[str], str | None]:
+def _parse_value(text: str, none_re: re.Pattern[str], names: dict | None = None) -> tuple[str, list[str], str | None]:
     """คืน (status, codes, op) — status: none | found | unreadable"""
     if none_re.search(text) and not _codes(text):
         return "none", [], None
     cs = list(dict.fromkeys(_codes(text)))
+    if not cs and names:
+        candidates = names.get(re.sub(r"\s+", "", text).casefold(), set())
+        if len(candidates) == 1:
+            cs = list(candidates)
     if not cs:
         return "unreadable", [], None
     op = None
@@ -81,7 +85,7 @@ def _parse_value(text: str, none_re: re.Pattern[str]) -> tuple[str, list[str], s
     return "found", cs, op
 
 
-def _one_occurrence(lines: list[str], i: int, code: str) -> dict | None:
+def _one_occurrence(lines: list[str], i: int, code: str, names: dict | None = None) -> dict | None:
     """หัวรายวิชาอยู่บรรทัด i — คืนผลของรายวิชานี้ หรือ None ถ้าไม่พบบรรทัด prerequisite ในรายวิชาเดียวกัน"""
     th = en = None
     for j in range(i + 1, min(i + 1 + _WINDOW, len(lines))):
@@ -91,13 +95,13 @@ def _one_occurrence(lines: list[str], i: int, code: str) -> dict | None:
         if th is None:
             m = _PRE_TH.search(lines[j])
             if m and "PRE" not in lines[j].upper():
-                th = _parse_value(_read_block(lines, j, m.group(1), _JOIN_TAIL_TH), _NONE_TH)
+                th = _parse_value(_read_block(lines, j, m.group(1), _JOIN_TAIL_TH), _NONE_TH, names)
                 th_line = j
                 continue
         if en is None:
             m = _PRE_EN.search(lines[j])
             if m:
-                en = _parse_value(_read_block(lines, j, m.group(1), _JOIN_TAIL_EN), _NONE_EN)
+                en = _parse_value(_read_block(lines, j, m.group(1), _JOIN_TAIL_EN), _NONE_EN, names)
         if th is not None and en is not None:
             break
     if th is None and en is None:
@@ -124,26 +128,38 @@ def _merge(th: tuple | None, en: tuple | None) -> tuple[str, list[str], str | No
 
 
 def extract_prerequisites(lines: Iterable[str], wanted: Iterable[str],
-                          known_codes: Iterable[str] | None = None) -> dict[str, dict]:
+                          known_codes: Iterable[str] | None = None,
+                          course_names: dict[str, list[str]] | None = None) -> dict[str, dict]:
     """สกัดวิชาบังคับก่อนของรหัสใน `wanted` จากข้อความ OCR (แยกเป็นบรรทัด)
 
     known_codes: รหัสวิชาที่มีจริงในหลักสูตร — ถ้าระบุ จะทิ้งรหัสที่อ่านมาแล้วไม่อยู่ในชุดนี้ (มักเป็นตัวเลข OCR เพี้ยน)
                  ถ้าทิ้งจนไม่เหลือเลย = `unreadable` (ไม่ใช่ none)
+    course_names: ชื่อไทย/อังกฤษต่อรหัส ใช้เฉพาะชื่อเต็มตรงกันเพียงรหัสเดียว
+                  ไม่เดาชื่อบางส่วน และไม่เดาเมื่อชื่อซ้ำหลายรหัส
 
     คืน {code: {"status": found|none|not_found|unreadable,
                 "requires": [...], "op": and|or|None, "note": ..., "occurrences": n, "dropped": [...]}}
     """
     L = [x.rstrip("\n").replace("\r", "") for x in lines]
     known = set(known_codes) if known_codes is not None else None
+    names = {}
+    for code, aliases in (course_names or {}).items():
+        for alias in aliases:
+            if alias and alias.strip():
+                names.setdefault(re.sub(r"\s+", "", alias).casefold(), set()).add(code)
     out: dict[str, dict] = {}
     for code in wanted:
         results = []
         for i, l in enumerate(L):
             if not re.match(r"\s*" + re.escape(code) + r"\b", l):
                 continue
-            if not any(_CRED.search(x) for x in L[i:i + 3]):
+            # A unique exact course-title line also anchors the header when OCR
+            # damaged its credit notation. Never use partial/fuzzy title matches.
+            if not any(_CRED.search(x) for x in L[i:i + 3]) and not any(
+                names.get(re.sub(r"\s+", "", x).casefold()) == {code} for x in L[i + 1:i + 3]
+            ):
                 continue
-            r = _one_occurrence(L, i, code)
+            r = _one_occurrence(L, i, code, names)
             if r is not None:
                 results.append(_merge(r["th"], r["en"]))
         if not results:
@@ -189,7 +205,8 @@ def fill_prerequisite_field(courses: list[dict], lines: list[str]) -> dict:
     รหัสที่อ้างถึงต้องอยู่ในรายการวิชาของแผนเดียวกันเท่านั้น (referential integrity — รหัสนอกแผนถูกทิ้ง)
     คืนจำนวนต่อสถานะ: {"found", "none", "not_found", "unreadable", "skipped_non_code"}"""
     codes = sorted({c["code"] for c in courses if re.fullmatch(r"\d{8}", str(c.get("code") or ""))})
-    res = extract_prerequisites(lines, codes, known_codes=codes)
+    res = extract_prerequisites(lines, codes, known_codes=codes,
+                               course_names={c["code"]: [c.get("name_th"), c.get("name_en")] for c in courses})
     counts = {"found": 0, "none": 0, "not_found": 0, "unreadable": 0, "skipped_non_code": 0}
     for c in courses:
         code = str(c.get("code") or "")

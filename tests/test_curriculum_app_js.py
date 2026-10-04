@@ -38,6 +38,105 @@ def run_js(tmp_path, body):
 
 # ---------- formatDetail ----------
 
+
+def test_elective_groups_use_structured_rows_and_preserve_groups(tmp_path):
+    out = run_js(tmp_path, '''
+      return m.electiveGroups({rows: [
+        {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026216", course_name_th: "วิชาแรก", credits: 3},
+        {group_no: 2, group_name_th: "กลุ่มสถิติ", code: "06026230", name_th: "วิชาสอง", credits: null},
+        {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026217", course_name_th: "วิชาสาม", credits: 0},
+      ]});
+    ''')
+    assert len(out) == 2
+    assert out[0]["name"] == "กลุ่มข้อมูล"
+    assert [course["code"] for course in out[0]["courses"]] == ["06026216", "06026217"]
+    assert out[0]["courses"][1]["credits"] == 0
+    assert out[1]["courses"][0]["name"] == "วิชาสอง"
+    assert out[1]["courses"][0]["credits"] is None
+
+
+def test_elective_groups_fallback_for_partial_rows_and_keep_slots_distinct(tmp_path):
+    out = run_js(tmp_path, '''
+      const row = {group_no: 1, group_name_th: "กลุ่มเดียวกัน", code: "06026216", name_th: "วิชาแรก"};
+      return [
+        m.electiveGroups({rows: []}), m.electiveGroups(null),
+        m.electiveGroups({rows: [row, {code: "06026217", name_th: "ไม่ทราบกลุ่ม"}]}),
+        m.electiveGroups({rows: [{...row, code: "ผิดรหัส"}]}),
+        m.electiveGroups({rows: [{...row, plan_slot: "ช่องแรก"}, {...row, plan_slot: "ช่องสอง"}]}),
+      ];
+    ''')
+    assert out[:4] == [[], [], [], []]
+    assert [group["slot"] for group in out[4]] == ["ช่องแรก", "ช่องสอง"]
+
+
+def test_elective_groups_preserve_english_and_handle_missing_names(tmp_path):
+    out = run_js(tmp_path, '''
+      return m.electiveGroups({rows: [
+        {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026216", name_th: "วิชา", course_name_en: " Artificial Intelligence "},
+        {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026217", name_th: "วิชา", course_name_en: null},
+        {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026218", name_th: "วิชา", course_name_en: " ", name_en: "Fallback"}
+      ]})[0].courses;
+    ''')
+    assert [r["nameEn"] for r in out] == ["Artificial Intelligence", "", "Fallback"]
+
+
+def test_elective_credit_label_keeps_real_hours_and_missing_fallback(tmp_path):
+    out = run_js(tmp_path, '''
+      const row = {group_no: 1, group_name_th: "กลุ่มข้อมูล", code: "06026218", name_th: "วิชา", credits: 3};
+      return ["3 (2-2-5)", null, "3", "<script>"].map(label =>
+        m.electiveGroups({rows: [{...row, credits_display: label}]})[0].courses[0]);
+    ''')
+    assert [r["creditLabel"] for r in out] == ["3 (2-2-5)", None, None, None]
+    assert all(r["credits"] == 3 for r in out)
+
+
+def test_answer_blocks_course_list_and_paragraphs(tmp_path):
+    out = run_js(tmp_path, '''
+      return m.answerBlocks({answer: "มี 2 วิชา: 06066101 วิชาแรก (3 หน่วยกิต), 06066102 วิชาสอง (3 หน่วยกิต); รวม 6 หน่วยกิต"});
+    ''')
+    assert out == [
+        {"type": "paragraph", "text": "มี 2 วิชา:"},
+        {"type": "list", "items": ["06066101 วิชาแรก (3 หน่วยกิต)", "06066102 วิชาสอง (3 หน่วยกิต)"]},
+        {"type": "paragraph", "text": "รวม 6 หน่วยกิต"},
+    ]
+
+
+def test_answer_blocks_preserves_content_and_existing_bullets(tmp_path):
+    out = run_js(tmp_path, r'''
+      return [
+        m.answerBlocks({answer: "คำตอบ\n\n- รายการแรก\n- รายการสอง\nข้อความท้าย"}),
+        m.answerBlocks({answer: "วิชา (เนื้อหา A; B), รวม 1,200 ชั่วโมง"}),
+        m.answerBlocks({answer: "<script>alert('x')</script>"}),
+        m.buildCopyPayload("คำถาม", "dsba_coop", {answer: "ก; ข"}, 1).answer,
+      ];
+    ''')
+    assert out[0] == [
+        {"type": "paragraph", "text": "คำตอบ"},
+        {"type": "list", "items": ["รายการแรก", "รายการสอง"]},
+        {"type": "paragraph", "text": "ข้อความท้าย"},
+    ]
+    assert out[1] == [{"type": "paragraph", "text": "วิชา (เนื้อหา A; B), รวม 1,200 ชั่วโมง"}]
+    assert out[2] == [{"type": "paragraph", "text": "<script>alert('x')</script>"}]
+    assert out[3] == "ก; ข"
+
+
+def test_answer_blocks_single_course_nested_delimiters_and_empty_answer(tmp_path):
+    out = run_js(tmp_path, '''
+      return [
+        m.answerBlocks({answer: "06066101 วิชาแรก, 06066102 วิชาสอง"}),
+        m.answerBlocks({answer: "วิชาเดียว: 06066101 วิชาแรก"}),
+        m.answerBlocks({answer: "หมวดแรก: วิชา A (ตัวเลือก [B; C]) | หมวดสอง: วิชา D"}),
+        m.answerBlocks({answer: ""}),
+      ];
+    ''')
+    assert out[0] == [{"type": "list", "items": ["06066101 วิชาแรก", "06066102 วิชาสอง"]}]
+    assert out[1] == [{"type": "paragraph", "text": "วิชาเดียว: 06066101 วิชาแรก"}]
+    assert out[2] == [
+        {"type": "paragraph", "text": "หมวดแรก: วิชา A (ตัวเลือก [B; C])"},
+        {"type": "paragraph", "text": "หมวดสอง: วิชา D"},
+    ]
+    assert out[3] == [{"type": "paragraph", "text": "(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)"}]
+
 def test_format_detail_shapes(tmp_path):
     out = run_js(tmp_path, """
       return [

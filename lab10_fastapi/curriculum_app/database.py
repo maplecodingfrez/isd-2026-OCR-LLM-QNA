@@ -101,6 +101,13 @@ class CurriculumDatabase:
                 ORDER BY p.code
             """
             unlocked_courses = [dict(r) for r in conn.execute(unlock_sql, (code,)).fetchall()]
+            source_codes = {code} | {r["code"] for r in unlocked_courses}
+            cites = []
+            for page in self.lab8b._prereq_pair_pages(conn):
+                codes = sorted(set(page["courses"]) & source_codes)
+                if codes:
+                    cites.append({**page, "courses": codes})
+            self.lab8b._citations_module().add_course_names(conn, cites)
 
             return {
                 "code": course_info["code"],
@@ -109,10 +116,34 @@ class CurriculumDatabase:
                 "credits": course_info["credits"],
                 "prerequisites_required": prerequisites_required,
                 "unlocked_courses": unlocked_courses,
+                "citations": cites,
             }
         finally:
             conn.close()
 
+
+
+    def withdrawal_impact(self, code: str) -> dict | None:
+        """Reverse dependency reachability, not a personal registration decision."""
+        self._require_db()
+        conn = self.lab8b.open_db(self.path, readonly=True)
+        try:
+            data = self.lab8b.withdrawal_graph(conn, code)
+            if data is None:
+                return None
+            results = data["direct"] + data["indirect"]
+            affected = {r["code"] for r in results}
+            cites = []
+            for page in self.lab8b._prereq_pair_pages(conn):
+                codes = sorted(set(page["courses"]) & affected)
+                if codes:
+                    cites.append({**page, "courses": codes})
+            self.lab8b._citations_module().add_course_names(conn, cites)
+            return {"course": data["course"], "direct": data["direct"],
+                    "indirect": data["indirect"], "citations": cites,
+                    "note": "แสดงความสัมพันธ์ที่พบในหลักสูตร หากถอนแล้วยังไม่เคยผ่านวิชานี้ ตัวต่ออาจได้รับผลกระทบ; เงื่อนไขทางเลือกหรือเรียนร่วมกันและวิชาที่ผ่านแล้วอาจทำให้ผลต่างออกไป ไม่ใช่ผลอนุมัติลงทะเบียน"}
+        finally:
+            conn.close()
 
 
 SQL_SCHEMA_CONTEXT = """

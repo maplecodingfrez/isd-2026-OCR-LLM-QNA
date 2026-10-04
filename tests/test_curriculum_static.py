@@ -185,7 +185,7 @@ def test_local_validation_errors_hide_server_details_and_retry():
     assert "opts.local" in js
     assert '$(prefix + "-retry").hidden = local' in js
     assert '$(prefix + "-error-more").hidden = local || !detail' in js
-    assert js.count("{ local: true }") == 2                      # ทั้งแผงถามและแผงตรวจวิชา
+    assert js.count("{ local: true }") == 3                      # ถาม ตรวจวิชา และผลกระทบการถอน
 
 
 def test_focus_returns_to_the_submit_button_after_loading():

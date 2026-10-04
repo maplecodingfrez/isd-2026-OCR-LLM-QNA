@@ -9,7 +9,10 @@
 </head>
 <body>
   <header class="site-head">
-    <h1>Curriculum Book Assistant</h1>
+    <div class="site-identity">
+      <h1>Curriculum Book Assistant</h1>
+      <p class="site-description">ถามเรื่องหลักสูตร ค้นรายวิชา และตรวจวิชาบังคับก่อน</p>
+    </div>
     <p id="health" class="health" data-health="unknown">กำลังตรวจสถานะระบบ…</p>
   </header>
 
@@ -23,12 +26,13 @@
         <label for="program">หลักสูตรและแผนการเรียน</label>
         <select id="program"><option value="">กำลังโหลด…</option></select>
         <label for="question">คำถาม</label>
-        <textarea id="question" rows="3" placeholder="เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต"></textarea>
+        <textarea id="question" rows="4" aria-describedby="question-guide" placeholder="เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต"></textarea>
+        <p id="question-guide" class="muted field-guide">พิมพ์คำถามภาษาไทย 2–500 ตัวอักษร</p>
         <button type="submit" id="ask-button" data-busy-label="กำลังค้น…">ถาม</button>
       </form>
 
       <div class="state-idle">
-        <p class="muted">พิมพ์คำถามภาษาไทย 2–500 ตัวอักษร คำตอบมาจากเล่มหลักสูตรพร้อมเลขหน้าอ้างอิง ลอง:</p>
+        <p class="muted">คำตอบมาจากเล่มหลักสูตรพร้อมเลขหน้าอ้างอิง ลองเลือกคำถาม:</p>
         <ul class="examples">
           <li><button type="button" class="link-button" data-question="หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต">หน่วยกิตรวมตลอดหลักสูตร</button></li>
           <li><button type="button" class="link-button" data-question="ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา">จำนวนวิชาปี 2 เทอม 1</button></li>
@@ -45,12 +49,16 @@
       </div>
 
       <div class="state-success">
+        <h3 class="result-heading">คำตอบจากเล่มหลักสูตร</h3>
         <div id="answer-box" class="answer-box">
           <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
           <div class="answer-body">
-            <p id="answer-text" class="answer-text"></p>
+            <div id="answer-text" class="answer-text"></div>
             <p id="answer-hint" class="muted" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
-            <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
+            <details id="citation-details" hidden>
+              <summary>รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
+              <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
+            </details>
             <p id="answer-cite" class="muted"></p>
             <p id="answer-source" class="muted"></p>
             <div class="answer-actions">
@@ -121,5 +129,27 @@
       </div>
     </section>
   </main>
+  <section id="withdraw-panel" class="panel panel-prereq withdraw-panel" data-state="idle" aria-labelledby="withdraw-title">
+    <h2 id="withdraw-title">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2>
+    <p id="withdraw-scope" class="muted"></p>
+    <form id="withdraw-form" class="inline-form" novalidate>
+      <label for="withdraw-code">รหัสวิชาที่กำลังพิจารณาถอน</label>
+      <input id="withdraw-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
+      <button type="submit" id="withdraw-button" data-busy-label="กำลังตรวจ…">ตรวจผลกระทบ</button>
+    </form>
+    <div class="state-idle"><p class="muted">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
+    <div class="state-loading"><span class="spinner" aria-hidden="true"></span> กำลังตรวจเส้นทางวิชา…</div>
+    <div class="state-success">
+      <h3 id="withdraw-course"></h3><p id="withdraw-note" class="muted"></p>
+      <h4>ตัวต่อโดยตรง</h4><ul id="withdraw-direct" class="course-list"></ul>
+      <h4>ตัวต่อทางอ้อม</h4><ul id="withdraw-indirect" class="course-list"></ul>
+      <p id="withdraw-citations" class="muted"></p>
+    </div>
+    <div class="state-error">
+      <p id="withdraw-error-title" class="error-title"></p><p id="withdraw-error-action"></p>
+      <details id="withdraw-error-more"><summary>รายละเอียดจากเซิร์ฟเวอร์</summary><pre id="withdraw-error-detail"></pre></details>
+      <button type="button" id="withdraw-retry">ลองอีกครั้ง</button>
+    </div>
+  </section>
 </body>
 </html>

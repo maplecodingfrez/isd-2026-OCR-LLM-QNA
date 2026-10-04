@@ -18,6 +18,37 @@ MARKER_ELECTIVE = "วิชาเลือกของหลักสูตร�
 MARKER_TOPIC = "ค้นวิชาตามหัวข้อ"
 
 
+@pytest.mark.parametrize("rel,groups,count,pages", [
+    ("DSBA/coop", {1, 2, 3}, 34, [19, 20, 21]),
+    ("DSBA/no_coop", {1, 2, 3, 4}, 43, [19, 20, 21, 22]),
+])
+def test_catalog_listing_respects_dsba_plan_and_cites_catalog_pages(rel, groups, count, pages, monkeypatch):
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: pytest.fail("catalog listing must not call model"))
+    with closing(m.open_db(RUNS / rel / "lab8b_output/curriculum.db", readonly=True)) as conn:
+        result = m.ask(conn, "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", verbose=False)
+        assert result["error"] is None
+        assert len(result["rows"]) == count
+        assert {r["group_no"] for r in result["rows"]} == groups
+        assert all(r["course_name_en"].strip() in result["answer"] for r in result["rows"] if r.get("course_name_en"))
+        assert any(r.get("course_name_en") for r in result["rows"])
+        assert all(r["credits_display"] in result["answer"] for r in result["rows"])
+        assert next(r for r in result["rows"] if r["code"] == "06026218")["credits_display"] == "3 (2-2-5)"
+        assert [c["pdf_page"] for c in result["citations"]] == pages
+        assert {code for c in result["citations"] for code in c["courses"]} == {r["code"] for r in result["rows"]}
+
+
+@pytest.mark.parametrize("question", ["วิชาเลือกเสรีมีอะไรบ้าง", "วิชาเลือกปี 4 เทอม 2 มีอะไรบ้าง", "วิชาเลือกมีกี่วิชา", "วิชาเลือกการตลาดเชิงดิจิทัลมีวิชาอะไรบ้าง"])
+def test_catalog_listing_does_not_capture_other_scopes(question):
+    with closing(m.open_db(RUNS / "DSBA/coop/lab8b_output/curriculum.db", readonly=True)) as conn:
+        assert m._elective_catalog_answer(conn, question) is None
+
+
+@pytest.mark.parametrize("question", ["รหัสวิชา 06026240 มีวิชาบังคับก่อนคือวิชาใด", "วิชา 06026216 ชื่ออะไร", "วิชา ปัญญาประดิษฐ์ กี่หน่วยกิต"])
+def test_catalog_citation_does_not_replace_single_course_or_prerequisite_sources(question):
+    with closing(m.open_db(RUNS / "DSBA/coop/lab8b_output/curriculum.db", readonly=True)) as conn:
+        assert m._elective_catalog_citations(conn, [{"code": "06026240"}], "SELECT code FROM main.v_elective_group", question) is None
+
+
 def _make_db(path, electives=True):
     c = sqlite3.connect(path)
     c.executescript(m.DDL)
@@ -562,7 +593,7 @@ def test_ge_rows_stay_when_the_question_is_about_general_education(tmp_path, mon
     assert {"90644009", "06010001"} <= {x["code"] for x in r["rows"]}
 
 
-@pytest.mark.parametrize("rel,expected", [("AIT", 16), ("DSBA/coop", 43), ("IT/coop", 53)])
+@pytest.mark.parametrize("rel,expected", [("AIT", 16), ("DSBA/coop", 34), ("DSBA/no_coop", 43), ("IT/coop", 53)])
 def test_real_databases_keep_the_program_elective_answer_free_of_ge(tmp_path, monkeypatch, rel, expected):
     db = RUNS / rel / "lab8b_output" / "curriculum.db"
     if not db.exists():
@@ -1101,7 +1132,7 @@ def test_the_loader_records_a_status_for_every_course(tmp_path):
     assert got["06020002"] == "found" and set(got.values()) <= {"found", "none", "not_found", "unreadable"}
 
 
-@pytest.mark.parametrize("rel,sure_none", [("DSBA/coop", 24), ("IT/coop", None)])
+@pytest.mark.parametrize("rel,sure_none", [("DSBA/coop", 27), ("IT/coop", None)])
 def test_real_database_statuses_match_the_extraction_report(rel, sure_none):
     import json as _j
     run = RUNS / rel / "lab8b_output"
@@ -3218,7 +3249,7 @@ def test_list_courses_that_have_a_prerequisite():
     text, rows, _sql = _txt("BIT/coop", "วิชาไหนใน BIT ที่มีวิชาบังคับก่อน")
     assert "06036114" in text and {r["code"] for r in rows} == {"06036114"}, text
     text5, rows5, _s = _txt("DSBA/coop", "มีวิชาอะไรบ้างที่มีวิชาบังคับก่อน")
-    assert len(rows5) == 5 and "06026212" in text5, text5
+    assert len(rows5) == 6 and "06026212" in text5 and "90644008" in text5, text5
 
 
 # ผู้ถามตัดคำนำหน้าชื่อวิชา ("เว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก" แทน "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก")
