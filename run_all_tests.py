@@ -163,13 +163,13 @@ TEST_CASES = [
     {"id": 83, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา FOUNDATION ENGLISH 1 รหัสอะไร", "desc": "FOUNDATION ENGLISH 1 (ชื่อเต็มอังกฤษ)"},
     {"id": 84, "cat": "11. English Prefixes", "type": "ask", "prog": "dsba_coop", "q": "วิชา DATA WAREHOUSE ต้องผ่านวิชาอะไร", "desc": "DATA WAREHOUSE"},
     {"id": 85, "cat": "11. English Prefixes", "type": "ask", "prog": "dsba_coop", "q": "วิชา BUSINESS INTELLIGENCE เรียนปีไหน", "desc": "BUSINESS INTELLIGENCE", "expect_not_found": True},
-    {"id": 86, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา COMPUTER PROGRAMMING รหัสอะไร", "desc": "COMPUTER PROGRAMMING"},
+    {"id": 86, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา COMPUTER PROGRAMMING รหัสอะไร", "desc": "COMPUTER PROGRAMMING", "expect_fn": lambda d: "ไม่พบ" in d.get("answer", "") and "06066303" in d.get("answer", "")},
     {"id": 87, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา CHARM SCHOOL มีกี่หน่วยกิต", "desc": "CHARM SCHOOL (ชื่อเต็มอังกฤษ)"},
-    {"id": 88, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา WEB PROGRAMMING อยู่ปีไหน", "desc": "WEB PROGRAMMING"},
+    {"id": 88, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา WEB PROGRAMMING อยู่ปีไหน", "desc": "WEB PROGRAMMING", "expect_fn": lambda d: "ไม่พบ" in d.get("answer", "") and "06066302" in d.get("answer", "")},
     {"id": 89, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา NETWORK อยู่ปีไหน", "desc": "NETWORK", "expect_not_found": True},
-    {"id": 90, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา DATABASE SYSTEMS รหัสอะไร", "desc": "DATABASE SYSTEMS"},
+    {"id": 90, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา DATABASE SYSTEMS รหัสอะไร", "desc": "DATABASE SYSTEMS", "expect_fn": lambda d: "ไม่พบ" in d.get("answer", "") and all(c in d.get("answer", "") for c in ("06066300", "06016414"))},
     {"id": 91, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา SOFTWARE ENGINEERING กี่หน่วยกิต", "desc": "SOFTWARE ENGINEERING (ชื่อเต็มอังกฤษ)"},
-    {"id": 92, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา OPERATING SYSTEMS มีกี่หน่วยกิต", "desc": "OPERATING SYSTEMS"},
+    {"id": 92, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา OPERATING SYSTEMS มีกี่หน่วยกิต", "desc": "OPERATING SYSTEMS", "expect_fn": lambda d: "ไม่พบ" in d.get("answer", "") and "06016412" in d.get("answer", "")},
 
     # -------------------------------------------------------------------------
     # หมวด 12: Thai Slang, Short Names & Co-op Colloquials (16 ข้อ)

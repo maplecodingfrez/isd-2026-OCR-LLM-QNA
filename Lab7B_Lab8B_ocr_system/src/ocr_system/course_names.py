@@ -100,16 +100,47 @@ COLLOQUIAL_RULES: tuple[tuple[re.Pattern, str], ...] = (
 )
 
 
-def colloquial_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]:
-    """[(รหัส, ชื่อไทย)] ของวิชาเดียวที่ชื่อภาษาพูด/ไม่ครบในคำถามชี้ถึง — ไม่ตรงกฎ, ไม่มีวิชาในแผน, หรือมีหลายวิชา = []"""
+def colloquial_candidates(question: str, courses: list[dict]) -> list[tuple[str, str]]:
+    """[(รหัส, ชื่อไทย)] ของทุกวิชาที่ชื่อภาษาพูด/ไม่ครบในคำถามอาจหมายถึง (กฎแรกที่ตรงตัดสิน) — ไม่ตรงกฎ/ไม่มีวิชา = []"""
     for pat, part in COLLOQUIAL_RULES:
         if not pat.search(question):
             continue
         part = _norm_th(part)
         found = {str(c["code"]): c.get("name_th") or "" for c in courses
                  if c.get("code") and part in _norm_th(c.get("name_th"))}
-        return list(found.items()) if len(found) == 1 else []
+        return list(found.items())
     return []
+
+
+def colloquial_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]:
+    """[(รหัส, ชื่อไทย)] ของวิชาเดียวที่ชื่อภาษาพูด/ไม่ครบในคำถามชี้ถึง — ไม่ตรงกฎ, ไม่มีวิชาในแผน, หรือมีหลายวิชา = []"""
+    found = colloquial_candidates(question, courses)
+    return found if len(found) == 1 else []
+
+
+_LATIN_RUN = re.compile(r"[A-Za-z][A-Za-z0-9&'\-]*(?:\s+[A-Za-z][A-Za-z0-9&'\-]*)*")
+
+
+def _en_tokens(text: str | None) -> list[str]:
+    """คำอังกฤษตัวใหญ่ ตัด s ท้ายคำ (SYSTEMS = SYSTEM) เพื่อเทียบชื่อที่พิมพ์ไม่ครบ"""
+    return [t[:-1] if len(t) > 4 and t.endswith("S") else t for t in re.findall(r"[A-Z0-9]+", (text or "").upper())]
+
+
+def english_fragment_courses(question: str, courses: list[dict]) -> tuple[str, list[tuple[str, str, str]]]:
+    """(ข้อความที่พิมพ์, [(รหัส, ชื่อไทย, ชื่ออังกฤษ)]) ของวิชาที่ "ชื่ออังกฤษมีสิ่งที่พิมพ์เป็นส่วนหนึ่ง" (เรียงคำติดกัน, สั้นกว่าชื่อจริง);
+    ใช้เสนอตัวเลือกใกล้เคียงให้ผู้ใช้ยืนยัน — ไม่เลือกให้เอง; พิมพ์สั้นกว่า 5 ตัวอักษร/ชื่อเต็มตรงตัว/ชื่อจริงอยู่ในคำที่ยาวกว่า = ไม่มีตัวเลือก"""
+    for run in _LATIN_RUN.findall(question):
+        frag = _en_tokens(run)
+        if sum(len(t) for t in frag if t.isalpha()) < 5:
+            continue
+        found = []
+        for c in courses:
+            name = _en_tokens(c.get("name_en"))
+            if c.get("code") and len(frag) < len(name) and any(name[i:i + len(frag)] == frag for i in range(len(name) - len(frag) + 1)):
+                found.append((str(c["code"]), c.get("name_th") or "", c.get("name_en") or ""))
+        if found:
+            return run.strip(), found
+    return "", []
 
 
 # ตัวย่อวิชา -> (ชื่ออังกฤษ, ชื่อไทย) บางส่วนของชื่อวิชา; ตัวย่อสั้น (MIS/OOP/SE/ML/DW/SAD/OS/DIQ) ต้องพิมพ์ตัวใหญ่ — กัน "5 ml" / "dw" ในประโยคทั่วไป

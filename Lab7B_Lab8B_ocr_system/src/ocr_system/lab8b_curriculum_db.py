@@ -3196,6 +3196,69 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows, shown)
 
 
+# ---- 13b. ชื่อวิชาพิมพ์ไม่ครบ/กำกวม: "ไม่พบ" + วิชาใกล้เคียงพร้อมค่าที่ถาม ให้ผู้ใช้ยืนยันเอง (ไม่เลือกวิชาให้) ----
+_NEAR_MAX = 5
+_NEAR_NOT = re.compile(r"ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|ภาค\S*\s*\d|รวม|ทั้งหมด|กี่วิชา|หมวด|ชั่วโมง|ก่อน|ชื่อ|อะไรบ้าง|วิชาไหนบ้าง|วิชา(?:อะไร|ใด)")
+
+
+def _near_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามรหัส/หน่วยกิต/ปี/เทอมของ "วิชาเดียว" ที่พิมพ์ชื่อ**ไม่ครบ**หรือกำกวมจนไม่มีชื่อตรงตัว (ชื่ออังกฤษเป็นส่วนหนึ่งของชื่อจริง, ชื่อภาษาพูดที่ตรงหลายวิชา)
+    → ขึ้นต้น "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ตามด้วยวิชาที่ใกล้เคียง (ไม่เกิน 5) พร้อมค่าที่ถาม และขอให้ผู้ใช้ยืนยันด้วยรหัส/ชื่อเต็ม — ไม่เลือกวิชาให้เอง;
+    มีรหัส/ชื่อตรงตัว/คำถามเชิงความสัมพันธ์-รายการ/ชื่อสั้นกว่า 5 ตัวอักษร/ชื่อจริงอยู่ในคำที่ยาวกว่า = None (ทางเดิม)"""
+    when = bool(_ATTR_WHEN.search(question))
+    want_credits = "หน่วยกิต" in question
+    want_year, want_sem = bool(_ATTR_YEAR.search(question)) or when, bool(_ATTR_SEM.search(question)) or when
+    want_code = bool(_CODE_ASK_RE.search(question)) and not _CODE_NOT_RE.search(question)
+    if not (want_credits or want_year or want_sem or want_code) or _NEAR_NOT.search(question) or _RELATIONAL_NOT.search(question) or _CODE8.search(question):
+        return None
+    if _named_courses(conn, question):                          # มีชื่อตรงตัว = ทางลัดอื่นตอบไปแล้ว/จะตอบ
+        return None
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    except sqlite3.OperationalError:
+        return None
+    typed, found = course_names.english_fragment_courses(question, courses)
+    if not found:
+        by_code = {c["code"]: c for c in courses}
+        cands = course_names.colloquial_candidates(question, courses)
+        if len(cands) > 1:
+            typed = next((m.group(0) for pat, _ in course_names.COLLOQUIAL_RULES if (m := pat.search(question))), "")
+            typed = re.sub(r"^วิชา\s*", "", typed)
+            found = [(code, name, by_code[code].get("name_en") or "") for code, name in cands]
+    if not found:
+        return None
+    try:
+        in_plan = {r[0] for r in conn.execute("SELECT DISTINCT code FROM plan_item")}
+    except sqlite3.OperationalError:
+        return None
+    found = sorted(found, key=lambda f: (f[0] not in in_plan, f[0]))             # วิชาที่อยู่ในแผนขึ้นก่อน (ก่อนตัดที่ 5 ตัวเลือก)
+    shown, extra = found[:_NEAR_MAX], max(0, len(found) - _NEAR_MAX)
+    parts, rows = [], []
+    for code, name_th, name_en in shown:
+        try:
+            credits = conn.execute("SELECT credits FROM course WHERE code = ?", (code,)).fetchone()
+            places = [tuple(r) for r in conn.execute("SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (code,))]
+        except sqlite3.OperationalError:
+            return None
+        bits, row = [], {"code": code, "name_th": name_th, "name_en": name_en, "near_match": True}
+        if want_credits and credits and credits[0] is not None:
+            bits.append(f"{credits[0]} หน่วยกิต")
+            row["credits"] = credits[0]
+        if want_year or want_sem:
+            bits.append(" และ ".join(f"ปี {y} เทอม {s}" for y, s in places) if places else "ไม่อยู่ในแผน")
+            if places:
+                row["year"], row["semester"] = places[0]
+        parts.append(f"{code} {name_th}" + (f" ({name_en})" if name_en else "") + (": " + " — ".join(bits) if bits else ""))
+        rows.append(row)
+    ids = ", ".join(f"'{c}'" for c, _, _ in shown)
+    sql = (f"SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code IN ({ids})" if (want_year or want_sem) and not want_credits
+           else f"SELECT code, name_th, credits FROM course WHERE code IN ({ids})")
+    text = (f"ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"{typed}\" ตรงตัว) — วิชาที่ใกล้เคียง: " + "; ".join(parts)
+            + (f"; และอีก {extra} วิชา" if extra else "") + " — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน")
+    return text, rows, sql + f" -- วิชาใกล้เคียงกับ \"{typed}\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง"
+
+
 # ---- 14. กลุ่มวิชาเลือกถามด้วยชื่อกลุ่ม (รายชื่อวิชา / จำนวนวิชา / หน่วยกิตที่ต้องเลือก) ----
 # ชุดสำนวนใหม่: "กลุ่มวิชาเลือกการตลาดเชิงดิจิทัล มีวิชาอะไรบ้าง" โมเดลหยิบวิชา "การตลาดเชิงดิจิทัล" แทนกลุ่ม, "…มีกี่วิชา" ตอบ 0 (ชื่อกลุ่มไม่ตรงตัว)
 _GROUP_LIST = re.compile(r"อะไรบ้าง|วิชาอะไร|มีวิชา(?:อะไร|ไหน)|วิชาไหนบ้าง|รายชื่อ|ได้แก่|รหัสวิชา|ให้เลือก")
@@ -4714,7 +4777,7 @@ _SHORTCUTS = (
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
-    _catalog_course_answer, _credit_structure_answer,
+    _catalog_course_answer, _credit_structure_answer, _near_course_answer,
 )
 
 
