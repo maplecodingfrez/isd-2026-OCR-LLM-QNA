@@ -2974,14 +2974,58 @@ def _name_key(text: str | None) -> str:
     return re.sub(r"\s+", "", _PLURAL_S.sub("", text or "").replace("ํา", "ำ")).lower().replace("ซ", "ช")
 
 
-def _name_is_whole(qn: str, key: str) -> bool:
+_NAME_PREFIX_TH = re.compile(_NAME_PREFIX_OK.pattern.replace("code|of|for|is|the|about|course|name|", ""))     # คำนำไทย/เครื่องหมาย (ไม่รวมคำอังกฤษ)
+_EN_LEAD_INS = ("code", "course", "name", "about", "the", "is", "of", "for")
+_EN_ATTR_NOUN = re.compile(r"(?:code|name|credits?|id|number|title|hours?|units?|course|term|year|description)$")
+
+
+def _name_key_words(text: str | None) -> tuple[str, set[int]]:
+    """(_name_key(text), ตำแหน่งในคีย์ที่เป็นจุดเริ่มคำอังกฤษ) — คีย์ตัดช่องว่างจนแยกคำไม่ได้ ใช้ตำแหน่งนี้ตรวจว่าคำนำหน้าเป็น "คำเต็ม" """
+    t = _PLURAL_S.sub("", text or "").replace("ํา", "ำ")
+    out, starts, pos, prev_latin = [], set(), 0, False
+    for ch in t:
+        if ch.isspace():
+            prev_latin = False
+            continue
+        latin = ch.isascii() and ch.isalnum()
+        if latin and not prev_latin:
+            starts.add(pos)
+        piece = ch.lower().replace("ซ", "ช")
+        out.append(piece)
+        pos += len(piece)
+        prev_latin = latin
+    return "".join(out), starts
+
+
+def _english_lead_in_ok(prefix: str, starts: set[int]) -> bool:
+    """คำนำภาษาอังกฤษหน้าชื่อวิชา: ต้องเป็นคำเต็ม (ไม่ใช่ท้าย "THIS"/"RENAME"/"DECODE") และ of/for ต้องอยู่ต้นประโยค
+    หรือตามหลังคำเรียกข้อมูล (code/name/credits/id…) — "FUNDAMENTALS OF X" ไม่ใช่คำนำ แต่เป็นชื่อที่ยาวกว่า"""
+    for word in _EN_LEAD_INS:
+        if not prefix.endswith(word) or (len(prefix) - len(word)) not in starts:
+            continue
+        if word not in ("of", "for"):
+            return True
+        before = prefix[: -len(word)]
+        noun = _EN_ATTR_NOUN.search(before)
+        if not before or (noun and noun.start() in starts):
+            return True
+    return False
+
+
+def _name_is_whole(qn: str, key: str, starts: set[int] | None = None) -> bool:
     """ชื่อวิชา key ปรากฏใน qn (ตัดช่องว่างแล้ว) ในฐาน "ชื่อเต็ม": ก่อน/หลังเป็นต้นประโยค คำนำ/คำถามที่รู้จัก หรือเครื่องหมาย (อย่างน้อยหนึ่งตำแหน่ง)
-    ตัวอักษรไทย/อังกฤษ/ตัวเลขอื่นที่ติดอยู่ (ชื่อยาวกว่าที่ไม่มีใน DB), "และ/กับ" ต่อท้าย (สองวิชา) = ไม่ใช่ชื่อเต็ม"""
+    ตัวอักษรไทย/อังกฤษ/ตัวเลขอื่นที่ติดอยู่ (ชื่อยาวกว่าที่ไม่มีใน DB), "และ/กับ" ต่อท้าย (สองวิชา) = ไม่ใช่ชื่อเต็ม;
+    ส่ง starts (จาก _name_key_words) มาเมื่อต้องการให้คำนำอังกฤษเป็นคำเต็มเท่านั้น — ไม่ส่ง = กฎเดิม (ผ่อนปรน)"""
     for mt in re.finditer(re.escape(key), qn):
         tail = qn[mt.end():]
         if re.match(r"[,/&\-–]\d", tail):                    # "X 1, 2" / "X 1-2" = หลายวิชาในลำดับเดียวกัน ไม่ใช่ชื่อเดียว
             continue
-        if _NAME_PREFIX_OK.search(qn[: mt.start()]) and _NAME_SUFFIX_OK.match(tail):
+        prefix = qn[: mt.start()]
+        if starts is None:
+            prefix_ok = bool(_NAME_PREFIX_OK.search(prefix))
+        else:
+            prefix_ok = bool(_NAME_PREFIX_TH.search(prefix)) or _english_lead_in_ok(prefix, starts)
+        if prefix_ok and _NAME_SUFFIX_OK.match(tail):
             return True
     return False
 
@@ -2999,12 +3043,12 @@ def _named_courses(conn: sqlite3.Connection, question: str, catalog: bool = True
             pairs += [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, course_name_th, course_name_en FROM main.v_elective_group")]
     except sqlite3.OperationalError:
         return None
-    qn = _name_key(question)
+    qn, starts = _name_key_words(question)
     hits: dict[str, dict[str, str]] = {}                       # ชื่อที่ normalise แล้ว → {รหัส: ชื่อไทย}
     for code, th, en in pairs:
         for name in (th, en):
             key = _name_key(name)
-            if len(key) >= 5 and key in qn and (not strict or _name_is_whole(qn, key)):
+            if len(key) >= 5 and key in qn and (not strict or _name_is_whole(qn, key, starts)):
                 hits.setdefault(key, {}).setdefault(code, th or en)
     maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
     if not maximal and strict:                              # ไม่มีชื่อตรงเลย → ลองชื่อภาษาพูด/ไม่ครบ (ต้องชี้วิชาเดียวในแผน — ดู course_names.COLLOQUIAL_RULES)
