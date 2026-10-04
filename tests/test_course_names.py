@@ -371,3 +371,13 @@ def test_aml_is_not_confused_with_ml_or_other_words():
     ab = lambda q: [c for c, _ in cn.acronym_courses(q, AB_COURSES)]
     assert ab("วิชา ML อยู่เทอมไหน") == []                         # ML ตรง Applied และ Probabilistic = กำกวม ไม่ตอบ
     assert ab("วิชา HAMLET อยู่เทอมไหน") == []                      # ไม่จับกลางคำ
+
+
+def test_isd_acronym_resolves_one_course_with_existing_case_rules():
+    courses = [{"code": "06026240", "name_th": "การพัฒนาระบบอัจฉริยะ", "name_en": "INTELLIGENT SYSTEM DEVELOPMENT"}]
+    for q in ("วิชา ISD รหัสอะไร", "วิชา isd กี่หน่วยกิต", "Isd กี่หน่วยกิต"):
+        assert [c for c, _ in cn.acronym_courses(q, courses)] == ["06026240"]
+    for q in ("วิชา ISD2 รหัสอะไร", "วิชา XISD รหัสอะไร", "5 isd", "what is isd about"):
+        assert cn.acronym_courses(q, courses) == []
+    assert cn.acronym_courses("ISD รหัสอะไร", []) == []
+    assert cn.acronym_courses("ISD รหัสอะไร", courses + [dict(courses[0], code="06099999")]) == []

@@ -2520,6 +2520,33 @@ def _code_family_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
             "SELECT code, name_th FROM course WHERE name_th LIKE '" + top + "%'")
 
 
+# ---- รายชื่อวิชาจากรหัสนำหน้า: รับเฉพาะคำถามรายชื่อทั้งหมวด ----
+_COURSE_CODE_PREFIX_Q = re.compile(
+    r"(?:ขอ\s*|ช่วย\s*)?(?:วิชาหมวด|หมวดวิชา|รหัสหมวด|วิชาขึ้นต้นด้วย|รหัสขึ้นต้นด้วย|วิชารหัส)"
+    r"\s*([0-9]{3,7})(?![0-9])\s*"
+    r"(?:มี\s*(?:รายวิชา|วิชา)?\s*อะไรบ้าง|มี\s*(?:รายวิชา|วิชา)?\s*ใดบ้าง|"
+    r"มี\s*(?:รายวิชา|วิชา)?\s*ไหนบ้าง|มี\s*กี่วิชา|มี\s*ทั้งหมดกี่วิชา)?"
+    r"\s*(?:หน่อย|ครับ|ค่ะ|นะ)?[?？\s]*")
+
+
+def _course_code_prefix_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    match = _COURSE_CODE_PREFIX_Q.fullmatch(question.strip())
+    if not match:
+        return None
+    prefix = match.group(1)
+    sql = "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE ? ORDER BY code"
+    try:
+        rows = [dict(row) for row in conn.execute(sql, (prefix + "%",))]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return _NOT_FOUND
+    items = [f"{row['code']} ({row['name_th'] or ''}" +
+             (f" / {row['name_en']}" if row.get("name_en") else "") + ")" for row in rows]
+    return (f"วิชาหมวด {prefix} มี {len(rows)} วิชา:\n- " + "\n- ".join(items), rows,
+            sql.replace("?", f"'{prefix}%'"))
+
+
 # ---- สถานการณ์หลายวิชา: "ถ้าตก A แต่ผ่าน B แล้ว ลง C ได้ไหม" (รองรับวิชาบังคับก่อนแบบ "หรือ") ----
 def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """สามวิชาขึ้นไปในคำถามใช่/ไม่ใช่: วิชาสุดท้ายที่นำหน้าด้วย ลง/เรียน = วิชาที่จะลง; วิชาอื่นต้องมีคำว่า ตก/ไม่ผ่าน (ไม่ผ่าน) หรือ ผ่าน (ผ่านแล้ว) นำหน้าชัดเจน
@@ -2732,8 +2759,10 @@ def withdrawal_graph(conn: sqlite3.Connection, code: str) -> dict | None:
 
 def _withdrawal_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """Withdrawal asks use the real reverse graph, including indirect/OR/co edges."""
-    if not re.search(r"ถอน(?:ราย)?วิชา|ดรอป|drop\b", question, re.I) or re.search(r"ไม่(?:ถอน|ดรอป)|ค่าเทอม|ค่าธรรมเนียม|เกรด|GPA|วันสุดท้าย|กำหนดการ", question, re.I):
+    if not re.search(r"ถอน(?:ราย)?วิชา|ถอน\s*ได้|ดรอป|ดร็อป|drop\b", question, re.I) or re.search(r"ไม่(?:ถอน|ดรอป|ดร็อป)|ค่าเทอม|ค่าธรรมเนียม|เกรด|GPA|วันสุดท้าย|กำหนดการ", question, re.I):
         return None
+    if re.search(r"(?:ถอน|ดรอป|ดร็อป)\s*ได้\s*(?:ไหม|มั้ย|หรือไม่|หรือเปล่า)", question) and not re.search(r"กระทบ|ตัวต่อ|วิชาต่อ", question):
+        return _NOT_FOUND  # Curriculum prerequisites do not establish withdrawal permission.
     codes = set(_CODE8.findall(question))
     if not codes:
         codes = set(_named_courses(conn, question, strict=True, relational_ok=True) or {})
@@ -3140,7 +3169,28 @@ def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         return None
     found = [{"code": c, "name_th": n} for c, n in sorted(codes.items())]
     ids = ", ".join(f"'{r['code']}'" for r in found)
-    return "; ".join(f"{r['code']} ({r['name_th']})" for r in found), found, f"SELECT code, name_th FROM course WHERE code IN ({ids})"
+    sql = f"SELECT code, name_th, name_en FROM course WHERE code IN ({ids})"
+    plan_names = {r[0]: r[2] for r in conn.execute(sql)}
+    english = {code: name.strip() for code, name in plan_names.items() if name and name.strip()}
+    try:
+        catalog_sql = ("SELECT code, course_name_th AS name_th, course_name_en AS name_en "
+                       f"FROM main.v_elective_group WHERE code IN ({ids})")
+        catalog_names = {}
+        for code, _, name in conn.execute(catalog_sql):
+            if name and name.strip():
+                catalog_names.setdefault(code, set()).add(name.strip())
+        for code, names in catalog_names.items():
+            if code not in english and len(names) == 1:
+                english[code] = next(iter(names))
+        if any(r["code"] not in plan_names for r in found):
+            sql += " UNION " + catalog_sql
+    except sqlite3.OperationalError:
+        pass  # Older databases can lack the elective catalog view.
+    for row in found:
+        row["name_en"] = english.get(row["code"])
+    return "; ".join(f"{r['code']} ({r['name_th']}" +
+                     (f" / {r['name_en']}" if r["name_en"] and r["name_en"] != r["name_th"] else "") + ")"
+                     for r in found), found, sql
 
 
 # ---- 12. ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเองของวิชาเดียว และวิชาที่ชั่วโมงมาก/น้อยที่สุดในปีที่ระบุ ----
@@ -3630,12 +3680,20 @@ def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
 
 
 def _expand_course_acronyms(conn: sqlite3.Connection, question: str) -> str:
-    """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผนนี้ (ไม่ชี้วิชาเดียว = คำถามเดิม)"""
+    """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผน; ISD รวม catalog ของหลักสูตรที่เลือก"""
     import course_names
     try:
         courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     except sqlite3.OperationalError:
         return question
+    try:
+        # ISD is a DSBA catalog elective, not a fixed course in plan_item.
+        # Keep other acronyms plan-scoped so their existing ambiguity rules stay unchanged.
+        courses += [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute(
+            "SELECT code, course_name_th, course_name_en FROM main.v_elective_group "
+            "WHERE UPPER(course_name_en) = ?", ("INTELLIGENT SYSTEM DEVELOPMENT",))]
+    except sqlite3.OperationalError:
+        pass  # Older databases without the catalog still resolve plan courses.
     return course_names.expand_acronyms(question, courses)
 
 
@@ -5111,7 +5169,7 @@ _SHORTCUTS = (
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
+    _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )

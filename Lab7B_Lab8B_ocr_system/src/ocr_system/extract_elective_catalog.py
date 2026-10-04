@@ -10,6 +10,11 @@
     python -m ocr_system.extract_elective_catalog \
         --text "../outputs/bit/bit_curriculum_ocr.txt" --start-page 24 --end-page 25 \
         -o runs/BIT/electives.json
+
+GE image-OCR candidate (review before replacing the live catalog):
+    python extract_elective_catalog.py --ocr-json <pipeline_ocr.json> --edition 2566 -o <candidate.json>
+The --ocr-json path never reads PDF text or ground truth. --pdf remains an explicit
+text-layer reference mode; OCR errors are not silently repaired from that reference.
 """
 
 import argparse
@@ -205,21 +210,93 @@ def parse_ge_pdf(pdf_path) -> list[dict]:
     return sorted(courses.values(), key=lambda c: c["code"])
 
 
-def build_ge_catalog(pdf_path, edition: str) -> dict:
+def parse_ge_ocr(pages: list[dict]) -> list[dict]:
+    """Read GE catalog rows from image OCR only; keep errors visible, never fill from PDF text/GT.
+
+    Require an exact eight-digit code, Thai title, English title and complete
+    credit structure. Conflicting duplicate records are excluded for review.
+    """
+    header = re.compile(r"^\s*(\*{0,2})(9064\d{4})\s+(.+)$")
+    credit = re.compile(r"(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)\s*$")
+    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'(),./:+-]*$")
+    courses, conflicts = {}, set()
+    for page in sorted(pages, key=lambda p: int(p["page"])):
+        text = page.get("text", "")
+        if re.search(r"<table\b", text, flags=re.I):
+            # Reuse the existing Markdown table reader; this is format conversion,
+            # not name/credit repair. Incomplete rows never become course records.
+            from code_from_book import _cells
+            from html import unescape
+            converted = []
+            for row_html in re.findall(r"<tr\b[^>]*>(.*?)</tr>", text, flags=re.S | re.I):
+                cells = [unescape(value).strip() for _, value in _cells(row_html)]
+                if len(cells) < 3 or not _GE_CODE.fullmatch(cells[0]):
+                    continue
+                if not credit.fullmatch(cells[-1]):
+                    continue
+                parts = [part.strip() for cell in cells[1:-1] for part in cell.splitlines() if part.strip()]
+                th = [part for part in parts if re.search(r"[ก-๙]", part)]
+                en = [part for part in parts if english.fullmatch(part)]
+                if th and en:
+                    converted.extend([f"{cells[0]} {' '.join(th)} {cells[-1]}", " ".join(en)])
+            text = "\n".join(converted)
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        for i, line in enumerate(lines):
+            match = header.match(line)
+            if not match or int(match[2][4]) not in GE_GROUP_NAMES:
+                continue
+            tail, names_en = match[3], []
+            hours = credit.search(tail)
+            if not hours:
+                continue
+            name_th = tail[:hours.start()].strip()
+            if not re.search(r"[ก-๙]", name_th):
+                continue
+            for following in lines[i + 1:i + 8]:
+                if not english.fullmatch(following):
+                    break
+                names_en.append(following)
+            if not names_en:
+                continue
+            total, lecture, practice, study = map(int, hours.groups())
+            if total > 12 or any(h > 99 for h in (lecture, practice, study)):
+                continue
+            row = {"code": match[2], "name_th": name_th, "name_en": " ".join(names_en),
+                   "credits": total, "credit_text": f"{total} ({lecture}-{practice}-{study})",
+                   "group": int(match[2][4]), "graded_su": bool(match[1]), "page": int(page["page"])}
+            previous = courses.get(row["code"])
+            if previous and any(previous[key] != row[key] for key in ("name_th", "name_en", "credits", "credit_text")):
+                conflicts.add(row["code"])
+            else:
+                courses.setdefault(row["code"], row)
+    return [courses[code] for code in sorted(courses) if code not in conflicts]
+
+
+def build_ge_catalog(pdf_path, edition: str, *, ocr_json=None) -> dict:
     """รูปแบบเดียวกับ electives.json (ใช้ load-electives เดิมได้) — plan_slot ชื่อใหม่ จึงไม่ลบแคตตาล็อกวิชาเลือกเดิมของหลักสูตร"""
-    courses = parse_ge_pdf(pdf_path)
+    if ocr_json is not None:
+        payload = json.loads(Path(ocr_json).read_text(encoding="utf-8"))
+        if not payload.get("engine") or not isinstance(payload.get("pages"), list):
+            raise ValueError("GE OCR JSON requires engine and pages")
+        courses = parse_ge_ocr(payload["pages"])
+        source = f"{Path(ocr_json).name} {payload['engine']} OCR (เลขหน้าเป็นหน้า PDF)"
+    else:
+        courses = parse_ge_pdf(pdf_path)
+        source = f"{Path(pdf_path).name} PDF text layer (เลขหน้าเป็นหน้า PDF)"
     groups = [{"group_no": g, "name_th": GE_GROUP_NAMES[g][0], "name_en": GE_GROUP_NAMES[g][1],
                "courses": [{"code": c["code"], "name_th": c["name_th"], "name_en": c["name_en"],
                             "credits": c["credit_text"], "graded_su": c["graded_su"], "page": c["page"]}
                            for c in courses if c["group"] == g]} for g in GE_GROUP_NAMES]
-    return {"program": "GE", "source": f"{Path(pdf_path).name} PDF text layer (เลขหน้าเป็นหน้า PDF)",
+    return {"program": "GE", "source": source,
             "plan_slot": f"หมวดวิชาศึกษาทั่วไป ฉบับปรับปรุง พ.ศ. {edition}",
             "credits_required": 24, "groups": groups}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pdf", help="โหมดหมวดวิชาศึกษาทั่วไป: PDF ที่มี text layer (ใช้คู่กับ --edition ไม่ต้องใช้ --text/--start-page/...)")
+    ge_input = parser.add_mutually_exclusive_group()
+    ge_input.add_argument("--pdf", help="โหมด GE จาก PDF text layer (ใช้คู่กับ --edition)")
+    ge_input.add_argument("--ocr-json", help="โหมด GE จาก OCR JSON ของ pipeline เดิม ไม่อ่าน PDF text layer (ใช้คู่กับ --edition)")
     parser.add_argument("--edition", help="ปีฉบับของ GE เช่น 2566 (ใช้กับ --pdf)")
     parser.add_argument("--text", help="ไฟล์ OCR เต็มเล่ม (มี marker '--- Page N ---')")
     parser.add_argument("--start-page", type=int)
@@ -232,10 +309,10 @@ def main() -> None:
     parser.add_argument("-o", "--output", required=True)
     args = parser.parse_args()
 
-    if args.pdf:                                            # โหมด GE จาก PDF
+    if args.pdf or args.ocr_json:                           # GE: choose one explicit source
         if not args.edition:
-            parser.error("--pdf ต้องมี --edition")
-        result = build_ge_catalog(args.pdf, args.edition)
+            parser.error("--pdf/--ocr-json ต้องมี --edition")
+        result = build_ge_catalog(args.pdf, args.edition, ocr_json=args.ocr_json)
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

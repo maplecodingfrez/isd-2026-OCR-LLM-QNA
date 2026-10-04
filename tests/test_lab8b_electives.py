@@ -478,6 +478,48 @@ GE_PDF = REPO / "data" / "input" / "GE66_Th_Ed240501.pdf"
 GE_GT = REPO / "data" / "ground_truth" / "general_education_ground_truth.json"
 
 
+def test_ge_ocr_catalog_uses_ocr_rows_and_original_pdf_pages(tmp_path):
+    raw = tmp_path / "ocr.json"
+    raw.write_text(json.dumps({"engine": "tesseract", "pages": [{"page": 15, "text":
+        "90642011 การคิดอย่างมีวิจารณญาณ 3 (3-0-6)\nCRITICAL THINKING\n"
+        "**90641008 พื้นฐานทักษะการสื่อสารภาษาอังกฤษ 0 (0-0-45)\n"
+        "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS"}]}), encoding="utf-8")
+    result = eec.build_ge_catalog("missing.pdf", "2566", ocr_json=raw)
+    rows = [c for g in result["groups"] for c in g["courses"]]
+    assert len(rows) == 2
+    by_code = {c["code"]: c for c in rows}
+    assert by_code["90642011"]["page"] == 15
+    assert by_code["90642011"]["name_en"] == "CRITICAL THINKING"
+    assert by_code["90641008"]["credits"] == "0 (0-0-45)"
+    assert by_code["90641008"]["graded_su"] is True
+    assert "tesseract OCR" in result["source"] and "text layer" not in result["source"]
+
+
+def test_ge_ocr_rejects_incomplete_credits_and_conflicting_duplicates():
+    pages = [{"page": 15, "text":
+        "90642011 วิชาหนึ่ง 3 (3-0-6)\nCOURSE ONE\n"
+        "90642012 วิชาสอง 3 (3-0-6\nCOURSE TWO"},
+        {"page": 16, "text": "90642011 วิชาหนึ่ง 2 (2-0-4)\nCOURSE ONE"}]
+    assert eec.parse_ge_ocr(pages) == []
+
+
+def test_ge_ocr_keeps_misread_names_without_truth_replacement():
+    rows = eec.parse_ge_ocr([{"page": 12, "text":
+        "*90641004 โครงงานกลุ่ม 1 1 (0-2-1)\nTEAM-PROJECT 4"}])
+    assert rows[0]["name_en"] == "TEAM-PROJECT 4"
+
+
+def test_ge_ocr_reads_typhoon_html_without_pdf_or_truth():
+    rows = eec.parse_ge_ocr([{"page": 15, "text":
+        "<table><tr><th>รหัสวิชา</th><th>รายวิชา</th><th>หน่วยกิต</th></tr>"
+        "<tr><td>90642011</td><td>การคิดอย่างมีวิจารณญาณ<br>CRITICAL THINKING</td><td>3 (3-0-6)</td></tr>"
+        "<tr><td>90642024</td><td>การวิเคราะห์ข้อมูลทางวิชาชีพและการนำเสนอทางวิชาการ<br>"
+        "PROFESSIONAL INFORMATION ANALYSIS AND ACADEMIC<br>PRESENTATION</td><td>3 (3-0-6)</td></tr></table>"}])
+    assert [r["code"] for r in rows] == ["90642011", "90642024"]
+    assert rows[1]["name_en"] == "PROFESSIONAL INFORMATION ANALYSIS AND ACADEMIC PRESENTATION"
+    assert all(r["page"] == 15 for r in rows)
+
+
 def test_fix_pua_restores_thai_tone_marks():
     assert eec.fix_pua("ด\uf70bาน") == "ด้าน" and eec.fix_pua("กลุ\uf70aม") == "กลุ่ม"
     assert eec.fix_pua("ฟ\uf704\uf714น") == "ฟื้น" and eec.fix_pua("ฝ\uf703ก") == "ฝึก"
@@ -1798,6 +1840,53 @@ def _ask_code(tmp_path, monkeypatch, question):
 def test_course_code_is_looked_up_from_the_name_without_the_model(tmp_path, monkeypatch, question, code):
     r = _ask_code(tmp_path, monkeypatch, question)
     assert code in r["answer"] and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("question,english", [
+    ("วิชา แคลคูลัส 2 รหัสอะไร", "CALCULUS 2"),
+    ("วิชา CALCULUS 1 รหัสอะไร", "CALCULUS 1"),
+])
+def test_course_code_answer_includes_both_languages(tmp_path, monkeypatch, question, english):
+    r = _ask_code(tmp_path, monkeypatch, question)
+    assert "แคลคูลัส" in r["answer"] and " / " + english in r["answer"]
+    assert r["rows"][0]["name_en"] == english and r["model_calls"] == 0
+
+
+@pytest.mark.parametrize("rel", ["DSBA/coop", "DSBA/no_coop"])
+def test_isd_code_answer_includes_catalog_english_name(rel):
+    with closing(_real(rel)) as conn:
+        question = m._prepare_question(conn, "วิชา ISD รหัสอะไร")
+        text, rows, sql = m._code_lookup_answer(conn, question)
+    assert text == "06026240 (การพัฒนาระบบอัจฉริยะ / INTELLIGENT SYSTEM DEVELOPMENT)"
+    assert rows[0]["name_en"] == "INTELLIGENT SYSTEM DEVELOPMENT"
+    assert "v_elective_group" in sql
+
+
+@pytest.mark.parametrize("english", [None, "", "   "])
+def test_code_answer_does_not_invent_missing_english(tmp_path, english):
+    with closing(_code_db(tmp_path)) as conn:
+        conn.execute("UPDATE course SET name_en = ? WHERE code = '06020002'", (english,))
+        text, rows, _ = m._code_lookup_answer(conn, "วิชา แคลคูลัส 2 รหัสอะไร")
+    assert text == "06020002 (แคลคูลัส 2)"
+    assert rows[0]["name_en"] is None
+
+
+@pytest.mark.parametrize("rel", ALL_DBS)
+def test_code_lookup_preserves_real_bilingual_names_across_plans(rel):
+    checked = 0
+    with closing(_real(rel)) as conn:
+        for code, thai, english in conn.execute("SELECT code, name_th, name_en FROM course"):
+            if not thai or not english or not english.strip():
+                continue
+            result = m._code_lookup_answer(conn, f"วิชา {thai} รหัสอะไร")
+            if result is None:  # Preserve existing rejection of ambiguous names.
+                continue
+            text, rows, _ = result
+            row = next((r for r in rows if r["code"] == code), None)
+            if row is not None:
+                assert thai in text and english.strip() in text, (rel, code, text)
+                checked += 1
+    assert checked > 0
 
 
 def test_the_longest_matching_name_wins_over_a_shorter_name_inside_it(tmp_path, monkeypatch):
@@ -3689,6 +3778,26 @@ def test_aml_and_bfit_do_not_guess_when_the_plan_lacks_that_course(rel, question
     assert r is None or bad not in r[0], r
 
 
+@pytest.mark.parametrize("rel", ["DSBA/coop", "DSBA/no_coop"])
+@pytest.mark.parametrize("question", ["วิชา ISD รหัสอะไร", "วิชา isd กี่หน่วยกิต"])
+def test_isd_catalog_alias_reaches_database_shortcut(rel, question):
+    text, rows, sql = _txt(rel, question)
+    assert "06026240" in text and rows
+    if "หน่วยกิต" in question:
+        assert "3" in text
+    with closing(_real(rel)) as c:
+        assert m._prepare_question(c, question) == question.replace("ISD", "การพัฒนาระบบอัจฉริยะ").replace("isd", "การพัฒนาระบบอัจฉริยะ")
+        assert c.execute("SELECT year,semester FROM plan_item WHERE code = ?", ("06026240",)).fetchall() == []
+
+
+@pytest.mark.parametrize("rel", ["AIT", "BIT/coop", "BIT/no_coop", "IT/coop", "IT/no_coop"])
+def test_isd_catalog_alias_does_not_leak_to_other_curricula(rel):
+    question = "วิชา ISD รหัสอะไร"
+    with closing(_real(rel)) as c:
+        assert m._prepare_question(c, question) == question
+        assert m._named_courses(c, question) is None
+
+
 # ---------- คำนำหน้าชื่อวิชาภาษาอังกฤษ: "of/for" ต้องตามหลังคำเรียกข้อมูล (code/name/credits…) และคำนำต้องเป็นคำเต็ม ----------
 def test_name_key_words_gives_the_same_key_plus_english_word_starts():
     q = "What is the course code of CALCULUS 2"
@@ -3774,3 +3883,36 @@ def test_database_word_in_a_generic_question_is_not_a_course_name():
     with closing(_real("AIT")) as c:
         import lab8b_curriculum_db as L
         assert L._named_courses(c, "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่") is None
+
+
+@pytest.mark.parametrize("rel", ["DSBA/coop", "DSBA/no_coop"])
+def test_dsba_prerequisites_match_all_six_source_pairs(rel):
+    expected = {("06026201", "06026200"), ("06026212", "06066300"),
+                ("06026213", "06066300"), ("06026215", "06026214"),
+                ("06066102", "06066101"), ("90644008", "90644007")}
+    with closing(_real(rel)) as conn:
+        actual = {tuple(row) for row in conn.execute("SELECT code, requires FROM prerequisite WHERE kind = 'pre'")}
+    assert actual == expected
+
+
+@pytest.mark.parametrize("rel,prefix", [("IT/coop", "0601"), ("DSBA/coop", "0602"),
+                                      ("BIT/coop", "0603"), ("AIT", "0604"),
+                                      ("IT/coop", "060164"), ("IT/coop", "0601641")])
+def test_course_code_prefix_returns_exact_bilingual_list(rel, prefix):
+    with closing(_real(rel)) as conn:
+        text, rows, _ = m._course_code_prefix_answer(conn, f"วิชาหมวด {prefix} มีวิชาอะไรบ้าง")
+        expected = {r[0] for r in conn.execute("SELECT code FROM course WHERE code LIKE ?", (prefix + "%",))}
+    assert {r["code"] for r in rows} == expected
+    assert f"วิชาหมวด {prefix} " in text
+    assert all(r["name_en"] in text for r in rows if r.get("name_en"))
+
+
+@pytest.mark.parametrize("question", [
+    "วิชาหมวด 0601 มีกี่หน่วยกิต", "วิชาหมวด 0601 ปี 1 เทอม 1 มีอะไรบ้าง",
+    "วิชาหมวด 0601 ที่ไม่มีวิชาบังคับก่อนมีอะไรบ้าง", "วิชาหมวด 0601 ยกเว้น 06016401",
+    "วิชาหมวด 0601 กับ 0602 มีอะไรบ้าง", "วิชาหมวด 0601 ต่างจาก 0602 อย่างไร",
+    "วิชารหัส 06016408 ชื่ออะไร", "วิชาหมวด 060164099 มีอะไรบ้าง",
+])
+def test_course_code_prefix_does_not_ignore_question_scope(question):
+    with closing(_real("IT/coop")) as conn:
+        assert m._course_code_prefix_answer(conn, question) is None

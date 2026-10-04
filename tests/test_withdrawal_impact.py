@@ -116,6 +116,11 @@ def test_withdrawal_question_uses_graph_without_model(monkeypatch):
         assert m._withdrawal_answer(conn, "ถ้าถอนวิชา 99999999 ออกไป") == m._NOT_FOUND
         assert m._withdrawal_answer(conn, "ถ้าถอนวิชา 90644007 และ 90644008") == m._NOT_FOUND
         assert m._withdrawal_answer(conn, "ถ้าถอนวิชา 90644007 ค่าเทอมคืนไหม") is None
+        for question in ("ถ้าดรอปวิชา 90644007 จะกระทบกับอะไร", "ถ้าดร็อปวิชา 90644007 จะกระทบกับอะไร"):
+            text, affected, _ = m._withdrawal_answer(conn, question)
+            assert [r["code"] for r in affected] == ["90644008", "00000003"]
+            assert "ทางอ้อม" in text
+        assert m._withdrawal_answer(conn, "วิชา 90644007 ถอนได้มั้ย") == m._NOT_FOUND
 
 
 def test_dsba_english_withdrawal_answer_and_tool_agree(monkeypatch):

@@ -18,8 +18,10 @@
  13. วิชาเรียนร่วมกันข้ามสาขา (Cross-Program Shared Courses: DSBA/AIT/IT) (8 ข้อ)
  14. วิชาเลือกเสรีและวิชาเลือก (Free Electives & Elective Slots) (8 ข้อ)
  15. ข้อมูลเฉพาะเล่มหลักสูตร มคอ.2 (TQF:2 Book Sections & Structure) (12 ข้อ)
+ 16. ค้นรายวิชาตามรหัสนำหน้า (4 ข้อ)
+ 17. ถอนวิชาและผลกระทบต่อวิชาต่อ (10 ข้อ)
 
-รันคำสั่งเดียวจะทดสอบทั้งหมด (136 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
+รันคำสั่งเดียวจะทดสอบทั้งหมด (150 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
 =============================================================================
 """
 import urllib.request
@@ -32,7 +34,7 @@ import os
 BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 # =============================================================================
-# รายการคำถามและเคสทดสอบทั้งหมด (136 ข้อ)
+# รายการคำถามและเคสทดสอบทั้งหมด (150 ข้อ)
 # =============================================================================
 TEST_CASES = [
     # -------------------------------------------------------------------------
@@ -229,7 +231,22 @@ TEST_CASES = [
     {"id": 133, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "dsba_coop", "q": "โครงสร้างหลักสูตรแบ่งเป็นกี่หมวดวิชา", "desc": "โครงสร้างหมวดวิชา DSBA", "expect_any": ["3 หมวด", "หมวด"]},
     {"id": 134, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "หมวดวิชาเฉพาะมีกี่หน่วยกิต", "desc": "หน่วยกิตหมวดวิชาเฉพาะ IT", "expect": "93"},
     {"id": 135, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชาโครงงาน 2 ต้องผ่านวิชาอะไรมาก่อน", "desc": "Prereq โครงงาน 2 IT", "expect": "06016406"},
-    {"id": 136, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 เรียนปีไหนเทอมไหน", "desc": "ปีและเทอมของโครงงาน 1 IT", "expect_any": ["ปี 4", "เทอม 1"]}
+    {"id": 136, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 เรียนปีไหนเทอมไหน", "desc": "ปีและเทอมของโครงงาน 1 IT", "expect_any": ["ปี 4", "เทอม 1"]},
+    # Selected cases from ef2fc7f; preserve the existing suite and upstream IDs.
+    {"id": 201, "cat": "16. Course Code Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชาหมวด 0601 มีวิชาอะไรบ้าง", "desc": "รหัสนำหน้า IT", "expect_any": ["06016401", "06016402"]},
+    {"id": 202, "cat": "16. Course Code Prefixes", "type": "ask", "prog": "dsba_coop", "q": "วิชาหมวด 0602 มีวิชาอะไรบ้าง", "desc": "รหัสนำหน้า DSBA", "expect_any": ["06026200", "06026201"]},
+    {"id": 203, "cat": "16. Course Code Prefixes", "type": "ask", "prog": "bit_coop", "q": "วิชาหมวด 0603 มีวิชาอะไรบ้าง", "desc": "รหัสนำหน้า BIT", "expect_any": ["06036100", "06036101"]},
+    {"id": 204, "cat": "16. Course Code Prefixes", "type": "ask", "prog": "ait", "q": "วิชาหมวด 0604 มีวิชาอะไรบ้าง", "desc": "รหัสนำหน้า AIT", "expect_any": ["06046400", "06046401"]},
+    {"id": 211, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "ถ้าถอนวิชา 06016408 จะกระทบกับอะไร", "desc": "ถอนวิชา IT", "expect": "06016418"},
+    {"id": 212, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "ถอนวิชา 06016408 แล้วจะกระทบวิชาไหน", "desc": "ผลกระทบการถอน", "expect": "06016418"},
+    {"id": 213, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "ถ้าดรอปวิชา 06016408 จะกระทบกับอะไร", "desc": "ผลกระทบการดรอป", "expect": "06016418"},
+    {"id": 214, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีตัวต่อไหม", "desc": "ตัวต่อ IT", "expect": "06016418"},
+    {"id": 215, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีวิชาต่อไหม", "desc": "วิชาต่อ IT", "expect": "06016418"},
+    {"id": 216, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 มีวิชาต่อไหม", "desc": "ตัวต่อโครงงาน", "expect": "06016407"},
+    {"id": 217, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06066300 มีตัวต่อไหม", "desc": "ตัวต่อฐานข้อมูล DSBA", "expect_fn": lambda d: {"06026212", "06026213"} <= {r.get("code") for r in d.get("rows", [])}},
+    {"id": 218, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 ถอนได้มั้ย", "desc": "ไม่ยืนยันสิทธิ์ถอนจากเล่มหลักสูตร", "expect_not_found": True},
+    {"id": 219, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 มี prequisite ไหม", "desc": "คำสะกด prerequisite", "expect": "06016406"},
+    {"id": 220, "cat": "17. Withdrawal & Impact", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 prerequisite คืออะไร", "desc": "Prerequisite ภาษาอังกฤษ", "expect": "06016406"}
 ]
 
 
@@ -253,7 +270,7 @@ def run_master_test():
             category_stats[cat] = {"total": 0, "passed": 0}
         category_stats[cat]["total"] += 1
 
-        t0 = time.time()
+        t0 = time.perf_counter()
         ans = ""
         sql = ""
         passed = False
@@ -328,7 +345,11 @@ def run_master_test():
             ans = f"ERROR: {e}"
             passed = False
 
-        elapsed = round(time.time() - t0, 2)
+        elapsed_raw = time.perf_counter() - t0
+        elapsed = round(elapsed_raw, 2)
+        correctness_passed = passed
+        performance_passed = elapsed_raw < 5.0 if t_type == "ask" else None
+        passed = correctness_passed and performance_passed is not False
         if passed:
             category_stats[cat]["passed"] += 1
 
@@ -348,6 +369,8 @@ def run_master_test():
             "program": item.get("prog", "-"),
             "question": item.get("q", "-"),
             "passed": passed,
+            "correctness_passed": correctness_passed,
+            "performance_passed": performance_passed,
             "answer": ans,
             "sql": sql,
             "elapsed_sec": elapsed
@@ -367,7 +390,10 @@ def run_master_test():
 
     # 1. บันทึกผลลัพธ์เป็น JSON
     with open("test_master_results.json", "w", encoding="utf-8") as f:
-        json.dump({"summary": {"total": total_count, "passed": total_passed, "pass_pct": pass_pct, "category_stats": category_stats}, "results": results}, f, ensure_ascii=False, indent=2)
+        json.dump({"summary": {"total": total_count, "passed": total_passed, "pass_pct": pass_pct,
+                               "correctness_passed": sum(r["correctness_passed"] for r in results),
+                               "slow_questions": sum(r["performance_passed"] is False for r in results),
+                               "category_stats": category_stats}, "results": results}, f, ensure_ascii=False, indent=2)
 
     # 2. บันทึกรายงานผลเป็น Markdown (ลง test.md)
     generate_markdown_report(results, category_stats, total_count, total_passed, pass_pct)
@@ -381,10 +407,12 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         f"> **Branch:** `feature/lab11-frontend`  ",
         f"> **Backend:** FastAPI + SQLite + Ollama `qwen3:4b`  ",
         f"> **ผลการทดสอบรวม: ผ่าน {total_passed} / {total_count} ข้อ ({pass_pct:.1f}%)**",
+        "> คำถามต้องผ่านทั้งเกณฑ์คำตอบและเวลา <5 วินาที; เวลาเป็นระยะรอ API ที่เครื่องทดสอบวัด",
+        f"> **คำถามเกินเกณฑ์เวลา:** {sum(r.get('performance_passed') is False for r in results)} ข้อ",
         "",
         "---",
         "",
-        "## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ (15 หมวดหมู่)",
+        f"## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ ({len(category_stats)} หมวดหมู่)",
         "",
         "| หมวดหมู่การทดสอบ | ผ่าน / ทั้งหมด | อัตราความสำเร็จ | สถานะการทำงาน |",
         "|---|:---:|:---:|:---:|"
@@ -429,14 +457,14 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         "",
         "---",
         "",
-        "## 📝 3. รายละเอียดผลการทดสอบทั้งหมด (ครบ 136 ข้อ)",
+        f"## 📝 3. รายละเอียดผลการทดสอบทั้งหมด (ครบ {total_count} ข้อ)",
         "",
         "| # | หมวดหมู่ | หัวข้อ/คำถาม | แผน | ผลลัพธ์ | คำตอบที่ได้จากระบบ | เวลา |",
         "|---|---|---|---|:---:|---|:---:|"
     ])
 
     for r in results:
-        sym = "✅ ผ่าน" if r["passed"] else "❌ ไม่ผ่าน"
+        sym = "✅ ผ่าน" if r["passed"] else ("❌ เกินเวลา" if r.get("correctness_passed") and r.get("performance_passed") is False else "❌ ไม่ผ่าน")
         q_or_desc = r["question"] if r["question"] != "-" else r["description"]
         clean_ans = r["answer"].replace("\n", " ").replace("|", "\\|")[:50]
         md.append(f"| {r['id']:03d} | {r['category']} | {q_or_desc} | `{r['program']}` | {sym} | {clean_ans} | {r['elapsed_sec']}s |")
