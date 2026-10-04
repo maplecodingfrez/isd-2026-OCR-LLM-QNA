@@ -371,3 +371,43 @@ def test_aml_is_not_confused_with_ml_or_other_words():
     ab = lambda q: [c for c, _ in cn.acronym_courses(q, AB_COURSES)]
     assert ab("วิชา ML อยู่เทอมไหน") == []                         # ML ตรง Applied และ Probabilistic = กำกวม ไม่ตอบ
     assert ab("วิชา HAMLET อยู่เทอมไหน") == []                      # ไม่จับกลางคำ
+
+
+def test_isd_acronym_resolves_one_course_with_existing_case_rules():
+    courses = [{"code": "06026240", "name_th": "การพัฒนาระบบอัจฉริยะ", "name_en": "INTELLIGENT SYSTEM DEVELOPMENT"}]
+    for q in ("วิชา ISD รหัสอะไร", "วิชา isd กี่หน่วยกิต", "Isd กี่หน่วยกิต"):
+        assert [c for c, _ in cn.acronym_courses(q, courses)] == ["06026240"]
+    for q in ("วิชา ISD2 รหัสอะไร", "วิชา XISD รหัสอะไร", "5 isd", "what is isd about"):
+        assert cn.acronym_courses(q, courses) == []
+    assert cn.acronym_courses("ISD รหัสอะไร", []) == []
+    assert cn.acronym_courses("ISD รหัสอะไร", courses + [dict(courses[0], code="06099999")]) == []
+
+
+def test_custom_user_acronyms_resolve_correctly():
+    test_courses = [
+        {"code": "06066304", "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ", "name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN"},
+        {"code": "06066301", "name_th": "โครงสร้างข้อมูลและอัลกอริทึม", "name_en": "DATA STRUCTURES AND ALGORITHMS"},
+        {"code": "06066303", "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์", "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"},
+        {"code": "06016402", "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ", "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS"},
+        {"code": "06016419", "name_th": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร", "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE"},
+        {"code": "06036110", "name_th": "การวางแผนทรัพยากรองค์กร", "name_en": "ENTERPRISE RESOURCE PLANNING"},
+        {"code": "06046410", "name_th": "การประมวลผลภาษาธรรมชาติเบื้องต้น", "name_en": "NATURAL LANGUAGE PROCESSING"},
+        {"code": "06046413", "name_th": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง", "name_en": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"},
+    ]
+    # ISAD resolves to 06066304
+    assert [c for c, _ in cn.acronym_courses("วิชา ISAD รหัสอะไร", test_courses)] == ["06066304"]
+    # DSA resolves to 06066301
+    assert [c for c, _ in cn.acronym_courses("วิชา DSA รหัสอะไร", test_courses)] == ["06066301"]
+    assert [c for c, _ in cn.acronym_courses("วิชา dsa กี่หน่วยกิต", test_courses)] == ["06066301"]
+    # PSP resolves to 06066303
+    assert [c for c, _ in cn.acronym_courses("วิชา PSP รหัสอะไร", test_courses)] == ["06066303"]
+    # ITF resolves to 06016402
+    assert [c for c, _ in cn.acronym_courses("วิชา ITF รหัสอะไร", test_courses)] == ["06016402"]
+    # CNI resolves to 06016419
+    assert [c for c, _ in cn.acronym_courses("วิชา CNI รหัสอะไร", test_courses)] == ["06016419"]
+    # ERP resolves to 06036110
+    assert [c for c, _ in cn.acronym_courses("วิชา ERP รหัสอะไร", test_courses)] == ["06036110"]
+    # NLP resolves to 06046410
+    assert [c for c, _ in cn.acronym_courses("วิชา NLP รหัสอะไร", test_courses)] == ["06046410"]
+    # AIoT resolves to 06046413
+    assert [c for c, _ in cn.acronym_courses("วิชา AIoT รหัสอะไร", test_courses)] == ["06046413"]

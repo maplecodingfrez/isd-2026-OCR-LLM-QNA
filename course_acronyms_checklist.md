@@ -1,0 +1,136 @@
+# 📝 รายการตัวย่อรายวิชาสำหรับเลือกเข้าสู่ระบบ (Course Acronyms Selection Checklist)
+
+> **คำแนะนำการใช้งาน:**
+> - คุณสามารถทำเครื่องหมาย `[x]` หน้าข้อที่ต้องการ หรือส่งหมายเลขข้อกลับมาในแชทได้ทันที เช่น `เอา 1, 2, 3, 9, 10, 46, 66` หรือ `เอาตัว ⭐ แนะนำมาก ทั้งหมด`
+> - ตัวย่อที่มี `[⭐ แนะนำมาก]` คือคำที่ใช้เรียกกันทั่วไปในคณะไอที ไม่ชนกับคำอื่น และมีความแม่นยำสูง
+
+---
+
+### 📌 ตัวย่อที่มีอยู่แล้วในระบบเดิม (14 ตัว ไม่ต้องเลือกเพิ่ม)
+- `MIS` (06066102 Management Information Systems)
+- `OOP` (06016408 Object-Oriented Programming)
+- `SE` (06016410 Software Engineering)
+- `ML` (06026211 Applied Machine Learning)
+- `DW` (06026212 Data Warehousing)
+- `SAD` (06066304 / 06036121 Systems Analysis and Design)
+- `OS` (06016412 / 06036125 Operating System)
+- `DIQ` (90641002 / 96641002 Digital Intelligence Quotient)
+- `AML` (06026211 Applied Machine Learning)
+- `BFIT` (06066101 Business Fundamentals for IT)
+- `CAL 1` / `แคล 1` (06026200 / 06046400 Calculus 1)
+- `CAL 2` / `แคล 2` (06026201 / 06046401 Calculus 2)
+- `ENG 1` (90644007 / 96644007 Foundation English 1)
+- `อิ้ง 1` (90644007 / 96644007 Foundation English 1)
+
+---
+
+## 🏛️ หมวดที่ 1: กลุ่มวิชาแกนร่วมของคณะ (Core 0606)
+
+- [ ] `01` **`ISAD`** | `06066304` | Information System Analysis and Design (การวิเคราะห์และออกแบบระบบสารสนเทศ) 
+- [ ] `02` **`DSA` / `DSAA` / `DSDA`** | `06066301` | Data Structures and Algorithms (โครงสร้างข้อมูลและอัลกอริทึม)
+- [ ] `03` **`PSP` / `PSCP`** | `06066303` | Problem Solving and Computer Programming (การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์)
+- [ ] `04` **`DM` / `DISCRETE`** | `06066000` | Discrete Mathematics (คณิตศาสตร์ไม่ต่อเนื่อง)
+- [ ] `05` **`Prob Stat` / `PS`** | `06066001` | Probability and Statistics (ความน่าจะเป็นและสถิติ)
+- [ ] `06` **`ITPM`** | `06066100` | Information Technology Project Management (การบริหารโครงการเทคโนโลยีสารสนเทศ)
+- [ ] `07` **`FWP` / `Web 1` / `Web Pro`** | `06066302` | Fundamental Web Programming (การเขียนโปรแกรมเว็บพื้นฐาน)
+- [ ] `08` **`DB` / `DBSC`** | `06066300` | Database System Concepts (แนวคิดระบบฐานข้อมูล)
+
+---
+
+## 💻 หมวดที่ 2: สาขาวิชาเทคโนโลยีสารสนเทศ (IT - รหัส 0601)
+
+- [ ] `09` **`ITF`** | `06016402` | Information Technology Fundamentals (พื้นฐานทางด้านเทคโนโลยีสารสนเทศ) `[⭐ แนะนำมาก]`
+- [ ] `10` **`CNI`** | `06016419` | Communication Network Infrastructure (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร) `[⭐ แนะนำมาก]`
+- [ ] `11` **`MIT` / `Math IT`** | `06016401` | Mathematics for Information Technology (คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ)
+- [ ] `12` **`INS` / `Net 1`** | `06016413` | Introduction to Network Systems (ระบบเครือข่ายเบื้องต้น)
+- [ ] `13` **`SSWD` / `Web 2`** | `06016418` | Server-Side Web Development (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์)
+- [ ] `14` **`NoSQL`** | `06016414` | NoSQL Database Systems (ระบบฐานข้อมูลแบบโนเอสคิวแอล) `[⭐ แนะนำมาก]`
+- [ ] `15` **`Cloud` / `CC`** | `06016404` | Cloud Computing (เทคโนโลยีกลุ่มเมฆ)
+- [ ] `16` **`Cyber` / `CF`** | `06016405` | Cybersecurity Fundamentals (พื้นฐานความมั่นคงปลอดภัยไซเบอร์)
+- [ ] `17` **`ICS`** | `06016411` | Introduction to Computer Systems (ระบบคอมพิวเตอร์เบื้องต้น)
+- [ ] `18` **`COOS` / `Com Org`** | `06016412` | Computer Organization and Operating System (โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ)
+- [ ] `19` **`FP`** | `06016415` | Functional Programming (การเขียนโปรแกรมเชิงฟังก์ชัน)
+- [ ] `20` **`RE`** | `06016416` | Requirement Engineering (วิศวกรรมความต้องการ)
+- [ ] `21` **`DevTools`** | `06016417` | Software Development Tools and Environments (เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์)
+- [ ] `22` **`ISS`** | `06016420` | Infrastructure Systems and Services (ระบบโครงสร้างพื้นฐานและการบริการ)
+- [ ] `23` **`ITIS`** | `06016421` | Information Technology Infrastructure Security (ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ)
+- [ ] `24` **`IoT`** | `06016422` | Internet of Things (อินเทอร์เน็ตของสรรพสิ่ง) `[⭐ แนะนำมาก]`
+- [ ] `25` **`IPA`** | `06016423` | Infrastructure Programmability and Automation (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้)
+- [ ] `26` **`HID` / `UI/UX`** | `06016424` | Human Interface Design (การออกแบบส่วนต่อประสานกับมนุษย์)
+- [ ] `27` **`VD`** | `06016425` | Visual Design Fundamentals for Interactive Media (พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์)
+- [ ] `28` **`CG` / `CGA`** | `06016426` | Computer Graphics and Animation (คอมพิวเตอร์กราฟิกส์และแอนิเมชัน)
+- [ ] `29` **`GD` / `Game Dev`** | `06016427` | Introduction to Game Design and Development (การออกแบบและพัฒนาเกมเบื้องต้น)
+- [ ] `30` **`Coop`** | `06016481` | Cooperative Education (สหกิจศึกษา)
+
+---
+
+## 📊 หมวดที่ 3: สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ (DSBA - รหัส 0602)
+
+- [ ] `31` **`BDS`** | `06026213` | Big Data Systems (ระบบข้อมูลมหัต) `[⭐ แนะนำมาก]`
+- [ ] `32` **`LA` / `Linear`** | `06026202` | Linear Algebra (พีชคณิตเชิงเส้น) `[⭐ แนะนำมาก]`
+- [ ] `33` **`FDS`** | `06026208` | Fundamentals of Data Science (พื้นฐานวิทยาการข้อมูล)
+- [ ] `34` **`DAP`** | `06026206` | Data Analytics and Programming (การวิเคราะห์ข้อมูลและการโปรแกรม)
+- [ ] `35` **`DV` / `Data Viz`** | `06026209` | Data Visualization (การแสดงข้อมูลด้วยแผนภาพ)
+- [ ] `36` **`Opt`** | `06026210` | Optimization (การหาค่าที่เหมาะสมที่สุด)
+- [ ] `37` **`INC`** | `06026204` | Introduction to Networks and Cybersecurity (เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น)
+- [ ] `38` **`MKT`** | `06026205` | Introduction to Marketing (การตลาดเบื้องต้น)
+- [ ] `39` **`DSB`** | `06026250` | Data Science for Business (วิทยาการข้อมูลสำหรับธุรกิจ)
+- [ ] `40` **`FA`** | `06026251` | Financial Accounting (บัญชีการเงิน)
+- [ ] `41` **`Fin Analytics`** | `06026252` | Financial Analytics (การวิเคราะห์ด้านการเงิน)
+- [ ] `42` **`Mkt Analytics`** | `06026253` | Marketing Analytics (การวิเคราะห์ด้านการตลาด)
+- [ ] `43` **`IHA`** | `06026254` | Introduction to Health Analytics (เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น)
+- [ ] `44` **`CDAM`** | `06026255` | Clinical Data Acquisition and Management (การได้มาและการจัดการข้อมูลทางด้านคลินิก)
+- [ ] `45` **`OM`** | `06026256` | Operations Management (การจัดการการปฏิบัติการ)
+
+---
+
+## 💼 หมวดที่ 4: สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (BIT - รหัส 0603)
+
+- [ ] `46` **`ERP`** | `06036110` | Enterprise Resource Planning (การวางแผนทรัพยากรองค์กร) `[⭐ แนะนำมาก]`
+- [ ] `47` **`CRM`** | `06036111` | Customer Relationship Management (การบริหารลูกค้าสัมพันธ์) `[⭐ แนะนำมาก]`
+- [ ] `48` **`BI` / `BIBD`** | `06036117` | Business Intelligence and Big Data (อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่) `[⭐ แนะนำมาก]`
+- [ ] `49` **`BISAD` / `ISD`** | `06036121` | Business Information System Analysis and Design (การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ) `[⭐ แนะนำมาก]`
+- [ ] `50` **`MB` / `Math Biz`** | `06036101` | Mathematics for Business (คณิตศาสตร์สำหรับธุรกิจ)
+- [ ] `51` **`SAB` / `Stat Biz`** | `06036102` | Statistical Analysis for Business (การวิเคราะห์เชิงสถิติสำหรับธุรกิจ)
+- [ ] `52` **`ISTB`** | `06036103` | Integration of Statistical Techniques for Business (บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ)
+- [ ] `53` **`MO`** | `06036104` | Management and Organizations (องค์กรและการจัดการ)
+- [ ] `54` **`FANA`** | `06036105` | Financial Accounting for Non-Accountants (บัญชีการเงินสำหรับผู้มิใช่นักบัญชี)
+- [ ] `55` **`MBIET`** | `06036106` | Managing Business Information and Emerging Technologies (การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่)
+- [ ] `56` **`EIT` / `Econ IT`** | `06036108` | Economics of Information Technology (เศรษฐศาสตร์เทคโนโลยีสารสนเทศ)
+- [ ] `57` **`BPM`** | `06036109` | Business Processes and Business Model (กระบวนการและโมเดลทางธุรกิจ)
+- [ ] `58` **`DTB`** | `06036111` | Digital Technology for Business (เทคโนโลยีดิจิทัลสำหรับธุรกิจ)
+- [ ] `59` **`WAD`** | `06036114` | Web Application Development Using Frameworks (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)
+- [ ] `60` **`Dig Mkt`** | `06036116` | Digital Marketing (การตลาดเชิงดิจิทัล)
+- [ ] `61` **`PSIT`** | `06036118` | Problem Solving in Information Technology (การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ)
+- [ ] `62` **`PF`** | `06036119` | Programming Fundamentals (พื้นฐานการเขียนโปรแกรม)
+- [ ] `63` **`VCB`** | `06036122` | Visual Communication for Business (การสื่อสารด้วยภาพสำหรับธุรกิจ)
+- [ ] `64` **`ICNC`** | `06036124` | Introduction to Computer Network and Cybersecurity (เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น)
+- [ ] `65` **`CAOS`** | `06036125` | Computer Architecture and Operating System (สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ)
+
+---
+
+## 🤖 หมวดที่ 5: สาขาวิชาปัญญาประดิษฐ์ประยุกต์ (AIT - รหัส 0604)
+
+- [ ] `66` **`NLP`** | `06046410` | Introduction to Natural Language Processing (การประมวลผลภาษาธรรมชาติเบื้องต้น) `[⭐ แนะนำมาก]`
+- [ ] `67` **`CV`** | `06046409` | Introduction to Computer Vision (คอมพิวเตอร์ทัศนเบื้องต้น) `[⭐ แนะนำมาก]`
+- [ ] `68` **`DL`** | `06046406` | Fundamentals of Deep Learning (พื้นฐานการเรียนรู้เชิงลึก) `[⭐ แนะนำมาก]`
+- [ ] `69` **`AIoT`** | `06046413` | Artificial Intelligence and Internet of Thing (ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง) `[⭐ แนะนำมาก]`
+- [ ] `70` **`FES` / `Embedded`** | `06046404` | Fundamental of Embedded System (พื้นฐานของระบบสมองกลฝังตัว)
+- [ ] `71` **`PML`** | `06046405` | Probabilistic Machine Learning (การเรียนรู้ของเครื่องเชิงความน่าจะเป็น)
+- [ ] `72` **`NAO`** | `06046411` | Network Analysis and Optimization (การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย)
+- [ ] `73` **`NNO`** | `06046412` | Neural Network Optimization (การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม)
+- [ ] `74` **`NLP-DL`** | `06046414` | Natural Language Processing with Deep Learning (การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก)
+- [ ] `75` **`SP` / `Signal`** | `06046415` | Signal Processing (การประมวลผลสัญญาณ)
+- [ ] `76` **`SAI`** | `06046440` | Seminar in Artificial Intelligence (วิชาสัมมนาปัญญาประดิษฐ์)
+
+---
+
+## 🎓 หมวดที่ 6: หมวดวิชาศึกษาทั่วไป (GE รหัส 9064 และ 9664)
+
+- [ ] `77` **`Charm`** | `90641001` / `96641001` | Charm School (โรงเรียนสร้างเสน่ห์)
+- [ ] `78` **`Law`** | `90642033` / `96642033` | Law for New Generation (กฎหมายสำหรับคนรุ่นใหม่)
+- [ ] `79` **`ME`** | `90643021` / `96643021` | Modern Entrepreneurs (ผู้ประกอบการสมัยใหม่)
+- [ ] `80` **`PCP`** | `90644042` / `96644042` | Professional Communication and Presentation (การสื่อสารและการนำเสนออย่างมืออาชีพ)
+- [ ] `81` **`DT`** | `90642012` | Design Thinking (กระบวนการคิดเชิงออกแบบ)
+- [ ] `82` **`DC`** | `90641007` | Digital Citizen (พลเมืองดิจิทัล)
+- [ ] `83` **`ICE`** | `90641009` / `90641010` | Intercultural Communication Skills in English 1 & 2

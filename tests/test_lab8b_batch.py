@@ -3,11 +3,36 @@
 
 import json
 import threading
+import io
+import types
+from pathlib import Path
 
 import pytest
 import requests
 
 import lab8b_curriculum_db as m
+
+
+@pytest.mark.parametrize("seconds,expected", [(0.2, True), (5.0, False), (6.0, False)])
+def test_master_report_does_not_pass_a_correct_but_slow_answer(monkeypatch, seconds, expected):
+    script = Path(__file__).resolve().parents[1] / "run_all_tests.py"
+    runner = types.ModuleType("review_master_runner")
+    exec(compile(script.read_text(encoding="utf-8"), str(script), "exec"), runner.__dict__)
+    runner.TEST_CASES = [{"id": 1, "cat": "timing", "type": "ask", "prog": "it_coop",
+                          "q": "รหัสวิชา", "desc": "timing gate", "expect": "06016401"}]
+    monkeypatch.setattr(runner.urllib.request, "urlopen", lambda *a, **k: types.SimpleNamespace(
+        read=lambda: json.dumps({"answer": "06016401", "sql": "SELECT code FROM course"}).encode()))
+    clock = iter([0.0, seconds])
+    monkeypatch.setattr(runner.time, "perf_counter", lambda: next(clock))
+    captured = []
+    monkeypatch.setattr(runner.json, "dump", lambda value, *a, **k: captured.append(value))
+    runner.open = lambda *a, **k: io.StringIO()
+    runner.generate_markdown_report = lambda *a: None
+    runner.run_master_test()
+    result = captured[0]["results"][0]
+    assert result["correctness_passed"] is True
+    assert result["performance_passed"] is expected and result["passed"] is expected
+    assert captured[0]["summary"]["slow_questions"] == int(not expected)
 
 
 # ---------- load_questions ----------

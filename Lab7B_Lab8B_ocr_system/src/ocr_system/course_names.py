@@ -97,6 +97,7 @@ COLLOQUIAL_RULES: tuple[tuple[re.Pattern, str], ...] = (
     (re.compile(r"วิชา\s*สถิติ"), "สถิติ"),
     (re.compile(r"data\s*struc", re.I), "โครงสร้างข้อมูล"),             # "Data Struc" (ตัดคำ) — ชื่อเต็มตรงตัวถูกจับก่อนถึงกฎนี้
     (re.compile(r"ดาต้า\s*สต(?:รั|ั)?[คก]"), "โครงสร้างข้อมูล"),           # "ดาต้าสตัค/ดาต้าสตรัค" (ทับศัพท์)
+    (re.compile(r"ไอเอสเอดี"), "การวิเคราะห์และออกแบบ"),
 )
 
 
@@ -150,11 +151,24 @@ ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
     (re.compile(r"(?<![A-Za-z0-9])SE(?![A-Za-z0-9])"), ("SOFTWARE ENGINEERING", "วิศวกรรมซอฟต์แวร์")),
     (re.compile(r"(?<![A-Za-z0-9])ML(?![A-Za-z0-9])"), ("MACHINE LEARNING", "การเรียนรู้ของเครื่อง")),
     (re.compile(r"(?<![A-Za-z0-9])DW(?![A-Za-z0-9])"), ("DATA WAREHOUS", "คลังข้อมูล")),
-    (re.compile(r"(?<![A-Za-z0-9])SAD(?![A-Za-z0-9])"), ("ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ")),
+    (re.compile(r"(?<![A-Za-z0-9])(?:ISAD|SAD)(?![A-Za-z0-9])"), ("ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบ")),
     (re.compile(r"(?<![A-Za-z0-9])OS(?![A-Za-z0-9])"), ("OPERATING SYSTEM", "ระบบปฏิบัติการ")),
     (re.compile(r"(?<![A-Za-z0-9])DIQ(?![A-Za-z0-9])"), ("DIGITAL INTELLIGENCE QUOTIENT", "ความฉลาดทางดิจิทัล")),
     (re.compile(r"(?<![A-Za-z0-9])AML(?![A-Za-z0-9])"), ("APPLIED MACHINE LEARNING", "การเรียนรู้ของเครื่องเชิงประยุกต์")),
     (re.compile(r"(?<![A-Za-z0-9])BFIT(?![A-Za-z0-9])"), ("BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY", "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ")),
+    (re.compile(r"(?<![A-Za-z0-9])ISD(?![A-Za-z0-9])"), ("INTELLIGENT SYSTEM DEVELOPMENT", "การพัฒนาระบบอัจฉริยะ")),
+    (re.compile(r"(?<![A-Za-z0-9])(?:DSA|DSAA|DSDA)(?![A-Za-z0-9])"), ("DATA STRUCTURES AND ALGORITHMS", "โครงสร้างข้อมูลและอัลกอริทึม")),
+    (re.compile(r"(?<![A-Za-z0-9])(?:PSP|PSCP)(?![A-Za-z0-9])"), ("PROBLEM SOLVING AND COMPUTER PROGRAMMING", "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์")),
+    (re.compile(r"(?<![A-Za-z0-9])DISCRETE(?![A-Za-z0-9])", re.I), ("DISCRETE MATHEMATICS", "คณิตศาสตร์ไม่ต่อเนื่อง")),
+    (re.compile(r"(?<![A-Za-z0-9])ITF(?![A-Za-z0-9])"), ("INFORMATION TECHNOLOGY FUNDAMENTALS", "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ")),
+    (re.compile(r"(?<![A-Za-z0-9])(?:CNI|COMM NET)(?![A-Za-z0-9])", re.I), ("COMMUNICATION NETWORK INFRASTRUCTURE", "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร")),
+    (re.compile(r"(?<![A-Za-z0-9])BDS(?![A-Za-z0-9])"), ("BIG DATA SYSTEMS", "ระบบข้อมูลมหัต")),
+    (re.compile(r"(?<![A-Za-z0-9])ERP(?![A-Za-z0-9])"), ("ENTERPRISE RESOURCE PLANNING", "การวางแผนทรัพยากรองค์กร")),
+    (re.compile(r"(?<![A-Za-z0-9])CRM(?![A-Za-z0-9])"), ("CUSTOMER RELATIONSHIP MANAGEMENT", "การบริหารลูกค้าสัมพันธ์")),
+    (re.compile(r"(?<![A-Za-z0-9])BISAD(?![A-Za-z0-9])"), ("BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN", "การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ")),
+    (re.compile(r"(?<![A-Za-z0-9])NLP(?![A-Za-z0-9])"), ("NATURAL LANGUAGE PROCESSING", "การประมวลผลภาษาธรรมชาติ")),
+    (re.compile(r"(?<![A-Za-z0-9])AIoT(?![A-Za-z0-9])", re.I), ("ARTIFICIAL INTELLIGENCE AND INTERNET OF THING", "ปัญญาประดิษฐ์และอินเทอร์เน็ต")),
+    (re.compile(r"(?<![A-Za-z0-9])NoSQL\s*DB(?![A-Za-z0-9])", re.I), ("NOSQL DATABASE SYSTEMS", "ระบบฐานข้อมูลแบบโนเอสคิวแอล")),
     (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*1(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 1", "แคลคูลัส 1")),
     (re.compile(r"(?<![A-Z0-9])(?:CAL|แคล)\s*2(?![A-Z0-9])", re.IGNORECASE), ("CALCULUS 2", "แคลคูลัส 2")),
     (re.compile(r"(?<![A-Z0-9])ENG\s*1(?![A-Z0-9])", re.IGNORECASE), ("FOUNDATION ENGLISH 1", "ภาษาอังกฤษพื้นฐาน 1")),

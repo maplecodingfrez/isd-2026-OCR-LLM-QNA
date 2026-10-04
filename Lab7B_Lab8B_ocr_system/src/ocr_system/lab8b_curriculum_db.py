@@ -2484,27 +2484,8 @@ def _which_first_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         f"SELECT code, year, semester FROM plan_item WHERE code IN ('{a}', '{b}') ORDER BY year, semester"
 
 
-def _code_prefix_group_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
-    """วิชาหมวด XXXX (เช่น 0601, 0602, 0603, 0604) มีวิชาอะไรบ้าง"""
-    m = re.search(r"วิชาหมวด\s*(\d{4})", question)
-    if not m:
-        return None
-    prefix = m.group(1)
-    try:
-        rows = [dict(r) for r in conn.execute(
-            "SELECT code, name_th, name_en FROM course WHERE code LIKE ? ORDER BY code",
-            (f"{prefix}%",)
-        ).fetchall()]
-    except sqlite3.OperationalError:
-        return None
-    if not rows:
-        return None
-    items = []
-    for r in rows:
-        th = r.get("name_th") or ""
-        items.append(f"{r['code']} ({th})" if th else str(r['code']))
-    ans = ", ".join(items)
-    return ans, rows, f"SELECT code, name_th, name_en FROM course WHERE code LIKE '{prefix}%' ORDER BY code"
+# ---- "รหัสของ <ชื่อสั้น>" ที่เป็นต้นชื่อของหลายวิชา (สหกิจศึกษา / สหกิจศึกษาต่างประเทศ) → ลิสต์ทุกวิชาในตระกูลชื่อนั้น ----
+_CODE_FAMILY_ASK = re.compile(r"รหัสวิชา(?:อะไร|ไหน|ใด)|รหัสอะไร|ขอรหัส|รหัสของ|รหัสคือ")
 
 
 def _code_family_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -2537,6 +2518,33 @@ def _code_family_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     rows = [{"code": c, "name_th": names[c]} for c in sorted(fam)]
     return (f"วิชาที่ชื่อขึ้นต้นด้วย \"{top}\" มี {len(fam)} วิชา: " + "; ".join(f"{c} {names[c]}" for c in sorted(fam)), rows,
             "SELECT code, name_th FROM course WHERE name_th LIKE '" + top + "%'")
+
+
+# ---- รายชื่อวิชาจากรหัสนำหน้า: รับเฉพาะคำถามรายชื่อทั้งหมวด ----
+_COURSE_CODE_PREFIX_Q = re.compile(
+    r"(?:ขอ\s*|ช่วย\s*)?(?:วิชาหมวด|หมวดวิชา|รหัสหมวด|วิชาขึ้นต้นด้วย|รหัสขึ้นต้นด้วย|วิชารหัส)"
+    r"\s*([0-9]{3,7})(?![0-9])\s*"
+    r"(?:มี\s*(?:รายวิชา|วิชา)?\s*อะไรบ้าง|มี\s*(?:รายวิชา|วิชา)?\s*ใดบ้าง|"
+    r"มี\s*(?:รายวิชา|วิชา)?\s*ไหนบ้าง|มี\s*กี่วิชา|มี\s*ทั้งหมดกี่วิชา)?"
+    r"\s*(?:หน่อย|ครับ|ค่ะ|นะ)?[?？\s]*")
+
+
+def _course_code_prefix_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    match = _COURSE_CODE_PREFIX_Q.fullmatch(question.strip())
+    if not match:
+        return None
+    prefix = match.group(1)
+    sql = "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE ? ORDER BY code"
+    try:
+        rows = [dict(row) for row in conn.execute(sql, (prefix + "%",))]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return _NOT_FOUND
+    items = [f"{row['code']} ({row['name_th'] or ''}" +
+             (f" / {row['name_en']}" if row.get("name_en") else "") + ")" for row in rows]
+    return (f"วิชาหมวด {prefix} มี {len(rows)} วิชา:\n- " + "\n- ".join(items), rows,
+            sql.replace("?", f"'{prefix}%'"))
 
 
 # ---- สถานการณ์หลายวิชา: "ถ้าตก A แต่ผ่าน B แล้ว ลง C ได้ไหม" (รองรับวิชาบังคับก่อนแบบ "หรือ") ----
@@ -2751,8 +2759,10 @@ def withdrawal_graph(conn: sqlite3.Connection, code: str) -> dict | None:
 
 def _withdrawal_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """Withdrawal asks use the real reverse graph, including indirect/OR/co edges."""
-    if not re.search(r"ถอน(?:ราย)?วิชา|ดรอป|drop\b", question, re.I) or re.search(r"ไม่(?:ถอน|ดรอป)|ค่าเทอม|ค่าธรรมเนียม|เกรด|GPA|วันสุดท้าย|กำหนดการ", question, re.I):
+    if not re.search(r"ถอน(?:ราย)?วิชา|ถอน\s*ได้|ดรอป|ดร็อป|drop\b", question, re.I) or re.search(r"ไม่(?:ถอน|ดรอป|ดร็อป)|ค่าเทอม|ค่าธรรมเนียม|เกรด|GPA|วันสุดท้าย|กำหนดการ", question, re.I):
         return None
+    if re.search(r"(?:ถอน|ดรอป|ดร็อป)\s*ได้\s*(?:ไหม|มั้ย|หรือไม่|หรือเปล่า)", question) and not re.search(r"กระทบ|ตัวต่อ|วิชาต่อ", question):
+        return _NOT_FOUND  # Curriculum prerequisites do not establish withdrawal permission.
     codes = set(_CODE8.findall(question))
     if not codes:
         codes = set(_named_courses(conn, question, strict=True, relational_ok=True) or {})
@@ -3159,7 +3169,28 @@ def _code_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         return None
     found = [{"code": c, "name_th": n} for c, n in sorted(codes.items())]
     ids = ", ".join(f"'{r['code']}'" for r in found)
-    return "; ".join(f"{r['code']} ({r['name_th']})" for r in found), found, f"SELECT code, name_th FROM course WHERE code IN ({ids})"
+    sql = f"SELECT code, name_th, name_en FROM course WHERE code IN ({ids})"
+    plan_names = {r[0]: r[2] for r in conn.execute(sql)}
+    english = {code: name.strip() for code, name in plan_names.items() if name and name.strip()}
+    try:
+        catalog_sql = ("SELECT code, course_name_th AS name_th, course_name_en AS name_en "
+                       f"FROM main.v_elective_group WHERE code IN ({ids})")
+        catalog_names = {}
+        for code, _, name in conn.execute(catalog_sql):
+            if name and name.strip():
+                catalog_names.setdefault(code, set()).add(name.strip())
+        for code, names in catalog_names.items():
+            if code not in english and len(names) == 1:
+                english[code] = next(iter(names))
+        if any(r["code"] not in plan_names for r in found):
+            sql += " UNION " + catalog_sql
+    except sqlite3.OperationalError:
+        pass  # Older databases can lack the elective catalog view.
+    for row in found:
+        row["name_en"] = english.get(row["code"])
+    return "; ".join(f"{r['code']} ({r['name_th']}" +
+                     (f" / {r['name_en']}" if r["name_en"] and r["name_en"] != r["name_th"] else "") + ")"
+                     for r in found), found, sql
 
 
 # ---- 12. ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเองของวิชาเดียว และวิชาที่ชั่วโมงมาก/น้อยที่สุดในปีที่ระบุ ----
@@ -3649,12 +3680,20 @@ def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
 
 
 def _expand_course_acronyms(conn: sqlite3.Connection, question: str) -> str:
-    """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผนนี้ (ไม่ชี้วิชาเดียว = คำถามเดิม)"""
+    """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผน; ISD รวม catalog ของหลักสูตรที่เลือก"""
     import course_names
     try:
         courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     except sqlite3.OperationalError:
         return question
+    try:
+        # ISD is a DSBA catalog elective, not a fixed course in plan_item.
+        # Keep other acronyms plan-scoped so their existing ambiguity rules stay unchanged.
+        courses += [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute(
+            "SELECT code, course_name_th, course_name_en FROM main.v_elective_group "
+            "WHERE UPPER(course_name_en) = ?", ("INTELLIGENT SYSTEM DEVELOPMENT",))]
+    except sqlite3.OperationalError:
+        pass  # Older databases without the catalog still resolve plan courses.
     return course_names.expand_acronyms(question, courses)
 
 
@@ -4627,36 +4666,6 @@ def repair_undefined_aliases(sql: str) -> str:
     return "".join(out)
 
 
-def repair_course_search_sql(sql: str) -> str:
-    """แก้ SQL ที่โมเดลค้นหาคำภาษาอังกฤษใน name_th หรือลืมใส่เครื่องหมาย % ใน LIKE
-    - ถ้าค้นหาด้วยคำภาษาอังกฤษใน name_th หรือ course_name_th ให้เปลี่ยนไปค้นใน name_en / course_name_en
-    - ถ้าเป็น LIKE 'คำ' ที่ไม่มี % และคำยาว >= 3 ตัวอักษร ให้ใส่ % ครอบคำค้นหาเสมอ"""
-    def replace_match(m: re.Match) -> str:
-        col_prefix = m.group(1) or ""
-        col = m.group(2)
-        val = m.group(3)
-        has_latin = bool(re.search(r"[A-Za-z]", val))
-        has_thai = bool(re.search(r"[\u0e00-\u0e7f]", val))
-
-        # คำค้นหาภาษาอังกฤษล้วน (ไม่มีภาษาไทยปน)
-        if has_latin and not has_thai:
-            term = val.strip("%")
-            # ถ้าเป็นคำสั้น 1-2 ตัวอักษร ไม่ใส่ % ครอบ เพื่อไม่ให้ชนกฎ SHORT_CONTAINS_LIKE
-            if len(term) <= 2:
-                return m.group(0)
-            target_col = "course_name_en" if "course_name" in col.lower() else "name_en"
-            return f"{col_prefix}{target_col} LIKE '%{term}%'"
-
-        # ถ้ามี % ด้านหน้าแต่ลืมด้านหลัง (เช่น LIKE '%ข้อมูล' -> LIKE '%ข้อมูล%')
-        if val.startswith("%") and not val.endswith("%"):
-            return f"{col_prefix}{col} LIKE '{val}%'"
-
-        return m.group(0)
-
-    pattern = re.compile(r"\b([A-Za-z_]\w*\.)?(name_th|name_en|course_name_th|course_name_en)\s*(?:LIKE|=)\s*'([^']*)'", re.I)
-    return pattern.sub(replace_match, sql)
-
-
 SQL_PROMPT = """คุณคือผู้ช่วยแปลงคำถามภาษาไทยเป็นคำสั่ง SQL ของ SQLite
 
 โครงสร้างฐานข้อมูล
@@ -4699,11 +4708,6 @@ SQL: SELECT NULL WHERE 0
   ถามว่าเรียน X แล้วเรียนอะไรต่อได้ / X ปลดล็อกวิชาอะไร / วิชาไหนต้องใช้ X ก่อน
   -> กรอง requires = X แล้วเลือกคอลัมน์ code
   (ทั้งสองทิศใช้ kind='pre' ยกเว้นถามวิชาเรียนควบ ใช้ kind='co')
-- การค้นหาชื่อวิชาด้วย LIKE:
-  * ถ้าคีย์เวิร์ดที่ค้นหาเป็นภาษาอังกฤษ (เช่น Machine, Network, Data, Cloud) ให้ค้นหาในคอลัมน์ name_en เสมอ
-    และต้องใส่เครื่องหมาย % ครอบคำค้นหาเสมอ เช่น WHERE name_en LIKE '%Machine%'
-    ห้ามค้นหาคำภาษาอังกฤษใน name_th เพราะ name_th เก็บเฉพาะชื่อภาษาไทย
-  * ห้ามใช้ LIKE 'คำ' โดยไม่มี % เด็ดขาด เพราะจะไม่พบข้อมูล
 - ถ้าคำถามถามถึงสิ่งที่ "ไม่มีคอลัมน์หรือตารางรองรับในโครงสร้างข้างบนเลย"
   (เช่น ค่าเทอม/ค่าธรรมเนียม, ชื่ออาจารย์ผู้สอน, ห้องเรียน, ตำราเรียน, ตารางสอบ)
   ห้ามเดา SQL ที่ดูใกล้เคียง ให้ตอบว่า  SELECT NULL WHERE 0  เท่านั้น
@@ -5165,7 +5169,7 @@ _SHORTCUTS = (
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
-    _code_lookup_answer, _code_prefix_group_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
+    _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )
@@ -5276,7 +5280,7 @@ def ask(conn: sqlite3.Connection, question: str,
                 str(parsed_sql.get("sql", "")) if isinstance(parsed_sql, dict)
                 else raw_sql)
             # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
-            sql = guard_sql(repair_course_search_sql(repair_undefined_aliases(sql)))
+            sql = guard_sql(repair_undefined_aliases(sql))
             result["sql"] = sql
             rows = _hide_internal_columns(_dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()]))
             result["rows"] = rows

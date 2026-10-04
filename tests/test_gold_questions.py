@@ -67,6 +67,29 @@ def test_build_is_deterministic():
     assert g2.build_plan("ait") == BUILT["ait"]
 
 
+def test_source_corrections_change_only_the_pair_count_oracle(monkeypatch):
+    current = {plan: g2.build_plan(plan) for plan in g2.PLAN_NAMES}
+    monkeypatch.setattr(g2, "SOURCE_PAIR_CORRECTIONS", {})
+    for plan, (questions, meta) in current.items():
+        historical, _ = g2.build_plan(plan)
+        changes = [(old, new) for old, new in zip(historical, questions) if old != new]
+        if plan.startswith("it_"):
+            assert not changes and "oracle_corrections" not in meta
+            continue
+        assert len(changes) == 1
+        old, new = changes[0]
+        assert {key: value for key, value in old.items() if key != "expect"} == {
+            key: value for key, value in new.items() if key != "expect"}
+        assert int(new["expect"]["value"]) == int(old["expect"]["value"]) + 1
+        evidence = meta["oracle_corrections"][0]
+        assert evidence["question_id"] == new["id"]
+        source = g2.HERE.parents[1] / evidence["source"]
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == evidence["source_sha256"]
+        block = source.read_text(encoding="utf-8").splitlines()[evidence["line"] - 1:evidence["line"] + 8]
+        assert evidence["pair"][0] in block[0]
+        assert evidence["prerequisite_text"] in block
+
+
 # Break caught: a plan with fewer/more than 30 questions or a lopsided mix (ch8: 30 ข้อ, none >= 2).
 def test_every_plan_meets_ch8_and_quota():
     for plan, (qs, _) in BUILT.items():

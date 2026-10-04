@@ -35,6 +35,29 @@ AIT (แผนเดียว), BIT coop/no-coop, DSBA coop/no-coop, IT coop/no-
 `git show gold-v1:Lab9_evaluation/gold_questions/<แผน>_gold_questions.json`)
 `ground_truth_scoped/*.json` (กรอง `year >= 1` จาก `data/ground_truth/*.json` เต็มชุด) ใช้เทียบ P/R/F1/CER/WER ของ Lab7B
 
+### Gold ฉบับแก้เฉลย 2026-10-05
+
+ชุดใช้งานยังมี 30 ข้อต่อแผนและคำถามเดิมทั้งหมด แต่แก้เฉพาะเฉลยจำนวนคู่ prerequisite
+ตามบรรทัด OCR ที่ระบุชื่อวิชาบังคับก่อน ซึ่ง scoped truth เดิมบันทึกเป็นไม่มี:
+
+| แผน | ข้อ | เดิม → ฉบับแก้เฉลย | คู่ที่เพิ่ม (วิชา → ต้องผ่านก่อน) |
+|---|---|---|---|
+| DSBA สหกิจ/ไม่สหกิจ | F4 | 5 → 6 | 90644008 → 90644007 |
+| BIT สหกิจ | F3 | 2 → 3 | 96644008 → 96644007 |
+| BIT ไม่สหกิจ | F4 | 3 → 4 | 96644008 → 96644007 |
+| AIT | F4 | 6 → 7 | 90641010 → 90641009 |
+
+IT ไม่เปลี่ยน ตัวสร้าง `gold_questions/build_gold_questions.py` ใช้ source correction ที่ระบุรหัสคู่
+ไฟล์ OCR, บรรทัด และ SHA256 โดยไม่อ่านคำตอบหรือ Database ของระบบมาเป็นเฉลย
+`frozen.json` ล็อก hash ใหม่และบันทึก revision `gold-v2.1-source-correction` พร้อมเหตุผลในแต่ละแผนที่แก้
+seed เดิมใช้รักษาคำถามและลำดับเดิม ไม่ได้สุ่มชุดคำถามใหม่
+
+Gold v2 เดิมทั้ง 7 แผน, frozen manifest และตัวสร้างเดิม เก็บแบบ byte-for-byte ในสำรอง local
+`../../archived/curriculum-audit-20261005/gold-v2-frozen-before-20261005-correction.zip`
+และเรียกดู Gold ที่ commit เดิมได้ด้วย `git show 0231932:Lab9_evaluation/gold_questions/<แผน>_gold_questions.json`
+ผลประเมินย้อนหลังยังเป็นผลของ Gold เดิม; ฉบับแก้เฉลยนี้เป็นการตรวจหลังพบข้อผิดพลาดของ oracle
+จึงไม่ใช่ held-out benchmark ใหม่ และยังไม่มีผลประเมินเต็มชุดภายใต้ hash ใหม่จนกว่าจะรันใหม่
+
 ## วิธีรัน
 
 ```bash

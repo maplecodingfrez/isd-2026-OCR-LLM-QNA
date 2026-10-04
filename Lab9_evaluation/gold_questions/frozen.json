@@ -15,7 +15,24 @@
     "terms_relaxed": false,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "d52c37b32af659aeb7b60cf8e58e9a3f1e38db16aa7240319325e4a9865f2df7"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "6",
+        "after": "7",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90641010",
+          "90641009"
+        ],
+        "source": "outputs/ait/ait_curriculum_ocr.txt",
+        "line": 5049,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+      }
+    ],
+    "sha256": "bb912dd5a2df5117fa10f321ae90fc26c2a56e8148ae11ef8f9339442c895a2d"
   },
   "bit_coop": {
     "plan": "bit_coop",
@@ -35,7 +52,24 @@
     "replaced": [
       "F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)"
     ],
-    "sha256": "ff12a3f993669ca5ea54c3497e21de9079e180c67670aa63f5f5a9e69cb25784"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F3",
+        "before": "2",
+        "after": "3",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "96644008",
+          "96644007"
+        ],
+        "source": "outputs/bit/bit_curriculum_ocr.txt",
+        "line": 6735,
+        "source_sha256": "cb6f7869f135d9be205e6f785740d88e0504f1b4deffb7a280e4c87e0117516d",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1"
+      }
+    ],
+    "sha256": "b3abba0976e331dc1be519ac7d5e4a9fa0186b564a3843ea493cd6fe5c00f390"
   },
   "bit_no_coop": {
     "plan": "bit_no_coop",
@@ -53,7 +87,24 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "81642622affbdeb629cd5c575b5f4434b3bdaa1996ef0d3528d70783707f1e8c"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "3",
+        "after": "4",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "96644008",
+          "96644007"
+        ],
+        "source": "outputs/bit/bit_curriculum_ocr.txt",
+        "line": 6735,
+        "source_sha256": "cb6f7869f135d9be205e6f785740d88e0504f1b4deffb7a280e4c87e0117516d",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1"
+      }
+    ],
+    "sha256": "40e7942001a624007e1d8d8cfe4edb58efa9616b2c55eaa939094a4017106385"
   },
   "dsba_coop": {
     "plan": "dsba_coop",
@@ -71,7 +122,25 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "da0d3055c5d88888337b7d5da9f5acb8651a06e14c73dd9fa7a6c9d7049b9a49"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "5",
+        "after": "6",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/dsba/dsba_curriculum_ocr.txt",
+        "line": 8121,
+        "source_sha256": "23d942a106917c37aad11421ec09f388ca5ac04c58eaeea765d83bdaa96e62e3",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "pdf_page": 209
+      }
+    ],
+    "sha256": "4616dd3fa19892371ec9da785357d21e14ed99e9d23e807f12bd32e56d7a740d"
   },
   "dsba_no_coop": {
     "plan": "dsba_no_coop",
@@ -89,7 +158,25 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "969daaff62df56e2d3feb57dbd8e521ee776d9b20c5bf4666cc735f16ef120a6"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "5",
+        "after": "6",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/dsba/dsba_curriculum_ocr.txt",
+        "line": 8121,
+        "source_sha256": "23d942a106917c37aad11421ec09f388ca5ac04c58eaeea765d83bdaa96e62e3",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "pdf_page": 209
+      }
+    ],
+    "sha256": "b6778aac1278ad1a356b9965af46058e0c5dda430c26cae1809f72d1f19c2852"
   },
   "it_coop": {
     "plan": "it_coop",
