@@ -3658,6 +3658,44 @@ def test_aml_and_bfit_do_not_guess_when_the_plan_lacks_that_course(rel, question
     assert r is None or bad not in r[0], r
 
 
+# ---------- คำนำหน้าชื่อวิชาภาษาอังกฤษ: "of/for" ต้องตามหลังคำเรียกข้อมูล (code/name/credits…) และคำนำต้องเป็นคำเต็ม ----------
+def test_name_key_words_gives_the_same_key_plus_english_word_starts():
+    q = "What is the course code of CALCULUS 2"
+    key, starts = m._name_key_words(q)
+    assert key == m._name_key(q) and key.startswith("whatisthecoursecodeof")                # (CALCULUS ถูกตัด s ท้ายคำเหมือนทุกที่ที่ใช้ _name_key)
+    assert {0, 4, 6, 9, 15, 19, 21} <= starts and 5 not in starts                  # what|is|the|course|code|of|calculus ขึ้นต้นคำ; กลางคำไม่ใช่
+    assert m._name_key_words("แคลคูลัส 1 ซ")[0] == m._name_key("แคลคูลัส 1 ซ")
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา FUNDAMENTALS OF DEEP LEARNING รหัสอะไร",            # ชื่อยาวกว่าชื่อจริง (DEEP LEARNING) — "of" ตามหลังคำที่ไม่ใช่คำเรียกข้อมูล
+    "วิชา PRINCIPLES FOR DEEP LEARNING รหัสอะไร",
+    "วิชา THIS DEEP LEARNING รหัสอะไร",                        # "this" ลงท้าย "is"
+    "วิชา RENAME DEEP LEARNING รหัสอะไร",                      # "rename" ลงท้าย "name"
+    "วิชา DECODE DEEP LEARNING รหัสอะไร"])                     # "decode" ลงท้าย "code"
+def test_longer_english_name_is_not_taken_as_the_shorter_course(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._named_courses(c, m._prepare_question(c, question)) is None
+
+
+@pytest.mark.parametrize("question", [
+    "วิชา DEEP LEARNING รหัสอะไร",
+    "What is the course code of DEEP LEARNING",
+    "what is the code for DEEP LEARNING?",
+    "Course code of DEEP LEARNING",
+    "What is DEEP LEARNING",
+    "Name of DEEP LEARNING"])
+def test_real_lead_in_words_still_accept_the_exact_name(question):
+    with closing(_real("DSBA/coop")) as c:
+        got = m._named_courses(c, m._prepare_question(c, question))
+        assert got and "06026218" in got, (question, got)
+
+
+def test_longer_english_name_does_not_answer_the_shorter_course_end_to_end():
+    r = _chain_for("DSBA/coop", "วิชา FUNDAMENTALS OF DEEP LEARNING รหัสอะไร")
+    assert r is None or "06026218" not in r[0], r
+
+
 def test_database_word_in_a_generic_question_is_not_a_course_name():
     with closing(_real("AIT")) as c:
         import lab8b_curriculum_db as L
