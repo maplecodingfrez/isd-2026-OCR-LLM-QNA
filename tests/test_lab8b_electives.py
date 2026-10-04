@@ -3696,6 +3696,49 @@ def test_longer_english_name_does_not_answer_the_shorter_course_end_to_end():
     assert r is None or "06026218" not in r[0], r
 
 
+# ---------- #122: วิชาเลือกเสรีต้องลงตอนปีไหน -> จากช่อง plan_slot ของแผนนั้น ----------
+@pytest.mark.parametrize("rel,question,fragments", [
+    ("DSBA/coop", "วิชาเลือกเสรีต้องลงตอนปีไหน", ["วิชาเลือกเสรี 1", "วิชาเลือกเสรี 2", "ปี 4 เทอม 1"]),
+    ("DSBA/no_coop", "วิชาเลือกเสรีต้องลงตอนปีไหน", ["ปี 4 เทอม 2"]),
+    ("AIT", "วิชาเลือกเสรีเรียนตอนปีไหน เทอมไหน", ["วิชาเลือกเสรี 1", "ปี 3 เทอม 2", "วิชาเลือกเสรี 2", "ปี 4 เทอม 1"]),
+    ("BIT/coop", "วิชาเลือกเสรีลงปีไหน", ["ปี 3 เทอม 2", "ปี 4 เทอม 1"])])
+def test_free_elective_when_is_answered_from_the_plan_slots(rel, question, fragments):
+    text, rows, sql = _txt(rel, question)
+    assert all(f in text for f in fragments), text
+    assert "plan_slot" in sql and rows and all("year" in r and "semester" in r for r in rows), (sql, rows)
+
+
+def test_free_elective_when_does_not_take_over_other_free_elective_questions():
+    assert "6 หน่วยกิต" in _txt("DSBA/coop", "วิชาเลือกเสรีมีกี่หน่วยกิต")[0]
+    assert "วิชาเลือกเสรี 1 (ปี 4 เทอม 1)" in _txt("DSBA/coop", "วิชาเลือกเสรีเลือกวิชาอะไรได้บ้าง")[0]
+    r = _chain_for("IT/coop", "วิชาเลือกเสรีต้องลงตอนปีไหน")                           # IT ไม่มีช่องเลือกเสรีในตารางแผน = ไม่เดา
+    assert r is None or "ปี " not in r[0] or "ไม่พบ" in r[0], r
+
+
+# ---------- #106: ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 1 -> วิชาปี 2 ที่มีวิชาบังคับก่อนเป็นวิชาปี 1 ----------
+@pytest.mark.parametrize("rel,question,codes", [
+    ("DSBA/coop", "dsba ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 1", ["06066102", "06066101"]),
+    ("AIT", "ปี 2 มีวิชาอะไรที่ต่อยอดจากปี 1", ["06046405", "06046406", "90641005", "90641004"]),
+    ("AIT", "วิชาปี 3 ที่ต่อเนื่องจากปี 2 มีอะไรบ้าง", None)])
+def test_year_successor_courses_are_listed_from_the_prerequisite_table(rel, question, codes):
+    r = _chain_for(rel, question)
+    if codes is None:                                                                   # (ปี 3 ต่อจากปี 2 ในแผน AIT ต้องตรวจจากข้อมูลจริง ไม่ผูกรหัส)
+        assert r is not None and "ปี 3" in r[0], r
+        return
+    text, rows, sql = r
+    assert all(c in text for c in codes), text
+    assert "prerequisite" in sql and {x["code"] for x in rows} >= set(codes[:1]), (sql, rows)
+
+
+@pytest.mark.parametrize("rel,question", [
+    ("IT/coop", "ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 1"),                      # IT ไม่มีคู่ปี 1 -> ปี 2 = ไม่ตอบ
+    ("DSBA/coop", "ปี 1 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 2"),                    # ปีเรียงกลับ = ไม่ตอบ
+    ("DSBA/coop", "ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 2")])
+def test_year_successor_does_not_answer_when_the_pair_is_not_a_later_and_an_earlier_year(rel, question):
+    r = _chain_for(rel, question)
+    assert r is None or not any(x.get("successor_of") for x in r[1]), r
+
+
 def test_database_word_in_a_generic_question_is_not_a_course_name():
     with closing(_real("AIT")) as c:
         import lab8b_curriculum_db as L
