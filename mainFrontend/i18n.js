@@ -1,0 +1,178 @@
+/* Curriculum QnA — พจนานุกรมสองภาษา (ไทย/อังกฤษ)
+   รูปแบบ: "คีย์": ["ไทย", "English"]  ·  {ตัวแปร} แทนค่าด้วย t(key, {ตัวแปร: ค่า})
+   หมายเหตุ: ตัวคำตอบจาก backend เป็นภาษาไทยเสมอ หน้านี้แปลเฉพาะส่วนประกอบของหน้าเว็บ */
+(function (root) {
+  "use strict";
+
+  var S = {
+    "theme.toLight": ["สว่าง", "Light"],
+    "theme.toDark": ["มืด", "Dark"],
+    "theme.aria": ["สลับธีมมืด/สว่าง", "Switch between dark and light theme"],
+    "lang.aria": ["ภาษา", "Language"],
+
+    "health.checking": ["กำลังตรวจระบบ…", "Checking system…"],
+    "health.ok": ["ระบบพร้อมใช้งาน", "System ready"],
+    "health.notReady": ["ระบบยังไม่พร้อม: ", "System not ready: "],
+    "health.noDb": ["ไม่พบฐานข้อมูล", "Database not found"],
+    "health.noOllama": ["ติดต่อ Ollama ไม่ได้", "Cannot reach Ollama"],
+    "health.down": ["เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "Cannot connect to the server"],
+    "noscript": ["หน้านี้ต้องเปิดใช้ JavaScript", "This page requires JavaScript"],
+
+    "ask.title": ["ถามเรื่องเล่มหลักสูตร", "Ask about the curriculum book"],
+    "program.label": ["แผนการเรียน:", "Program:"],
+    "program.aria": ["เลือกหลักสูตรและแผนการเรียน", "Choose a program and study plan"],
+    "program.loading": ["กำลังโหลด…", "Loading…"],
+    "program.loadFail": ["โหลดรายชื่อหลักสูตรไม่ได้ (ใช้หลักสูตรที่เซิร์ฟเวอร์ตั้งไว้)", "Could not load programs (using the server default)"],
+    "program.noData": [" (ไม่มีข้อมูล)", " (no data)"],
+    "question.placeholder": ["พิมพ์คำถามเกี่ยวกับหลักสูตร เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต, วิชาเลือกมีอะไรบ้าง...", "Ask about the curriculum, e.g. how many credits in year 1 semester 1, what are the electives..."],
+    "hint.press": ["กด", "Press"],
+    "hint.toAsk": ["เพื่อถาม", "to ask"],
+    "btn.ask": ["ถาม", "Ask"],
+    "btn.ask.busy": ["กำลังค้น…", "Searching…"],
+
+    "chip.1": ["หน่วยกิตรวมตลอดหลักสูตร", "Total credits"],
+    "chip.2": ["หน่วยกิตปี 1 เทอม 1", "Year 1 Sem 1 credits"],
+    "chip.3": ["วิชาปี 2 เทอม 1", "Year 2 Sem 1 courses"],
+    "chip.4": ["วิชาเลือกของหลักสูตร", "Electives"],
+    "chip.5": ["วิชาฐานข้อมูล", "Database courses"],
+    "chip.6": ["เปรียบเทียบแผนสหกิจ", "Co-op vs non co-op"],
+    "chip.7": ["วิชาบังคับก่อนของ 06026201", "Prerequisites of 06026201"],
+    "chip.8": ["วิชาที่ต้องผ่านแคลคูลัส 1 ก่อน", "Courses needing Calculus 1"],
+    "chip.9": ["หน่วยกิตแต่ละหมวดวิชา", "Credits per category"],
+    "chip.10": ["วิชาและหน่วยกิตปี 3 เทอม 1", "Year 3 Sem 1 courses and credits"],
+    "chip.11": ["วิชาปี 4 เทอม 2", "Year 4 Sem 2 courses"],
+
+    "loading.1": ["กำลังสืบค้นฐานข้อมูลหลักสูตรและวิเคราะห์คำตอบ…", "Searching the curriculum database and analysing the answer…"],
+    "loading.2": ["กำลังตรวจสอบโครงสร้างแผนการศึกษา…", "Checking the study plan structure…"],
+    "loading.3": ["กำลังสรุปข้อมูลและเตรียมเล่มอ้างอิง…", "Summarising and preparing the references…"],
+
+    "answer.tag": ["คำตอบ", "Answer"],
+    "answer.source": ["ตอบจาก {name}", "Answered from {name}"],
+    "answer.sourceDefault": ["ตอบจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้", "Answered from the server's default program"],
+    "answer.hint": ["ลองระบุปีหรือเทอมให้ชัดขึ้น", "Try specifying the year or semester"],
+    "answer.none": ["(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)", "(The server returned no answer)"],
+    "cite.title": ["📖 แหล่งอ้างอิงในเล่มหลักสูตร", "📖 Sources in the curriculum book"],
+    "cite.aria": ["หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ", "Cited pages with the courses found on each"],
+    "cite.page": ["หน้า {n}", "Page {n}"],
+    "elapsed": ["⏱️ ตอบใน {s} วินาที", "⏱️ Answered in {s} s"],
+    "copy.btn": ["คัดลอกผล", "Copy result"],
+    "copy.done": ["คัดลอกแล้ว", "Copied"],
+    "copy.live": ["คัดลอกผลแล้ว", "Result copied"],
+    "copy.hint": ["คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง", "Automatic copy failed. Press Ctrl+C to copy manually."],
+    "copy.fallbackAria": ["ผลลัพธ์ในรูป JSON สำหรับคัดลอก", "Result as JSON for copying"],
+    "error.more": ["รายละเอียดจากเซิร์ฟเวอร์", "Server details"],
+    "error.retry": ["ลองอีกครั้ง", "Try again"],
+
+    "err.unexpected": ["เกิดข้อผิดพลาดที่ไม่คาดคิดในหน้าเว็บ", "An unexpected error occurred on the page"],
+    "err.unexpected.act": ["รีเฟรชหน้าแล้วลองใหม่ (ถ้ายังเป็นอีก เปิด Console ดูข้อความ error)", "Refresh and try again (if it persists, check the browser Console)"],
+    "err.timeout": ["หมดเวลารอคำตอบ (เกิน 180 วินาที)", "Timed out waiting for the answer (over 180 s)"],
+    "err.timeout.act": ["โมเดลอาจยังประมวลผลอยู่ รอสักครู่ แล้วกดลองอีกครั้ง (ถ้ายังเป็นอีก เปิดหน้า /api/health)", "The model may still be working. Wait a moment and try again (if it persists, open /api/health)"],
+    "err.network": ["เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "Cannot connect to the server"],
+    "err.network.act": ["ตรวจว่ารัน uvicorn อยู่ แล้วลองใหม่อีกครั้ง", "Check that uvicorn is running, then try again"],
+    "err.server": ["เซิร์ฟเวอร์ขัดข้อง", "Server error"],
+    "err.retry": ["ลองใหม่อีกครั้ง", "Please try again"],
+    "err.notReady": ["ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล)", "System not ready (database or model)"],
+    "err.notReady.act": ["แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน", "Tell an administrator, or open /api/health to see what is down"],
+    "err.code": ["รหัสวิชาไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หลัก)", "Invalid course code (must be 8 digits)"],
+    "err.code.act": ["แก้รหัสแล้วกดตรวจอีกครั้ง", "Fix the code and check again"],
+    "err.question": ["คำถามไม่ผ่านการตรวจ (ต้องยาว 2–500 ตัวอักษร)", "Question rejected (must be 2–500 characters)"],
+    "err.question.act": ["แก้คำถามแล้วกดถามอีกครั้ง", "Edit the question and ask again"],
+    "err.sql": ["ระบบแปลงคำถามเป็นคำค้นไม่ได้", "Could not turn the question into a query"],
+    "err.sql.act": ["ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม", "Try to be more specific, e.g. mention the year or semester"],
+    "err.noProgram": ["ไม่พบหลักสูตรที่เลือก", "Selected program not found"],
+    "err.noProgram.act": ["รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่", "Refresh and pick a program again"],
+    "err.noCourse": ["ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น", "This course code is not in the selected program"],
+    "err.noCourse.act": ["ตรวจรหัส หรือเลือกจากรายการแนะนำ", "Check the code, or pick one from the suggestions"],
+    "err.http": ["ส่งคำขอไม่สำเร็จ (รหัส {status})", "Request failed (code {status})"],
+    "err.chars": ["ตอนนี้ {n} ตัวอักษร", "Currently {n} characters"],
+    "err.digits": ["ต้องเป็นตัวเลข 0–9 จำนวน 8 หลัก", "Must be exactly 8 digits (0–9)"],
+    "err.badJson": ["ตอบกลับไม่ใช่ JSON", "The response was not JSON"],
+    "live.busy": ["กำลังประมวลผล", "Processing"],
+    "live.ok": ["ได้ผลลัพธ์แล้ว", "Result ready"],
+    "live.err": ["เกิดข้อผิดพลาด", "An error occurred"],
+
+    "search.title": ["ค้นหารายวิชา", "Search courses"],
+    "search.label": ["ค้นด้วยรหัสหรือชื่อวิชา", "Search by course code or name"],
+    "search.placeholder": ["พิมพ์รหัสหรือชื่อวิชา เช่น ฐานข้อมูล, calculus, 06026", "Type a code or name, e.g. database, calculus, 06026"],
+    "search.btn": ["ค้นหา", "Search"],
+    "search.busy": ["กำลังค้น…", "Searching…"],
+    "search.idle": ["พิมพ์แล้วผลจะขึ้นทันที กดที่วิชาเพื่อตรวจวิชาบังคับก่อน", "Results appear as you type. Click a course to check its prerequisites."],
+    "search.loading": ["กำลังค้นรายวิชา…", "Searching courses…"],
+    "search.aria": ["ผลการค้นหารายวิชา", "Course search results"],
+    "search.scope": ["ค้นจากหลักสูตร: {name}", "Searching in: {name}"],
+    "search.none": ["ไม่พบรายวิชาที่ตรงกับ “{q}”", "No courses match “{q}”"],
+    "search.many": ["แสดง {n} รายการแรก พิมพ์เพิ่มเพื่อให้แคบลง", "Showing the first {n}. Type more to narrow down."],
+    "search.count": ["พบ {n} รายวิชา", "{n} courses found"],
+    "search.live": ["ค้นหารายวิชา: {msg}", "Course search: {msg}"],
+    "credits.unit": ["หน่วยกิต", "credits"],
+
+    "prereq.title": ["ตรวจวิชาบังคับก่อน (Prerequisite)", "Check prerequisites"],
+    "prereq.scope": ["ค้นจากหลักสูตร: {name}", "Searching in: {name}"],
+    "prereq.label": ["รหัสวิชา 8 หลัก", "8-digit course code"],
+    "prereq.placeholder": ["ป้อนรหัสวิชา 8 หลัก เช่น 06016200 หรือ 06066102", "Enter an 8-digit code, e.g. 06016200 or 06066102"],
+    "prereq.btn": ["ตรวจ", "Check"],
+    "prereq.busy": ["กำลังตรวจ…", "Checking…"],
+    "prereq.samples": ["ลองรหัสทดสอบ:", "Try a sample code:"],
+    "prereq.loading": ["กำลังตรวจข้อมูลวิชาจากฐานข้อมูล…", "Checking the course in the database…"],
+    "prereq.required": ["🔒 ต้องผ่านก่อน (Prerequisite)", "🔒 Must pass first (Prerequisite)"],
+    "prereq.unlocks": ["🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)", "🔓 Unlocks (Next courses)"],
+    "prereq.noneRequired": ["ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที", "No prerequisites. You can enrol right away."],
+    "prereq.noneUnlocks": ["ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน", "No course requires this one as a prerequisite."],
+    "prereq.hours": [" · (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)", " · (lecture-lab-self study)"],
+    "course.fallback": ["วิชาในหลักสูตร", "Course"],
+
+    "withdraw.title": ["ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?", "If I withdraw from this course, what is affected?"],
+    "withdraw.scope": ["ตรวจจากหลักสูตร: {name}", "Checking in: {name}"],
+    "withdraw.scopeDefault": ["ตรวจจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้", "Checking in the server's default program"],
+    "withdraw.label": ["รหัสวิชาที่กำลังพิจารณาถอน", "Course code you are considering withdrawing from"],
+    "withdraw.placeholder": ["ป้อนรหัสวิชา 8 หลัก", "Enter an 8-digit code"],
+    "withdraw.btn": ["ตรวจผลกระทบ", "Check impact"],
+    "withdraw.busy": ["กำลังตรวจ…", "Checking…"],
+    "withdraw.idle": ["ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน", "Finds direct and indirect follow-up courses in the selected program"],
+    "withdraw.loading": ["กำลังตรวจเส้นทางวิชา…", "Tracing the course path…"],
+    "withdraw.direct": ["ตัวต่อโดยตรง", "Direct follow-ups"],
+    "withdraw.indirect": ["ตัวต่อทางอ้อม", "Indirect follow-ups"],
+    "withdraw.none": ["ไม่พบความสัมพันธ์ตัวต่อประเภทนี้ในข้อมูลหลักสูตร", "No follow-up courses of this type in the curriculum data"],
+    "withdraw.path": ["ตัวอย่างเส้นทาง: {path} — {cond}", "Example path: {path} — {cond}"],
+    "withdraw.co": ["เรียนร่วมกัน", "co-requisite"],
+    "withdraw.pre": ["วิชาบังคับก่อน", "prerequisite"],
+    "withdraw.alt": [" (มีทางเลือกอื่นในเงื่อนไขเดียวกัน)", " (alternatives exist for the same condition)"],
+    "withdraw.cite": ["อ้างอิง: ", "References: "],
+    "withdraw.noCite": ["ไม่พบเลขหน้าอ้างอิงที่ยืนยันได้", "No verifiable page reference found"],
+
+    "dash.overview": ["📘 ภาพรวมหลักสูตร", "📘 Program overview"],
+    "dash.plan": ["แผนการเรียน", "Study plan"],
+    "dash.credits": ["หน่วยกิตรวม", "Total credits"],
+    "dash.duration": ["ระยะเวลา", "Duration"],
+    "dash.samples": ["📋 ตัวอย่างรายวิชา", "📋 Sample courses"],
+    "dash.loading": ["กำลังโหลดข้อมูล...", "Loading…"],
+    "dash.creditsVal": ["{n} หน่วยกิต", "{n} credits"],
+    "dash.yearsVal": ["{n} ปีการศึกษา", "{n} academic years"],
+    "dash.count": ["{n} รายวิชา", "{n} courses"],
+    "dash.unit": ["{n} น.", "{n} cr."],
+    "dash.default": ["แผนหลัก", "Default plan"],
+
+    "elective.overview": ["{g} กลุ่ม รวม {n} รายการ — กดชื่อกลุ่มเพื่อดูรายวิชา", "{g} groups, {n} items in total — click a group to see its courses"],
+    "elective.hours": ["หน่วยกิต (ชั่วโมงบรรยาย–ปฏิบัติ–ศึกษาด้วยตนเองต่อสัปดาห์)", "Credits (lecture–lab–self-study hours per week)"],
+    "elective.count": ["{n} รายการ", "{n} items"],
+    "elective.original": ["ดูคำตอบต้นฉบับ", "View original answer"]
+  };
+
+  var lang = 0;   // 0 = ไทย, 1 = English
+
+  function t(key, vars) {
+    var entry = S[key];
+    var text = entry ? (entry[lang] || entry[0]) : key;
+    if (vars) {
+      Object.keys(vars).forEach(function (name) { text = text.split("{" + name + "}").join(String(vars[name])); });
+    }
+    return text;
+  }
+
+  function setLang(code) { lang = code === "en" ? 1 : 0; }
+  function getLang() { return lang === 1 ? "en" : "th"; }
+
+  var api = { t: t, setLang: setLang, getLang: getLang, strings: S };
+  root.I18N = api;
+  if (typeof module !== "undefined" && module.exports) { module.exports = api; }
+})(typeof window !== "undefined" ? window : globalThis);
