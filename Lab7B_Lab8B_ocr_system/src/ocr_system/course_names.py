@@ -143,7 +143,7 @@ def english_fragment_courses(question: str, courses: list[dict]) -> tuple[str, l
     return "", []
 
 
-# ตัวย่อวิชา -> (ชื่ออังกฤษ, ชื่อไทย) บางส่วนของชื่อวิชา; ตัวย่อสั้น (MIS/OOP/SE/ML/DW/SAD/OS/DIQ) ต้องพิมพ์ตัวใหญ่ — กัน "5 ml" / "dw" ในประโยคทั่วไป
+# ตัวย่อวิชา -> (ชื่ออังกฤษ, ชื่อไทย) บางส่วนของชื่อวิชา; ตัวย่อสั้น (MIS/OOP/SE/ML/DW/SAD/OS/DIQ) ตัวใหญ่ใช้ได้ทุกบริบท ตัวเล็ก/ผสมใช้ได้ตามบริบทเท่านั้น (_loose_acronym_ok) — กัน "5 ml" / "dw" ในประโยคทั่วไป
 ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
     (re.compile(r"(?<![A-Za-z0-9])MIS(?![A-Za-z0-9])"), ("MANAGEMENT INFORMATION SYSTEMS", "ระบบสารสนเทศเพื่อการจัดการ")),
     (re.compile(r"(?<![A-Za-z0-9])OOP(?![A-Za-z0-9])"), ("OBJECT-ORIENTED PROGRAMMING", "การสร้างโปรแกรมเชิงวัตถุ")),
@@ -160,11 +160,35 @@ ACRONYM_MAP: list[tuple[re.Pattern, tuple[str, str]]] = [
 ]
 
 
-def _acronym_matches(question: str, courses: list[dict]) -> list[tuple[re.Pattern, str, str]]:
-    """[(pattern, รหัส, ชื่อไทย)] ของตัวย่อที่อยู่ในคำถามและชี้วิชาเดียวพอดีในแผน — ไม่มี/หลายวิชา = ข้ามตัวย่อนั้น"""
+_LOOSE_ACRONYMS = [None if pat.flags & re.I else re.compile(pat.pattern, re.I) for pat, _ in ACRONYM_MAP]
+
+
+def _loose_acronym_ok(question: str, start: int, end: int) -> bool:
+    """ตัวย่อที่พิมพ์ตัวเล็ก/ตัวผสมยอมรับจาก "บริบท" ไม่ใช่จากตัวพิมพ์: ห้ามมีตัวเลขติดหน้า ("5 ml"); ต้องมี "วิชา" นำหน้า
+    หรือ (ตัวย่อ ≥3 ตัวอักษร) เป็นคำอังกฤษคำเดียวในคำถาม ("sad กี่หน่วยกิต"); ตัวย่อ 2 ตัวอักษรต้องมี "วิชา" เท่านั้น"""
+    before = question[:start].rstrip()
+    if before[-1:].isdigit():
+        return False
+    if before.endswith("วิชา"):
+        return True
+    return end - start >= 3 and len(re.findall(r"[A-Za-z]{2,}", question)) == 1
+
+
+def _acronym_spans(question: str, index: int) -> list[tuple[int, int]]:
+    """ช่วงข้อความในคำถามที่เป็นตัวย่อ ACRONYM_MAP[index]: ตัวใหญ่ตามกฎเดิมทุกบริบท + ตัวเล็กตามบริบท (_loose_acronym_ok)"""
+    pat, loose = ACRONYM_MAP[index][0], _LOOSE_ACRONYMS[index]
+    spans = [m.span() for m in pat.finditer(question)]
+    if loose is not None:
+        spans += [m.span() for m in loose.finditer(question) if m.span() not in spans and _loose_acronym_ok(question, *m.span())]
+    return sorted(spans)
+
+
+def _acronym_matches(question: str, courses: list[dict]) -> list[tuple[list[tuple[int, int]], str, str]]:
+    """[(ช่วงในคำถาม, รหัส, ชื่อไทย)] ของตัวย่อที่อยู่ในคำถามและชี้วิชาเดียวพอดีในแผน — ไม่มี/หลายวิชา = ข้ามตัวย่อนั้น"""
     out = []
-    for pat, (en_target, th_target) in ACRONYM_MAP:
-        if not pat.search(question):
+    for i, (_, (en_target, th_target)) in enumerate(ACRONYM_MAP):
+        spans = _acronym_spans(question, i)
+        if not spans:
             continue
         en_norm, th_norm = _norm_en(en_target), _norm_th(th_target)
         found = {str(c["code"]): c.get("name_th") or c.get("name_en") or "" for c in courses
@@ -172,7 +196,7 @@ def _acronym_matches(question: str, courses: list[dict]) -> list[tuple[re.Patter
                                        or (th_norm and th_norm in _norm_th(c.get("name_th"))))}
         if len(found) == 1:
             (code, name), = found.items()
-            out.append((pat, code, name))
+            out.append((spans, code, name))
     return out
 
 
@@ -184,8 +208,9 @@ def acronym_courses(question: str, courses: list[dict]) -> list[tuple[str, str]]
 
 def expand_acronyms(question: str, courses: list[dict]) -> str:
     """แทนตัวย่อวิชาในคำถามด้วยชื่อไทยเต็มของวิชานั้น (เฉพาะตัวย่อที่ชี้วิชาเดียวในแผน) — ให้ทางลัด/โมเดลเห็นชื่อจริง ไม่ใส่ตัวย่อลงช่องรหัส"""
-    for pat, _, name in _acronym_matches(question, courses):
-        question = pat.sub(lambda _m: name, question)
+    replace = sorted(((s, e, name) for spans, _, name in _acronym_matches(question, courses) for s, e in spans), reverse=True)
+    for s, e, name in replace:                                            # จากท้ายไปหน้า ตำแหน่งไม่เลื่อน
+        question = question[:s] + name + question[e:]
     return question
 
 
