@@ -103,7 +103,7 @@ TEST_CASES = [
     {"id": 43, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "วิชา 06016418 ต้องเรียนวิชาอะไรก่อน ถ้ายังไม่ผ่านลงได้ไหม", "desc": "เงื่อนไขการลงทะเบียน 06016418", "expect": "06016408"},
     {"id": 44, "cat": "06. Prerequisites", "type": "ask", "prog": "dsba_coop", "q": "ผ่านวิชา 06026200 แล้วลงอะไรได้ต่อ", "desc": "ผ่าน Calculus 1 ลงอะไรต่อ", "expect": "06026201"},
     {"id": 45, "cat": "06. Prerequisites", "type": "ask", "prog": "dsba_coop", "q": "ถ้าตกแคลคูลัส 1 จะลงแคลคูลัส 2 ได้ไหม", "desc": "ตก Calculus 1 ลง Calculus 2 ได้ไหม", "expect_any": ["ไม่ได้", "ไม่"]},
-    {"id": 46, "cat": "06. Prerequisites", "type": "ask", "prog": "dsba_coop", "q": "ไม่ผ่าน 06026200 ลง 06026201 ได้ไหม", "desc": "ไม่ผ่าน 06026200 ลง 06026201 ได้ไหม", "expect_any": ["ไม่ได้", "ไม่"]},
+    {"id": 46, "cat": "06. Prerequisites", "type": "ask", "prog": "dsba_coop", "q": "ไม่ผ่าน 06026200 ลง 06026201 ได้ไหม", "desc": "ไม่ผ่าน 06026200 ลง 06026201 ได้ไหม", "expect_any": ["ไม่ได้", "ไม่สามารถ"]},
     {"id": 47, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "มีวิชาไหนบ้างที่ไม่มีวิชาบังคับก่อนเลย", "desc": "รายวิชาที่ไม่มีวิชาบังคับก่อน", "expect_fn": lambda d: len(d.get("answer", "")) > 30},
 
     # -------------------------------------------------------------------------
@@ -137,21 +137,21 @@ TEST_CASES = [
     # -------------------------------------------------------------------------
     # หมวด 10: English Acronyms (15 ข้อ)
     # -------------------------------------------------------------------------
-    {"id": 64, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OS รหัสอะไร", "desc": "OS (Operating Systems)"},
-    {"id": 65, "cat": "10. English Acronyms", "type": "ask", "prog": "ait", "q": "วิชา AI เรียนตอนปีไหน", "desc": "AI (Artificial Intelligence)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 66, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา DB อยู่ปีไหน", "desc": "DB (Database)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 67, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา MIS ต้องผ่านวิชาอะไรมาก่อน", "desc": "MIS (Management Info Systems)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 68, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OOP อยู่เทอมไหน", "desc": "OOP (Object-Oriented Programming)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 69, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา BI เรียนปีไหน", "desc": "BI (Business Intelligence)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
+    {"id": 64, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OS รหัสอะไร", "desc": "OS (Operating Systems)", "expect": "06016412"},
+    {"id": 65, "cat": "10. English Acronyms", "type": "ask", "prog": "ait", "q": "วิชา AI เรียนตอนปีไหน", "desc": "AI (Artificial Intelligence)", "expect_not_found": True},
+    {"id": 66, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา DB อยู่ปีไหน", "desc": "DB (Database)", "expect_not_found": True},
+    {"id": 67, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา MIS ต้องผ่านวิชาอะไรมาก่อน", "desc": "MIS (Management Info Systems)", "expect": "06066101"},
+    {"id": 68, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OOP อยู่เทอมไหน", "desc": "OOP (Object-Oriented Programming)", "expect_any": ["เทอม 2", "เทอมที่ 2"]},
+    {"id": 69, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา BI เรียนปีไหน", "desc": "BI (Business Intelligence)", "expect_not_found": True},
+    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect": "3 หน่วยกิต"},
     {"id": 71, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา HCI อยู่ปีไหน", "desc": "HCI (Human-Computer Interaction)", "expect_not_found": True},
-    {"id": 72, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา ML เรียนตอนไหน", "desc": "ML (Machine Learning)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
+    {"id": 72, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา ML เรียนตอนไหน", "desc": "ML (Machine Learning)", "expect_any": ["ปี 3", "ปีที่ 3"]},
     {"id": 73, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา UX/UI มีกี่หน่วยกิต", "desc": "UX/UI", "expect_not_found": True},
-    {"id": 74, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา DW ต้องผ่านอะไร", "desc": "DW (Data Warehouse)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 75, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา DIQ รหัสอะไร", "desc": "DIQ (Digital Intelligence Quotient)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 76, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SAD รหัสอะไร", "desc": "SAD (Systems Analysis and Design)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 77, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา CN เรียนปีไหน", "desc": "CN (Computer Networks)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
-    {"id": 78, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา DS เรียนปีไหน", "desc": "DS (Data Science / Data Structures)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
+    {"id": 74, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา DW ต้องผ่านอะไร", "desc": "DW (Data Warehouse)", "expect": "06066300"},
+    {"id": 75, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา DIQ รหัสอะไร", "desc": "DIQ (Digital Intelligence Quotient)", "expect": "90641002"},
+    {"id": 76, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SAD รหัสอะไร", "desc": "SAD (Systems Analysis and Design)", "expect": "06066304"},
+    {"id": 77, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา CN เรียนปีไหน", "desc": "CN (Computer Networks)", "expect_not_found": True},
+    {"id": 78, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา DS เรียนปีไหน", "desc": "DS (Data Science / Data Structures)", "expect_not_found": True},
 
     # -------------------------------------------------------------------------
     # หมวด 11: English Prefixes & Course Names (14 ข้อ)
@@ -166,7 +166,7 @@ TEST_CASES = [
     {"id": 86, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา COMPUTER PROGRAMMING รหัสอะไร", "desc": "COMPUTER PROGRAMMING"},
     {"id": 87, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา CHARM SCHOOL มีกี่หน่วยกิต", "desc": "CHARM SCHOOL (ชื่อเต็มอังกฤษ)"},
     {"id": 88, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา WEB PROGRAMMING อยู่ปีไหน", "desc": "WEB PROGRAMMING"},
-    {"id": 89, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา NETWORK อยู่ปีไหน", "desc": "NETWORK", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
+    {"id": 89, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา NETWORK อยู่ปีไหน", "desc": "NETWORK", "expect_not_found": True},
     {"id": 90, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา DATABASE SYSTEMS รหัสอะไร", "desc": "DATABASE SYSTEMS"},
     {"id": 91, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา SOFTWARE ENGINEERING กี่หน่วยกิต", "desc": "SOFTWARE ENGINEERING (ชื่อเต็มอังกฤษ)"},
     {"id": 92, "cat": "11. English Prefixes", "type": "ask", "prog": "it_coop", "q": "วิชา OPERATING SYSTEMS มีกี่หน่วยกิต", "desc": "OPERATING SYSTEMS"},
@@ -176,7 +176,7 @@ TEST_CASES = [
     # -------------------------------------------------------------------------
     {"id": 93, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "dsba_coop", "q": "วิชา แคล 1 กี่หน่วยกิต", "desc": "แคล 1 (คำย่อ)"},
     {"id": 94, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "dsba_coop", "q": "วิชา แคล 2 ต้องผ่านอะไร", "desc": "แคล 2 (คำย่อ)"},
-    {"id": 95, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "dsba_coop", "q": "วิชา ฐานข้อมูล อยู่ปีไหน", "desc": "ฐานข้อมูล (คำสั้น)", "expect_fn": lambda d: bool(d.get("answer", "").strip())},
+    {"id": 95, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "dsba_coop", "q": "วิชา ฐานข้อมูล อยู่ปีไหน", "desc": "ฐานข้อมูล (คำสั้น)", "expect_not_found": True},
     {"id": 96, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "dsba_coop", "q": "วิชา แนวคิดฐานข้อมูล รหัสอะไร", "desc": "แนวคิดฐานข้อมูล (ขาดคำว่าระบบ)"},
     {"id": 97, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "it_coop", "q": "วิชา โปรแกรมมิ่ง 1 เรียนตอนไหน", "desc": "โปรแกรมมิ่ง 1"},
     {"id": 98, "cat": "12. Thai Colloquial & Co-op", "type": "ask", "prog": "it_coop", "q": "วิชา สหกิจ อยู่ปีไหน", "desc": "สหกิจ (ขาดคำว่าศึกษา)"},

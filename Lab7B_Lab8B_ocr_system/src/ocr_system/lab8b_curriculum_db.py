@@ -3003,8 +3003,8 @@ def _named_courses(conn: sqlite3.Connection, question: str, catalog: bool = True
     maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
     if not maximal and strict:                              # ไม่มีชื่อตรงเลย → ลองชื่อภาษาพูด/ไม่ครบ (ต้องชี้วิชาเดียวในแผน — ดู course_names.COLLOQUIAL_RULES)
         import course_names
-        plan = [{"code": r[0], "name_th": r[1]} for r in conn.execute("SELECT code, name_th FROM course")]
-        got = course_names.colloquial_courses(question, plan)
+        plan = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        got = course_names.colloquial_courses(question, plan) or course_names.acronym_courses(question, plan)      # ตัวย่อ (ML/SAD/DW…): ตัวใหญ่ + วิชาเดียวในแผน
         return dict(got) or None
     if not maximal or len({frozenset(hits[k]) for k in maximal}) != 1:
         return None
@@ -3146,6 +3146,7 @@ def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
 
 _ATTR_YEAR = re.compile(r"ปีไหน|ชั้นปีไหน|ปีใด|ชั้นปีใด|ปีที่เท่าไร|ปีที่เท่าไหร่|ปีอะไร")
 _ATTR_SEM = re.compile(r"เทอมไหน|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|เทอมใด|ภาคเรียนที่เท่าไร|เทอมที่เท่าไร|เทอมอะไร")
+_ATTR_WHEN = re.compile(r"เรียนตอนไหน|เรียนเมื่อไร|เรียนเมื่อไหร่")             # "เรียนตอนไหน" = ปีไหน + เทอมไหน
 _ATTR_NOT = re.compile(r"ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|ภาค\S*\s*\d|รวม|ทั้งหมด|กี่วิชา|หมวด|ชั่วโมง|ก่อน|รหัส|ชื่อ|อะไรบ้าง|วิชาไหนบ้าง|วิชา(?:อะไร|ใด)")
 
 
@@ -3153,7 +3154,8 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     """หน่วยกิต / ปี / เทอมที่เรียน ของ "วิชาเดียว" (ระบุด้วยรหัสหรือชื่อ) จากตาราง course และ plan_item ตรง ๆ;
     วิชาอยู่ในแผนหลายที่ = บอกทุกที่; ปี/เทอมของวิชานอกแผน, ถามหลายวิชา/เป็นรายการ/มีเลขปีเทอมในคำถาม = None (ทางเดิม)"""
     want_credits = "หน่วยกิต" in question
-    want_year, want_sem = bool(_ATTR_YEAR.search(question)), bool(_ATTR_SEM.search(question))
+    when = bool(_ATTR_WHEN.search(question))
+    want_year, want_sem = bool(_ATTR_YEAR.search(question)) or when, bool(_ATTR_SEM.search(question)) or when
     if not (want_credits or want_year or want_sem) or _ATTR_NOT.search(question) or _RELATIONAL_NOT.search(question):
         return None
     codes = list(dict.fromkeys(_CODE8.findall(question)))
@@ -3313,7 +3315,17 @@ def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
     """ข้อความที่ทางลัด/โมเดลเห็น: ตัดชื่อหลักสูตรและชื่อแผน (สหกิจ/ไม่สหกิจ) ของแผนตัวเอง, ตัดรหัสที่ซ้ำชื่อวิชา, แปลงภาคต้น/ปลาย
     (result["question"] ยังเป็นข้อความเดิมของผู้ใช้)"""
     q = _strip_own_plan_phrase(conn, _strip_own_program_token(conn, question))
-    return _normalise_semester_words(_drop_redundant_codes(conn, q))
+    return _expand_course_acronyms(conn, _normalise_semester_words(_drop_redundant_codes(conn, q)))
+
+
+def _expand_course_acronyms(conn: sqlite3.Connection, question: str) -> str:
+    """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผนนี้ (ไม่ชี้วิชาเดียว = คำถามเดิม)"""
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    except sqlite3.OperationalError:
+        return question
+    return course_names.expand_acronyms(question, courses)
 
 
 def _normalise_semester_words(question: str) -> str:
@@ -4123,6 +4135,9 @@ FORBIDDEN_SQL = re.compile(
     r"pragma|vacuum|reindex|truncate)\b", re.I)
 
 
+SHORT_CONTAINS_LIKE = re.compile(r"\blike\s+'%[A-Za-z]{1,2}%'", re.I)
+
+
 def guard_sql(sql: str) -> str:
     """
     ด่านความปลอดภัยชั้นที่สอง — ตรวจ SQL ก่อนรัน
@@ -4141,6 +4156,8 @@ def guard_sql(sql: str) -> str:
         raise ValueError("อนุญาตเฉพาะ SELECT หรือ WITH เท่านั้น")
     if FORBIDDEN_SQL.search(s):
         raise ValueError("พบคำสั่งที่ไม่อนุญาตใน SQL")
+    if SHORT_CONTAINS_LIKE.search(s):
+        raise ValueError("LIKE '%XX%' กับตัวอักษร 1-2 ตัวจับกลางคำ (เช่น OS ใน NOSQL, BI ใน PROBABILITY) — ใช้ชื่อเต็มหรือรหัสวิชา")
     if not re.search(r"\blimit\b", s, re.I):
         s += f" LIMIT {SQL_ROW_LIMIT}"
     return s
@@ -4487,7 +4504,7 @@ _FAIL_WORD = re.compile(r"สอบตก|ยังไม่ผ่าน|ไม�
 def _prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """สองวิชาพอดีในคำถามใช่/ไม่ใช่: (ก) "สอบตก/ไม่ผ่าน X … เรียน Y ได้ไหม" (ข) "เรียน Y ก่อน X ได้ไหม" — ถ้า X ∈ วิชาบังคับก่อนของ Y (kind='pre' และ Y ไม่มีทางเลือก
     "หรือ" ใน prerequisite_alt) → "ไม่ได้ — Y มี X เป็นวิชาบังคับก่อน"; กรณีอื่น (ลำดับถูกต้อง/ไม่มีความสัมพันธ์/กำกวม) = None ไม่ตอบ "ไม่ได้" มั่ว"""
-    if not _YESNO.search(question) or _CODE8.search(question):
+    if not _YESNO.search(question):
         return None
     _citations_module()
     import course_names
@@ -4496,6 +4513,11 @@ def _prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     except sqlite3.OperationalError:
         return None
     hints = course_names.course_hints(question, courses)
+    if _CODE8.search(question):                                          # พิมพ์รหัสมา: ต้องเป็นรหัสในแผนสองรหัสพอดี และไม่มีชื่อวิชาปนอยู่
+        typed = list(dict.fromkeys(_CODE8.findall(question)))
+        if hints or len(typed) != 2 or any(c not in {x["code"] for x in courses} for c in typed):
+            return None
+        hints = [(c, c) for c in typed]                                  # raw = รหัสตามที่พิมพ์ (หาตำแหน่งในคำถามได้)
     if len({c for _, c in hints}) != 2:
         return None
     (raw1, c1), (raw2, c2) = hints[0], hints[1]
