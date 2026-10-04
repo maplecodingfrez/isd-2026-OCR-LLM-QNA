@@ -25,8 +25,9 @@
  20. Advanced Prereqs & Course Hours (15 ข้อ)
  21. Real-World Inquiries & Out-of-Scope Guards (3 ข้อ)
  22. Course Families & Degree Framework (10 ข้อ)
+ 23. Course Withdrawal & Impact Analysis (ถอน/ดรอป/ตัวต่อ) (10 ข้อ)
 
-รันคำสั่งเดียวจะทดสอบทั้งหมด (210 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
+รันคำสั่งเดียวจะทดสอบทั้งหมด (220 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
 =============================================================================
 """
 import urllib.request
@@ -350,7 +351,21 @@ TEST_CASES = [
     {"id": 207, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา IT", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
     {"id": 208, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "dsba_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา DSBA", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
     {"id": 209, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "bit_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา BIT", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
-    {"id": 210, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "หลักสูตรนี้มีเรียนภาคฤดูร้อนไหม", "desc": "Guard: ภาคฤดูร้อนไม่มีในแผนปกติ", "expect_not_found": True}
+    {"id": 210, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "หลักสูตรนี้มีเรียนภาคฤดูร้อนไหม", "desc": "Guard: ภาคฤดูร้อนไม่มีในแผนปกติ", "expect_not_found": True},
+
+    # -------------------------------------------------------------------------
+    # หมวด 23: Course Withdrawal & Impact Analysis (ถอน/ดรอป/ตัวต่อ) (10 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 211, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถ้าถอนวิชา 06016408 จะกระทบกับอะไร", "desc": "ถอนวิชาแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 212, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถอนวิชา 06016408 แล้วจะกระทบวิชาไหน", "desc": "ถอนแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 213, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถ้าดรอปวิชา 06016408 จะกระทบกับอะไร", "desc": "ดรอปแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 214, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีตัวต่อไหม", "desc": "ค้นหาตัวต่อของ 06016408 (IT)", "expect": "06016418"},
+    {"id": 215, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีวิชาต่อไหม", "desc": "ค้นหาวิชาต่อของ 06016408 (IT)", "expect": "06016418"},
+    {"id": 216, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 มีวิชาต่อไหม", "desc": "ค้นหาวิชาต่อของโครงงาน 1 (IT)", "expect": "06016407"},
+    {"id": 217, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06066300 มีตัวต่อไหม", "desc": "ค้นหาตัวต่อของฐานข้อมูล (DSBA)", "expect_any": ["06026212", "06026213"]},
+    {"id": 218, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 ถอนได้มั้ย", "desc": "Guard: ถอนได้มั้ย (อยู่นอก มคอ.2)", "expect_not_found": True},
+    {"id": 219, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 มี prequisite ไหม", "desc": "Prequisite (คำสะกดผิด) ของโครงงาน 2", "expect": "06016406"},
+    {"id": 220, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 prerequisite คืออะไร", "desc": "Prerequisite ภาษาอังกฤษ ของโครงงาน 2", "expect": "06016406"}
 ]
 
 
@@ -360,6 +375,15 @@ def run_master_test():
     print(f"🚀 เริ่มการทดสอบระบบแบบครบวงจร (Master Test Suite): ทั้งหมด {total_count} ข้อ", flush=True)
     print(f"🎯 Backend API Server: {BASE_URL}", flush=True)
     print("=" * 76, flush=True)
+
+    # วอร์มอัปโมเดล Ollama ก่อนเริ่มเพื่อป้องกัน Cold Start Timeout
+    try:
+        w_body = json.dumps({"question": "หลักสูตรนี้มีกี่หน่วยกิต", "program": "it_coop"}).encode("utf-8")
+        w_req = urllib.request.Request(f"{BASE_URL}/api/ask", data=w_body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(w_req, timeout=120)
+        print("🔥 วอร์มอัปโมเดลภาษา Ollama สำเร็จ พร้อมเริ่มการทดสอบ...\n", flush=True)
+    except Exception as e:
+        print(f"⚠️ ข้อความแจ้งเตือนการวอร์มอัป: {e}\n", flush=True)
 
     results = []
     category_stats = {}
@@ -505,7 +529,7 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         "",
         "---",
         "",
-        "## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ (22 หมวดหมู่)",
+        "## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ (23 หมวดหมู่)",
         "",
         "| หมวดหมู่การทดสอบ | ผ่าน / ทั้งหมด | อัตราความสำเร็จ | สถานะการทำงาน |",
         "|---|:---:|:---:|:---:|"

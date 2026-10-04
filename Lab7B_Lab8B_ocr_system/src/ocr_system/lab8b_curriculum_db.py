@@ -2531,6 +2531,31 @@ def _code_family_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
             "SELECT code, name_th FROM course WHERE name_th LIKE '" + top + "%'")
 
 
+# ---- "วิชาหมวด XXXX มีวิชาอะไรบ้าง" / "วิชาขึ้นต้นด้วย XXXX" ----
+_COURSE_CODE_PREFIX_Q = re.compile(r"(?:วิชาหมวด|หมวดวิชา|รหัสหมวด|วิชาขึ้นต้นด้วย|รหัสขึ้นต้นด้วย|วิชารหัส)\s*([0-9]{3,5})")
+
+
+def _course_code_prefix_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    if _CODE8.search(question):
+        return None
+    m = _COURSE_CODE_PREFIX_Q.search(question)
+    if not m:
+        return None
+    prefix = m.group(1)
+    try:
+        cur = conn.execute("SELECT DISTINCT code, name_th FROM course WHERE code LIKE ? ORDER BY code", (f"{prefix}%",))
+        rows = cur.fetchall()
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    items = [f"{r[0]} ({r[1]})" if r[1] else r[0] for r in rows]
+    text = f"วิชาหมวด {prefix} มี {len(rows)} วิชา: " + ", ".join(items)
+    citation_rows = [{"code": r[0], "name_th": r[1]} for r in rows]
+    sql = f"SELECT DISTINCT code, name_th FROM course WHERE code LIKE '{prefix}%' ORDER BY code"
+    return text, citation_rows, sql
+
+
 # ---- สถานการณ์หลายวิชา: "ถ้าตก A แต่ผ่าน B แล้ว ลง C ได้ไหม" (รองรับวิชาบังคับก่อนแบบ "หรือ") ----
 def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """สามวิชาขึ้นไปในคำถามใช่/ไม่ใช่: วิชาสุดท้ายที่นำหน้าด้วย ลง/เรียน = วิชาที่จะลง; วิชาอื่นต้องมีคำว่า ตก/ไม่ผ่าน (ไม่ผ่าน) หรือ ผ่าน (ผ่านแล้ว) นำหน้าชัดเจน
@@ -2697,7 +2722,7 @@ def _code_and_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[s
 
 # ---- ผ่านวิชา A (และ B) แล้วลงอะไรได้ / สอบตก A แล้วลงอะไรต่อไม่ได้-กระทบวิชาไหน ----
 _UNLOCK_PASS_Q = re.compile(r"(?<!ไม่)ผ่าน.{0,90}?แล้ว.{0,14}?(?:ลง|เรียน)(?:ทะเบียน)?(?:วิชา)?(?:อะไร|ไหน|ใด)(?:บ้าง)?(?:ได้|เพิ่ม|ต่อ|ที่ต้องใช้)")
-_UNLOCK_FAIL_Q = re.compile(r"(?:สอบตก|ไม่ผ่าน|ตก).{0,90}?(?:กระทบ|ลง(?:ต่อ)?ไม่ได้|เรียนต่อไม่ได้|ลงทะเบียนต่อไม่ได้)")
+_UNLOCK_FAIL_Q = re.compile(r"(?:สอบตก|ไม่ผ่าน|ตก|ถอน|ดรอป|ดร็อป).{0,90}?(?:กระทบ|ลง.{0,20}?ไม่ได้|เรียน.{0,20}?ไม่ได้|มีผลกระทบ)")
 
 
 def _requires_map(conn: sqlite3.Connection) -> tuple[dict[str, set[str]], set[str]]:
@@ -2714,7 +2739,7 @@ def _requires_map(conn: sqlite3.Connection) -> tuple[dict[str, set[str]], set[st
 
 def _unlock_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """(ก) "ผ่าน A [กับ B] แล้วลงวิชาอะไรได้/ที่ต้องใช้วิชานี้" (หลายวิชา หรือมี "ที่ต้องใช้") → วิชาที่ลงได้ทันที (วิชาบังคับก่อนครบ) + ที่ต้องผ่านเพิ่ม/มีทางเลือก "หรือ"
-    (ข) "สอบตก A แล้วลงต่อไม่ได้/กระทบวิชาไหน" → วิชาตัวต่อที่ลงไม่ได้ + ที่ตามมาเป็นลูกโซ่
+    (ข) "สอบตก/ถอน/ดรอป A แล้วลงต่อไม่ได้/กระทบวิชาไหน" → วิชาตัวต่อที่ลงไม่ได้ + ที่ตามมาเป็นลูกโซ่
     วิชาเดียวแบบ "ผ่าน A แล้วเรียนอะไรต่อได้" ยังไปทางเดิม; ถามใช่/ไม่ใช่ ("ได้ไหม") = None"""
     if _YESNO.search(question):
         return None
@@ -2755,7 +2780,8 @@ def _unlock_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[d
         frontier = [c for c, rs in req.items() if rs & set(frontier) and c not in seen and c not in base]
         seen |= set(frontier)
     indirect = sorted(seen - set(direct))
-    head = (f"ถ้าสอบตก {', '.join(nm(c) for c in given)} วิชาที่ได้รับผลกระทบ (ลงไม่ได้จนกว่าจะผ่านก่อน): "
+    act_name = "ถอน/ดรอป" if re.search(r"ถอน|ดรอป|ดร็อป", question) else "สอบตก"
+    head = (f"ถ้า{act_name} {', '.join(nm(c) for c in given)} วิชาที่ได้รับผลกระทบ (ลงไม่ได้จนกว่าจะผ่านก่อน): "
             + ("; ".join(nm(c) for c in direct) if direct else "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นวิชาบังคับก่อน"))
     if indirect:
         head += "; และวิชาที่ตามมาเป็นลูกโซ่: " + "; ".join(nm(c) for c in indirect)
@@ -4925,7 +4951,7 @@ _SHORTCUTS = (
     _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
+    _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )
