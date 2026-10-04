@@ -18,8 +18,16 @@
  13. วิชาเรียนร่วมกันข้ามสาขา (Cross-Program Shared Courses: DSBA/AIT/IT) (8 ข้อ)
  14. วิชาเลือกเสรีและวิชาเลือก (Free Electives & Elective Slots) (8 ข้อ)
  15. ข้อมูลเฉพาะเล่มหลักสูตร มคอ.2 (TQF:2 Book Sections & Structure) (12 ข้อ)
+ 16. Multi-Plan Facts & Credit Rules (7 ข้อ)
+ 17. Course Hours & Prereq Chains (10 ข้อ)
+ 18. TQF:2 Multi-Program & Guards (17 ข้อ)
+ 19. Multi-Program TQF:2 & Facts (12 ข้อ)
+ 20. Advanced Prereqs & Course Hours (15 ข้อ)
+ 21. Real-World Inquiries & Out-of-Scope Guards (3 ข้อ)
+ 22. Course Families & Degree Framework (10 ข้อ)
+ 23. Course Withdrawal & Impact Analysis (ถอน/ดรอป/ตัวต่อ) (10 ข้อ)
 
-รันคำสั่งเดียวจะทดสอบทั้งหมด (136 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
+รันคำสั่งเดียวจะทดสอบทั้งหมด (220 ข้อ) และสร้างรายงานผลฉบับเดียวจบ: test.md
 =============================================================================
 """
 import urllib.request
@@ -28,6 +36,18 @@ import json
 import time
 import sys
 import os
+
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
@@ -143,7 +163,7 @@ TEST_CASES = [
     {"id": 67, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา MIS ต้องผ่านวิชาอะไรมาก่อน", "desc": "MIS (Management Info Systems)", "expect": "06066101"},
     {"id": 68, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OOP อยู่เทอมไหน", "desc": "OOP (Object-Oriented Programming)", "expect_any": ["เทอม 2", "เทอมที่ 2"]},
     {"id": 69, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา BI เรียนปีไหน", "desc": "BI (Business Intelligence)", "expect_not_found": True},
-    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect": "3 หน่วยกิต"},
+    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect_any": ["3 หน่วยกิต", "3 ("]},
     {"id": 71, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา HCI อยู่ปีไหน", "desc": "HCI (Human-Computer Interaction)", "expect_not_found": True},
     {"id": 72, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา ML เรียนตอนไหน", "desc": "ML (Machine Learning)", "expect_any": ["ปี 3", "ปีที่ 3"]},
     {"id": 73, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา UX/UI มีกี่หน่วยกิต", "desc": "UX/UI", "expect_not_found": True},
@@ -229,7 +249,123 @@ TEST_CASES = [
     {"id": 133, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "dsba_coop", "q": "โครงสร้างหลักสูตรแบ่งเป็นกี่หมวดวิชา", "desc": "โครงสร้างหมวดวิชา DSBA", "expect_any": ["3 หมวด", "หมวด"]},
     {"id": 134, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "หมวดวิชาเฉพาะมีกี่หน่วยกิต", "desc": "หน่วยกิตหมวดวิชาเฉพาะ IT", "expect": "93"},
     {"id": 135, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชาโครงงาน 2 ต้องผ่านวิชาอะไรมาก่อน", "desc": "Prereq โครงงาน 2 IT", "expect": "06016406"},
-    {"id": 136, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 เรียนปีไหนเทอมไหน", "desc": "ปีและเทอมของโครงงาน 1 IT", "expect_any": ["ปี 4", "เทอม 1"]}
+    {"id": 136, "cat": "15. TQF:2 Book Sections", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 เรียนปีไหนเทอมไหน", "desc": "ปีและเทอมของโครงงาน 1 IT", "expect_any": ["ปี 4", "เทอม 1"]},
+
+    # -------------------------------------------------------------------------
+    # หมวด 16: Multi-Plan Facts & Credit Rules (7 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 137, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "ait", "q": "หลักสูตร AIT เรียนทั้งหมดกี่ปี", "desc": "ระยะเวลาเรียนตามแผน AIT", "expect": "4 ปี"},
+    {"id": 138, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "bit_coop", "q": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "desc": "หน่วยกิตรวม BIT สหกิจ", "expect": "126"},
+    {"id": 139, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "bit_no_coop", "q": "หลักสูตรนี้มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม BIT ไม่สหกิจ", "expect": "126"},
+    {"id": 140, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "dsba_no_coop", "q": "หลักสูตรนี้มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม DSBA ไม่สหกิจ", "expect": "132"},
+    {"id": 141, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "it_no_coop", "q": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "desc": "หน่วยกิตรวม IT ไม่สหกิจ", "expect": "129"},
+    {"id": 142, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "bit_coop", "q": "หลักสูตรนี้เรียนกี่ปี", "desc": "ระยะเวลาเรียนตามแผน BIT สหกิจ", "expect": "4 ปี"},
+    {"id": 143, "cat": "16. Multi-Plan Facts & Credit Rules", "type": "ask", "prog": "bit_no_coop", "q": "หลักสูตรนี้เรียนกี่ปี", "desc": "ระยะเวลาเรียนตามแผน BIT ไม่สหกิจ", "expect": "4 ปี"},
+
+    # -------------------------------------------------------------------------
+    # หมวด 17: Course Hours & Prereq Chains (10 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 144, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016401 บรรยายสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงบรรยาย 06016401 IT", "expect": "บรรยาย 3 ชั่วโมง"},
+    {"id": 145, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016401 แล็บสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงปฏิบัติ 06016401 IT", "expect": "ปฏิบัติ 0 ชั่วโมง"},
+    {"id": 146, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06066300 บรรยายสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงบรรยาย 06066300 DSBA", "expect": "บรรยาย 2 ชั่วโมง"},
+    {"id": 147, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026204 แล็บสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงปฏิบัติ 06026204 DSBA", "expect": "ปฏิบัติ 0 ชั่วโมง"},
+    {"id": 148, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026204 ศึกษาด้วยตนเองสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงศึกษาด้วยตนเอง 06026204 DSBA", "expect": "ศึกษาด้วยตนเอง 6 ชั่วโมง"},
+    {"id": 149, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "เรียนผ่าน 06016406 แล้วจะลงเรียนวิชาอะไรต่อได้", "desc": "วิชาที่ปลดล็อคหลังผ่านโครงงาน 1 IT", "expect": "06016407"},
+    {"id": 150, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อนของโครงงาน 2 IT", "expect": "06016406"},
+    {"id": 151, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016401 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน 06016401 (ไม่มี prereq)", "expect_not_found": True},
+    {"id": 152, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026201 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน แคลคูลัส 2 DSBA", "expect": "06026200"},
+    {"id": 153, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชาโครงงาน 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตวิชาโครงงาน 1 IT", "expect_any": ["3 หน่วยกิต", "3 ("]},
+
+    # -------------------------------------------------------------------------
+    # หมวด 18: TQF:2 Multi-Program & Guards (17 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 154, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "ปรัชญาของหลักสูตรคืออะไร", "desc": "ปรัชญาหลักสูตร DSBA", "expect_any": ["ปรัชญา", "วิทยาการข้อมูล"]},
+    {"id": 155, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "คุณสมบัติของผู้เข้าศึกษาคืออะไร", "desc": "คุณสมบัติผู้เข้าศึกษา DSBA", "expect_any": ["มัธยมศึกษาตอนปลาย", "คุณสมบัติ"]},
+    {"id": 156, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "ชื่อปริญญาของหลักสูตรนี้คืออะไร", "desc": "ชื่อปริญญา DSBA", "expect_any": ["วิทยาศาสตรบัณฑิต", "Data Science"]},
+    {"id": 157, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "ait", "q": "สถานที่จัดการเรียนการสอนคือที่ไหน", "desc": "สถานที่จัดการเรียนการสอน AIT", "expect_any": ["ลาดกระบัง", "สถาบัน"]},
+    {"id": 158, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "ait", "q": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษาคืออะไร", "desc": "อาชีพหลังเรียนจบ AIT", "expect_any": ["บัณฑิต", "ปัญญาประดิษฐ์", "นักวิทยาศาสตร์"]},
+    {"id": 159, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "it_coop", "q": "หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต", "desc": "หน่วยกิตศึกษาทั่วไป IT", "expect": "30"},
+    {"id": 160, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "ait", "q": "หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต", "desc": "หน่วยกิตศึกษาทั่วไป AIT", "expect": "24"},
+    {"id": 161, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "it_no_coop", "q": "ปี 1 เทอม 2 มีหน่วยกิตรวมเท่าไร", "desc": "หน่วยกิตรวม IT ไม่สหกิจ ปี 1 เทอม 2", "expect": "18"},
+    {"id": 162, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "ปี 3 เทอม 1 เรียนกี่วิชา", "desc": "จำนวนวิชา DSBA สหกิจ ปี 3 เทอม 1", "expect": "6 วิชา"},
+    {"id": 163, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_no_coop", "q": "ปี 2 เทอม 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม DSBA ไม่สหกิจ ปี 2 เทอม 1", "expect": "18"},
+    {"id": 164, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "bit_coop", "q": "ปี 1 เทอม 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม BIT สหกิจ ปี 1 เทอม 1", "expect": "18"},
+    {"id": 165, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "ait", "q": "วิชา 06046401 เรียนปีไหนเทอมไหน", "desc": "เทอมที่เรียน 06046401 AIT", "expect_any": ["ปี 1", "เทอม 2"]},
+    {"id": 166, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "it_coop", "q": "แผนสหกิจกับไม่สหกิจ ปี 4 เทอม 1 ต่างกันยังไง", "desc": "เปรียบเทียบ IT ปี 4 เทอม 1 สหกิจ vs ไม่สหกิจ", "expect_any": ["แผนสหกิจ", "แผนไม่สหกิจ"]},
+    {"id": 167, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "แผนสหกิจกับไม่สหกิจ ต่างกันอย่างไร", "desc": "เปรียบเทียบ DSBA ภาพรวม สหกิจ vs ไม่สหกิจ", "expect_any": ["สหกิจ", "06026259"]},
+    {"id": 168, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "it_coop", "q": "รหัสวิชา 11112222 ชื่อวิชาว่าอะไร", "desc": "Guard: รหัสวิชาที่ไม่มีในสารบบ", "expect_not_found": True},
+    {"id": 169, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "it_coop", "q": "วิชาว่ายน้ำ มีกี่หน่วยกิต", "desc": "Guard: วิชาที่ไม่มีในหลักสูตร", "expect_not_found": True},
+    {"id": 170, "cat": "18. TQF:2 Multi-Program & Guards", "type": "ask", "prog": "dsba_coop", "q": "อาจารย์หัวหน้าภาควิชาคือใคร", "desc": "Guard: นอกขอบเขตเล่มหลักสูตร มคอ.2", "expect_not_found": True},
+
+    # -------------------------------------------------------------------------
+    # หมวด 19: Multi-Program TQF:2 & Facts (12 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 171, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "ปรัชญาของหลักสูตรคืออะไร", "desc": "ปรัชญาหลักสูตร BIT", "expect_any": ["ปรัชญา", "เทคโนโลยีสารสนเทศทางธุรกิจ"]},
+    {"id": 172, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษาคืออะไร", "desc": "อาชีพหลังเรียนจบ BIT", "expect_any": ["บัณฑิต", "อาชีพ", "นักวิเคราะห์"]},
+    {"id": 173, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "ชื่อปริญญาของหลักสูตรนี้คืออะไร", "desc": "ชื่อปริญญา BIT", "expect_any": ["วิทยาศาสตรบัณฑิต", "เทคโนโลยีสารสนเทศทางธุรกิจ"]},
+    {"id": 174, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "คุณสมบัติของผู้เข้าศึกษาคืออะไร", "desc": "คุณสมบัติผู้สมัคร BIT", "expect_any": ["มัธยมศึกษาตอนปลาย", "คุณสมบัติ"]},
+    {"id": 175, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "ปี 1 เทอม 1 เรียนกี่วิชา", "desc": "จำนวนวิชา BIT ปี 1 เทอม 1", "expect": "7 วิชา"},
+    {"id": 176, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "วิชา คณิตศาสตร์สำหรับธุรกิจ รหัสอะไร", "desc": "ค้นหารหัสวิชาคณิตศาสตร์สำหรับธุรกิจ BIT", "expect": "06036101"},
+    {"id": 177, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "วิชา 06036101 บรรยายสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงบรรยาย 06036101 BIT", "expect": "บรรยาย 3 ชั่วโมง"},
+    {"id": 178, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "bit_coop", "q": "วิชา 06036100 เรียนปีไหนเทอมไหน", "desc": "ชั้นปีและเทอมของ 06036100 BIT", "expect_any": ["ปี 1", "เทอม 1"]},
+    {"id": 179, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "dsba_no_coop", "q": "วิชาเลือกเสรีต้องลงตอนปีไหน", "desc": "ชั้นปีที่ลงวิชาเลือกเสรี DSBA ไม่สหกิจ", "expect": "ปี 4 เทอม 2"},
+    {"id": 180, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "ait", "q": "วิชาเลือกเสรีต้องลงตอนปีไหน", "desc": "ชั้นปีที่ลงวิชาเลือกเสรี AIT", "expect_any": ["ปี 3 เทอม 2", "ปี 4 เทอม 1"]},
+    {"id": 181, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "dsba_coop", "q": "ปี 1 เทอม 2 มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม DSBA สหกิจ ปี 1 เทอม 2", "expect": "21 หน่วยกิต"},
+    {"id": 182, "cat": "19. Multi-Program TQF:2 & Facts", "type": "ask", "prog": "it_no_coop", "q": "ปี 2 เทอม 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตรวม IT ไม่สหกิจ ปี 2 เทอม 1", "expect": "18 หน่วยกิต"},
+
+    # -------------------------------------------------------------------------
+    # หมวด 20: Advanced Prereqs & Course Hours (15 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 183, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "bit_coop", "q": "วิชา 06036114 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน 06036114 BIT", "expect_any": ["06036119", "06036122"]},
+    {"id": 184, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "bit_coop", "q": "เรียนผ่าน 06036119 แล้วจะลงเรียนวิชาอะไรต่อได้", "desc": "วิชาที่ปลดล็อคหลังผ่าน 06036119 BIT", "expect": "06036114"},
+    {"id": 185, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "ait", "q": "วิชา 06046402 บรรยายสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงบรรยาย 06046402 พีชคณิตเชิงเส้น AIT", "expect": "บรรยาย 3 ชั่วโมง"},
+    {"id": 186, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "ait", "q": "วิชา 06046402 แล็บสัปดาห์ละกี่ชั่วโมง", "desc": "ชั่วโมงปฏิบัติ 06046402 พีชคณิตเชิงเส้น AIT", "expect": "ปฏิบัติ 0 ชั่วโมง"},
+    {"id": 187, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "ait", "q": "วิชา 06046400 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน แคลคูลัส 1 AIT (ไม่มี)", "expect_not_found": True},
+    {"id": 188, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "ait", "q": "วิชา 06046401 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน แคลคูลัส 2 AIT", "expect": "06046400"},
+    {"id": 189, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "ait", "q": "วิชา 06046406 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน การเรียนรู้เชิงลึก AIT", "expect_any": ["06046401", "06046402"]},
+    {"id": 190, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026213 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน 06026213 DSBA", "expect": "06066300"},
+    {"id": 191, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026212 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน 06026212 DSBA", "expect": "06066300"},
+    {"id": 192, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "dsba_coop", "q": "เรียนผ่าน 06066300 แล้วจะลงเรียนวิชาอะไรต่อได้", "desc": "วิชาที่ปลดล็อคหลังผ่าน 06066300 DSBA", "expect_any": ["06026212", "06026213"]},
+    {"id": 193, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06066102 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน การโปรแกรมเชิงวัตถุ DSBA", "expect": "06066101"},
+    {"id": 194, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "it_coop", "q": "วิชา 06016418 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน เว็บฝั่งเซิร์ฟเวอร์ IT", "expect": "06016408"},
+    {"id": 195, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "it_coop", "q": "วิชา 06016419 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน คลาวด์คอมพิวติ้ง IT", "expect": "06016413"},
+    {"id": 196, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "it_coop", "q": "เรียนผ่าน 06016413 แล้วจะลงเรียนวิชาอะไรต่อได้", "desc": "วิชาที่ปลดล็อคหลังผ่านเครือข่าย IT", "expect_any": ["06016419", "06016420"]},
+    {"id": 197, "cat": "20. Advanced Prereqs & Course Hours", "type": "ask", "prog": "it_coop", "q": "วิชา 06016418 เรียนปีไหนเทอมไหน", "desc": "ชั้นปีและเทอมของ 06016418 IT", "expect_any": ["ปี 3", "เทอม 1"]},
+
+    # -------------------------------------------------------------------------
+    # หมวด 21: Real-World Inquiries & Out-of-Scope Guards (3 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 198, "cat": "21. Real-World Inquiries & Out-of-Scope Guards", "type": "ask", "prog": "it_coop", "q": "ค่าเทอมของหลักสูตรนี้เท่าไหร่", "desc": "Guard: สอบถามค่าธรรมเนียมการศึกษา (ไม่มีใน มคอ.2)", "expect_not_found": True},
+    {"id": 199, "cat": "21. Real-World Inquiries & Out-of-Scope Guards", "type": "ask", "prog": "dsba_coop", "q": "มีทุนการศึกษาอะไรบ้าง", "desc": "Guard: สอบถามทุนการศึกษา (ไม่มีใน มคอ.2)", "expect_not_found": True},
+    {"id": 200, "cat": "21. Real-World Inquiries & Out-of-Scope Guards", "type": "ask", "prog": "bit_coop", "q": "มีหอพักในมหาวิทยาลัยไหม", "desc": "Guard: สอบถามหอพักนักศึกษา (ไม่มีใน มคอ.2)", "expect_not_found": True},
+
+    # -------------------------------------------------------------------------
+    # หมวด 22: Course Families & Degree Framework (10 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 201, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "วิชาหมวด 0601 มีวิชาอะไรบ้าง", "desc": "วิชาขึ้นต้นด้วย 0601 ใน IT", "expect_any": ["06016401", "06016402"]},
+    {"id": 202, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "dsba_coop", "q": "วิชาหมวด 0602 มีวิชาอะไรบ้าง", "desc": "วิชาขึ้นต้นด้วย 0602 ใน DSBA", "expect_any": ["06026200", "06026201"]},
+    {"id": 203, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "bit_coop", "q": "วิชาหมวด 0603 มีวิชาอะไรบ้าง", "desc": "วิชาขึ้นต้นด้วย 0603 ใน BIT", "expect_any": ["06036100", "06036101"]},
+    {"id": 204, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "ait", "q": "วิชาหมวด 0604 มีวิชาอะไรบ้าง", "desc": "วิชาขึ้นต้นด้วย 0604 ใน AIT", "expect_any": ["06046400", "06046401"]},
+    {"id": 205, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "หมวดศึกษาทั่วไปมีกลุ่มวิชาอะไรบ้าง", "desc": "โครงสร้างรายวิชาหมวด GE ใน IT", "expect_any": ["90641001", "โรงเรียนสร้างเสน่ห์"]},
+    {"id": 206, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "dsba_coop", "q": "หมวดวิชาศึกษาทั่วไปแบ่งเป็นกี่กลุ่ม", "desc": "กลุ่มย่อยหมวด GE ใน DSBA", "expect_any": ["30 หน่วยกิต", "กลุ่มวิชาพื้นฐาน"]},
+    {"id": 207, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา IT", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
+    {"id": 208, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "dsba_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา DSBA", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
+    {"id": 209, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "bit_coop", "q": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร", "desc": "เกณฑ์สำเร็จการศึกษา BIT", "expect_any": ["เกณฑ์", "ข้อบังคับ"]},
+    {"id": 210, "cat": "22. Course Families & Degree Framework", "type": "ask", "prog": "it_coop", "q": "หลักสูตรนี้มีเรียนภาคฤดูร้อนไหม", "desc": "Guard: ภาคฤดูร้อนไม่มีในแผนปกติ", "expect_not_found": True},
+
+    # -------------------------------------------------------------------------
+    # หมวด 23: Course Withdrawal & Impact Analysis (ถอน/ดรอป/ตัวต่อ) (10 ข้อ)
+    # -------------------------------------------------------------------------
+    {"id": 211, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถ้าถอนวิชา 06016408 จะกระทบกับอะไร", "desc": "ถอนวิชาแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 212, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถอนวิชา 06016408 แล้วจะกระทบวิชาไหน", "desc": "ถอนแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 213, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "ถ้าดรอปวิชา 06016408 จะกระทบกับอะไร", "desc": "ดรอปแล้วกระทบวิชาต่อ (IT)", "expect": "06016418"},
+    {"id": 214, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีตัวต่อไหม", "desc": "ค้นหาตัวต่อของ 06016408 (IT)", "expect": "06016418"},
+    {"id": 215, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 มีวิชาต่อไหม", "desc": "ค้นหาวิชาต่อของ 06016408 (IT)", "expect": "06016418"},
+    {"id": 216, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016406 มีวิชาต่อไหม", "desc": "ค้นหาวิชาต่อของโครงงาน 1 (IT)", "expect": "06016407"},
+    {"id": 217, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06066300 มีตัวต่อไหม", "desc": "ค้นหาตัวต่อของฐานข้อมูล (DSBA)", "expect_any": ["06026212", "06026213"]},
+    {"id": 218, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016408 ถอนได้มั้ย", "desc": "Guard: ถอนได้มั้ย (อยู่นอก มคอ.2)", "expect_not_found": True},
+    {"id": 219, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 มี prequisite ไหม", "desc": "Prequisite (คำสะกดผิด) ของโครงงาน 2", "expect": "06016406"},
+    {"id": 220, "cat": "23. Course Withdrawal & Impact Analysis", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 prerequisite คืออะไร", "desc": "Prerequisite ภาษาอังกฤษ ของโครงงาน 2", "expect": "06016406"}
 ]
 
 
@@ -239,6 +375,15 @@ def run_master_test():
     print(f"🚀 เริ่มการทดสอบระบบแบบครบวงจร (Master Test Suite): ทั้งหมด {total_count} ข้อ", flush=True)
     print(f"🎯 Backend API Server: {BASE_URL}", flush=True)
     print("=" * 76, flush=True)
+
+    # วอร์มอัปโมเดล Ollama ก่อนเริ่มเพื่อป้องกัน Cold Start Timeout
+    try:
+        w_body = json.dumps({"question": "หลักสูตรนี้มีกี่หน่วยกิต", "program": "it_coop"}).encode("utf-8")
+        w_req = urllib.request.Request(f"{BASE_URL}/api/ask", data=w_body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(w_req, timeout=120)
+        print("🔥 วอร์มอัปโมเดลภาษา Ollama สำเร็จ พร้อมเริ่มการทดสอบ...\n", flush=True)
+    except Exception as e:
+        print(f"⚠️ ข้อความแจ้งเตือนการวอร์มอัป: {e}\n", flush=True)
 
     results = []
     category_stats = {}
@@ -308,7 +453,7 @@ def run_master_test():
                 prog = item["prog"]
                 body = json.dumps({"question": q, "program": prog}).encode("utf-8")
                 req = urllib.request.Request(f"{BASE_URL}/api/ask", data=body, headers={"Content-Type": "application/json"})
-                r = urllib.request.urlopen(req, timeout=30)
+                r = urllib.request.urlopen(req, timeout=90)
                 data = json.loads(r.read().decode("utf-8"))
                 ans = data.get("answer", "")
                 sql = data.get("sql", "")
@@ -384,7 +529,7 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         "",
         "---",
         "",
-        "## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ (15 หมวดหมู่)",
+        "## 📊 1. สรุปผลภาพรวมแยกตามหมวดหมู่ (23 หมวดหมู่)",
         "",
         "| หมวดหมู่การทดสอบ | ผ่าน / ทั้งหมด | อัตราความสำเร็จ | สถานะการทำงาน |",
         "|---|:---:|:---:|:---:|"
@@ -429,7 +574,7 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         "",
         "---",
         "",
-        "## 📝 3. รายละเอียดผลการทดสอบทั้งหมด (ครบ 136 ข้อ)",
+        f"## 📝 3. รายละเอียดผลการทดสอบทั้งหมด (ครบ {total_count} ข้อ)",
         "",
         "| # | หมวดหมู่ | หัวข้อ/คำถาม | แผน | ผลลัพธ์ | คำตอบที่ได้จากระบบ | เวลา |",
         "|---|---|---|---|:---:|---|:---:|"

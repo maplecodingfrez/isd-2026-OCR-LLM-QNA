@@ -224,6 +224,29 @@ def add_course_names(conn: sqlite3.Connection, cites: list[dict]) -> None:
                 cite[key] = found
 
 
+def catalog_citations(rows: list[dict], courses: list[dict], pages: list[dict]) -> list[dict]:
+    """อ้างเฉพาะหน้าต้นทาง catalog ที่มีรหัสจริง ไม่ใช้หน้าคำอธิบาย/ภาคผนวกแทน
+    ผู้เรียกจำกัด pages ตาม source manifest แล้ว; เก็บทุกหน้าที่รองรับผลลัพธ์ ไม่ตัดเหลือ MAX_CITED
+    เพราะรายการวิชาเลือกหนึ่งคำตอบอาจกระจายเกินสามหน้า"""
+    names = {c["code"]: c for c in courses}
+    codes = sorted({str(r.get("code", "")) for r in rows} & names.keys())
+    printed = consistent_printed({int(p["page"]): printed_page(p.get("text") or "") for p in pages})
+    out = []
+    for page in sorted(pages, key=lambda p: int(p["page"])):
+        found = sorted(set(CODE_RE.findall(page.get("text") or "")) & set(codes))
+        if not found:
+            continue
+        pdf = int(page["page"])
+        cite = {"pdf_page": pdf, "printed_page": printed.get(pdf), "courses": found}
+        for key, field in (("course_names", "name_th"), ("course_names_en", "name_en")):
+            values = {code: names[code][field].strip() for code in found
+                      if isinstance(names[code].get(field), str) and names[code][field].strip()}
+            if values:
+                cite[key] = values
+        out.append(cite)
+    return out
+
+
 def format_citation(cites: list[dict]) -> str:
     """ข้อความอ้างอิงแบบบูลเล็ตต่อหน้า (วิชาในหน้านั้นเป็นบูลเล็ตย่อย รหัส + ชื่อ) — ไม่รู้เลขหน้าที่พิมพ์ = แสดงแค่ PDF"""
     if not cites:
