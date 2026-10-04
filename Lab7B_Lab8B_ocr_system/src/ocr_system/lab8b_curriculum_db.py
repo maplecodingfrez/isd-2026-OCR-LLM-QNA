@@ -3307,6 +3307,67 @@ def _near_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return text, rows, sql + f" -- วิชาใกล้เคียงกับ \"{typed}\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง"
 
 
+# ---- 13c. วิชาเลือกเสรีลงตอนปี/เทอมไหน (จากช่อง plan_slot) และวิชาปีหลังที่ต่อจากวิชาปีก่อน (จากตาราง prerequisite) ----
+_FREE_ELECTIVE_SLOT_NO = re.compile(r"เลือกเสรี\s*(\d)(?!\d)")
+
+
+def _free_elective_when_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาเลือกเสรีต้องลงตอนปีไหน/เทอมไหน" → ช่อง "วิชาเลือกเสรี N" ของแผนนี้ใน plan_slot (ปี/เทอม/หน่วยกิต) ตรง ๆ;
+    ระบุเลขช่อง ("เลือกเสรี 1") = เฉพาะช่องนั้น; มีปี/เทอม/รหัส/ชื่อวิชา/ไม่ได้ถามปี-เทอม/แผนไม่มีช่องเลือกเสรี = None (ทางเดิม)"""
+    if "เลือกเสรี" not in question or _CODE8.search(question):
+        return None
+    when = bool(_ATTR_WHEN.search(question))
+    if not (when or _ATTR_YEAR.search(question) or _ATTR_SEM.search(question)) or _ATTR_NOT.search(question) or _named_courses(conn, question, strict=False):
+        return None
+    slot_no = _FREE_ELECTIVE_SLOT_NO.search(question)
+    sql = "SELECT name_th AS slot, year, semester, credits FROM plan_slot WHERE name_th LIKE 'วิชาเลือกเสรี%' ORDER BY year, semester, id"
+    try:
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if slot_no:
+        rows = [r for r in rows if re.search(rf"เลือกเสรี\s*{slot_no.group(1)}(?!\d)", r["slot"])]
+    if not rows:
+        return None
+    groups: dict[tuple, list[str]] = {}
+    for r in rows:
+        groups.setdefault((r["year"], r["semester"]), []).append(r["slot"])
+    text = "; ".join(f"{', '.join(names)} อยู่ปี {y} เทอม {s}" for (y, s), names in groups.items())
+    return text, rows, sql
+
+
+_YEAR_SUCCESSOR_RE = re.compile(r"ปี\s*(\d)[^\d]*?(?:ตัวต่อ|ต่อยอด|ต่อเนื่อง|ต่อจาก)[^\d]*?ปี\s*(\d)")
+
+
+def _year_successor_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 1" → วิชาในแผนปีหลังที่มีวิชาบังคับก่อน (prerequisite kind='pre') เป็นวิชาในแผนปีก่อน, พร้อมคู่ที่ต่อจาก;
+    ปีหลังต้องมากกว่าปีก่อน; ระบุรหัส/ชื่อวิชา/เทอม หรือไม่มีคู่เลย = None (ทางเดิม ไม่เดา)"""
+    mt = _YEAR_SUCCESSOR_RE.search(question)
+    if not mt or _CODE8.search(question) or re.search(r"เทอม|ภาค", question):
+        return None
+    later, earlier = int(mt.group(1)), int(mt.group(2))
+    if later <= earlier or _named_courses(conn, question, strict=False):
+        return None
+    sql = ("SELECT DISTINCT p2.code, c2.name_th, p2.year, p2.semester, pr.requires, c1.name_th AS requires_name_th, p1.year AS requires_year, "
+           "p1.semester AS requires_semester FROM plan_item p2 JOIN prerequisite pr ON pr.code = p2.code AND pr.kind = 'pre' "
+           "JOIN plan_item p1 ON p1.code = pr.requires JOIN course c2 ON c2.code = p2.code JOIN course c1 ON c1.code = pr.requires "
+           f"WHERE p2.year = {later} AND p1.year = {earlier} ORDER BY p2.semester, p2.code, pr.requires")
+    try:
+        found = [dict(r) for r in conn.execute(sql).fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if not found:
+        return None
+    rows, order = [], {}
+    for r in found:
+        rows.append({**r, "successor_of": r["requires"]})
+        order.setdefault(r["code"], (r["name_th"], r["semester"], []))[2].append(
+            f"{r['requires']} {r['requires_name_th']} (ปี {r['requires_year']} เทอม {r['requires_semester']})")
+    text = (f"วิชาปี {later} ที่ต่อจากวิชาปี {earlier} (มีวิชาบังคับก่อนเป็นวิชาปี {earlier}) มี {len(order)} วิชา: "
+            + "; ".join(f"{code} {name} (ปี {later} เทอม {sem}) ต่อจาก {' และ '.join(reqs)}" for code, (name, sem, reqs) in order.items()))
+    return text, rows, sql
+
+
 # ---- 14. กลุ่มวิชาเลือกถามด้วยชื่อกลุ่ม (รายชื่อวิชา / จำนวนวิชา / หน่วยกิตที่ต้องเลือก) ----
 # ชุดสำนวนใหม่: "กลุ่มวิชาเลือกการตลาดเชิงดิจิทัล มีวิชาอะไรบ้าง" โมเดลหยิบวิชา "การตลาดเชิงดิจิทัล" แทนกลุ่ม, "…มีกี่วิชา" ตอบ 0 (ชื่อกลุ่มไม่ตรงตัว)
 _GROUP_LIST = re.compile(r"อะไรบ้าง|วิชาอะไร|มีวิชา(?:อะไร|ไหน)|วิชาไหนบ้าง|รายชื่อ|ได้แก่|รหัสวิชา|ให้เลือก")
@@ -4825,7 +4886,7 @@ _SHORTCUTS = (
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
-    _catalog_course_answer, _credit_structure_answer, _near_course_answer,
+    _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )
 
 
