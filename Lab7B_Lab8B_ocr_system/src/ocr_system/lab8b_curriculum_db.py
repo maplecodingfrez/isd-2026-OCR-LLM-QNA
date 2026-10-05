@@ -1505,6 +1505,69 @@ def _term_numbers(question: str) -> tuple[int | None, int | None]:
     return (int(y.group(1)) if y else None), (int(s.group(1)) if s else None)
 
 
+def _term_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """A single explicit term list, including slots without counting alternatives twice."""
+    if not re.search(r'อะไรบ้าง|วิชาอะไร|รายชื่อ|วิชาไหน', question):
+        return None
+    years, semesters = _TERM_YEAR_NUM.findall(question), _TERM_SEM_NUM.findall(question)
+    if len(years) != 1 or len(semesters) != 1:
+        return None
+    rest = _TERM_SEM_NUM.sub('', _TERM_YEAR_NUM.sub('', question))
+    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|หน่วยกิต|รวม|จำนวน|กี่|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
+    if re.sub(r'[\s,?？。.!]+', '', rest):
+        return None
+    y, s = int(years[0]), int(semesters[0])
+    where = f'year = {y} AND semester = {s}'
+    sql = ('SELECT p.code, c.name_th, c.name_en, p.credits FROM plan_item p '
+           'LEFT JOIN course c ON c.code = p.code '
+           f'WHERE p.year = {y} AND p.semester = {s} AND NOT EXISTS ('
+           'SELECT 1 FROM plan_slot t JOIN plan_slot_member m ON m.slot_id = t.id '
+           'WHERE t.program_id = p.program_id AND t.year = p.year AND t.semester = p.semester AND m.code = p.code) ORDER BY p.id')
+    try:
+        total_sql = f'SELECT credits, n_entries FROM main.v_semester_credits_full WHERE {where}'
+        slot_sql = f'SELECT id, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot WHERE {where} ORDER BY id'
+        total = conn.execute(total_sql).fetchone()
+        if not total:
+            return None
+        courses = [dict(r, total_credits=total[0], n_courses=total[1]) for r in conn.execute(sql)]
+        slots = [dict(r) for r in conn.execute(slot_sql)]
+    except sqlite3.OperationalError:
+        return None
+    # Reuse the source-table formatter before adding heterogeneous slot rows.
+    formatted = {'rows': courses, 'answer': ''}
+    labels = _term_full_credits(conn, f'ปี {y} เทอม {s} มีกี่วิชา อะไรบ้าง', formatted)
+    from course_display import add_course_display
+    add_course_display(conn, courses)
+    parts = [f"{r['code']} {r['name_th'] or ''}" + (f" / {r['name_en']}" if r.get('name_en') else '')
+             + f" — {r.get('credits_display', r['credits'])} หน่วยกิต" for r in courses]
+    queries = [sql, total_sql, slot_sql]
+    for slot in slots:
+        slot_id = slot.pop('id')
+        slot.update(year=y, semester=s, total_credits=total[0], n_courses=total[1])
+        slot['credits_display'] = labels.get((slot['slot'], slot['credits']), str(slot['credits']))
+        member_sql = (
+            'SELECT m.group_no, m.group_name, m.code, c.name_th, c.name_en, c.credits FROM plan_slot_member m '
+            f'LEFT JOIN course c ON c.code = m.code WHERE m.slot_id = {int(slot_id)} ORDER BY m.group_no, m.code')
+        members = [dict(r) for r in conn.execute(member_sql)]
+        queries.append(member_sql)
+        if slot['kind'] in ('choose_one', 'choose_group'):
+            slot['alternatives'] = members
+            add_course_display(conn, members)
+            groups: dict[int, list[str]] = {}
+            for member in members:
+                groups.setdefault(member['group_no'], []).append(
+                    f"{member['code']} {member['name_th'] or ''}" + (f" / {member['name_en']}" if member.get('name_en') else '')
+                    + f" — {member.get('credits_display', member['credits'])} หน่วยกิต")
+            choices = ' หรือ '.join(' + '.join(v) for v in groups.values())
+            suffix = ' (เลือก 1 กลุ่ม): ' if slot['kind'] == 'choose_group' else ' (เลือก 1 วิชา): '
+            parts.append(f"ช่องเลือก {slot['slot']} {slot['credits_display']} หน่วยกิต" + suffix + choices)
+        else:
+            parts.append(f"ช่องที่นักศึกษาเลือกเอง: {slot['slot']} {slot['credits_display']} หน่วยกิต")
+    answer = f'ปี {y} เทอม {s}: ' + '; '.join(parts) + f' (รวม {total[0]} หน่วยกิต, {total[1]} วิชา/ช่องในแผน; กลุ่มทางเลือกนับหนึ่งรายการ)'
+    # Expose every query used for the result, including slots and their members.
+    return answer, courses + slots, ';\n'.join(queries)
+
+
 def _first_terms(conn: sqlite3.Connection) -> dict[str, tuple[int, int]]:
     """ปี/เทอมแรกที่วิชาปรากฏในแผน (plan_item)"""
     out: dict[str, tuple[int, int]] = {}
@@ -4315,12 +4378,18 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     rows.extend({'code': code, 'pdf_page': page, 'printed_page': printed.get(page), 'kind': 'description'}
                 for code, page in sorted(descriptions))
     for t in citations.plan_pages(image_names, md_text, printed, book_text):
+        if t['printed_page'] is not None:
+            printed[t['pdf_page']] = t['printed_page']
         conn.execute("INSERT OR IGNORE INTO term_page VALUES (?, ?, ?, ?)",
                      (t["year"], t["semester"], t["pdf_page"], t["printed_page"]))
         for (code,) in conn.execute("SELECT DISTINCT code FROM plan_item WHERE year = ? AND semester = ?",
                                     (t["year"], t["semester"])).fetchall():
+            if not re.search(rf'(?<!\d){re.escape(code)}(?!\d)', book_text.get(t['pdf_page'], '')):
+                continue  # A term spanning pages does not place every course on every page.
             rows.append({"code": code, "pdf_page": t["pdf_page"], "printed_page": t["printed_page"],
                          "kind": "plan"})
+    for row in rows:
+        row['printed_page'] = printed.get(row['pdf_page'])
     conn.executemany("INSERT OR IGNORE INTO course_page VALUES (:code, :pdf_page, :printed_page, :kind)", rows)
     conn.commit()
     counts = {"primary": 0, "description": 0, "other": 0, "plan": 0}
@@ -5148,7 +5217,7 @@ def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | No
     except sqlite3.OperationalError:
         return None
     kinds = [(mk.group(1) if (mk := re.search(r"\|\s*(บังคับ|เลือกเสรี|เลือก)\s*$", it["note"] or "")) else None) for it in items]
-    if not items or any(k is None for k in kinds):                           # หมายเหตุไม่ครบ = ไม่ตัดสิน
+    if (not items and not slots) or any(k is None for k in kinds):            # หมายเหตุไม่ครบ = ไม่ตัดสิน
         return None
     picked = [dict(it, kind=k) for it, k in zip(items, kinds) if k == kind and (not category or category in (it["note"] or ""))]
     label = _TERM_LABEL.format(y=y, s=s) if s else f"ปี {y}"
@@ -5238,7 +5307,7 @@ def _coop_place_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
     _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,

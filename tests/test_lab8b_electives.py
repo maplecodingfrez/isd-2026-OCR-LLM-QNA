@@ -359,10 +359,11 @@ def test_slots_of_other_terms_are_not_listed(tmp_path, monkeypatch):
     assert "วิชาเลือกด้านภาษา" not in r["answer"]
 
 
-def test_slot_line_is_not_added_to_non_compound_answers(tmp_path, monkeypatch):
+def test_plain_term_list_includes_unassigned_slots(tmp_path, monkeypatch):
     r = _ask_compound_with_slots(tmp_path, monkeypatch, "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง",
                                  "SELECT name_th FROM v_plan WHERE year=2 AND semester=1")
-    assert "ช่องที่นักศึกษาเลือกเอง" not in r["answer"]
+    assert "ช่องที่นักศึกษาเลือกเอง" in r["answer"]
+    assert len([row for row in r['rows'] if 'slot' in row]) == 1
 
 
 def test_compound_answer_without_a_slot_table_is_unchanged(tmp_path, monkeypatch):
@@ -767,7 +768,7 @@ def test_term_choices_list_the_members_of_an_a_or_b_slot(tmp_path, monkeypatch):
 @pytest.mark.parametrize("question", [
     "ปี 1 เทอม 1 เลือกอะไรได้บ้าง",                 # เทอมนี้ไม่มีช่องเลือก → ทางเดิม
     "ปี 4 เทอม 1 เลือกอะไรได้กี่หน่วยกิต",           # ถามจำนวน → ทางเดิม
-    "ปี 4 เทอม 1 เรียนวิชาอะไรบ้าง",                 # ไม่ได้ถามถึง "เลือก" → ทางเดิม
+    "ปี 4 เทอม 1 เรียนวิชาอะไรบ้าง ขอคำอธิบาย",       # ขอบเขตเกินรายการเทอม → ทางเดิม
 ])
 def test_term_choices_do_not_hijack_other_questions(tmp_path, monkeypatch, question):
     assert _ask_term(tmp_path, monkeypatch, question)["model_calls"] >= 1
@@ -863,7 +864,7 @@ def test_ge_category_question_gets_required_courses_and_choice_slots(tmp_path, m
     assert {x["code"] for x in r["rows"] if x.get("code")} >= {"90644007", "90644010"} and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "ศึกษาทั่วไปคืออะไร"])
+@pytest.mark.parametrize("question", ["หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอคำอธิบาย", "ศึกษาทั่วไปคืออะไร"])
 def test_ge_category_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_with_catalog(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -962,7 +963,7 @@ def test_list_of_courses_without_prerequisites_excludes_those_that_have_one(tmp_
     assert all(c in r["answer"] for c in codes) and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชาที่ไม่ต้องเรียนแคลคูลัส 1 ก่อนมีอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง"])
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชาที่ไม่ต้องเรียนแคลคูลัส 1 ก่อนมีอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอคำอธิบาย"])
 def test_no_prereq_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_no_prereq_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1034,7 +1035,7 @@ def test_catalog_course_is_found_by_code_and_by_name(tmp_path, monkeypatch):
     assert "ภาษาจีน" in r["answer"] and "กลุ่มทักษะภาษาและการสื่อสาร" in r["answer"]
 
 
-@pytest.mark.parametrize("question", ["วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 ยากไหม", "วิชา 99999999 ชื่ออะไร", "ปี 1 เทอม 1 เรียนอะไรบ้าง"])
+@pytest.mark.parametrize("question", ["วิชา 06020001 ชื่ออะไร", "วิชา แคลคูลัส 1 ยากไหม", "วิชา 99999999 ชื่ออะไร", "ปี 1 เทอม 1 เรียนอะไรบ้าง ขอคำอธิบาย"])
 def test_catalog_lookup_leaves_plan_courses_unknown_codes_and_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1071,7 +1072,7 @@ def test_term_listing_with_prerequisites(tmp_path, monkeypatch):
     assert "06020004" in r["answer"] and "06020005" in r["answer"] and "06020003" in r["answer"] and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง"])
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง ขอคำอธิบาย"])
 def test_prereq_term_shortcut_leaves_plain_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_prereq_term_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -2807,7 +2808,7 @@ def test_term_totals_come_from_the_book_term_view_without_the_model(tmp_path, mo
 
 
 @pytest.mark.parametrize("question", [
-    "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ปี 2 เทอม 1 กับปี 3 เทอม 2 รวมกี่หน่วยกิต",
+    "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง ขอคำอธิบาย", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ปี 2 เทอม 1 กับปี 3 เทอม 2 รวมกี่หน่วยกิต",
     "ปี 9 เทอม 1 ต้องลงทะเบียนกี่วิชา", "วิชาแคลคูลัส 1 ปี 2 เทอม 1 กี่หน่วยกิต", "ปี 2 เทอม 1 วิชาไหนมีหน่วยกิตมากที่สุด", "ปี 2 เทอม 1 มีกี่วิชาที่ได้ 3 หน่วยกิต"])
 def test_term_total_shortcut_leaves_lists_compounds_missing_terms_and_courses_alone(tmp_path, monkeypatch, question):
     assert _ask_term_total(tmp_path, monkeypatch, question)["model_calls"] >= 1 or "ไม่พบ" in _ask_term_total(tmp_path, monkeypatch, question)["answer"]

@@ -66,6 +66,21 @@ def test_printed_page_reads_number_at_start_of_first_line():
     assert citations.printed_page("\n  19                รายละเอียดหลักสูตร\n3.3") == "19"
 
 
+def test_plan_course_locator_does_not_copy_the_whole_term_to_each_page():
+    import lab8b_curriculum_db as m
+    with m.open_db(':memory:') as conn:
+        conn.executescript(m.DDL)
+        conn.execute("INSERT INTO program(program_id,name_th,total_credits,years) VALUES ('IT','IT',129,4)")
+        for code in ('06016481','06016482'):
+            conn.execute('INSERT INTO course(code,name_th,credits) VALUES (?,?,6)', (code,code))
+            conn.execute("INSERT INTO plan_item(program_id,code,year,semester,credits) VALUES ('IT',?,3,2,6)", (code,))
+        pages = [{'page':42,'text':'37\nปีที่ 3 ภาคการศึกษาที่ 2\n06016481'},
+                 {'page':43,'text':'38\n06016482'}]
+        md = 'ปีที่ 3 ภาคการศึกษาที่ 2\n<table>06016481</table>\n---\n<table>06016482</table>'
+        m.load_course_pages(conn,pages,['IT_042.jpg','IT_043.jpg'],md)
+        assert [tuple(r) for r in conn.execute("SELECT code,pdf_page FROM course_page WHERE kind='plan' ORDER BY code")] == [('06016481',42),('06016482',43)]
+
+
 # Break caught: returning a number from a later line when the header is not a page number.
 def test_printed_page_none_when_first_line_is_not_a_number():
     assert citations.printed_page("มคอ.2\n33") is None
@@ -123,6 +138,31 @@ def test_plan_pages_continuation_page_belongs_to_previous_term():
 
 
 # Break caught: shifting every term onto the wrong page when counts disagree (Review Focus 4).
+def test_plan_pages_leading_continuation_before_new_term_heading():
+    md = ('ปีที่ 3 ภาคการศึกษาที่ 2\n<table><tr><td>06016481</td></tr></table>\n---\n'
+          '<table><tr><td>06016482</td></tr><tr><td>รวม</td></tr></table>\n'
+          'ปีที่ 4 ภาคการศึกษาที่ 1\n<table><tr><td>06016407</td></tr></table>')
+    book = {42: 'ปีที่ 3 ภาคการศึกษาที่ 2\n06016481',
+            43: '06016482\nปีที่ 4 ภาคการศึกษาที่ 1\n06016407'}
+    got = citations.plan_pages(['IT_042.png','IT_043.png'], md, {}, book)
+    assert {(r['year'], r['semester'], r['pdf_page']) for r in got} == {(3,2,42),(3,2,43),(4,1,43)}
+    # A different leading table without matching book codes cannot inherit the prior term.
+    book[43] = 'ปีที่ 4 ภาคการศึกษาที่ 1\n06016407'
+    got = citations.plan_pages(['IT_042.png','IT_043.png'], md, {}, book)
+    assert (3,2,43) not in {(r['year'],r['semester'],r['pdf_page']) for r in got}
+
+
+def test_confirmed_plan_printed_number_needs_neighbor_and_unique_tag():
+    md = '<page_number>37</page_number>ปีที่ 3 ภาคการศึกษาที่ 2<table>06016481</table>'
+    printed = {41:'36',42:None,43:'38'}
+    book = {42:'ปีที่ 3 ภาคการศึกษาที่ 2\n06016481'}
+    assert citations.plan_pages(['IT_042.jpg'],md,printed,book)[0]['printed_page'] == '37'
+    assert citations.plan_pages(['IT_042.jpg'],md,{42:None},book)[0]['printed_page'] is None
+    assert citations.plan_pages(['IT_042.jpg'],md.replace('37','27'),printed,book)[0]['printed_page'] is None
+    assert citations.plan_pages(['IT_042.jpg'],md+'<page_number>38</page_number>',printed,book)[0]['printed_page'] is None
+    assert citations.plan_pages(['IT_042.jpg'],md,printed,{42:'ไม่มีหลักฐาน'}) == []
+
+
 def test_plan_pages_empty_when_image_and_chunk_counts_differ():
     md = "ปีที่ 1 ภาคการศึกษาที่ 1\n<table/>\n---\nปีที่ 1 ภาคการศึกษาที่ 2\n<table/>"
     assert citations.plan_pages(["a_001.jpg"], md, {}) == []
