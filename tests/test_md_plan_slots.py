@@ -336,10 +336,13 @@ def test_or_pair_keeps_distinct_english_names():
 # Break caught on a fresh clone (2026-09-27): reports stored absolute paths ("D:\...\ocr_system\outputs\...") so every
 # run on another machine rewrote committed files and leaked the local path. Paths inside the repo are stored relative.
 def test_report_paths_are_repo_relative():
-    repo = Path(__file__).resolve().parents[1]
+    # The same tests can validate another worktree's imported production module.
+    repo = Path(lab8b.__file__).resolve().parents[3]
     book = repo / "outputs" / "ait" / "ait_curriculum_ocr.txt"
     assert lab8b.repo_relative(book) == "outputs/ait/ait_curriculum_ocr.txt"
     assert lab8b.repo_relative(str(book)) == "outputs/ait/ait_curriculum_ocr.txt"
+    outside = repo.parent / "outside-source.txt"
+    assert lab8b.repo_relative(outside) == str(outside.resolve())
     outside = Path("C:/elsewhere/x.txt") if book.drive else Path("/elsewhere/x.txt")
     assert lab8b.repo_relative(outside) == str(outside)       # outside the repo: keep as given
 

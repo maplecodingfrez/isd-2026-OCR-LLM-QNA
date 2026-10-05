@@ -35,9 +35,9 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
 
 ก่อนรันต้องมี:
 
-- `lab10_fastapi/curriculum_app/.env`
+- `lab10_fastapi/curriculum_app/.env` ถ้าต้องการเปลี่ยนค่าเริ่มต้น (ไม่จำเป็นเมื่อใช้ default)
 - `Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db` (ติดมากับ repo)
-- `src/ocr_system/lab8b_curriculum_db.py`
+- `Lab7B_Lab8B_ocr_system/src/ocr_system/lab8b_curriculum_db.py`
 
 ถ้าแจกเฉพาะกลุ่ม Curriculum ให้ก็อปโฟลเดอร์นี้ พร้อม Lab 8B และไฟล์ DB ตามตำแหน่งข้างต้น
 
@@ -66,7 +66,7 @@ Backend routing, SQLite schema, and existing API endpoints are unchanged by the 
 
 คำถาม เช่น `ถ้าถอนวิชา 90644007 ออกไป` ใช้ reverse prerequisite graph เดียวกับเครื่องมือตรวจผลกระทบ แสดงตัวต่อโดยตรง/ทางอ้อม พร้อมเงื่อนไขทางเลือกหรือเรียนร่วมกันและชื่อสองภาษา ไม่ต้องเรียก Qwen เพื่อเดาคู่ prerequisite; คำถามอื่นยังใช้ routing เดิม
 
-แก้การสกัด prerequisite ที่ต้นฉบับระบุเป็นชื่อเต็มแทนรหัส เช่น FOUNDATION ENGLISH 1 โดยยอมรับเฉพาะชื่อที่ตรงและมีรหัสเดียว DSBA ทั้งสองแผนจึงมีคู่ `90644008 → requires 90644007` ตาม PDF209 (หน้าพิมพ์208) จำนวนคู่เพิ่มจาก5เป็น6 ชุด Gold ที่ล็อกไว้ยังคงค่า5 จึงมีข้อประเมิน F4 ของ DSBA สองแผนที่ต้องแก้ baseline แยกก่อนอ้างผลชุดเดิม
+แก้การสกัด prerequisite ที่ต้นฉบับระบุเป็นชื่อเต็มแทนรหัส เช่น FOUNDATION ENGLISH 1 โดยยอมรับเฉพาะชื่อที่ตรงและมีรหัสเดียว DSBA ทั้งสองแผนจึงมีคู่ `90644008 → requires 90644007` ตาม PDF209 (หน้าพิมพ์208) จำนวนคู่เพิ่มจาก5เป็น6; Gold v2.1 แก้จากต้นฉบับแล้ว และ v2.2 เพิ่มการแก้ AIT/IT พร้อมหลักฐานใน metadata
 
 ช่องตรวจผลกระทบใช้หลักสูตร/แผนที่เลือกด้านบน รับรหัสวิชา 8 หลัก และอ่านความสัมพันธ์จาก SQLite โดยไม่ใช้ LLM หรือแก้ฐานข้อมูล ผลลัพธ์แยกตัวต่อโดยตรงและทางอ้อม พร้อมตัวอย่างเส้นทางสั้นที่สุด เงื่อนไขทางเลือก (`หรือ`) และเรียนร่วมกัน รวมถึงหน้า PDF ของคำอธิบายวิชาที่มีข้อมูลอ้างอิง
 
@@ -74,14 +74,22 @@ Backend routing, SQLite schema, and existing API endpoints are unchanged by the 
 
 ### การใช้งาน API ตรวจสอบวิชาบังคับก่อน (`GET /api/courses/{code}/prerequisites`)
 * **Path Parameter**: `code` รหัสวิชา 8 หลัก (เช่น `06016407`)
-* **ผลลัพธ์**: คืน JSON ระบุวิชาที่ต้องผ่านก่อน (`prerequisites_required`) และวิชาที่จะปลดล็อคให้เรียนต่อ (`unlocked_courses`)
+* **ผลลัพธ์**: คืน JSON ระบุวิชาที่ต้องผ่านก่อน (`prerequisites_required`), `prerequisite_status` และวิชาที่มีความสัมพันธ์ต่อ (`unlocked_courses`); ไม่ใช่การรับรองสิทธิ์ลงทะเบียนส่วนบุคคล
 * **ตัวอย่างการเรียก**:
   ```bash
   curl -s http://127.0.0.1:8000/api/courses/06016407/prerequisites
   ```
-* **หมายเหตุ**: ฐานข้อมูลปัจจุบันเป็นหลักสูตร IT มี 41 รายวิชาตามแผน 4 ปี โดยมีวิชาบังคับก่อน 4 ตัว (`06016407`, `06016418`, `06016419`, `06016420`)
+* **หมายเหตุ**: รองรับ 7 แผน ส่ง `?program=<id>` จาก `/api/programs` เพื่อเลือกแผน; default เป็น DSBA สหกิจเมื่อไม่ได้ปรับ config จำนวนวิชาและความสัมพันธ์อ่านจากฐานข้อมูลแผนที่เลือก
 
 ## คำถามที่พบบ่อย
+
+### หลักฐาน readiness รอบ 2026-10-05
+
+- Chrome จริงตรวจ idle/loading/success/error, retry, เปลี่ยนแผน, ทิ้งคำตอบเก่าหลังเปลี่ยนแผน และมือถือ 390×844 แล้ว; 8 checks ผ่าน ไม่มี JavaScript exception
+- Gold v2.2 HTTP ผ่าน 210/210 ที่ revision `9be5a5c`, qwen3:4b, ไม่มี error/ข้อเกิน 5s; เป็นผลชุดเดิมที่แก้ oracle จากต้นฉบับ ไม่ใช่คะแนนคำถามใหม่
+- Trace + positive-path tests ครบ 52/52 shortcuts; มีทั้ง SQL ตรง, คำนวณ/กรองใน Python และข้อมูลข้ามแผน/แคตตาล็อก จึงใช้ช่อง SQL เป็นคำค้นอ้างอิง ไม่รับรอง replay ทุกกรณี
+- คำถามใหม่จาก OCR ที่ตรึงก่อนอ่าน runtime ผ่านรอบแรก 16/21; พบ known-none prerequisite และรหัสตัวเลือกสหกิจ 5 ข้อ แก้ guard เดิมพร้อม regression; ไม่เปลี่ยนคำถาม/เฉลยและไม่เรียกคะแนนหลังแก้ว่า unseen
+- เกณฑ์ Lab11 ที่ตรวจจาก PDF ในเครื่อง: wireframe ที่ `docs/wireframes/curriculum_app.png`, API contract ใน README หลัก และ HTML/CSS/JS เรียก API จริงพร้อม 4 สถานะ; ยังไม่ใช่การรับรองผล Challenge ของอาจารย์หรือเกณฑ์ใหม่ที่ยังไม่ได้รับ
 
 ### เปิดเว็บแล้วขึ้น `ERR_CONNECTION_REFUSED`
 
