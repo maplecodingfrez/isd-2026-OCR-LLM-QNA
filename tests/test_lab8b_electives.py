@@ -3808,6 +3808,25 @@ def test_name_key_words_gives_the_same_key_plus_english_word_starts():
     assert m._name_key_words("แคลคูลัส 1 ซ")[0] == m._name_key("แคลคูลัส 1 ซ")
 
 
+def test_unknown_hyphenated_titles_do_not_match_a_shorter_suffix():
+    with closing(m.open_db(':memory:')) as conn:
+        conn.executescript(m.DDL)
+        for number in range(1,4):
+            conn.execute('INSERT INTO course(code,name_th,name_en,credits) VALUES (?,?,?,3)',
+                         (f'{number:08d}',f'โครงงาน {number}',f'PROJECT {number}'))
+        checked = 0
+        for prefix in ('FUNDAMENTALS OF', 'PRINCIPLES FOR', 'INTRODUCTION TO'):
+            for number in range(1,4):
+                for dash in ('-', '–'):
+                    question = f'วิชา {prefix} TEAM{dash}PROJECT {number} รหัสอะไร'
+                    assert m._named_courses(conn,question) is None, question
+                    checked += 1
+        assert checked == 18
+        assert m._named_courses(conn,'วิชา - PROJECT 1 รหัสอะไร') == {'00000001':'โครงงาน 1'}
+        conn.execute("INSERT INTO course(code,name_th,name_en,credits) VALUES ('00000004','โครงงานกลุ่ม 1','TEAM-PROJECT 1',3)")
+        assert m._named_courses(conn,'วิชา TEAM-PROJECT 1 รหัสอะไร') == {'00000004':'โครงงานกลุ่ม 1'}
+
+
 @pytest.mark.parametrize("question", [
     "วิชา FUNDAMENTALS OF DEEP LEARNING รหัสอะไร",            # ชื่อยาวกว่าชื่อจริง (DEEP LEARNING) — "of" ตามหลังคำที่ไม่ใช่คำเรียกข้อมูล
     "วิชา PRINCIPLES FOR DEEP LEARNING รหัสอะไร",

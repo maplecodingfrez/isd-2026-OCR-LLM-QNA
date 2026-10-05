@@ -3216,6 +3216,12 @@ def _name_is_whole(qn: str, key: str, starts: set[int] | None = None) -> bool:
             prefix_ok = bool(_NAME_PREFIX_OK.search(prefix))
         else:
             prefix_ok = bool(_NAME_PREFIX_TH.search(prefix)) or _english_lead_in_ok(prefix, starts)
+        if re.search(r'[a-z0-9][\-–]$', prefix):
+            # An internal English hyphen cannot turn an unknown longer title
+            # into its known suffix (TEAM-PROJECT -> PROJECT).
+            lead = prefix[:-1]
+            prefix_ok = bool(_NAME_PREFIX_TH.search(lead)) or (
+                _english_lead_in_ok(lead, starts) if starts is not None else bool(_NAME_PREFIX_OK.search(lead)))
         if prefix_ok and _NAME_SUFFIX_OK.match(tail):
             return True
     return False
