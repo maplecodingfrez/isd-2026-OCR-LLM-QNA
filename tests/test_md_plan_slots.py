@@ -64,7 +64,8 @@ def test_duplicate_wrong_english_alias_requires_repeated_exact_title_evidence():
     assert cfb.fill_english_names('',rows,source)
     assert rows[0]['name_en'] == 'FIRST COURSE' and rows[1]['name_en'] == 'SECOND COURSE'
     assert not cfb.fill_english_names('',rows,source)
-    for bad_source in (source.split('--- Page 100 ---')[0], source.replace('--- Page 100 ---',''), source.replace('FIRST COURSE\n','OTHER COURSE\n',1),
+    detached_page = source.replace('--- Page 100 ---','') + '--- Page 200 ---\n00000001 วิชาแรก 3(3-0-6)\n'
+    for bad_source in (detached_page, source.split('--- Page 100 ---')[0], source.replace('--- Page 100 ---',''), source.replace('FIRST COURSE\n','OTHER COURSE\n',1),
                        source.replace('วิชาแรก','วิชาอื่น')):
         candidate = [{'code':'00000001','name_th':'วิชาแรก','name_en':'SECOND COURSE'},
                      {'code':'00000002','name_th':'วิชาสอง','name_en':'SECOND COURSE'}]

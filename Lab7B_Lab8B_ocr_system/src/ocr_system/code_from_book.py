@@ -462,12 +462,16 @@ EN_LINE_RE = re.compile(r"^\(?[A-Z0-9][A-Z0-9 ,&/()\-.:']*$")
 EN_WRAP_RE = re.compile(r"\b(AND|OF|FOR|IN|TO|THE|WITH|ON)$")   # ชื่ออังกฤษที่ตัดบรรทัดกลางวลี
 
 
-def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
+def book_english_names(book_text: str, evidence: list[dict] | None = None) -> dict[str, dict[str, int]]:
     """{รหัส: {ชื่ออังกฤษ: จำนวนจุดในเล่ม}} — บรรทัดตัวพิมพ์ใหญ่ใต้หัว "<รหัส> <ชื่อไทย> <หน่วยกิต>"
     ต่อบรรทัดที่สองเฉพาะเมื่อบรรทัดแรกจบด้วยคำเชื่อม (AND/OF/...) ซึ่งแปลว่าชื่อถูกตัดบรรทัด"""
     lines = book_text.splitlines()
     out: dict[str, dict[str, int]] = {}
+    page = None
     for i, line in enumerate(lines):
+        marker = re.match(r'^--- Page (\d+) ---', line)
+        if marker:
+            page = int(marker.group(1))
         m = BOOK_LINE_RE.search(line)
         if not m or not re.search(r"[฀-๿]", m.group(2)):
             continue
@@ -483,6 +487,10 @@ def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
         if len(name) >= 4:
             counts = out.setdefault(m.group(1), {})
             counts[name] = counts.get(name, 0) + 1
+            if evidence is not None and page is not None:
+                title = re.split(r'\s{2,}|\||\d+\s*\(', m.group(2), maxsplit=1)[0].strip(' .*-:')
+                title = re.sub(r'^[^฀-๿A-Za-z0-9]+', '', title)
+                evidence.append({'code':m.group(1),'title_key':normalize(title),'name_en':name,'pdf_page':page})
     return out
 
 
@@ -490,17 +498,13 @@ def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dic
     """กฎ 5: เติมชื่ออังกฤษที่ว่าง; แก้ alias ที่คัดลอกข้ามรหัสเมื่อชื่อไทยเต็ม+sourceซ้ำยืนยัน
     เลือกแบบที่พบ >= 2 จุดและมากกว่าแบบอื่นชัดเจน; ถ้าเสมอ/พบจุดเดียว ใช้ได้เฉพาะแบบเดียวที่ Typhoon (Markdown)
     ก็อ่านได้ตรงกัน (เล่ม "NOSQL" 2 ครั้ง / "NOSOL" 2 ครั้ง -> Markdown มี NOSQL) ไม่งั้นปล่อยว่าง ไม่เดา"""
-    names = book_english_names(book_text)
+    evidence: list[dict] = []
+    names = book_english_names(book_text, evidence)
     index = book_index(book_text)
-    source_pages: dict[str, set[int]] = {}
-    page = None
-    for line in book_text.splitlines():
-        marker = re.match(r'^--- Page (\d+) ---', line)
-        if marker:
-            page = int(marker.group(1))
-        header = BOOK_LINE_RE.search(line)
-        if header and page is not None:
-            source_pages.setdefault(header.group(1), set()).add(page)
+    source_pages: dict[tuple[str, str], set[int]] = {}
+    for item in evidence:
+        if item['title_key'] == index.get(item['code'], {}).get('key'):
+            source_pages.setdefault((item['code'],item['name_en']),set()).add(item['pdf_page'])
     owners: dict[str, set[str]] = {}
     for course in courses:
         current = re.sub(r'\s+', ' ', str(course.get('name_en') or '')).strip().upper()
@@ -521,7 +525,7 @@ def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dic
         if current:
             normalized = re.sub(r'\s+', ' ', current).upper()
             if (normalized in names[code] or len(owners.get(normalized, set())) < 2
-                    or len(ranked) != 1 or top_n < 2 or len(source_pages.get(code, set())) < 2
+                    or len(ranked) != 1 or top_n < 2 or len(source_pages.get((code,ranked[0][0]), set())) < 2
                     or index.get(code, {}).get('key') != normalize(c.get('name_th') or '')):
                 continue
         if top_n >= 2 and top_n > second:
@@ -533,7 +537,7 @@ def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dic
             name = in_md[0]
         if current:
             c['_english_from_book'] = {'from': current, 'via': 'repeated_title_duplicate_alias',
-                                      'source_count': top_n, 'pdf_pages': sorted(source_pages[code])}
+                                      'source_count': top_n, 'pdf_pages': sorted(source_pages[(code,name)])}
         c["name_en"] = name
         done.append({"action": "name_en", "to": code, "name_en": name})
     return done
