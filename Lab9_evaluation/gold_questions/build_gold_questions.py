@@ -73,9 +73,8 @@ SOURCE_PAIR_CORRECTIONS = {
 _IT_ENGLISH_CORRECTION = {
     "question_id": "F4", "pair": ["90644008", "90644007"],
     "source": "outputs/it/it_curriculum_ocr.txt", "line": 7574, "pdf_page": 220,
-    "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
-    "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
-    "normalization": "LF line endings only; OCR text unchanged",
+    "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+    "source_format": "Original OCR snapshot bytes; Git conversion disabled",
     "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
     "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
 }
@@ -93,9 +92,8 @@ SOURCE_ORACLE_CORRECTIONS = {
     "it_coop": [_IT_ENGLISH_CORRECTION, {
         "question_id": "E3", "code": "06016425", "credits": "3(2-2-5)",
         "source": "outputs/it/it_curriculum_ocr.txt", "line": 12052, "pdf_page": 334, "printed_page": "333",
-        "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
-        "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
-        "normalization": "LF line endings only; OCR text unchanged",
+        "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "source_format": "Original OCR snapshot bytes; Git conversion disabled",
         "reason": "Source image and OCR confirm lecture2/lab2/self5; scoped lab0 is stale",
     }],
 }
