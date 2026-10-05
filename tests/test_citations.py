@@ -81,6 +81,28 @@ def test_plan_course_locator_does_not_copy_the_whole_term_to_each_page():
         assert [tuple(r) for r in conn.execute("SELECT code,pdf_page FROM course_page WHERE kind='plan' ORDER BY code")] == [('06016481',42),('06016482',43)]
 
 
+def test_catalog_citations_ship_in_database_without_local_book(tmp_path, monkeypatch):
+    import json
+    import lab8b_curriculum_db as m
+    manifest = tmp_path / 'Lab7B_Lab8B_ocr_system/runs/AIT/electives.json'
+    manifest.parent.mkdir(parents=True)
+    courses = [{'code':'00000001','name_th':'วิชาแรก','name_en':'FIRST COURSE'}]
+    manifest.write_text(json.dumps({'source':'PDF หน้า 21-22','groups':[{'courses':courses}]},ensure_ascii=False),encoding='utf-8')
+    monkeypatch.setattr(m,'REPO_ROOT',tmp_path)
+    with m.open_db(':memory:') as conn:
+        conn.executescript(m.DDL)
+        conn.execute("INSERT INTO program(program_id,name_th,total_credits,years) VALUES ('AIT','AIT',129,4)")
+        pages = [{'page':20,'text':'16\nอื่น'}, {'page':21,'text':'17\n00000001 วิชาแรก 3(3-0-6)\nFIRST COURSE'},
+                 {'page':22,'text':'18\nอื่น'}, {'page':100,'text':'99\n00000001 วิชาแรก\nFIRST COURSE'}]
+        m.load_course_pages(conn,pages,[],'')
+        rows = [{'code':'00000001'}]
+        got = m._elective_catalog_citations(conn,rows,'SELECT code FROM v_elective_group','วิชาเลือกมีอะไรบ้าง')
+        assert [(r['pdf_page'],r['printed_page'],r['courses']) for r in got] == [(21,'17',['00000001'])]
+        assert got[0]['course_names_en'] == {'00000001':'FIRST COURSE'}
+        conn.execute('DELETE FROM course_page')
+        assert m._elective_catalog_citations(conn,rows,'SELECT code FROM v_elective_group','วิชาเลือกมีอะไรบ้าง') == []
+
+
 # Break caught: returning a number from a later line when the header is not a page number.
 def test_printed_page_none_when_first_line_is_not_a_number():
     assert citations.printed_page("มคอ.2\n33") is None

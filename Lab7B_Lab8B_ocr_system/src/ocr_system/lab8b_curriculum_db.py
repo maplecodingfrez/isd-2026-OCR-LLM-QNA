@@ -4112,7 +4112,25 @@ def _elective_catalog_citations(conn: sqlite3.Connection, rows: list[dict], sql:
         if not {str(r["code"]) for r in rows} <= known:
             return None  # เช่น catalog GE คนละ manifest: คงเส้นทางอ้างอิงเดิม
         start, end = map(int, span.groups())
-        book = json.loads((REPO_ROOT / "outputs" / name.lower() / f"{name.lower()}_curriculum_ocr.json").read_text(encoding="utf-8"))
+        try:
+            book = json.loads((REPO_ROOT / "outputs" / name.lower() / f"{name.lower()}_curriculum_ocr.json").read_text(encoding="utf-8"))
+        except OSError:
+            # Clean clones ship SQLite evidence, while full OCR/PDF files stay local.
+            wanted = sorted({str(r['code']) for r in rows})
+            try:
+                cached = conn.execute('SELECT DISTINCT code, pdf_page, printed_page FROM course_page '
+                    f"WHERE kind='primary' AND pdf_page BETWEEN ? AND ? AND code IN ({','.join('?' for _ in wanted)}) "
+                    'ORDER BY pdf_page, code', (start,end,*wanted)).fetchall()
+            except sqlite3.OperationalError:
+                return []
+            names = {c['code']:c for c in courses}
+            grouped: dict[tuple, list[str]] = {}
+            for code, pdf, printed in cached:
+                grouped.setdefault((pdf,printed), []).append(code)
+            return [{'pdf_page':pdf,'printed_page':printed,'courses':codes,
+                     'course_names':{code:names[code].get('name_th') for code in codes if names[code].get('name_th')},
+                     'course_names_en':{code:names[code].get('name_en') for code in codes if names[code].get('name_en')}}
+                    for (pdf,printed), codes in grouped.items()]
         pages = [p for p in book["pages"] if start <= int(p["page"]) <= end]
         return _citations_module().catalog_citations(rows, courses, pages)
     except (OSError, ValueError, KeyError, TypeError):
@@ -4369,6 +4387,19 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     printed = citations.consistent_printed(
         {int(p["page"]): citations.printed_page(p.get("text") or "") for p in ocr_pages})
     rows = citations.course_pages(ocr_pages, courses)
+    try:
+        program = conn.execute('SELECT program_id FROM program LIMIT 1').fetchone()
+        family = re.match(r'^(DSBA|AIT|BIT|IT)(?:-|$)', str(program[0]) if program else '', re.I)
+        if family:
+            catalog = json.loads((REPO_ROOT / 'Lab7B_Lab8B_ocr_system/runs' / family.group(1).upper() / 'electives.json').read_text(encoding='utf-8'))
+            span = re.search(r'PDF\s*หน้า\s*(\d+)\s*-\s*(\d+)', catalog.get('source',''))
+            if span:
+                start, end = map(int, span.groups())
+                catalog_courses = [c for group in catalog['groups'] for c in group['courses']]
+                catalog_rows = citations.course_pages([p for p in ocr_pages if start <= int(p['page']) <= end], catalog_courses)
+                rows.extend({**r, 'kind':'primary'} for r in catalog_rows if r['kind'] in ('primary','description'))
+    except (OSError, ValueError, KeyError, TypeError, sqlite3.OperationalError):
+        pass  # Old DB/no catalog: retain the existing verified course evidence.
     for r in rows:
         r["printed_page"] = printed.get(r["pdf_page"])
     book_text = {int(p["page"]): p.get("text") or "" for p in ocr_pages}
