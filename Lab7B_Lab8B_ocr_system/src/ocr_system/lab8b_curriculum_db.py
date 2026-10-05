@@ -5578,7 +5578,10 @@ def ask(conn: sqlite3.Connection, question: str,
         ans = result["answer"] or ""
         has_totals = all(re.search(rf"(?<!\d){re.escape(str(v))}(?!\d)", ans) for v in totals.values())
         if not ans.strip() or not all(t in ans for t in texts) or not has_totals:
-            body = "; ".join(" ".join(str(v).strip() for v in r.values() if v is not None) for r in shown)
+            hour_labels = {col: label for col, label, _ in _HOUR_ATTRS}
+            body = "; ".join(" ".join(
+                f"{hour_labels[k]} {v} ชั่วโมงต่อสัปดาห์" if k in hour_labels else str(v).strip()
+                for k, v in r.items() if v is not None) for r in shown)
             parts = []
             if "total_credits" in totals:
                 parts.append(f"รวม {totals['total_credits']} หน่วยกิต")
