@@ -85,10 +85,14 @@ Backend routing, SQLite schema, and existing API endpoints are unchanged by the 
 
 ### หลักฐาน readiness รอบ 2026-10-05
 
+GE66 ที่ใช้งานมาจาก PDF text layer และข้อมูลที่ตรวจต้นฉบับ ไม่ใช่ผล image OCR ทั้งเล่ม; candidate Tesseract/Typhoon ยังไม่ใช้แทนข้อมูล production การแก้ source เฉพาะหน้าและ SQLite ต้องแยกจากผล pipeline OCR ล้วนในการสาธิต/รายงาน
+
 - Chrome จริงตรวจ idle/loading/success/error, retry, เปลี่ยนแผน, ทิ้งคำตอบเก่าหลังเปลี่ยนแผน และมือถือ 390×844 แล้ว; 8 checks ผ่าน ไม่มี JavaScript exception
 - Gold v2.2 HTTP ผ่าน 210/210 ที่ revision `9be5a5c`, qwen3:4b, ไม่มี error/ข้อเกิน 5s; เป็นผลชุดเดิมที่แก้ oracle จากต้นฉบับ ไม่ใช่คะแนนคำถามใหม่
 - Trace + positive-path tests ครบ 52/52 shortcuts; มีทั้ง SQL ตรง, คำนวณ/กรองใน Python และข้อมูลข้ามแผน/แคตตาล็อก จึงใช้ช่อง SQL เป็นคำค้นอ้างอิง ไม่รับรอง replay ทุกกรณี
 - คำถามใหม่จาก OCR ที่ตรึงก่อนอ่าน runtime ผ่านรอบแรก 16/21; พบ known-none prerequisite และรหัสตัวเลือกสหกิจ 5 ข้อ แก้ guard เดิมพร้อม regression; ไม่เปลี่ยนคำถาม/เฉลยและไม่เรียกคะแนนหลังแก้ว่า unseen
+- หลังแก้ที่ `2c20cab`: คำถามใหม่21/21 และ Gold210/210; master220/220 คงโจทย์เพื่อนครบ ทั้งสอง suite1354pass/3skip ก่อน guard-review รอบท้าย; guard หลายเทอม/หลายเรื่อง RED2→GREEN และ affected991pass/3skip ไม่ตอบเพียงส่วนแรก
+- รอบ Gold/master ที่ซ้อนกันมี7ข้อเกิน5s (Gold4/master3); วัดเฉพาะ7ข้อซ้ำแบบเดี่ยวได้1.657–4.472sทั้งหมด เก็บรอบโหลดเดิมไว้ ไม่รับรองlatency<5sทุกconcurrency/cold start
 - เกณฑ์ Lab11 ที่ตรวจจาก PDF ในเครื่อง: wireframe ที่ `docs/wireframes/curriculum_app.png`, API contract ใน README หลัก และ HTML/CSS/JS เรียก API จริงพร้อม 4 สถานะ; ยังไม่ใช่การรับรองผล Challenge ของอาจารย์หรือเกณฑ์ใหม่ที่ยังไม่ได้รับ
 
 ### เปิดเว็บแล้วขึ้น `ERR_CONNECTION_REFUSED`
