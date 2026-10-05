@@ -58,7 +58,7 @@ Gold v2 เดิมทั้ง 7 แผน, frozen manifest และตัว
 `../../archived/curriculum-audit-20261005/gold-v2-frozen-before-20261005-correction.zip`
 และเรียกดู Gold ที่ commit เดิมได้ด้วย `git show 0231932:Lab9_evaluation/gold_questions/<แผน>_gold_questions.json`
 ผลประเมินย้อนหลังยังเป็นผลของ Gold เดิม; ฉบับแก้เฉลยนี้เป็นการตรวจหลังพบข้อผิดพลาดของ oracle
-จึงไม่ใช่ held-out benchmark ใหม่ และยังไม่มีผลประเมินเต็มชุดภายใต้ hash ใหม่จนกว่าจะรันใหม่
+จึงไม่ใช่ held-out benchmark ใหม่; หลังแก้เฉลย v2.2 รัน HTTP ครบ210ข้อที่ `9be5a5c` ได้210/210 ไม่มีerror/ข้อเกิน5s (qwen3:4b) แยกจากผล pipeline/OCR ย้อนหลังข้างต้น
 
 ## วิธีรัน
 
