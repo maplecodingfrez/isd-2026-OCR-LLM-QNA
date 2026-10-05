@@ -1102,6 +1102,10 @@ def cmd_load_prerequisites(args) -> None:
     conn.execute("DELETE FROM prerequisite_status")
     conn.executemany("INSERT INTO prerequisite_status (code, status) VALUES (?, ?)",
                      [(code, r["status"]) for code, r in res.items()])
+    # Replace this extraction's pre edges, including transitions to none/unknown.
+    # Corequisites are independently owned and must survive a prerequisite reload.
+    conn.executemany("DELETE FROM prerequisite WHERE code = ? AND kind = 'pre'",
+                     [(code,) for code in res])
     conn.execute("DELETE FROM prerequisite_alt")
     or_groups = 0
     for code, r in res.items():

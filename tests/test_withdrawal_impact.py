@@ -145,6 +145,30 @@ def test_prerequisite_header_rejects_another_known_full_title():
     assert result['status'] == 'not_found'
 
 
+def test_prerequisite_reload_replaces_old_edges_and_preserves_corequisites(tmp_path):
+    path = tmp_path / 'curriculum.db'
+    with sqlite3.connect(path) as conn:
+        conn.executescript("""
+        CREATE TABLE course(code TEXT PRIMARY KEY, name_th TEXT, name_en TEXT);
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT,
+                                  PRIMARY KEY(code,requires,kind));
+        INSERT INTO course VALUES ('00000001','แรก','FIRST'),('00000002','สอง','SECOND');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre'),
+          ('00000001','00000002','co');
+        """)
+    book = tmp_path / 'book.txt'
+    book.write_text('00000002 สอง 3(3-0-6)\nSECOND\nPREREQUISITE : NONE', encoding='utf-8')
+    args = SimpleNamespace(database=path, text=book, output=None)
+    m.cmd_load_prerequisites(args)
+    with sqlite3.connect(path) as conn:
+        assert conn.execute('SELECT * FROM prerequisite').fetchall() == [('00000001','00000002','co')]
+        first = conn.execute('SELECT * FROM prerequisite_status ORDER BY code').fetchall()
+    m.cmd_load_prerequisites(args)
+    with sqlite3.connect(path) as conn:
+        assert conn.execute('SELECT * FROM prerequisite_status ORDER BY code').fetchall() == first
+        assert conn.execute('SELECT * FROM prerequisite').fetchall() == [('00000001','00000002','co')]
+
+
 def test_name_prerequisite_requires_exact_unique_name():
     lines = ["90644008 FOUNDATION ENGLISH 2 3 (3-0-6)", "PREREQUISITE : FOUNDATION ENGLISH 1"]
     names = {"90644007": ["ภาษาอังกฤษพื้นฐาน 1", "FOUNDATION ENGLISH 1"]}
