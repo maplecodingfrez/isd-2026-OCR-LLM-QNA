@@ -3150,9 +3150,21 @@ def _named_courses(conn: sqlite3.Connection, question: str, catalog: bool = True
                 hits.setdefault(key, {}).setdefault(code, th or en)
     maximal = [k for k in hits if not any(k != o and k in o for o in hits)]
     if not maximal and strict:                              # ไม่มีชื่อตรงเลย → ลองชื่อภาษาพูด/ไม่ครบ (ต้องชี้วิชาเดียวในแผน — ดู course_names.COLLOQUIAL_RULES)
-        import course_names
+        try:
+            import course_names
+        except ImportError:
+            from . import course_names
         plan = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
-        got = course_names.colloquial_courses(question, plan) or course_names.acronym_courses(question, plan)      # ตัวย่อ (ML/SAD/DW…): ตัวใหญ่ + วิชาเดียวในแผน
+        got = course_names.colloquial_courses(question, plan)
+        if not got:
+            catalog_courses = plan
+            if catalog:
+                try:
+                    catalog_courses = plan + [{"code": r[0], "name_th": r[1] or "", "name_en": r[2] or ""}
+                                              for r in conn.execute("SELECT code, course_name_th, course_name_en FROM main.v_elective_group")]
+                except sqlite3.OperationalError:
+                    pass
+            got = course_names.acronym_courses(question, catalog_courses)
         return dict(got) or None
     if not maximal or len({frozenset(hits[k]) for k in maximal}) != 1:
         return None
@@ -3361,6 +3373,102 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     else:
         shown = f"SELECT code, name_th, credits FROM course WHERE code = '{code}'"
     return (f"{course['code']} {course['name_th']}: " + " — ".join(bits), rows, shown)
+
+
+# ---- 13c. ตัวย่อวิชา / ชื่อวิชาตรงตัว / รหัสวิชาตรงตัว ที่ไม่ได้ถามแง่มุมเฉพาะอื่น (เช่น "วิชา ISD", "ISD", "วิชา DSA", "DSDA", "วิชา ISD คืออะไร") ----
+_IDENTITY_PREFIX = re.compile(r"^(?:วิชา|รายวิชา|รหัสวิชา|รหัส)?\s*", re.I)
+_IDENTITY_SUFFIX = re.compile(r"\s*(?:คืออะไร|คือวิชาอะไร|คือวิชาใด|คือวิชาไหน|คืออะไรบ้าง|คือ|ครับ|ค่ะ|นะ|หน่อย|\?|\.)*$", re.I)
+_IDENTITY_ATTR_WORD = re.compile(r"เรียน|สอน|เนื้อหา|หน่วยกิต|ปี|เทอม|ชั่วโมง|ก่อน|ต่อ|ผ่าน|ถอน|ดรอป|หมวด|กลุ่ม|หลักสูตร|กระทบ")
+
+
+def _course_identity_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """เมื่อผู้ใช้ถามชื่อวิชาสั้นๆ ตัวย่อ หรือรหัสวิชาตรงๆ (เช่น 'วิชา ISD', 'ISD', 'วิชา DSA', 'DSDA', 'วิชา ISD คืออะไร')
+    โดยไม่ได้ถามแง่มุมเฉพาะอื่น (เช่น บังคับก่อน, ถอน, ชั่วโมง, คำอธิบาย, หน่วยกิตรวม)
+    -> คืนข้อมูลบัตรประจำวิชา: รหัส, ชื่อไทย/อังกฤษ, หน่วยกิต, และปี/เทอม หรือกลุ่มวิชา"""
+    if _IDENTITY_ATTR_WORD.search(question):
+        return None
+
+    c = _IDENTITY_PREFIX.sub("", question)
+    c = _IDENTITY_SUFFIX.sub("", c).strip()
+    if not c:
+        return None
+
+    code = None
+    if re.fullmatch(r"\d{8}", c):
+        code = c
+    else:
+        named = _named_courses(conn, c, catalog=True)
+        if named and len(named) == 1:
+            k, name_th = next(iter(named.items()))
+            try:
+                import course_names
+            except ImportError:
+                from . import course_names
+            c_upper = c.upper()
+            if any(pat.fullmatch(c_upper) for pat, _ in course_names.ACRONYM_MAP):
+                code = k
+            else:
+                c_norm = _name_key(c)
+                if c_norm == _name_key(name_th):
+                    code = k
+                else:
+                    en_row = conn.execute("SELECT name_en FROM course WHERE code = ?", (k,)).fetchone()
+                    if en_row and en_row[0] and _name_key(en_row[0]) == c_norm:
+                        code = k
+                    else:
+                        try:
+                            el_row = conn.execute("SELECT course_name_en FROM main.v_elective_group WHERE code = ?", (k,)).fetchone()
+                            if el_row and el_row[0] and _name_key(el_row[0]) == c_norm:
+                                code = k
+                        except Exception:
+                            pass
+
+    if not code:
+        return None
+
+    try:
+        row = conn.execute("SELECT code, name_th, name_en, credits FROM course WHERE code = ?", (code,)).fetchone()
+        if row:
+            places = [f"ปี {r[0]} เทอม {r[1]}" for r in conn.execute(
+                "SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (code,))]
+            p_str = f" ({', '.join(places)})" if places else ""
+            en_str = f" / {row['name_en']}" if row["name_en"] else ""
+            cr_str = f"{row['credits']} หน่วยกิต" if row["credits"] is not None else ""
+            ans = f"{code} {row['name_th']}{en_str} — {cr_str}{p_str}".strip(" —")
+            sql = f"SELECT code, name_th, name_en, credits FROM course WHERE code = '{code}'"
+            rows = [{"code": code, "name_th": row["name_th"], "name_en": row["name_en"], "credits": row["credits"]}]
+            return (ans, rows, sql)
+
+        el = conn.execute(
+            "SELECT code, course_name_th, course_name_en, credits, plan_slot, group_name_th "
+            "FROM main.v_elective_group WHERE code = ? LIMIT 1", (code,)).fetchone()
+        if el:
+            en_str = f" / {el[2]}" if el[2] else ""
+            grp = (el[5] or el[4] or "").strip()
+            if grp:
+                grp_label = grp if grp.startswith("กลุ่ม") else f"กลุ่มวิชา{grp}"
+                grp_str = f" ({grp_label})"
+            else:
+                grp_str = ""
+            cr_str = f"{el[3]} หน่วยกิต" if el[3] is not None else ""
+            ans = f"{code} {el[1]}{en_str} — {cr_str}{grp_str}".strip(" —")
+            sql = (f"SELECT code, course_name_th AS name_th, course_name_en AS name_en, credits, plan_slot, group_name_th "
+                   f"FROM main.v_elective_group WHERE code = '{code}'")
+            rows = [{"code": code, "name_th": el[1], "name_en": el[2], "credits": el[3], "plan_slot": el[4], "group_name_th": el[5]}]
+            return (ans, rows, sql)
+
+        cd = conn.execute(
+            "SELECT code, name_th, name_en FROM course_description WHERE code = ? LIMIT 1", (code,)).fetchone()
+        if cd:
+            en_str = f" / {cd[2]}" if cd[2] else ""
+            ans = f"{code} {cd[1]}{en_str}".strip()
+            sql = f"SELECT code, name_th, name_en FROM course_description WHERE code = '{code}'"
+            rows = [{"code": code, "name_th": cd[1], "name_en": cd[2]}]
+            return (ans, rows, sql)
+    except sqlite3.OperationalError:
+        return None
+
+    return None
 
 
 # ---- 13b. ชื่อวิชาพิมพ์ไม่ครบ/กำกวม: "ไม่พบ" + วิชาใกล้เคียงพร้อมค่าที่ถาม ให้ผู้ใช้ยืนยันเอง (ไม่เลือกวิชาให้) ----
@@ -3681,7 +3789,10 @@ def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
 
 def _expand_course_acronyms(conn: sqlite3.Connection, question: str) -> str:
     """ML/SAD/DW/OS… -> ชื่อไทยเต็มของวิชาเดียวในแผน; ISD รวม catalog ของหลักสูตรที่เลือก"""
-    import course_names
+    try:
+        import course_names
+    except ImportError:
+        from . import course_names
     try:
         courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
     except sqlite3.OperationalError:
@@ -5171,6 +5282,7 @@ _SHORTCUTS = (
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
+    _course_identity_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
 )
 

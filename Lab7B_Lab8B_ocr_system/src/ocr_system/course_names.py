@@ -207,11 +207,18 @@ def _acronym_matches(question: str, courses: list[dict]) -> list[tuple[list[tupl
         if not spans:
             continue
         en_norm, th_norm = _norm_en(en_target), _norm_th(th_target)
-        found = {str(c["code"]): c.get("name_th") or c.get("name_en") or "" for c in courses
+        found = {str(c["code"]): (c.get("name_th") or c.get("name_en") or "",
+                                  bool((en_norm and en_norm == _norm_en(c.get("name_en")))
+                                       or (th_norm and th_norm == _norm_th(c.get("name_th")))))
+                 for c in courses
                  if c.get("code") and ((en_norm and en_norm in _norm_en(c.get("name_en")))
                                        or (th_norm and th_norm in _norm_th(c.get("name_th"))))}
-        if len(found) == 1:
-            (code, name), = found.items()
+        exact = {code: name for code, (name, is_ex) in found.items() if is_ex}
+        if len(exact) == 1:
+            (code, name), = exact.items()
+            out.append((spans, code, name))
+        elif len(found) == 1:
+            (code, (name, _)), = found.items()
             out.append((spans, code, name))
     return out
 
