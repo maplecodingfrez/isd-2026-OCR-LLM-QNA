@@ -143,6 +143,10 @@ def test_prerequisite_header_rejects_another_known_full_title():
     result = extract_prerequisites(lines, ['00000001'], known_codes=names,
                                    course_names=names)['00000001']
     assert result['status'] == 'not_found'
+    names['00000002'] = ['FIRST COURSE']
+    lines[1] = 'FIRST COURSE'
+    assert extract_prerequisites(lines, ['00000001'], known_codes=names,
+                                 course_names=names)['00000001']['status'] == 'none'
 
 
 def test_prerequisite_reload_replaces_old_edges_and_preserves_corequisites(tmp_path):

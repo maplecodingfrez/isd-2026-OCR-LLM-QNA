@@ -173,7 +173,7 @@ def extract_prerequisites(lines: Iterable[str], wanted: Iterable[str],
             titles = L[i + 1:i + 3]
             exact_titles = {candidate for title in titles
                             for candidate in names.get(re.sub(r"\s+", "", title).casefold(), set())}
-            if source_code == code and exact_titles and exact_titles != {code}:
+            if source_code == code and exact_titles and code not in exact_titles:
                 continue
             if source_code != code:
                 # A typo in an unknown header code may be resolved only by one
