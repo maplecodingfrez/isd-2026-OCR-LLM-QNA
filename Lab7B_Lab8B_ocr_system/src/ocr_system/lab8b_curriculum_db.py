@@ -1401,6 +1401,12 @@ def _is_term_choices_question(question: str) -> bool:
     ไม่ใช่ถามหน่วยกิต/จำนวน"""
     coop_codes = bool(_COOP_CODE_CHOICES.search(question) and "ไม่สหกิจ" not in question
                       and not _CODE8.search(question) and not re.search(r"บริษัท|สถานที่|ที่ไหน|ถ้า|หาก", question))
+    if coop_codes:
+        remaining = _TERM_YEAR_NUM.sub("", _TERM_SEM_NUM.sub("", question))
+        remaining = re.sub(r"ให้เลือกวิชาสหกิจรหัส|รหัส(?:วิชา|ตัวเลือก)?สหกิจ|ที่เลือกได้|มีอะไรบ้าง|อะไรได้บ้าง|"
+                           r"ทั้งหมด|สหกิจ|แผน|AIT|BIT|DSBA|IT|ของ|ขอ|ใน|ครับ|ค่ะ", "", remaining)
+        coop_codes = (len(_TERM_YEAR_NUM.findall(question)) == len(_TERM_SEM_NUM.findall(question)) == 1
+                      and not _strip_punct(remaining))
     scoped = re.sub(r"แผน|สหกิจ", "", question) if coop_codes else question
     return bool(_TERM_YEAR_NUM.search(question) and _TERM_SEM_NUM.search(question)
                 and (_TERM_CHOICES_ASK.search(question) or coop_codes)

@@ -776,6 +776,16 @@ def test_explicit_coop_code_choices_use_only_the_scoped_slot(tmp_path, monkeypat
     assert set(re.findall(r'\b[0-9]{8}\b', result['answer'])) == {'06026259', '06026260'}
 
 
+@pytest.mark.parametrize('question', [
+    'รหัสวิชาสหกิจปี 4 เทอม 2 และปี 1 เทอม 1 มีอะไรบ้าง',
+    'รหัสวิชาสหกิจปี 4 เทอม 2 มีอะไรบ้าง และวันสุดท้ายถอนคืออะไร',
+    'รหัสวิชาสหกิจปี 4 เทอม 2 มีอะไรบ้าง ไม่รวมต่างประเทศ',
+    'รหัสวิชาสหกิจปี 4 เทอม 2 เลือกบริษัทอะไรได้บ้าง',
+])
+def test_coop_code_choices_reject_extra_scope(question):
+    assert not m._is_term_choices_question(question)
+
+
 @pytest.mark.parametrize("question", [
     "ปี 1 เทอม 1 เลือกอะไรได้บ้าง",                 # เทอมนี้ไม่มีช่องเลือก → ทางเดิม
     "ปี 4 เทอม 1 เลือกอะไรได้กี่หน่วยกิต",           # ถามจำนวน → ทางเดิม
