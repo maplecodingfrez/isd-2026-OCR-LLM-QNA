@@ -15,7 +15,7 @@
     "terms_relaxed": false,
     "fallback_v1_codes": [],
     "replaced": [],
-    "revision": "gold-v2.1-source-correction",
+    "revision": "gold-v2.2-source-correction",
     "oracle_corrections": [
       {
         "question_id": "F4",
@@ -30,9 +30,35 @@
         "line": 5049,
         "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
         "prerequisite_text": "PREREQUISITE : INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+      },
+      {
+        "question_id": "F4",
+        "pair": [
+          "90641009",
+          "90641008"
+        ],
+        "source": "outputs/ait/ait_curriculum_ocr.txt",
+        "line": 5039,
+        "pdf_page": 145,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+        "source_placed_codes": [
+          "90641008"
+        ],
+        "placement_evidence": {
+          "code": "90641008",
+          "line": 731,
+          "pdf_page": 23,
+          "year": 1,
+          "semester": 1
+        },
+        "reason": "Source year1/semester1 contains zero-credit English course omitted by scoped truth",
+        "before": "7",
+        "after": "8",
+        "correction_revision": "gold-v2.2-source-correction"
       }
     ],
-    "sha256": "bb912dd5a2df5117fa10f321ae90fc26c2a56e8148ae11ef8f9339442c895a2d"
+    "sha256": "eac1dcb12ce16e09cbfd4d8b956d1d9598875875865b8d5746b62e7484707765"
   },
   "bit_coop": {
     "plan": "bit_coop",
@@ -194,7 +220,44 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "12ae9aba81383c2bc3d5af65f9dfa5a95e25f2abdf4a1c1f7b4f294e29ebaa5b"
+    "revision": "gold-v2.2-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 7574,
+        "pdf_page": 220,
+        "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
+        "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "normalization": "LF line endings only; OCR text unchanged",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+        "before": "8",
+        "after": "9",
+        "correction_revision": "gold-v2.2-source-correction"
+      },
+      {
+        "question_id": "E3",
+        "code": "06016425",
+        "credits": "3(2-2-5)",
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 12052,
+        "pdf_page": 334,
+        "printed_page": "333",
+        "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
+        "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "normalization": "LF line endings only; OCR text unchanged",
+        "reason": "Source image and OCR confirm lecture2/lab2/self5; scoped lab0 is stale",
+        "before": "0",
+        "after": "2",
+        "correction_revision": "gold-v2.2-source-correction"
+      }
+    ],
+    "sha256": "f89fb687c1023d1885d959ef3a60021c19294d336cc72e4b4874cda9356c92b7"
   },
   "it_no_coop": {
     "plan": "it_no_coop",
@@ -212,6 +275,27 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "df81c744e36386a5e9bbe7a4fa0a6f4bae3e68143c1b59c0cd344912bf51997a"
+    "revision": "gold-v2.2-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 7574,
+        "pdf_page": 220,
+        "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
+        "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "normalization": "LF line endings only; OCR text unchanged",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+        "before": "8",
+        "after": "9",
+        "correction_revision": "gold-v2.2-source-correction"
+      }
+    ],
+    "sha256": "4ab4574857bdddd9622238170e9be51afe6aa17c49c3730f1cee462048719ad2"
   }
 }

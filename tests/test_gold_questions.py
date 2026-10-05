@@ -68,6 +68,8 @@ def test_build_is_deterministic():
 
 
 def test_source_corrections_change_only_the_pair_count_oracle(monkeypatch):
+    # Preserve the earlier v2.1 regression independently of v2.2 corrections.
+    monkeypatch.setattr(g2, "SOURCE_ORACLE_CORRECTIONS", {}, raising=False)
     current = {plan: g2.build_plan(plan) for plan in g2.PLAN_NAMES}
     monkeypatch.setattr(g2, "SOURCE_PAIR_CORRECTIONS", {})
     for plan, (questions, meta) in current.items():
@@ -88,6 +90,39 @@ def test_source_corrections_change_only_the_pair_count_oracle(monkeypatch):
         block = source.read_text(encoding="utf-8").splitlines()[evidence["line"] - 1:evidence["line"] + 8]
         assert evidence["pair"][0] in block[0]
         assert evidence["prerequisite_text"] in block
+
+
+def test_v22_changes_only_four_source_confirmed_oracles(monkeypatch):
+    expected = {"ait": {"F4": ("7", "8")}, "it_coop": {"F4": ("8", "9"), "E3": ("0", "2")},
+                "it_no_coop": {"F4": ("8", "9")}}
+    for plan in g2.PLAN_NAMES:
+        questions, meta = g2.build_plan(plan)
+        with monkeypatch.context() as patch:
+            patch.setattr(g2, "SOURCE_ORACLE_CORRECTIONS", {}, raising=False)
+            historical, _ = g2.build_plan(plan)
+        changes = {q["id"]: (old, q) for old, q in zip(historical, questions) if old != q}
+        assert set(changes) == set(expected.get(plan, {})), plan
+        for qid, (before, after) in expected.get(plan, {}).items():
+            old, new = changes[qid]
+            assert old["expect"]["value"] == before and new["expect"]["value"] == after
+            assert {k: v for k, v in old.items() if k != "expect"} == {k: v for k, v in new.items() if k != "expect"}
+        evidence = [e for e in meta.get("oracle_corrections", []) if e.get("correction_revision") == "gold-v2.2-source-correction"]
+        assert len(evidence) == len(changes)
+        for item in evidence:
+            source = g2.HERE.parents[1] / item["source"]
+            assert hashlib.sha256(source.read_bytes()).hexdigest() == item["source_sha256"]
+            lines = source.read_text(encoding="utf-8").splitlines()
+            block = lines[item["line"] - 1:item["line"] + 8]
+            if "pair" in item:
+                assert item["pair"][0] in block[0] and item["prerequisite_text"] in block
+            else:
+                assert item["code"] in block[0] and item["credits"] in block[0]
+            placement = item.get("placement_evidence")
+            if placement:
+                assert placement["code"] in lines[placement["line"] - 1]
+                assert (placement["year"], placement["semester"]) == (1, 1)
+        if changes:
+            assert meta["revision"] == "gold-v2.2-source-correction"
 
 
 # Break caught: a plan with fewer/more than 30 questions or a lopsided mix (ch8: 30 ข้อ, none >= 2).

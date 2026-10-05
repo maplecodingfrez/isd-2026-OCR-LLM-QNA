@@ -99,7 +99,7 @@ TEST_CASES = [
     {"id": 36, "cat": "06. Prerequisites", "type": "ask", "prog": "dsba_coop", "q": "การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน", "desc": "Prereq ของ DATA WAREHOUSE", "expect": "06066300"},
     {"id": 37, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "รหัสวิชา 06016418 มีวิชาบังคับก่อนคือวิชาใด", "desc": "Prereq ของ 06016418", "expect": "06016408"},
     {"id": 38, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "วิชาใดบ้างที่มี 06066101 เป็นวิชาบังคับก่อน", "desc": "วิชาที่ถูกปลดล็อคโดย 06066101", "expect": "06066102"},
-    {"id": 39, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "desc": "จำนวนคู่วิชาบังคับก่อนทั้งหมด", "expect": "8"},
+    {"id": 39, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่", "desc": "จำนวนคู่วิชาบังคับก่อนทั้งหมด (source-corrected Gold v2.2)", "expect": "9"},
     {"id": 40, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "วิชา 06066303 มีวิชาบังคับก่อนไหม", "desc": "เช็ควิชาที่ไม่มี prereq", "expect_any": ["ไม่มี", "ไม่พบ"]},
     {"id": 41, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "ผ่านวิชา 06066101 แล้วลงอะไรได้ต่อ", "desc": "วิชาต่อเนื่องหลังผ่าน 06066101", "expect": "06066102"},
     {"id": 42, "cat": "06. Prerequisites", "type": "ask", "prog": "it_coop", "q": "06066101 กับ 06066102 วิชาไหนเรียนก่อน", "desc": "ลำดับก่อนหลังของคู่ Prereq", "expect": "06066101"},

@@ -2020,8 +2020,7 @@ def test_extreme_hours_shortcut_leaves_other_questions_alone(tmp_path, monkeypat
     assert _ask_hours(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
 
-# ข้อทองที่เฉลยขัดกับเล่ม (ไม่แก้ไฟล์ทองที่ล็อกไว้): IT/coop E3 เล่มพิมพ์ 06016425 เป็น 3(2-2-5) = ปฏิบัติ 2 ชั่วโมง แต่เฉลยทองเขียน 0
-_GOLD_DISAGREES_WITH_BOOK = {("IT/coop", "E3"): "ชั่วโมงปฏิบัติ 2 ชั่วโมง"}
+# Gold v2.2 corrects IT/coop E3 to the source-confirmed lab2; no stale-oracle exceptions.
 
 
 def test_no_gold_question_is_taken_by_the_hours_shortcuts_unless_it_is_answered_right():
@@ -2041,9 +2040,6 @@ def test_no_gold_question_is_taken_by_the_hours_shortcuts_unless_it_is_answered_
                         continue
                     taken += 1
                     ok, why = m.score_one(q["expect"], {"rows": r[1]}, question=q["question"])
-                    if (rel, q["id"]) in _GOLD_DISAGREES_WITH_BOOK:
-                        assert not ok and _GOLD_DISAGREES_WITH_BOOK[(rel, q["id"])] in r[0], (rel, q["id"], r[0])
-                        continue
                     assert ok, (rel, q["question"], r[0], q["expect"], why)
     assert taken >= 10
 

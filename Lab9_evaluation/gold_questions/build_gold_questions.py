@@ -69,13 +69,48 @@ SOURCE_PAIR_CORRECTIONS = {
 }
 
 
-def expected_prerequisite_pairs(scoped_courses: list[dict], additional_pairs=()) -> int:
+# v2.2: independent source facts; preserve questions/seed and the earlier v2.1 history.
+_IT_ENGLISH_CORRECTION = {
+    "question_id": "F4", "pair": ["90644008", "90644007"],
+    "source": "outputs/it/it_curriculum_ocr.txt", "line": 7574, "pdf_page": 220,
+    "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
+    "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+    "normalization": "LF line endings only; OCR text unchanged",
+    "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+    "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+}
+SOURCE_ORACLE_CORRECTIONS = {
+    "ait": [{
+        "question_id": "F4", "pair": ["90641009", "90641008"],
+        "source": "outputs/ait/ait_curriculum_ocr.txt", "line": 5039, "pdf_page": 145,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+        "source_placed_codes": ["90641008"],
+        "placement_evidence": {"code": "90641008", "line": 731, "pdf_page": 23, "year": 1, "semester": 1},
+        "reason": "Source year1/semester1 contains zero-credit English course omitted by scoped truth",
+    }],
+    "it_no_coop": [_IT_ENGLISH_CORRECTION],
+    "it_coop": [_IT_ENGLISH_CORRECTION, {
+        "question_id": "E3", "code": "06016425", "credits": "3(2-2-5)",
+        "source": "outputs/it/it_curriculum_ocr.txt", "line": 12052, "pdf_page": 334, "printed_page": "333",
+        "source_sha256": "31b80298da071d12323a8922147685812cf9896092a8da069cb52a1080fc4ee4",
+        "ocr_snapshot_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "normalization": "LF line endings only; OCR text unchanged",
+        "reason": "Source image and OCR confirm lecture2/lab2/self5; scoped lab0 is stale",
+    }],
+}
+
+
+def expected_prerequisite_pairs(scoped_courses: list[dict], additional_pairs=(), source_placed_codes=()) -> int:
     """จำนวนคู่ (วิชา, วิชาบังคับก่อน) ที่ควรอยู่ในตาราง prerequisite ตามเฉลย scoped (แก้ให้ตรงเล่มแล้ว)
 
     นับเฉพาะวิชาที่ระบุตัวชัด (รหัส 8 หลัก + ปี/ภาคแน่นอน) และวิชาบังคับก่อนที่ก็เป็นวิชาระบุตัวชัดในแผนเดียวกัน
     (ตรงกับที่ตาราง course ของ Lab 8B มี — รหัสที่ไม่อยู่ในแผนถูกทิ้งตอนโหลด); "A หรือ B" นับเป็นสองคู่
     เพราะตาราง prerequisite เก็บแยกรหัส; แถวซ้ำ (เช่น IT 06016418 สองแทร็ก) นับคู่เดียว"""
     placed = {c["code"] for c in scoped_courses if re.fullmatch(r"\d{8}", c["code"] or "") and is_placed(c)}
+    if any(not re.fullmatch(r"\d{8}", code) for code in source_placed_codes):
+        raise ValueError("Source-confirmed placement must have an exact course code")
+    placed.update(source_placed_codes)
     pairs = set()
     for c in scoped_courses:
         if c["code"] not in placed:
@@ -391,6 +426,22 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
 
     if len(qs) != 30 or len({q["question"] for q in qs}) != 30:
         raise ValueError(f"{plan}: ได้ {len(qs)} ข้อ / คำถามซ้ำ")
+    for evidence in SOURCE_ORACLE_CORRECTIONS.get(plan, []):
+        question = next(q for q in qs if q["id"] == evidence["question_id"])
+        before_value = question["expect"]["value"]
+        if "pair" in evidence:
+            previous_pairs = [correction["pair"]] if correction else []
+            value = str(expected_prerequisite_pairs(
+                rows, previous_pairs + [evidence["pair"]], evidence.get("source_placed_codes", ())))
+        else:
+            if question.get("about_codes") != [evidence["code"]] or question["id"] != "E3":
+                raise ValueError("Hour correction does not match the original Gold question")
+            value = str(parse_credits(evidence["credits"])[2])
+        question["expect"] = {**question["expect"], "value": value}
+        meta["revision"] = "gold-v2.2-source-correction"
+        meta.setdefault("oracle_corrections", []).append({
+            **evidence, "before": before_value, "after": value,
+            "correction_revision": "gold-v2.2-source-correction"})
     return qs, meta
 
 
