@@ -1393,11 +1393,18 @@ _TERM_CHOICES_ASK = re.compile(r"เลือก(?:เรียน)?(?:วิช
 _TERM_CHOICES_BAIL = re.compile(r"ไม่รวม|นอกจาก|ยกเว้น|บังคับ|รวม.*ด้วย|แผน|สหกิจ")
 
 
+_COOP_CODE_CHOICES = re.compile(r"รหัส(?:วิชา|ตัวเลือก)?สหกิจ|เลือกวิชาสหกิจรหัส")
+
+
 def _is_term_choices_question(question: str) -> bool:
     """คำถามแบบ "ปี N เทอม M เลือกอะไรได้บ้าง/มีวิชาอะไรให้เลือก" — ระบุทั้งปีและเทอม ถามตัวเลือกจริง ไม่ปฏิเสธ/ขยายขอบเขต
     ไม่ใช่ถามหน่วยกิต/จำนวน"""
-    return bool(_TERM_YEAR_NUM.search(question) and _TERM_SEM_NUM.search(question) and _TERM_CHOICES_ASK.search(question)
-                and not _TERM_CHOICES_BAIL.search(question) and not _OPEN_SLOT_COUNT_Q.search(question))
+    coop_codes = bool(_COOP_CODE_CHOICES.search(question) and "ไม่สหกิจ" not in question
+                      and not _CODE8.search(question) and not re.search(r"บริษัท|สถานที่|ที่ไหน|ถ้า|หาก", question))
+    scoped = re.sub(r"แผน|สหกิจ", "", question) if coop_codes else question
+    return bool(_TERM_YEAR_NUM.search(question) and _TERM_SEM_NUM.search(question)
+                and (_TERM_CHOICES_ASK.search(question) or coop_codes)
+                and not _TERM_CHOICES_BAIL.search(scoped) and not _OPEN_SLOT_COUNT_Q.search(question))
 
 
 def _term_choices_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -1418,6 +1425,10 @@ def _term_choices_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     year, sem = int(_TERM_YEAR_NUM.search(question).group(1)), int(_TERM_SEM_NUM.search(question).group(1))
     sql = ("SELECT year, semester, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot "
            f"WHERE year = {year} AND semester = {sem} ORDER BY id")
+    if _COOP_CODE_CHOICES.search(question):
+        sql = sql.replace(" ORDER BY id", " AND kind IN ('choose_one', 'choose_group') AND id IN "
+                          "(SELECT m.slot_id FROM plan_slot_member m JOIN course c ON c.code = m.code "
+                          "WHERE c.name_th LIKE '%สหกิจ%') ORDER BY id")
     try:
         slots = [dict(r) for r in conn.execute(sql).fetchall()]
     except sqlite3.OperationalError:
@@ -2495,7 +2506,8 @@ def _remove_hinted_name(question: str, raw: str) -> str:
 
 def _has_prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """"วิชา X มีวิชาบังคับก่อนหรือเปล่า" → มี (ลิสต์) / ไม่มี (ยืนยันจากเล่ม); วิชาเดียวเท่านั้น; มีทางเลือก "หรือ"/ไม่ทราบสถานะ/ส่วนอื่นค้าง = None"""
-    if not _HAS_PREREQ_YN.search(question):
+    source_query = bool(_CODE8.search(question) and re.search(r"ระบุวิชาที่ต้องผ่านก่อน|มีวิชาบังคับก่อนที่ระบุไว้(?:หรือไม่)", question))
+    if not _HAS_PREREQ_YN.search(question) and not source_query:
         return None
     _citations_module()
     import course_names
@@ -2516,6 +2528,8 @@ def _has_prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[s
             return None
         raw, code = hints[0]
         remaining = _remove_hinted_name(question, raw)
+    if source_query:
+        remaining = re.sub(r"หลักสูตร|AIT|BIT|DSBA|IT|ไม่สหกิจ|สหกิจ|รหัส|ระบุวิชาที่ต้องผ่านก่อน|ไว้อย่างไร|ที่ระบุไว้", "", remaining)
     if _strip_punct(_HAS_PREREQ_TAIL.sub("", remaining)):
         return None
     names = {c["code"]: c["name_th"] for c in courses}

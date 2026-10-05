@@ -66,6 +66,12 @@ def test_prerequisite_yesno_code_is_scoped_and_handles_unknown():
         assert rows[0]['code'] == '00000001'
         answer, _, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000003 มีวิชาบังคับก่อนไหม')
         assert 'ยังไม่ทราบ' in answer
+        for question in ('หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000001 ไว้อย่างไร',
+                         'DSBA ไม่สหกิจ รหัส 00000001 มีวิชาบังคับก่อนที่ระบุไว้หรือไม่'):
+            result = m._has_prereq_yesno_answer(conn, question)
+            assert result is not None and 'ไม่มีวิชาบังคับก่อน' in result[0]
+        assert m._has_prereq_yesno_answer(conn, 'หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000003 ไว้อย่างไร')[1][0]['prerequisite_status'] == 'not_found'
+        assert m._has_prereq_yesno_answer(conn, 'หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000001 ไว้อย่างไร และหน่วยกิตเท่าไร') is None
         for question in ['วิชา 99999999 มีวิชาบังคับก่อนไหม',
                          'วิชา 00000001 กับ 00000002 มีวิชาบังคับก่อนไหม',
                          'วิชา 00000001 มีวิชาบังคับก่อนไหม และเรียนปีไหน',

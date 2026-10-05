@@ -765,6 +765,17 @@ def test_term_choices_list_the_members_of_an_a_or_b_slot(tmp_path, monkeypatch):
     assert "06026259 สหกิจศึกษา" in r["answer"] and "06026260 สหกิจศึกษาต่างประเทศ" in r["answer"] and "A หรือ B" in r["answer"]
 
 
+@pytest.mark.parametrize('question', [
+    'ขอรหัสตัวเลือกสหกิจในปี 4 เทอม 2 ของแผน BIT สหกิจทั้งหมด',
+    'รหัสวิชาสหกิจที่เลือกได้ในปี 4 เทอม 2 ของ DSBA สหกิจมีอะไรบ้าง',
+    'IT สหกิจให้เลือกวิชาสหกิจรหัสอะไรได้บ้างในปี 4 เทอม 2',
+])
+def test_explicit_coop_code_choices_use_only_the_scoped_slot(tmp_path, monkeypatch, question):
+    result = _ask_term(tmp_path, monkeypatch, question)
+    assert result['model_calls'] == 0
+    assert set(re.findall(r'\b[0-9]{8}\b', result['answer'])) == {'06026259', '06026260'}
+
+
 @pytest.mark.parametrize("question", [
     "ปี 1 เทอม 1 เลือกอะไรได้บ้าง",                 # เทอมนี้ไม่มีช่องเลือก → ทางเดิม
     "ปี 4 เทอม 1 เลือกอะไรได้กี่หน่วยกิต",           # ถามจำนวน → ทางเดิม
