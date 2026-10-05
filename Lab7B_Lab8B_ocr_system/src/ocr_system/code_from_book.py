@@ -487,21 +487,43 @@ def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
 
 
 def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dict]:
-    """กฎ 5: วิชารหัสจริงที่ name_en ว่าง -> ชื่ออังกฤษที่เล่มพิมพ์ (ไม่ทับค่าที่มีอยู่แล้ว)
+    """กฎ 5: เติมชื่ออังกฤษที่ว่าง; แก้ alias ที่คัดลอกข้ามรหัสเมื่อชื่อไทยเต็ม+sourceซ้ำยืนยัน
     เลือกแบบที่พบ >= 2 จุดและมากกว่าแบบอื่นชัดเจน; ถ้าเสมอ/พบจุดเดียว ใช้ได้เฉพาะแบบเดียวที่ Typhoon (Markdown)
     ก็อ่านได้ตรงกัน (เล่ม "NOSQL" 2 ครั้ง / "NOSOL" 2 ครั้ง -> Markdown มี NOSQL) ไม่งั้นปล่อยว่าง ไม่เดา"""
     names = book_english_names(book_text)
+    index = book_index(book_text)
+    source_pages: dict[str, set[int]] = {}
+    page = None
+    for line in book_text.splitlines():
+        marker = re.match(r'^--- Page (\d+) ---', line)
+        if marker:
+            page = int(marker.group(1))
+        header = BOOK_LINE_RE.search(line)
+        if header and page is not None:
+            source_pages.setdefault(header.group(1), set()).add(page)
+    owners: dict[str, set[str]] = {}
+    for course in courses:
+        current = re.sub(r'\s+', ' ', str(course.get('name_en') or '')).strip().upper()
+        if current:
+            owners.setdefault(current, set()).add(str(course.get('code') or ''))
     md_key = re.sub(r"\s+", "", re.sub(r"<[^>]+>", " ", md)).upper()
     done: list[dict] = []
     for c in courses:
         code = str(c.get("code") or "").strip()
-        if not re.fullmatch(r"\d{8}", code) or str(c.get("name_en") or "").strip() or code not in names:
+        current = str(c.get('name_en') or '').strip()
+        if not re.fullmatch(r"\d{8}", code) or code not in names:
             continue
         if str(c.get("name_th") or "").strip().startswith(SKIP_PREFIXES):
             continue                      # ช่องวิชาเลือกที่ LLM ประทับรหัสจริง — ไม่ใช่วิชานั้น (เหมือนกฎ 3)
         ranked = sorted(names[code].items(), key=lambda kv: -kv[1])
         top_n = ranked[0][1]
         second = ranked[1][1] if len(ranked) > 1 else 0
+        if current:
+            normalized = re.sub(r'\s+', ' ', current).upper()
+            if (normalized in names[code] or len(owners.get(normalized, set())) < 2
+                    or len(ranked) != 1 or top_n < 2 or len(source_pages.get(code, set())) < 2
+                    or index.get(code, {}).get('key') != normalize(c.get('name_th') or '')):
+                continue
         if top_n >= 2 and top_n > second:
             name = ranked[0][0]
         else:
@@ -509,6 +531,9 @@ def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dic
             if len(in_md) != 1:
                 continue
             name = in_md[0]
+        if current:
+            c['_english_from_book'] = {'from': current, 'via': 'repeated_title_duplicate_alias',
+                                      'source_count': top_n, 'pdf_pages': sorted(source_pages[code])}
         c["name_en"] = name
         done.append({"action": "name_en", "to": code, "name_en": name})
     return done

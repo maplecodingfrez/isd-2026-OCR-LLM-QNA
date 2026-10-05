@@ -56,6 +56,22 @@ def test_prereq_heading_with_dropped_leading_credit_digit():
 import code_from_book as cfb
 
 
+def test_duplicate_wrong_english_alias_requires_repeated_exact_title_evidence():
+    rows = [{'code':'00000001','name_th':'วิชาแรก','name_en':'SECOND COURSE'},
+            {'code':'00000002','name_th':'วิชาสอง','name_en':'SECOND COURSE'}]
+    source = ('--- Page 1 ---\n00000001 วิชาแรก 3(3-0-6)\nFIRST COURSE\n'
+              '--- Page 100 ---\n00000001 วิชาแรก 3(3-0-6)\nFIRST COURSE\n')
+    assert cfb.fill_english_names('',rows,source)
+    assert rows[0]['name_en'] == 'FIRST COURSE' and rows[1]['name_en'] == 'SECOND COURSE'
+    assert not cfb.fill_english_names('',rows,source)
+    for bad_source in (source.split('--- Page 100 ---')[0], source.replace('--- Page 100 ---',''), source.replace('FIRST COURSE\n','OTHER COURSE\n',1),
+                       source.replace('วิชาแรก','วิชาอื่น')):
+        candidate = [{'code':'00000001','name_th':'วิชาแรก','name_en':'SECOND COURSE'},
+                     {'code':'00000002','name_th':'วิชาสอง','name_en':'SECOND COURSE'}]
+        assert not cfb.fill_english_names('',candidate,bad_source)
+        assert candidate[0]['name_en'] == 'SECOND COURSE'
+
+
 def test_missing_zero_credit_plan_row_requires_unambiguous_table_neighbors():
     rows = [{'code': '00000001', 'year': 1, 'semester': 1},
             {'code': '00000002', 'year': 1, 'semester': 1}]

@@ -335,8 +335,20 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
-      "prerequisite": "ไม่มี"
+      "name_en": "REQUIREMENT ENGINEERING",
+      "prerequisite": "ไม่มี",
+      "_english_from_book": {
+        "from": "SERVER-SIDE WEB DEVELOPMENT",
+        "via": "repeated_title_duplicate_alias",
+        "source_count": 4,
+        "pdf_pages": [
+          25,
+          35,
+          42,
+          84,
+          330
+        ]
+      }
     },
     {
       "code": "06016417",
@@ -346,8 +358,19 @@
       "semester": 1,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
-      "prerequisite": "ไม่มี"
+      "name_en": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
+      "prerequisite": "ไม่มี",
+      "_english_from_book": {
+        "from": "SERVER-SIDE WEB DEVELOPMENT",
+        "via": "repeated_title_duplicate_alias",
+        "source_count": 4,
+        "pdf_pages": [
+          25,
+          35,
+          42,
+          330
+        ]
+      }
     },
     {
       "code": "06016418",
