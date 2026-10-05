@@ -281,7 +281,7 @@
     {
       "code": "06016424",
       "name_th": "การออกแบบส่วนต่อประสานกับมนุษย์",
-      "name_en": "VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA",
+      "name_en": "HUMAN INTERFACE DESIGN",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -321,7 +321,7 @@
     {
       "code": "06016416",
       "name_th": "วิศวกรรมความต้องการ",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
+      "name_en": "REQUIREMENT ENGINEERING",
       "credits": 3,
       "lecture_h": 3,
       "lab_h": 0,
@@ -331,7 +331,7 @@
     {
       "code": "06016417",
       "name_th": "เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์",
-      "name_en": "SERVER-SIDE WEB DEVELOPMENT",
+      "name_en": "SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS",
       "credits": 3,
       "lecture_h": 2,
       "lab_h": 2,

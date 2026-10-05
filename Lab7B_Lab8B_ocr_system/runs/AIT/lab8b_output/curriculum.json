@@ -337,6 +337,16 @@
       "lab_h": 2,
       "self_h": 1,
       "description_th": null
+    },
+    {
+      "code": "90641008",
+      "name_th": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ",
+      "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+      "credits": 0,
+      "lecture_h": 0,
+      "lab_h": 0,
+      "self_h": 45,
+      "description_th": null
     }
   ],
   "plan": [
@@ -603,6 +613,14 @@
       "credits": 1,
       "alt_group": null,
       "note": null
+    },
+    {
+      "year": 1,
+      "semester": 1,
+      "code": "90641008",
+      "credits": 0,
+      "alt_group": null,
+      "note": null
     }
   ],
   "prerequisites": [
@@ -624,6 +642,16 @@
     {
       "code": "06046406",
       "requires": "06046402",
+      "kind": "pre"
+    },
+    {
+      "code": "90641009",
+      "requires": "90641008",
+      "kind": "pre"
+    },
+    {
+      "code": "90641010",
+      "requires": "90641009",
       "kind": "pre"
     },
     {

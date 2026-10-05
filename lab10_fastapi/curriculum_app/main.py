@@ -5,6 +5,7 @@ import os
 import sqlite3
 import sys
 import threading
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -157,6 +158,7 @@ _INFRA_ERRORS = {"ConnectionError", "Timeout", "ReadTimeout", "ConnectTimeout", 
 
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
+    started = time.perf_counter()
     db_path = program_db_path(request.program)
     if db_path is None:
         raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{request.program}' - ใช้ได้: {', '.join(PROGRAMS)}")
@@ -165,6 +167,8 @@ def ask(request: AskRequest) -> dict:
     conn = lab8b.open_db(str(db_path), readonly=True)
     try:
         result = lab8b.ask(conn, request.question, verbose=False)
+        from course_display import format_course_answer
+        format_course_answer(conn, result)
     except requests.RequestException as exc:
         raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้") from exc
     finally:
@@ -176,6 +180,7 @@ def ask(request: AskRequest) -> dict:
         # ตอบ "ไม่พบ" แทน HTTP error (ซื่อตรงกว่าเดา และกติกา Challenge ถือว่า error ระหว่างทดสอบ = 0)
         result["answer"], result["rows"], result["error"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", [], None
     result["program"] = request.program
+    result["processing_seconds"] = round(time.perf_counter() - started, 4)
     return result
 
 
@@ -191,4 +196,17 @@ def get_course_prerequisites(code: str, program: str | None = Query(default=None
 
     if not data:
         raise HTTPException(status_code=404, detail=f"ไม่พบรายวิชารหัส {code} ในฐานข้อมูลหลักสูตร")
+    return data
+
+
+@app.get("/api/courses/{code}/withdrawal-impact", tags=["Prerequisites"])
+def get_withdrawal_impact(code: str, program: str | None = Query(default=None)) -> dict:
+    if not code.isascii() or not code.isdigit() or len(code) != 8:
+        raise HTTPException(status_code=422, detail="รหัสวิชาต้องเป็นตัวเลข 8 หลัก")
+    try:
+        data = _database_for(program).withdrawal_impact(code)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบรายวิชารหัส {code} ในหลักสูตรที่เลือก")
     return data

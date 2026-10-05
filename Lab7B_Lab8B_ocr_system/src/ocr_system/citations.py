@@ -113,8 +113,22 @@ def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, st
     last = None
     n_confirmed = 0
     for pdf, chunk in zip(pages, chunks):
+        printed = printed_by_pdf.get(pdf)
+        tags = set(PAGE_NUMBER_TAG_RE.findall(chunk))
+        if printed is None and len(tags) == 1:
+            # The aligned image tag must also agree with independent neighboring OCR.
+            printed = consistent_printed({**printed_by_pdf, pdf: next(iter(tags))}).get(pdf)
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
         has_heading = bool(terms)
+        if has_heading and last is not None:
+            leading = HEADING_RE.split(chunk, maxsplit=1)[0]
+            codes = set(re.findall(r'(?<!\d)\d{8}(?!\d)', leading))
+            book_leading = HEADING_RE.split((book_text_by_pdf or {}).get(pdf, ''), maxsplit=1)[0]
+            confirmed = book_text_by_pdf is None or (bool(codes) and
+                len(codes & set(re.findall(r'(?<!\d)\d{8}(?!\d)', book_leading))) * 2 >= len(codes))
+            if '<table' in leading and codes and confirmed:
+                out.append({'year': last[0], 'semester': last[1], 'pdf_page': pdf,
+                            'printed_page': printed})
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
         if terms and book_text_by_pdf is not None and not _confirmed(chunk, terms, book_text_by_pdf.get(pdf, "")):
@@ -123,7 +137,7 @@ def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, st
         if has_heading:
             n_confirmed += 1
         for y, s in dict.fromkeys(terms):
-            out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed_by_pdf.get(pdf)})
+            out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed})
         if terms:
             last = terms[-1]
     return out, n_confirmed
@@ -222,6 +236,29 @@ def add_course_names(conn: sqlite3.Connection, cites: list[dict]) -> None:
             found = {c: names[c] for c in cite.get("courses") or [] if c in names}
             if found:
                 cite[key] = found
+
+
+def catalog_citations(rows: list[dict], courses: list[dict], pages: list[dict]) -> list[dict]:
+    """อ้างเฉพาะหน้าต้นทาง catalog ที่มีรหัสจริง ไม่ใช้หน้าคำอธิบาย/ภาคผนวกแทน
+    ผู้เรียกจำกัด pages ตาม source manifest แล้ว; เก็บทุกหน้าที่รองรับผลลัพธ์ ไม่ตัดเหลือ MAX_CITED
+    เพราะรายการวิชาเลือกหนึ่งคำตอบอาจกระจายเกินสามหน้า"""
+    names = {c["code"]: c for c in courses}
+    codes = sorted({str(r.get("code", "")) for r in rows} & names.keys())
+    printed = consistent_printed({int(p["page"]): printed_page(p.get("text") or "") for p in pages})
+    out = []
+    for page in sorted(pages, key=lambda p: int(p["page"])):
+        found = sorted(set(CODE_RE.findall(page.get("text") or "")) & set(codes))
+        if not found:
+            continue
+        pdf = int(page["page"])
+        cite = {"pdf_page": pdf, "printed_page": printed.get(pdf), "courses": found}
+        for key, field in (("course_names", "name_th"), ("course_names_en", "name_en")):
+            values = {code: names[code][field].strip() for code in found
+                      if isinstance(names[code].get(field), str) and names[code][field].strip()}
+            if values:
+                cite[key] = values
+        out.append(cite)
+    return out
 
 
 def format_citation(cites: list[dict]) -> str:

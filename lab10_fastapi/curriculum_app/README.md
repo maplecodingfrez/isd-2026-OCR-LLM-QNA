@@ -48,6 +48,25 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
 | `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้า SQLite |
 | `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) |
 | `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
+| `GET` | `/api/courses/{code}/withdrawal-impact` | ตรวจตัวต่อโดยตรง/ทางอ้อมที่อาจได้รับผลกระทบเมื่อถอนวิชา |
+
+### Current UI / archived chat design
+
+The active page has returned to the pre-chat form interface: curriculum selection, questions, prerequisites, and withdrawal impact. Bilingual names, full credit notation, and elective accordions remain available.
+
+The chat UI, design documents, and compatible backend snapshot are archived outside the repository at `D:/DSBA 3rd Year/Works/archived/curriculum-chat-ui-2026-10-04-225903`. Browser chat history is retained in localStorage but is not displayed by the current UI.
+
+Backend routing, SQLite schema, and existing API endpoints are unchanged by the UI rollback. Additive `answer_type`, `processing_seconds`, and prerequisite `citations` metadata remain available.
+
+### ขอบเขตผลกระทบการถอน
+
+คำถาม เช่น `ถ้าถอนวิชา 90644007 ออกไป` ใช้ reverse prerequisite graph เดียวกับเครื่องมือตรวจผลกระทบ แสดงตัวต่อโดยตรง/ทางอ้อม พร้อมเงื่อนไขทางเลือกหรือเรียนร่วมกันและชื่อสองภาษา ไม่ต้องเรียก Qwen เพื่อเดาคู่ prerequisite; คำถามอื่นยังใช้ routing เดิม
+
+แก้การสกัด prerequisite ที่ต้นฉบับระบุเป็นชื่อเต็มแทนรหัส เช่น FOUNDATION ENGLISH 1 โดยยอมรับเฉพาะชื่อที่ตรงและมีรหัสเดียว DSBA ทั้งสองแผนจึงมีคู่ `90644008 → requires 90644007` ตาม PDF209 (หน้าพิมพ์208) จำนวนคู่เพิ่มจาก5เป็น6 ชุด Gold ที่ล็อกไว้ยังคงค่า5 จึงมีข้อประเมิน F4 ของ DSBA สองแผนที่ต้องแก้ baseline แยกก่อนอ้างผลชุดเดิม
+
+ช่องตรวจผลกระทบใช้หลักสูตร/แผนที่เลือกด้านบน รับรหัสวิชา 8 หลัก และอ่านความสัมพันธ์จาก SQLite โดยไม่ใช้ LLM หรือแก้ฐานข้อมูล ผลลัพธ์แยกตัวต่อโดยตรงและทางอ้อม พร้อมตัวอย่างเส้นทางสั้นที่สุด เงื่อนไขทางเลือก (`หรือ`) และเรียนร่วมกัน รวมถึงหน้า PDF ของคำอธิบายวิชาที่มีข้อมูลอ้างอิง
+
+นี่คือรายวิชาที่อาจได้รับผลกระทบ หากถอนแล้วผู้ใช้ยังไม่เคยผ่านวิชาต้นทาง ไม่ใช่การยืนยันสิทธิ์ลงทะเบียนส่วนบุคคล เพราะยังไม่ได้รับประวัติวิชาที่ผ่านแล้ว วิชาทางเลือกที่ผ่าน และตารางลงทะเบียนของผู้ใช้ หากไม่พบเส้นทาง ระบบระบุว่าไม่พบความสัมพันธ์ในข้อมูล แทนการรับรองว่าไม่มีผลกระทบ
 
 ### การใช้งาน API ตรวจสอบวิชาบังคับก่อน (`GET /api/courses/{code}/prerequisites`)
 * **Path Parameter**: `code` รหัสวิชา 8 หลัก (เช่น `06016407`)
