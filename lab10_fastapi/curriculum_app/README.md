@@ -85,6 +85,8 @@ Backend routing, SQLite schema, and existing API endpoints are unchanged by the 
 
 ### หลักฐาน readiness รอบ 2026-10-05
 
+ตัวย่อที่นำจาก `backup_catoz@8bfe8b5` มาใช้กับ resolver เดิม: `ISAD`, `DSA/DSAA/DSDA`, `PSP/PSCP`, `DISCRETE`, `ITF`, `CNI/COMM NET`, `BDS`, `ERP`, `BISAD`, `AIoT`, `NoSQL DB` (15รูปสะกดใหม่). ต้องตรงวิชาเดียวในข้อมูลหลักสูตรที่เลือก; case/context และขอบคำเดิมยังใช้ เช่น `วิชา dsa รหัสอะไร`. `ISD` มีอยู่แล้ว; ยังไม่เพิ่ม `CRM` ที่ไม่พบวิชาตรงในข้อมูลปัจจุบัน และ `NLP` ที่ตรง2วิชา ไม่คัดลอกกฎเลือก exact แทนผลกำกวมหรือ bypass ตัวเล็ก2ตัวอักษร. ทดสอบ105resolver casesใน7DB (61positive/44ไม่มีวิชา) และ79regressionผ่าน
+
 GE66 ที่ใช้งานมาจาก PDF text layer และข้อมูลที่ตรวจต้นฉบับ ไม่ใช่ผล image OCR ทั้งเล่ม; candidate Tesseract/Typhoon ยังไม่ใช้แทนข้อมูล production การแก้ source เฉพาะหน้าและ SQLite ต้องแยกจากผล pipeline OCR ล้วนในการสาธิต/รายงาน
 
 - Chrome จริงตรวจ idle/loading/success/error, retry, เปลี่ยนแผน, ทิ้งคำตอบเก่าหลังเปลี่ยนแผน และมือถือ 390×844 แล้ว; 8 checks ผ่าน ไม่มี JavaScript exception
