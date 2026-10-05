@@ -6,6 +6,53 @@ import lab8b_curriculum_db as m
 from prereq_from_book import extract_prerequisites
 
 
+def test_prerequisite_status_never_confuses_missing_or_conflicting_data():
+    with sqlite3.connect(":memory:") as conn:
+        conn.executescript("""
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT);
+        CREATE TABLE prerequisite_status(code TEXT, status TEXT);
+        INSERT INTO prerequisite_status VALUES
+          ('00000001','none'),('00000002','found'),('00000003','not_found'),
+          ('00000004','unreadable'),('00000005','none'),('00000006','found');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre'),
+          ('00000005','00000001','pre');
+        """)
+        for code, expected in [('00000001','none'),('00000002','found'),
+                               ('00000003','not_found'),('00000004','unreadable'),
+                               ('00000005','unknown'),('00000006','unknown'),
+                               ('99999999','unknown')]:
+            assert m.prerequisite_status(conn, code) == expected
+        conn.execute('DROP TABLE prerequisite_status')
+        assert m.prerequisite_status(conn, '00000001') == 'unknown'
+
+
+def test_prerequisite_yesno_code_is_scoped_and_handles_unknown():
+    with sqlite3.connect(":memory:") as conn:
+        conn.row_factory = sqlite3.Row
+        conn.executescript("""
+        CREATE TABLE course(code TEXT, name_th TEXT, name_en TEXT, credits INTEGER);
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT);
+        CREATE TABLE prerequisite_alt(code TEXT, requires TEXT, group_no INTEGER);
+        CREATE TABLE prerequisite_status(code TEXT, status TEXT);
+        INSERT INTO course VALUES ('00000001','วิชาแรก','FIRST',3),
+          ('00000002','วิชาสอง','SECOND',3),('00000003','วิชาสาม','THIRD',3);
+        INSERT INTO prerequisite_status VALUES ('00000001','none'),
+          ('00000002','found'),('00000003','not_found');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre');
+        """)
+        answer, rows, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000001 มีวิชาบังคับก่อนไหม')
+        assert 'ไม่มีวิชาบังคับก่อน' in answer and rows[0]['code'] == '00000001'
+        answer, rows, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000002 มีวิชาบังคับก่อนไหม')
+        assert rows[0]['code'] == '00000001'
+        answer, _, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000003 มีวิชาบังคับก่อนไหม')
+        assert 'ยังไม่ทราบ' in answer
+        for question in ['วิชา 99999999 มีวิชาบังคับก่อนไหม',
+                         'วิชา 00000001 กับ 00000002 มีวิชาบังคับก่อนไหม',
+                         'วิชา 00000001 มีวิชาบังคับก่อนไหม และเรียนปีไหน',
+                         'วิชา 00000001 วิชาสอง มีวิชาบังคับก่อนไหม']:
+            assert m._has_prereq_yesno_answer(conn, question) is None
+
+
 def test_course_display_preserves_zero_hours_and_never_fills_missing_hours():
     from course_display import add_course_display
     from lab10_fastapi.curriculum_app.schemas import CoursePrerequisitesResponse
@@ -63,6 +110,39 @@ def test_reverse_impact_handles_branch_cycle_alternative_and_corequisite(tmp_pat
     assert db.withdrawal_impact("00000005")["direct"][0]["code"] == "00000002"
     assert db.withdrawal_impact("99999999") is None
     assert db.withdrawal_impact("00000004")["direct"] == []
+
+
+def test_prerequisite_header_code_fallback_requires_unique_full_title():
+    names = {'90644007': ['FOUNDATION ENGLISH 1'],
+             '90644008': ['FOUNDATION ENGLISH 2']}
+    lines = ['--- Page 220 ---', '90641008 ภาษาอังกฤษพื้นฐาน 2 3 (3-0-6)',
+             'FOUNDATION ENGLISH 2', 'PREREQUISITE : FOUNDATION ENGLISH 1']
+    result = extract_prerequisites(lines, ['90644008'], known_codes=names,
+                                   course_names=names)['90644008']
+    assert result['status'] == 'found' and result['requires'] == ['90644007']
+    assert result['source_headers'] == [{'code': '90641008', 'line': 2, 'pdf_page': 220}]
+    names['99999999'] = ['FOUNDATION ENGLISH 2']
+    assert extract_prerequisites(lines, ['90644008'], course_names=names)['90644008']['status'] == 'not_found'
+    names.pop('99999999')
+    names['90641008'] = ['DIFFERENT REAL COURSE']
+    assert extract_prerequisites(lines, ['90644008'], course_names=names)['90644008']['status'] == 'not_found'
+
+
+def test_conflicting_prerequisite_occurrences_do_not_use_majority_vote():
+    lines = ['00000002 TARGET 3 (3-0-6)', 'PREREQUISITE : NONE',
+             '00000002 TARGET 3 (3-0-6)', 'PREREQUISITE : 00000001 SOURCE']
+    result = extract_prerequisites(lines, ['00000002'])['00000002']
+    assert result['status'] == 'unreadable' and result['requires'] == []
+    assert result['note'] == 'conflicting_occurrences'
+
+
+def test_prerequisite_header_rejects_another_known_full_title():
+    names = {'00000001': ['FIRST COURSE'], '00000002': ['SECOND COURSE']}
+    lines = ['00000001 FIRST COURSE 3 (3-0-6)', 'SECOND COURSE',
+             'PREREQUISITE : NONE']
+    result = extract_prerequisites(lines, ['00000001'], known_codes=names,
+                                   course_names=names)['00000001']
+    assert result['status'] == 'not_found'
 
 
 def test_name_prerequisite_requires_exact_unique_name():

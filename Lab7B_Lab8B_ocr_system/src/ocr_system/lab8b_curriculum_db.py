@@ -1528,6 +1528,21 @@ def _prereq_statuses(conn: sqlite3.Connection) -> dict[str, str] | None:
     return got or None
 
 
+def prerequisite_status(conn: sqlite3.Connection, code: str) -> str:
+    """Return explicit source status; absent or contradictory evidence is unknown."""
+    status = (_prereq_statuses(conn) or {}).get(code, "unknown")
+    try:
+        has_edges = bool(conn.execute(
+            "SELECT 1 FROM prerequisite WHERE code = ? LIMIT 1", (code,)).fetchone())
+    except sqlite3.OperationalError:
+        return "unknown"
+    if status not in {"found", "none", "not_found", "unreadable"}:
+        return "unknown"
+    if (status == "found") != has_edges:
+        return "unknown"
+    return status
+
+
 def _no_prereq_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """วิชาในแผน (ระบุปี/เทอมในคำถามได้) ที่ "ยืนยันว่าไม่มีวิชาบังคับก่อน" = ไม่มีแถว prerequisite และไม่อยู่ใน prerequisite_alt และ
     (ถ้า DB มีสถานะ) สถานะ none — วิชาที่ not_found/unreadable (อ่านจากเล่มไม่ได้) ไม่นับ แต่บอกจำนวน/รายชื่อแยกว่า "ไม่ทราบ" """
@@ -2413,7 +2428,7 @@ def _remove_hinted_name(question: str, raw: str) -> str:
 
 def _has_prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """"วิชา X มีวิชาบังคับก่อนหรือเปล่า" → มี (ลิสต์) / ไม่มี (ยืนยันจากเล่ม); วิชาเดียวเท่านั้น; มีทางเลือก "หรือ"/ไม่ทราบสถานะ/ส่วนอื่นค้าง = None"""
-    if not _HAS_PREREQ_YN.search(question) or _CODE8.search(question):
+    if not _HAS_PREREQ_YN.search(question):
         return None
     _citations_module()
     import course_names
@@ -2422,23 +2437,33 @@ def _has_prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[s
         req, alt = _requires_map(conn)
     except sqlite3.OperationalError:
         return None
-    hints = course_names.course_hints(question, courses)
-    if len({c for _, c in hints}) != 1 or len({_name_key(r) for r, _ in hints}) != 1:
-        return None
-    raw, code = hints[0]
-    if _strip_punct(_HAS_PREREQ_TAIL.sub("", _remove_hinted_name(question, raw))):
+    codes = list(dict.fromkeys(_CODE8.findall(question)))
+    if codes:
+        if len(codes) != 1 or codes[0] not in {c['code'] for c in courses}:
+            return None
+        code = codes[0]
+        remaining = question.replace(code, "")
+    else:
+        hints = course_names.course_hints(question, courses)
+        if len({c for _, c in hints}) != 1 or len({_name_key(r) for r, _ in hints}) != 1:
+            return None
+        raw, code = hints[0]
+        remaining = _remove_hinted_name(question, raw)
+    if _strip_punct(_HAS_PREREQ_TAIL.sub("", remaining)):
         return None
     names = {c["code"]: c["name_th"] for c in courses}
     name = f"{names.get(code, code)} ({code})"
     sql = f"SELECT requires FROM prerequisite WHERE code = '{code}' AND kind = 'pre'"
     if code in alt:
         return None
-    if req.get(code):
+    status = prerequisite_status(conn, code)
+    if status == "found" and req.get(code):
         listed = ", ".join(f"{r} {names.get(r, '')}".strip() for r in sorted(req[code]))
         return f"{name} มีวิชาบังคับก่อน: {listed}", [{"code": r, "name_th": names.get(r)} for r in sorted(req[code])], sql
-    if (_prereq_statuses(conn) or {}).get(code) == "none":
+    if status == "none":
         return f"{name} ไม่มีวิชาบังคับก่อน", [{"code": code, "name_th": names.get(code), "requires": None}], sql
-    return None
+    return (f"{name} ยังไม่ทราบข้อมูลวิชาบังคับก่อน กรุณาตรวจเล่มหลักสูตร",
+            [{"code": code, "name_th": names.get(code), "prerequisite_status": status}], sql)
 
 
 # ---- "A กับ B วิชาไหนเรียนก่อน" — เทียบเทอมแรกที่พบในแผน (+ บอกถ้าเป็นวิชาบังคับก่อนของกัน) ----
