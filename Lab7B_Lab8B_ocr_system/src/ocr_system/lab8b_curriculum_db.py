@@ -1537,7 +1537,7 @@ def prerequisite_status(conn: sqlite3.Connection, code: str) -> str:
     status = (_prereq_statuses(conn) or {}).get(code, "unknown")
     try:
         has_edges = bool(conn.execute(
-            "SELECT 1 FROM prerequisite WHERE code = ? LIMIT 1", (code,)).fetchone())
+            "SELECT 1 FROM prerequisite WHERE code = ? AND kind = 'pre' LIMIT 1", (code,)).fetchone())
     except sqlite3.OperationalError:
         return "unknown"
     if status not in {"found", "none", "not_found", "unreadable"}:
@@ -2718,7 +2718,8 @@ def _prereq_chain_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     rows = [{"code": c, "name_th": names.get(c), "level": i, "year": (terms.get(c) or (None, None))[0], "semester": (terms.get(c) or (None, None))[1]}
             for i, lv in enumerate(levels, 1) for c in lv]
     return (f"ก่อนลง {label(target)} ต้องผ่าน — " + " | ".join(parts), rows,
-            "SELECT code, requires FROM prerequisite WHERE kind = 'pre'")
+            "SELECT code, requires FROM prerequisite WHERE kind = 'pre' AND code IN ("
+            + ', '.join(f"'{c}'" for c in sorted(seen & set(req))) + ')')
 
 
 # ---- "X รหัสอะไร กี่หน่วยกิต" (วิชาเดียว ชื่อเต็ม) — รหัสและหน่วยกิตในคำตอบเดียว ----
@@ -4000,13 +4001,18 @@ def _question_years(question: str) -> set[int]:
     return years
 
 
-def _prereq_pair_pages(conn: sqlite3.Connection) -> list[dict]:
+def _prereq_pair_pages(conn: sqlite3.Connection, codes: set[str] | None = None) -> list[dict]:
     """หน้าคำอธิบายรายวิชา (kind='description') ของวิชาที่มีแถวใน prerequisite — ไม่มีหน้าเดียวที่ระบุทั้งคำตอบ จึงอ้างหน้าที่
-    มาของคู่เหล่านั้น (ไม่จำกัดจำนวนหน้า เพื่อให้ไม่มีวิชาตกหล่น เรียงตามหน้า); ไม่มีหน้า/ไม่มีตาราง = [] (ไม่เดา)"""
+    มาของคู่เหล่านั้น (ไม่จำกัดจำนวนหน้า เรียงตามหน้า); codes ระบุเป้าหมายได้รวมกรณี none;
+    ไม่มีหน้า/ไม่มีตาราง = [] (ไม่เดา)"""
     try:
+        if codes is not None and not codes:
+            return []
+        where = ("cp.code IN (SELECT code FROM prerequisite)" if codes is None else
+                 f"cp.code IN ({','.join('?' for _ in codes)})")
         got = conn.execute("SELECT cp.pdf_page, cp.printed_page, cp.code FROM course_page cp "
-                           "WHERE cp.kind = 'description' AND cp.code IN (SELECT code FROM prerequisite) "
-                           "ORDER BY cp.pdf_page, cp.code").fetchall()
+                           f"WHERE cp.kind = 'description' AND {where} "
+                           "ORDER BY cp.pdf_page, cp.code", tuple(sorted(codes)) if codes is not None else ()).fetchall()
     except sqlite3.OperationalError:
         return []
     by_page: dict[tuple, list[str]] = {}
@@ -4058,6 +4064,32 @@ def _attach_citations(conn: sqlite3.Connection, result: dict[str, Any]) -> None:
         citations.add_course_names(conn, result["citations"])
         result["citation_text"] = citations.format_citation(result["citations"])
         return
+    sql = result.get('sql') or ''
+    if re.search(r'\b(?:FROM|JOIN)\s+prerequisite\b', sql, re.I):
+        # The target's description states the requirement. A source's plan page
+        # cannot support a reverse edge; none also needs its own description.
+        targets = {quoted or numeric for quoted, numeric in re.findall(
+            r"\b(?:\w+\.)?code\s*=\s*(?:'(\d{8})'|(\d{8})(?![\w.]))", sql, re.I)}
+        for group in re.findall(r'\b(?:\w+\.)?code\s+IN\s*\(([^()]*)\)', sql, re.I):
+            targets.update(_CODE8.findall(group))
+        if not targets:
+            targets = {str(r['code']) for r in result['rows'] if r.get('code')}
+        scoped = bool(targets)
+        if not targets and not re.search(r'\bJOIN\b|\bGROUP\b|\bHAVING\b|\bUNION\b', sql, re.I):
+            source = re.search(r'\bFROM\s+prerequisite\b.*', sql, re.I | re.S)
+            if source:
+                tail = re.split(r'\bORDER\s+BY\b|\bLIMIT\b|\bOFFSET\b', source.group(0), flags=re.I)[0]
+                try:
+                    targets = {str(r[0]) for r in conn.execute('SELECT DISTINCT code ' + tail)}
+                    scoped = True
+                except sqlite3.Error:
+                    pass
+        pages = _prereq_pair_pages(conn, targets if scoped else None)
+        if pages or scoped:
+            result['citations'] = pages
+            citations.add_course_names(conn, pages)
+            result['citation_text'] = citations.format_citation(pages)
+            return
     page_rows = [r for r in result["rows"] if isinstance(r, dict) and r.get("pdf_page")]
     if page_rows:                                          # คำตอบจากโครงสร้างหน่วยกิต: อ้างหน้าที่พบหัวข้อ (ไม่เกิน MAX_CITED หน้า)
         seen: list[tuple] = []
@@ -4271,6 +4303,17 @@ def load_course_pages(conn: sqlite3.Connection, ocr_pages: list[dict],
     for r in rows:
         r["printed_page"] = printed.get(r["pdf_page"])
     book_text = {int(p["page"]): p.get("text") or "" for p in ocr_pages}
+    from prereq_from_book import extract_prerequisites
+    names = {c['code']: [c['name_th'], c['name_en']] for c in courses}
+    source_lines = '\n'.join(f'--- Page {p} ---\n{text}' for p, text in sorted(book_text.items())).splitlines()
+    evidence = extract_prerequisites(source_lines, names, known_codes=names, course_names=names)
+    descriptions = {(code, h['pdf_page']) for code, r in evidence.items()
+                    for h in r.get('source_headers', []) if h['pdf_page'] is not None}
+    for r in rows:
+        if r['kind'] == 'description' and (r['code'], r['pdf_page']) not in descriptions:
+            r['kind'] = 'primary'  # Mentioning a prerequisite is not its own description.
+    rows.extend({'code': code, 'pdf_page': page, 'printed_page': printed.get(page), 'kind': 'description'}
+                for code, page in sorted(descriptions))
     for t in citations.plan_pages(image_names, md_text, printed, book_text):
         conn.execute("INSERT OR IGNORE INTO term_page VALUES (?, ?, ?, ?)",
                      (t["year"], t["semester"], t["pdf_page"], t["printed_page"]))

@@ -55,6 +55,31 @@ def test_prereq_heading_with_dropped_leading_credit_digit():
 
 import code_from_book as cfb
 
+
+def test_missing_zero_credit_plan_row_requires_unambiguous_table_neighbors():
+    rows = [{'code': '00000001', 'year': 1, 'semester': 1},
+            {'code': '00000002', 'year': 1, 'semester': 1}]
+    book = ('--- Page 23 ---\n3.3 แผนการศึกษา\nรหัสวิชา ชื่อวิชา หน่วยกิต\n'
+            '00000001 วิชาแรก 3(3-0-6)\n00000002 วิชาที่สอง 3(3-0-6)\n'
+            '00000003 วิชาศูนย์หน่วยกิต 0(0-0-45)\n'
+            '--- Page 100 ---\n00000003 วิชาศูนย์หน่วยกิต 0(0-0-45)\n')
+    assert cfb.repair_with_book('', rows, book)
+    added = next(r for r in rows if r['code'] == '00000003')
+    assert (added['year'], added['semester'], added['credits']) == (1, 1, '0(0-0-45)')
+    assert added['_code_from_book']['pdf_page'] == 23
+    assert not cfb.repair_with_book('', rows, book)
+    for changed_book, neighbors in [
+        (book.replace('รหัสวิชา ชื่อวิชา หน่วยกิต\n', ''), rows[:2]),
+        (book.replace('3.3 แผนการศึกษา', '3.4 คำอธิบายรายวิชา'), rows[:2]),
+        (book.replace('รหัสวิชา ชื่อวิชา หน่วยกิต', '3.4 คำอธิบายรายวิชา\nรหัสวิชา ชื่อวิชา หน่วยกิต'), rows[:2]),
+        (book, [rows[0], {**rows[1], 'semester': 2}]),
+        (book, [rows[0]]),
+        (book.replace('0(0-0-45)', '3(3-0-6)'), rows[:2]),
+    ]:
+        trial = [dict(r) for r in neighbors]
+        cfb.repair_with_book('', trial, changed_book)
+        assert not any(r['code'] == '00000003' for r in trial)
+
 # Real layout of the book's course-description pages (Tesseract text): heading line, then the English name,
 # sometimes wrapped over two lines.
 BOOK_EN = "\n".join([

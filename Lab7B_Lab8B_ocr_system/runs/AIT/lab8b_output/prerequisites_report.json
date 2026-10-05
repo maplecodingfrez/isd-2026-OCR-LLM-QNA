@@ -1,13 +1,13 @@
 {
-  "source_text": "outputs/ait/ait_curriculum_ocr.txt",
-  "courses": 33,
+  "source_text": "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\outputs\\ait\\ait_curriculum_ocr.txt",
+  "courses": 34,
   "counts": {
-    "found": 6,
-    "none": 24,
+    "found": 7,
+    "none": 25,
     "not_found": 2,
-    "unreadable": 1
+    "unreadable": 0
   },
-  "pairs_inserted": 7,
+  "pairs_inserted": 8,
   "or_groups": 0,
   "per_course": {
     "06046400": {
@@ -16,7 +16,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046400",
+          "line": 10888,
+          "pdf_page": 287
+        }
+      ]
     },
     "06046401": {
       "status": "found",
@@ -26,7 +33,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046401",
+          "line": 10902,
+          "pdf_page": 287
+        }
+      ]
     },
     "06046402": {
       "status": "none",
@@ -34,7 +48,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046402",
+          "line": 10922,
+          "pdf_page": 288
+        }
+      ]
     },
     "06046403": {
       "status": "none",
@@ -42,7 +63,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046403",
+          "line": 10970,
+          "pdf_page": 289
+        }
+      ]
     },
     "06046404": {
       "status": "none",
@@ -50,7 +78,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046404",
+          "line": 11021,
+          "pdf_page": 291
+        }
+      ]
     },
     "06046405": {
       "status": "found",
@@ -60,7 +95,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046405",
+          "line": 11036,
+          "pdf_page": 291
+        }
+      ]
     },
     "06046406": {
       "status": "found",
@@ -71,7 +113,14 @@
       "op": "and",
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046406",
+          "line": 11051,
+          "pdf_page": 292
+        }
+      ]
     },
     "06046407": {
       "status": "none",
@@ -79,7 +128,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046407",
+          "line": 11062,
+          "pdf_page": 292
+        }
+      ]
     },
     "06046408": {
       "status": "none",
@@ -87,7 +143,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046408",
+          "line": 11076,
+          "pdf_page": 292
+        }
+      ]
     },
     "06046409": {
       "status": "none",
@@ -95,7 +158,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046409",
+          "line": 11094,
+          "pdf_page": 293
+        }
+      ]
     },
     "06046410": {
       "status": "none",
@@ -103,7 +173,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046410",
+          "line": 11112,
+          "pdf_page": 293
+        }
+      ]
     },
     "06046411": {
       "status": "none",
@@ -111,7 +188,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046411",
+          "line": 11136,
+          "pdf_page": 294
+        }
+      ]
     },
     "06046412": {
       "status": "none",
@@ -119,7 +203,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046412",
+          "line": 11155,
+          "pdf_page": 295
+        }
+      ]
     },
     "06046413": {
       "status": "none",
@@ -127,7 +218,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046413",
+          "line": 11165,
+          "pdf_page": 295
+        }
+      ]
     },
     "06046414": {
       "status": "none",
@@ -135,7 +233,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046414",
+          "line": 11177,
+          "pdf_page": 295
+        }
+      ]
     },
     "06046415": {
       "status": "none",
@@ -143,7 +248,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046415",
+          "line": 11196,
+          "pdf_page": 296
+        }
+      ]
     },
     "06046440": {
       "status": "none",
@@ -151,7 +263,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046440",
+          "line": 11409,
+          "pdf_page": 302
+        }
+      ]
     },
     "06046441": {
       "status": "none",
@@ -159,7 +278,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046441",
+          "line": 11423,
+          "pdf_page": 303
+        }
+      ]
     },
     "06046442": {
       "status": "none",
@@ -167,7 +293,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06046442",
+          "line": 11436,
+          "pdf_page": 303
+        }
+      ]
     },
     "06046443": {
       "status": "not_found",
@@ -191,7 +324,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06066000",
+          "line": 10936,
+          "pdf_page": 288
+        }
+      ]
     },
     "06066001": {
       "status": "none",
@@ -199,7 +339,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06066001",
+          "line": 10950,
+          "pdf_page": 289
+        }
+      ]
     },
     "06066300": {
       "status": "none",
@@ -207,7 +354,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06066300",
+          "line": 11002,
+          "pdf_page": 290
+        }
+      ]
     },
     "06066301": {
       "status": "none",
@@ -215,7 +369,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06066301",
+          "line": 10988,
+          "pdf_page": 290
+        }
+      ]
     },
     "06066303": {
       "status": "none",
@@ -223,7 +384,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "06066303",
+          "line": 10962,
+          "pdf_page": 289
+        }
+      ]
     },
     "90641004": {
       "status": "none",
@@ -231,7 +399,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641004",
+          "line": 4983,
+          "pdf_page": 144
+        }
+      ]
     },
     "90641005": {
       "status": "found",
@@ -241,7 +416,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641005",
+          "line": 4992,
+          "pdf_page": 144
+        }
+      ]
     },
     "90641006": {
       "status": "found",
@@ -251,7 +433,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641006",
+          "line": 5000,
+          "pdf_page": 144
+        }
+      ]
     },
     "90641007": {
       "status": "none",
@@ -259,15 +448,46 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641007",
+          "line": 5008,
+          "pdf_page": 144
+        }
+      ]
     },
-    "90641009": {
-      "status": "unreadable",
+    "90641008": {
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641008",
+          "line": 5026,
+          "pdf_page": 145
+        }
+      ]
+    },
+    "90641009": {
+      "status": "found",
+      "requires": [
+        "90641008"
+      ],
+      "op": null,
+      "note": null,
+      "occurrences": 1,
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641009",
+          "line": 5039,
+          "pdf_page": 145
+        }
+      ]
     },
     "90641010": {
       "status": "found",
@@ -277,7 +497,14 @@
       "op": null,
       "note": null,
       "occurrences": 1,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90641010",
+          "line": 5049,
+          "pdf_page": 145
+        }
+      ]
     },
     "90642012": {
       "status": "none",
@@ -285,7 +512,19 @@
       "op": null,
       "note": null,
       "occurrences": 2,
-      "dropped": []
+      "dropped": [],
+      "source_headers": [
+        {
+          "code": "90642012",
+          "line": 587,
+          "pdf_page": 19
+        },
+        {
+          "code": "90642012",
+          "line": 5113,
+          "pdf_page": 147
+        }
+      ]
     }
   }
 }

@@ -1,9 +1,27 @@
 import sqlite3
 from types import SimpleNamespace
+from pathlib import Path
 
 from lab10_fastapi.curriculum_app.database import CurriculumDatabase
 import lab8b_curriculum_db as m
 from prereq_from_book import extract_prerequisites
+
+
+def test_source_corrected_english_chains_and_zero_credit_course():
+    runs = Path(__file__).resolve().parents[1] / 'Lab7B_Lab8B_ocr_system/runs'
+    with m.open_db(runs / 'AIT/lab8b_output/curriculum.db', readonly=True) as conn:
+        row = conn.execute("SELECT credits,lecture_h,lab_h,self_h,name_en FROM course WHERE code='90641008'").fetchone()
+        assert tuple(row) == (0,0,0,45,'INTRODUCTION TO ENGLISH COMMUNICATION SKILLS')
+        assert tuple(conn.execute("SELECT year,semester,credits FROM plan_item WHERE code='90641008'").fetchone()) == (1,1,0)
+        assert {tuple(r) for r in conn.execute("SELECT code,requires FROM prerequisite WHERE code IN ('90641009','90641010')")} == {
+            ('90641009','90641008'),('90641010','90641009')}
+        assert conn.execute("SELECT COUNT(*) FROM prerequisite WHERE kind='pre'").fetchone()[0] == 8
+    for rel in ['IT/coop','IT/no_coop']:
+        with m.open_db(runs / rel / 'lab8b_output/curriculum.db', readonly=True) as conn:
+            assert conn.execute("SELECT requires FROM prerequisite WHERE code='90644008'").fetchone()[0] == '90644007'
+            assert m.prerequisite_status(conn,'90644008') == 'found'
+            assert any(p['pdf_page']==220 for p in m._prereq_pair_pages(conn,{'90644008'}))
+            assert any(p['pdf_page']==359 for p in m._prereq_pair_pages(conn,{'06066303'}))
 
 
 def test_prerequisite_status_never_confuses_missing_or_conflicting_data():
@@ -22,6 +40,8 @@ def test_prerequisite_status_never_confuses_missing_or_conflicting_data():
                                ('00000005','unknown'),('00000006','unknown'),
                                ('99999999','unknown')]:
             assert m.prerequisite_status(conn, code) == expected
+        conn.execute("INSERT INTO prerequisite VALUES ('00000001','00000002','co')")
+        assert m.prerequisite_status(conn, '00000001') == 'none'
         conn.execute('DROP TABLE prerequisite_status')
         assert m.prerequisite_status(conn, '00000001') == 'unknown'
 

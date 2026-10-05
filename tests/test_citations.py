@@ -3,6 +3,63 @@ import pytest
 import citations
 
 
+def test_prerequisite_citations_cover_target_evidence_without_page_cap():
+    import lab8b_curriculum_db as m
+    with m.open_db(':memory:') as conn:
+        conn.executescript(m.DDL + m.COURSE_PAGE_DDL)
+        for n in range(1, 6):
+            code = f'{n:08d}'
+            conn.execute('INSERT INTO course(code,name_th,credits) VALUES (?,?,3)', (code, f'วิชา{n}'))
+            conn.execute("INSERT INTO course_page VALUES (?, ?, NULL, 'description')", (code, 100+n))
+            if n > 1:
+                conn.execute("INSERT INTO prerequisite VALUES (?, '00000001', 'pre')", (code,))
+        for sql, rows, expected in [
+            ("SELECT code FROM prerequisite WHERE requires = '00000001'",
+             [{'code': f'{n:08d}'} for n in range(2, 6)], [102,103,104,105]),
+            ("SELECT requires FROM prerequisite WHERE code = '00000002'", [{'code': '00000001'}], [102]),
+            ("SELECT requires FROM prerequisite WHERE code = 00000002", [{'requires': '00000001'}], [102]),
+            ("SELECT requires FROM prerequisite WHERE code = '00000001'",
+             [{'code':'00000001','requires':None}], [101]),
+        ]:
+            result = {'sql':sql, 'rows':rows}
+            m._attach_citations(conn,result)
+            assert [p['pdf_page'] for p in result['citations']] == expected
+        conn.execute("INSERT INTO prerequisite VALUES ('00000001','00000005','pre')")
+        result = {'sql':"SELECT COUNT(*) AS n FROM prerequisite WHERE requires='00000001'", 'rows':[{'n':4}]}
+        m._attach_citations(conn,result)
+        assert [p['pdf_page'] for p in result['citations']] == [102,103,104,105]
+        result = {'sql':"SELECT COUNT(*) AS n FROM prerequisite WHERE requires='99999999'", 'rows':[{'n':0}]}
+        m._attach_citations(conn,result)
+        assert result['citations'] == []
+
+
+def test_prerequisite_chain_citations_include_root_and_intermediate_edges():
+    import lab8b_curriculum_db as m
+    with m.open_db(':memory:') as conn:
+        conn.executescript(m.DDL + m.COURSE_PAGE_DDL)
+        for n in range(1, 4):
+            conn.execute('INSERT INTO course(code,name_th,credits) VALUES (?,?,3)', (f'{n:08d}',f'วิชา{n}'))
+            conn.execute("INSERT INTO course_page VALUES (?, ?, NULL, 'description')", (f'{n:08d}',100+n))
+        conn.executemany("INSERT INTO prerequisite VALUES (?,?,'pre')",
+                         [('00000003','00000002'),('00000002','00000001')])
+        answer, rows, sql = m._prereq_chain_answer(conn,'วิชา 00000003 มีวิชาบังคับก่อนอะไรบ้าง ไล่ตั้งแต่ต้น')
+        result = {'sql':sql,'rows':rows,'answer':answer}
+        m._attach_citations(conn,result)
+        assert {p['pdf_page'] for p in result['citations']} >= {102,103}
+
+
+def test_description_locator_uses_verified_header_even_when_code_is_wrong():
+    import lab8b_curriculum_db as m
+    with m.open_db(':memory:') as conn:
+        conn.executescript(m.DDL)
+        conn.execute("INSERT INTO course(code,name_th,name_en,credits) VALUES ('00000002','วิชาสอง','SECOND COURSE',3)")
+        pages = [{'page':5,'text':'4\n00000009 วิชาสอง 3(3-0-6)\nSECOND COURSE\nPREREQUISITE : NONE'},
+                 {'page':6,'text':'5\nอื่น'}]
+        m.load_course_pages(conn,pages,[],'')
+        got = conn.execute("SELECT code,pdf_page,printed_page FROM course_page WHERE kind='description'").fetchall()
+        assert [tuple(r) for r in got] == [('00000002',5,'4')]
+
+
 # Break caught: only accepting a bare number line (AIT pages start "19   รายละเอียดหลักสูตร").
 def test_printed_page_reads_number_at_start_of_first_line():
     assert citations.printed_page("33\nมคอ.2\nปีที่ 1") == "33"
