@@ -3936,3 +3936,24 @@ def test_course_code_prefix_returns_exact_bilingual_list(rel, prefix):
 def test_course_code_prefix_does_not_ignore_question_scope(question):
     with closing(_real("IT/coop")) as conn:
         assert m._course_code_prefix_answer(conn, question) is None
+
+
+@pytest.mark.parametrize("columns,expected,absent", [
+    ("0 AS lecture_h, 36 AS lab_h, 0 AS self_h",
+     ("บรรยาย 0 ชั่วโมง", "ปฏิบัติ 36 ชั่วโมง", "ศึกษาด้วยตนเอง 0 ชั่วโมง"), ()),
+    ("0 AS lecture_h, 36 AS lab_h, NULL AS self_h",
+     ("บรรยาย 0 ชั่วโมง", "ปฏิบัติ 36 ชั่วโมง"), ("ศึกษาด้วยตนเอง",)),
+    ("36 AS lab_h", ("ปฏิบัติ 36 ชั่วโมง",), ("บรรยาย", "ศึกษาด้วยตนเอง")),
+])
+def test_multirow_answer_fallback_labels_hours_without_inventing_missing_values(monkeypatch, columns, expected, absent):
+    sql = (f"SELECT '06016481' AS code, 'สหกิจศึกษา' AS name_th, {columns} "
+           f"UNION ALL SELECT '06016482', 'สหกิจศึกษาต่างประเทศ', " +
+           ", ".join(part.split(" AS ")[0] for part in columns.split(", ")))
+    replies = iter((json.dumps({"sql": sql}), json.dumps({"answer": ""})))
+    monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: next(replies))
+    monkeypatch.setattr(m, "_SHORTCUTS", ())
+    with closing(_real("IT/coop")) as conn:
+        result = m.ask(conn, "แสดงชั่วโมงเรียนของสองวิชา", verbose=False)
+    assert result["error"] is None
+    assert all(result["answer"].count(label) == 2 for label in expected)
+    assert not any(label in result["answer"] for label in absent)
