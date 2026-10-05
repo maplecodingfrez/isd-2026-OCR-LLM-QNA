@@ -94,6 +94,7 @@ GE66 ที่ใช้งานมาจาก PDF text layer และข้�
 - หลังแก้ที่ `2c20cab`: คำถามใหม่21/21 และ Gold210/210; master220/220 คงโจทย์เพื่อนครบ ทั้งสอง suite1354pass/3skip ก่อน guard-review รอบท้าย; guard หลายเทอม/หลายเรื่อง RED2→GREEN และ affected991pass/3skip ไม่ตอบเพียงส่วนแรก
 - รอบ Gold/master ที่ซ้อนกันมี7ข้อเกิน5s (Gold4/master3); วัดเฉพาะ7ข้อซ้ำแบบเดี่ยวได้1.657–4.472sทั้งหมด เก็บรอบโหลดเดิมไว้ ไม่รับรองlatency<5sทุกconcurrency/cold start
 - เกณฑ์ Lab11 ที่ตรวจจาก PDF ในเครื่อง: wireframe ที่ `docs/wireframes/curriculum_app.png`, API contract ใน README หลัก และ HTML/CSS/JS เรียก API จริงพร้อม 4 สถานะ; ยังไม่ใช่การรับรองผล Challenge ของอาจารย์หรือเกณฑ์ใหม่ที่ยังไม่ได้รับ
+- Local live8000 ย้ายไปใช้ verified production worktree ที่ `c0f73e5` แล้ว: healthยืนยัน source/DB, UI3ไฟล์ตรงbyte,7แผน,21คำตอบตรงผลที่ตรวจ ไม่มีข้อเกิน5s; Chromeจริงคลิกerror/loading/successไม่มีexception Checkoutหลักที่dirtyคงเดิมและสำรอง35ไฟล์พร้อมrollbackแล้ว ไม่mergemain
 
 ### เปิดเว็บแล้วขึ้น `ERR_CONNECTION_REFUSED`
 
