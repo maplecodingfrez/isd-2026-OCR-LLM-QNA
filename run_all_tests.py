@@ -275,7 +275,7 @@ TEST_CASES = [
     {"id": 150, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016407 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อนของโครงงาน 2 IT", "expect": "06016406"},
     {"id": 151, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชา 06016401 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน 06016401 (ไม่มี prereq)", "expect_not_found": True},
     {"id": 152, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "dsba_coop", "q": "วิชา 06026201 มีวิชาบังคับก่อนไหม", "desc": "วิชาบังคับก่อน แคลคูลัส 2 DSBA", "expect": "06026200"},
-    {"id": 153, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชาโครงงาน 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตวิชาโครงงาน 1 IT", "expect": "3 หน่วยกิต"},
+    {"id": 153, "cat": "17. Course Hours & Prereq Chains", "type": "ask", "prog": "it_coop", "q": "วิชาโครงงาน 1 มีกี่หน่วยกิต", "desc": "หน่วยกิตวิชาโครงงาน 1 IT", "expect_fn": lambda d: any(r.get('code') == '06016406' and r.get('credits') == 3 for r in d.get('rows', [])) and bool(re.search(r'(?<!\d)3\s*(?:\(\d+-\d+-\d+\)\s*)?หน่วยกิต', d.get('answer', '')))},
 
     # -------------------------------------------------------------------------
     # หมวด 18: TQF:2 Multi-Program & Guards (17 ข้อ)

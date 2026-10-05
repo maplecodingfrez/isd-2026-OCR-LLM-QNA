@@ -343,10 +343,12 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 |---|---|---|
 | `question` | string | คำถามที่ส่งไป |
 | `program` | string หรือ null | id ที่ส่งมา; null = หลักสูตรเริ่มต้น |
-| `sql` | string หรือ null | SQL ที่ Qwen สร้าง |
+| `sql` | string หรือ null | SQL อ้างอิงของทางลัด หรือ SQL ที่โมเดลรันจริง; ทางลัดอาจใช้หลายคำค้น/คำนวณใน Python จึงไม่ใช่ execution trace ทั้งหมด |
 | `rows` | array ของ object | ผลจากฐานข้อมูล (ไม่เกิน `CURRICULUM_MAX_ROWS` แถว); ว่างได้ |
 | `answer` | string | คำตอบภาษาไทย |
-| `citations` | array ของ `{pdf_page: integer, printed_page: string ตัวเลข (เช่น "334") หรือ null, courses: array ของรหัสวิชา}` | หน้าอ้างอิงในเล่ม (ไม่เกิน 3 หน้า เรียงคงที่); `courses` = วิชาของคำตอบที่พบในหน้านั้น (หน้าตารางแผนของเทอมเป็น `[]`); ว่างได้ (`printed_page` null = รู้แค่เลขหน้า PDF) |
+| `answer_type` | string | ประเภทเส้นทางคำตอบ: `database`, `hybrid` หรือ `ai` |
+| `processing_seconds` | number | เวลาประมวลผล backend หน่วยวินาที |
+| `citations` | array ของ `{pdf_page: integer, printed_page: string หรือ null, courses: array ของรหัสวิชา}` | หน้าอ้างอิงในเล่ม; คำตอบทั่วไปจำกัดหน้า แต่คำตอบที่ต้องอ้างชุดความสัมพันธ์ทั้งหมดอาจเกิน 3 หน้า; `courses` = วิชาที่พบในหน้านั้น; `printed_page` null = รู้แค่เลขหน้า PDF |
 | `citation_text` | string | ข้อความอ้างอิงพร้อมแสดง เช่น "(อ้างอิง: เล่มหลักสูตร หน้า 33 (PDF 38))"; ไม่มีอ้างอิง = "" |
 
 กรณี `rows` ว่างและ `answer` = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ยังเป็น 200 — หน้าเว็บแสดงเป็น Success โทนเตือน ไม่ใช่ Error
@@ -377,9 +379,11 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | `name_en` | string หรือ null | ชื่อภาษาอังกฤษ |
 | `credits` | integer | หน่วยกิต |
 | `prerequisites_required` | array ของ Item | วิชาที่ต้องผ่านก่อน; ว่างได้ |
-| `unlocked_courses` | array ของ Item | วิชาที่ปลดล็อกให้เรียนต่อ; ว่างได้ |
+| `unlocked_courses` | array ของ Item | วิชาที่มีความสัมพันธ์ต่อ; ว่างได้ ไม่รับรองสิทธิ์ลงทะเบียนส่วนบุคคล |
+| `prerequisite_status` | string | `found` มีเงื่อนไข, `none` ยืนยันว่าไม่มี, `not_found`/`unreadable`/`unknown` ยังไม่ทราบ |
+| `citations` | array | หน้า PDF และหน้าพิมพ์ที่ยืนยันเงื่อนไขจากต้นฉบับ |
 
-`Item` = `{code: string, name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, kind: string}`
+`Item` = `{code: string, name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, kind: string, alternative_group: integer หรือ null}`; สมาชิก group เดียวกันเป็นทางเลือก ส่วน `kind` แยกวิชาบังคับก่อนกับวิชาเรียนร่วม
 
 | Status | เมื่อไร | `detail` | ข้อความที่ผู้ใช้เห็น (title) | ทำอะไรต่อ (action) |
 |---|---|---|---|---|
