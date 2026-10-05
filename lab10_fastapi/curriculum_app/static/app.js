@@ -261,7 +261,31 @@
     return body;
   }
 
+  function prerequisiteEmptyText(data) {
+    return data && data.prerequisite_status === "none"
+      ? "ไม่มีวิชาบังคับก่อนตามข้อมูลหลักสูตร"
+      : "ยังไม่ทราบข้อมูลวิชาบังคับก่อน กรุณาตรวจเล่มหลักสูตร";
+  }
+
+  async function currentProgramResult(request, program, currentProgram) {
+    try {
+      var data = await request;
+      return program === currentProgram() ? data : null;
+    } catch (err) {
+      if (program === currentProgram()) throw err;
+      return null;
+    }
+  }
+
+  function prerequisiteDisplay(course) {
+    return courseDisplay(course) + (course.kind === "co" ? " (เรียนร่วมกัน)"
+      : course.alternative_group != null ? " (ทางเลือกกลุ่ม " + course.alternative_group + ": ผ่านอย่างใดอย่างหนึ่ง)" : "");
+  }
+
   var api = {
+    prerequisiteEmptyText: prerequisiteEmptyText,
+    prerequisiteDisplay: prerequisiteDisplay,
+    currentProgramResult: currentProgramResult,
     ApiError: ApiError,
     apiFetch: apiFetch,
     withProgram: withProgram,
@@ -486,11 +510,12 @@
     var started = performance.now();
     setState(askPanel, "loading", askControls);
     try {
-      var data = await apiFetch("/api/ask", {
+      var data = await currentProgramResult(apiFetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: check.value, program: program })
-      });
+      }), program, function () { return $("program").value || null; });
+      if (data === null) { setState(askPanel, "idle", askControls); return; }
       var seconds = (performance.now() - started) / 1000;
       lastResult = buildCopyPayload(check.value, program, data, seconds);
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
@@ -570,7 +595,7 @@
     courses.forEach(function (course) {
       list.appendChild(el("li", {}, [
         el("span", { className: "code", text: course.code || "" }),
-        document.createTextNode(courseDisplay(course).slice((course.code || "").length))
+        document.createTextNode(prerequisiteDisplay(course).slice((course.code || "").length))
       ]));
     });
   }
@@ -580,8 +605,12 @@
     $("prereq-meta").textContent =
       (data.credits_display || (data.credits != null ? data.credits : "")) + " หน่วยกิต" +
       (data.credits_display ? " · (บรรยาย-ปฏิบัติ-ศึกษาด้วยตนเอง)" : "");
-    fillCourseList($("prereq-required"), data.prerequisites_required, "ไม่มีวิชาบังคับก่อน ลงเรียนได้ทันที");
-    fillCourseList($("prereq-unlocks"), data.unlocked_courses, "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นตัวบังคับก่อน");
+    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data));
+    fillCourseList($("prereq-unlocks"), data.unlocked_courses, "ไม่พบวิชาตัวต่อในข้อมูลที่มี");
+    var citations = citationItems(data);
+    $("prereq-citations").textContent = citations.length ? "อ้างอิง: " + citations.map(function (c) {
+      return "PDF " + c.pdf + (c.printed ? " / หน้าพิมพ์ " + c.printed : "");
+    }).join("; ") : "ไม่พบเลขหน้าอ้างอิงที่ยืนยันได้";
   }
 
   async function runPrereq() {
@@ -593,8 +622,11 @@
       return;
     }
     setState(prereqPanel, "loading", prereqControls);
+    var program = $("program").value;
     try {
-      var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", $("program").value));
+      var data = await currentProgramResult(apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", program)),
+        program, function () { return $("program").value; });
+      if (data === null) { setState(prereqPanel, "idle", prereqControls); return; }
       renderPrereq(data);
       setState(prereqPanel, "success", prereqControls);
     } catch (err) {

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from types import ModuleType
+import sqlite3
 
 
 class CurriculumDatabase:
@@ -91,6 +92,12 @@ class CurriculumDatabase:
                 ORDER BY p.requires
             """
             prerequisites_required = [dict(r) for r in conn.execute(req_sql, (code,)).fetchall()]
+            try:
+                alternatives = dict(conn.execute('SELECT requires,group_no FROM prerequisite_alt WHERE code=?', (code,)))
+            except sqlite3.OperationalError:
+                alternatives = {}
+            for item in prerequisites_required:
+                item['alternative_group'] = alternatives.get(item['code']) if item['kind'] == 'pre' else None
 
             # วิชาที่จะปลดล็อคให้ลงเรียนได้หลังจากผ่านวิชานี้ (unlocks)
             unlock_sql = """
@@ -105,7 +112,7 @@ class CurriculumDatabase:
             add_course_display(conn, [course_info] + prerequisites_required + unlocked_courses)
             source_codes = {code} | {r["code"] for r in unlocked_courses}
             cites = []
-            for page in self.lab8b._prereq_pair_pages(conn):
+            for page in self.lab8b._prereq_pair_pages(conn, source_codes):
                 codes = sorted(set(page["courses"]) & source_codes)
                 if codes:
                     cites.append({**page, "courses": codes})
@@ -120,6 +127,7 @@ class CurriculumDatabase:
                 "prerequisites_required": prerequisites_required,
                 "unlocked_courses": unlocked_courses,
                 "citations": cites,
+                "prerequisite_status": self.lab8b.prerequisite_status(conn, code),
             }
         finally:
             conn.close()

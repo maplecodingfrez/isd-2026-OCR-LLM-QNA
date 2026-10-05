@@ -61,6 +61,7 @@ class PrerequisiteItem(BaseModel):
     credits: int | None = None
     credits_display: str | None = None
     kind: str = "pre"
+    alternative_group: int | None = None
 
 
 class CoursePrerequisitesResponse(BaseModel):
@@ -70,6 +71,7 @@ class CoursePrerequisitesResponse(BaseModel):
     credits: int
     credits_display: str | None = None
     citations: list[dict[str, Any]] = Field(default_factory=list)
+    prerequisite_status: Literal['found', 'none', 'not_found', 'unreadable', 'unknown'] = 'unknown'
     prerequisites_required: list[PrerequisiteItem] = Field(
         default_factory=list,
         description="รายวิชาที่ต้องเรียนผ่านก่อน จึงจะสามารถลงเรียนวิชานี้ได้"
