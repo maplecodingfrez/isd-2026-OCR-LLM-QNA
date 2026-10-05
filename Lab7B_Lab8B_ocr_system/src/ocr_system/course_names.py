@@ -181,8 +181,12 @@ _LOOSE_ACRONYMS = [None if pat.flags & re.I else re.compile(pat.pattern, re.I) f
 
 def _loose_acronym_ok(question: str, start: int, end: int) -> bool:
     """ตัวย่อที่พิมพ์ตัวเล็ก/ตัวผสมยอมรับจาก "บริบท" ไม่ใช่จากตัวพิมพ์: ห้ามมีตัวเลขติดหน้า ("5 ml"); ต้องมี "วิชา" นำหน้า
-    หรือ (ตัวย่อ ≥3 ตัวอักษร) เป็นคำอังกฤษคำเดียวในคำถาม ("sad กี่หน่วยกิต"); ตัวย่อ 2 ตัวอักษรต้องมี "วิชา" เท่านั้น"""
+    หรือคำถามทั้งข้อความมีแค่ตัวย่อนี้โดด ๆ ("ml", "Ml", "os", "dw") หรือตามด้วย คืออะไร;
+    หรือ (ตัวย่อ ≥3 ตัวอักษร) เป็นคำอังกฤษคำเดียวในคำถาม ("sad กี่หน่วยกิต"); ตัวย่อ 2 ตัวอักษรทั่วไปต้องมี "วิชา" นำหน้า"""
     before = question[:start].rstrip()
+    after = question[end:].lstrip()
+    if not before and re.fullmatch(r"(?:คืออะไร|คือวิชาอะไร|คือ|อะไร|ครับ|ค่ะ|นะ|หน่อย|\?|\.)*", after):
+        return True
     if before[-1:].isdigit():
         return False
     if before.endswith("วิชา"):

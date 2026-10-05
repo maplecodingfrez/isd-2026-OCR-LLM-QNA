@@ -3378,7 +3378,7 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
 # ---- 13c. ตัวย่อวิชา / ชื่อวิชาตรงตัว / รหัสวิชาตรงตัว ที่ไม่ได้ถามแง่มุมเฉพาะอื่น (เช่น "วิชา ISD", "ISD", "วิชา DSA", "DSDA", "วิชา ISD คืออะไร") ----
 _IDENTITY_PREFIX = re.compile(r"^(?:วิชา|รายวิชา|รหัสวิชา|รหัส)?\s*", re.I)
 _IDENTITY_SUFFIX = re.compile(r"\s*(?:คืออะไร|คือวิชาอะไร|คือวิชาใด|คือวิชาไหน|คืออะไรบ้าง|คือ|ครับ|ค่ะ|นะ|หน่อย|\?|\.)*$", re.I)
-_IDENTITY_ATTR_WORD = re.compile(r"เรียน|สอน|เนื้อหา|หน่วยกิต|ปี|เทอม|ชั่วโมง|ก่อน|ต่อ|ผ่าน|ถอน|ดรอป|หมวด|กลุ่ม|หลักสูตร|กระทบ")
+_IDENTITY_ATTR_WORD = re.compile(r"(?<!การ)เรียน(?!รู้)|สอน|เนื้อหา|หน่วยกิต|ปี|เทอม|ชั่วโมง|ก่อน|ต่อ|ผ่าน|ถอน|ดรอป|หมวด|กลุ่ม|หลักสูตร|กระทบ")
 
 
 def _course_identity_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
