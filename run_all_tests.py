@@ -30,6 +30,7 @@ import json
 import time
 import sys
 import os
+import re
 
 BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
@@ -145,7 +146,7 @@ TEST_CASES = [
     {"id": 67, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา MIS ต้องผ่านวิชาอะไรมาก่อน", "desc": "MIS (Management Info Systems)", "expect": "06066101"},
     {"id": 68, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา OOP อยู่เทอมไหน", "desc": "OOP (Object-Oriented Programming)", "expect_any": ["เทอม 2", "เทอมที่ 2"]},
     {"id": 69, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา BI เรียนปีไหน", "desc": "BI (Business Intelligence)", "expect_not_found": True},
-    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect": "3 หน่วยกิต"},
+    {"id": 70, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา SE มีกี่หน่วยกิต", "desc": "SE (Software Engineering)", "expect_fn": lambda d: any(r.get('code') == '06016410' and r.get('credits') == 3 for r in d.get('rows', [])) and bool(re.search(r'(?<!\d)3\s*(?:\(\d+-\d+-\d+\)\s*)?หน่วยกิต', d.get('answer', '')))},
     {"id": 71, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา HCI อยู่ปีไหน", "desc": "HCI (Human-Computer Interaction)", "expect_not_found": True},
     {"id": 72, "cat": "10. English Acronyms", "type": "ask", "prog": "dsba_coop", "q": "วิชา ML เรียนตอนไหน", "desc": "ML (Machine Learning)", "expect_any": ["ปี 3", "ปีที่ 3"]},
     {"id": 73, "cat": "10. English Acronyms", "type": "ask", "prog": "it_coop", "q": "วิชา UX/UI มีกี่หน่วยกิต", "desc": "UX/UI", "expect_not_found": True},
