@@ -268,7 +268,31 @@
     return body;
   }
 
+  function prerequisiteEmptyText(data) {
+    return data && data.prerequisite_status === "none"
+      ? "ไม่มีวิชาบังคับก่อนตามข้อมูลหลักสูตร"
+      : "ยังไม่ทราบข้อมูลวิชาบังคับก่อน กรุณาตรวจเล่มหลักสูตร";
+  }
+
+  async function currentProgramResult(request, program, currentProgram) {
+    try {
+      var data = await request;
+      return program === currentProgram() ? data : null;
+    } catch (err) {
+      if (program === currentProgram()) throw err;
+      return null;
+    }
+  }
+
+  function prerequisiteDisplay(course) {
+    return courseDisplay(course) + (course.kind === "co" ? " (เรียนร่วมกัน)"
+      : course.alternative_group != null ? " (ทางเลือกกลุ่ม " + course.alternative_group + ": ผ่านอย่างใดอย่างหนึ่ง)" : "");
+  }
+
   var api = {
+    prerequisiteEmptyText: prerequisiteEmptyText,
+    prerequisiteDisplay: prerequisiteDisplay,
+    currentProgramResult: currentProgramResult,
     ApiError: ApiError,
     apiFetch: apiFetch,
     withProgram: withProgram,
@@ -434,25 +458,53 @@
   }
 
   function renderAnswer(data, seconds) {
-    var cards = $("cite-cards");                             // 1 หน้าอ้างอิง = 1 การ์ด: เลขหน้า + วิชาที่พบในหน้านั้น
-    clear(cards);
     var items = citationItems(data);
-    items.forEach(function (c) {
-      var head = el("div", { className: "cite-card-head" }, [
-        el("span", { className: "cite-page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf })
-      ]);
-      if (c.printed !== null) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf }));
-      var card = el("li", { className: "cite-card" }, [head]);
-      if (c.courses.length) {
-        var chipList = el("ul", { className: "cite-chip-list" });
-        c.courses.forEach(function (code) {
-          var label = [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / ");
-          chipList.appendChild(el("li", { className: "cite-chip", text: label }));
-        });
-        card.appendChild(chipList);
-      }
-      cards.appendChild(card);
-    });
+
+    var tabs = $("cite-tabs");
+    if (tabs) {
+      clear(tabs);
+      items.forEach(function (c) {
+        var tab = el("li", { className: "cite-tab" }, [
+          el("span", { className: "page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf }),
+          c.printed !== null ? el("span", { className: "pdf", text: "PDF " + c.pdf }) : null
+        ].filter(Boolean));
+        tabs.appendChild(tab);
+      });
+    }
+
+    var detail = $("cite-detail");
+    if (detail) {
+      clear(detail);
+      items.forEach(function (c) {
+        if (!c.courses.length) return;
+        detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
+          ": " + c.courses.map(function (code) { return [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / "); }).join(", ") }));
+      });
+      var detailsWrap = $("citation-details");
+      if (detailsWrap) detailsWrap.hidden = !items.some(function (c) { return c.courses.length; });
+    }
+
+    var cards = $("cite-cards");                             // 1 หน้าอ้างอิง = 1 การ์ด: เลขหน้า + วิชาที่พบในหน้านั้น
+    if (cards) {
+      clear(cards);
+      items.forEach(function (c) {
+        var head = el("div", { className: "cite-card-head" }, [
+          el("span", { className: "cite-page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf })
+        ]);
+        if (c.printed !== null) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf }));
+        var card = el("li", { className: "cite-card" }, [head]);
+        if (c.courses.length) {
+          var chipList = el("ul", { className: "cite-chip-list" });
+          c.courses.forEach(function (code) {
+            var label = [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / ");
+            chipList.appendChild(el("li", { className: "cite-chip", text: label }));
+          });
+          card.appendChild(chipList);
+        }
+        cards.appendChild(card);
+      });
+    }
+
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
     var answer = $("answer-text");
     clear(answer);
@@ -505,12 +557,13 @@
     }, 1800);
 
     try {
-      var data = await apiFetch("/api/ask", {
+      var data = await currentProgramResult(apiFetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: check.value, program: program })
-      });
+      }), program, function () { return $("program").value || null; });
       clearInterval(msgInterval);
+      if (data === null) { setState(askPanel, "idle", askControls); return; }
       var seconds = (performance.now() - started) / 1000;
       lastResult = buildCopyPayload(check.value, program, data, seconds);
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
@@ -617,8 +670,17 @@
     $("prereq-meta").textContent =
       (data.credits_display || (data.credits != null ? data.credits : "")) + " " + t("credits.unit") +
       (data.credits_display ? t("prereq.hours") : "");
-    fillCourseList($("prereq-required"), data.prerequisites_required, t("prereq.noneRequired"));
+    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data));
     fillCourseList($("prereq-unlocks"), data.unlocked_courses, t("prereq.noneUnlocks"));
+    var citeEl = $("prereq-citations");
+    if (citeEl) {
+      citeEl.textContent = data.citations && data.citations.length
+        ? t("withdraw.cite") + data.citations.map(function (c) {
+            return (c.printed_page !== null ? "หน้า " + c.printed_page + " (PDF " + c.pdf_page + ")" : "PDF " + c.pdf_page) +
+              (c.courses && c.courses.length ? " (" + c.courses.join(", ") + ")" : "");
+          }).join("; ")
+        : "";
+    }
   }
 
   async function runPrereq() {
@@ -630,8 +692,11 @@
       return;
     }
     setState(prereqPanel, "loading", prereqControls);
+    var program = $("program").value;
     try {
-      var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", $("program").value));
+      var data = await currentProgramResult(apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", program)),
+        program, function () { return $("program").value; });
+      if (data === null) { setState(prereqPanel, "idle", prereqControls); return; }
       renderPrereq(data);
       setState(prereqPanel, "success", prereqControls);
     } catch (err) {

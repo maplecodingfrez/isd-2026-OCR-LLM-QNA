@@ -101,8 +101,14 @@
           </div>
 
           <div class="answer-card-body">
+            <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
             <div id="answer-text" class="answer-text"></div>
             <p id="answer-hint" data-i18n="answer.hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
+
+            <details id="citation-details" class="citation-details" hidden>
+              <summary data-i18n="cite.details">รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
+              <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
+            </details>
 
             <div class="citation-box">
               <span class="citation-title" data-i18n="cite.title">📖 แหล่งอ้างอิงในเล่มหลักสูตร</span>
@@ -203,6 +209,7 @@
             <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-list"></ul></div>
             <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-list"></ul></div>
           </div>
+          <p id="prereq-citations" class="muted"></p>
         </div>
       </div>
       <div class="state-error">

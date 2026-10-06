@@ -52,6 +52,7 @@
     "answer.hint": ["ลองระบุปีหรือเทอมให้ชัดขึ้น", "Try specifying the year or semester"],
     "answer.none": ["(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)", "(The server returned no answer)"],
     "cite.title": ["📖 แหล่งอ้างอิงในเล่มหลักสูตร", "📖 Sources in the curriculum book"],
+    "cite.details": ["รายวิชาที่ใช้อ้างอิงในแต่ละหน้า", "Courses cited on each page"],
     "cite.aria": ["หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ", "Cited pages with the courses found on each"],
     "cite.page": ["หน้า {n}", "Page {n}"],
     "elapsed": ["⏱️ ตอบใน {s} วินาที", "⏱️ Answered in {s} s"],
