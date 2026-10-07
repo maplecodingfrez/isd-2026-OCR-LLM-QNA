@@ -5465,7 +5465,7 @@ def _most_prerequisites_answer(conn: sqlite3.Connection, question: str) -> tuple
     return head + "\n" + "\n".join(parts), winners, sql
 
 
-_COOP_WHEN_Q = re.compile(r"สหกิจ.*(?:ปี|เทอม|ภาค)(?:ไหน|อะไร)|(?:ปี|เทอม|ภาค)(?:ไหน|อะไร).*สหกิจ")
+_COOP_WHEN_Q = re.compile(r"สหกิจ.*(?:ปี|เทอม|ภาค)(?:ไหน|อะไร)|(?:ปี|เทอม|ภาค)(?:ไหน|อะไร).*สหกิจ|^\s*(?:แผนนี้|หลักสูตรนี้)?มี(?:การ)?สหกิจ(?:ศึกษา)?\s*(?:ไหม|หรือไม่|มั้ย)|^\s*สหกิจ(?:ศึกษา)?\s*(?:มี|เรียน)?\s*กี่หน่วยกิต")
 
 
 def _coop_on_plan_without_coop_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -5485,6 +5485,12 @@ def _coop_on_plan_without_coop_answer(conn: sqlite3.Connection, question: str) -
     return ("แผนไม่สหกิจไม่มีสหกิจศึกษา ตามแผนสหกิจของหลักสูตรเดียวกัน: " + str(routed["answer"]), routed["rows"], routed.get("sql") or "")
 
 
+def _plan_question_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ทางลัดคำถามเฉพาะรูปแบบเกี่ยวกับแผน (กรองหน่วยกิต/นับวิชา/คู่วิชาบังคับก่อน/สหกิจ/หัวข้อ) ตอบจากตารางของแผน ไม่ผ่านโมเดล"""
+    from plan_questions import plan_question_answer
+    return plan_question_answer(conn, question, prerequisite_status)
+
+
 def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """วิชาเดียว + "ต้องผ่านอะไรก่อน / มีวิชาต่อไหม" → ตอบจากตาราง prerequisite ตรง ๆ (ทางลัดสุดท้าย: ทางลัดเดิมที่เจาะจงกว่าได้ก่อน, ไม่ต้องพึ่งโมเดล)"""
     from course_overview import prerequisite_lookup
@@ -5499,7 +5505,7 @@ _SHORTCUTS = (
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
-    _course_prerequisite_lookup_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
+    _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
 

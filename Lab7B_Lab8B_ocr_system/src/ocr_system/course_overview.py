@@ -147,7 +147,7 @@ def overview_for_bare_reference(conn, question: str, status_fn):
 # ---------- "what must I pass before X?" / "what does X lead to?" for one course ----------
 
 _ASKS_MORE = re.compile(r"และ|พร้อม|ยากไหม|ไม่ต้อง|ไม่มี|ไม่ได้|ไม่ใช่|กี่|ปี\s*\d|เทอม|ภาค|หน่วยกิต|ชั่วโมง|ถอน|ตก|ดรอป|ดร็อป|ชื่อ")
-_NEXT_Q = re.compile(r"วิชาต่อ|เรียนต่อ|ต่อ(?:วิชา|ยอด)|แล้วต่อ|เป็นวิชาบังคับก่อน|เป็นบันได|ปลดล็อก|unlock|follow[- ]?up|lead to", re.I)
+_NEXT_Q = re.compile(r"ต้อง(?:เรียน|ผ่าน)ก่อนวิชา(?:อะไร|ใด|ไหน)|วิชาต่อ|เรียนต่อ|ต่อ(?:วิชา|ยอด)|แล้วต่อ|เป็นวิชาบังคับก่อน|เป็นบันได|ปลดล็อก|unlock|follow[- ]?up|lead to", re.I)
 _PRE_Q = re.compile(r"วิชาบังคับก่อน|prerequisite|ก่อนเรียน|ต้อง(?:ผ่าน|เรียน|ลง)\s*(?:วิชา)?\s*(?:ใด|อะไร|ไหน)", re.I)
 
 
