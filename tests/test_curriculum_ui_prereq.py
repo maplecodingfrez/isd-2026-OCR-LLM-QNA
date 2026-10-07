@@ -78,3 +78,18 @@ def test_citations_are_not_repeated_and_the_original_answer_lives_in_the_drawer(
     assert "citation-details" not in html and "cite-detail" not in html        # same pages and codes as the citation cards
     assert 'id="original-text"' in html and '$("original-text").textContent' in js
     assert "original-answer" not in js                                          # no per-answer-type "view original" block
+
+
+def test_empty_answers_drop_the_copy_button_and_the_empty_citation_heading():
+    js = APP_JS.read_text(encoding="utf-8")
+    i18n = I18N_JS.read_text(encoding="utf-8")
+    assert '.querySelector(".citation-box").hidden = !hasCitations' in js
+    assert '.querySelector(".answer-footer").hidden = isEmptyResult(data)' in js
+    assert '"answer.hintGeneric"' in i18n and "answer.hintGeneric" in js        # the year/term hint only for year/term questions
+
+
+def test_overview_card_does_not_show_the_internal_plan_id_or_the_cryptic_credit_unit():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = APP_JS.read_text(encoding="utf-8")
+    assert "dash-program-badge" not in html and "dash-program-badge" not in js    # showed the raw id, for example dsba_coop
+    assert '"dash.unit": ["{n} หน่วยกิต"' in I18N_JS.read_text(encoding="utf-8")  # was "{n} น."
