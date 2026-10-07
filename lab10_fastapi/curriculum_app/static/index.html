@@ -1,79 +1,133 @@
 <!doctype html>
-<html lang="th">
+<html lang="th" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Curriculum Book Assistant</title>
+  <title>Curriculum QnA</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/i18n.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
 <body>
-  <header class="site-head">
-    <div class="site-identity">
-      <h1>Curriculum Book Assistant</h1>
-      <p class="site-description">ถามเรื่องหลักสูตร ค้นรายวิชา และตรวจวิชาบังคับก่อน</p>
+  <header class="site-header">
+    <a href="#" class="brand">
+      <span class="brand-text">Curriculum QnA</span>
+    </a>
+    <div class="header-right">
+      <div class="lang-switch" role="group" aria-label="ภาษา" data-i18n-aria="lang.aria">
+        <button type="button" class="seg" data-lang="th" aria-pressed="true">ไทย</button>
+        <button type="button" class="seg" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <button type="button" id="theme-toggle" class="seg" aria-label="สลับธีมมืด/สว่าง" data-i18n-aria="theme.aria">สว่าง</button>
+      <p id="health" class="health" data-health="unknown">กำลังตรวจระบบ…</p>
     </div>
-    <p id="health" class="health" data-health="unknown">กำลังตรวจสถานะระบบ…</p>
   </header>
 
   <main>
-    <noscript><p class="muted">หน้านี้ต้องเปิดใช้ JavaScript</p></noscript>
+    <noscript><p data-i18n="noscript" class="noscript-hint">หน้านี้ต้องเปิดใช้ JavaScript</p></noscript>
     <p id="live-status" class="visually-hidden" role="status"></p>
 
-    <section id="ask-panel" class="panel panel-ask" data-state="idle" aria-labelledby="ask-title">
-      <h2 id="ask-title">ถามเรื่องเล่มหลักสูตร</h2>
+    <section id="ask-panel" class="hero-section" data-state="idle" aria-labelledby="ask-title">
+      <h2 id="ask-title" class="visually-hidden" data-i18n="ask.title">ถามเรื่องเล่มหลักสูตร</h2>
+
+      <div class="hero-meta-bar">
+        <div class="program-picker">
+          <label for="program" data-i18n="program.label">แผนการเรียน:</label>
+          <div class="select-wrapper">
+            <select id="program" aria-label="เลือกหลักสูตรและแผนการเรียน" data-i18n-aria="program.aria">
+              <option value="">กำลังโหลด…</option>
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+      </div>
+
       <form id="ask-form" novalidate>
-        <label for="program">หลักสูตรและแผนการเรียน</label>
-        <select id="program"><option value="">กำลังโหลด…</option></select>
-        <label for="question">คำถาม</label>
-        <textarea id="question" rows="4" aria-describedby="question-guide" placeholder="เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต"></textarea>
-        <p id="question-guide" class="muted field-guide">พิมพ์คำถามภาษาไทย 2–500 ตัวอักษร</p>
-        <button type="submit" id="ask-button" data-busy-label="กำลังค้น…">ถาม</button>
+        <div class="omnibox">
+          <div class="omnibox-input-row">
+            <span class="omnibox-icon" aria-hidden="true">🔍</span>
+            <textarea id="question" rows="2" data-i18n-ph="question.placeholder" placeholder="พิมพ์คำถามเกี่ยวกับหลักสูตร เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต, วิชาเลือกมีอะไรบ้าง..."></textarea>
+          </div>
+          <div class="omnibox-actions">
+            <div class="omnibox-hint">
+              <span data-i18n="hint.press">กด</span> <span class="kbd">Enter ↵</span> <span data-i18n="hint.toAsk">เพื่อถาม</span>
+            </div>
+            <button type="submit" id="ask-button" data-i18n="btn.ask" data-i18n-busy="btn.ask.busy">ถาม</button>
+          </div>
+        </div>
       </form>
 
       <div class="question-examples">
-        <p class="muted">คำตอบมาจากเล่มหลักสูตรพร้อมเลขหน้าอ้างอิง ลองเลือกคำถาม:</p>
-        <ul class="examples">
-          <li><button type="button" class="link-button" data-question="หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต">หน่วยกิตรวมตลอดหลักสูตร</button></li>
-          <li><button type="button" class="link-button" data-question="ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา">จำนวนวิชาปี 2 เทอม 1</button></li>
-          <li><button type="button" class="link-button" data-question="ปี 1 เทอม 1 เรียนกี่หน่วยกิต">หน่วยกิตปี 1 เทอม 1</button></li>
-          <li><button type="button" class="link-button" data-question="ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง">รายวิชาปี 2 เทอม 1</button></li>
-          <li><button type="button" class="link-button" data-question="วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง">วิชาเลือกของหลักสูตร</button></li>
-          <li><button type="button" class="link-button" data-question="มีวิชาเกี่ยวกับฐานข้อมูลไหม">ค้นวิชาตามหัวข้อ (เช่น ฐานข้อมูล)</button></li>
-        </ul>
+        <div class="suggestion-wrap">
+          <ul class="examples">
+            <li><button type="button" class="link-button" data-i18n="chip.1" data-question="หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต" data-question-en="How many credits in total does the program have?">หน่วยกิตรวมตลอดหลักสูตร</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.2" data-question="ปี 1 เทอม 1 เรียนกี่หน่วยกิต" data-question-en="How many credits in year 1 semester 1?">หน่วยกิตปี 1 เทอม 1</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.3" data-question="ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง" data-question-en="What courses are in year 2 semester 1?">วิชาปี 2 เทอม 1</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.4" data-question="วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง" data-question-en="What are the elective courses of this program?">วิชาเลือกของหลักสูตร</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.5" data-question="มีวิชาเกี่ยวกับฐานข้อมูลไหม" data-question-en="Are there any database courses?">วิชาฐานข้อมูล</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.6" data-question="แผนสหกิจกับไม่สหกิจต่างกันอย่างไร" data-question-en="How do the co-op and non co-op plans differ?">เปรียบเทียบแผนสหกิจ</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.7" data-question="วิชา 06026201 ต้องผ่านวิชาใดก่อน" data-question-en="What are the prerequisites of 06026201?">วิชาบังคับก่อนของ 06026201</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.8" data-question="วิชาที่ต้องผ่านแคลคูลัส 1 ก่อนมีอะไรบ้าง" data-question-en="Which courses require Calculus 1 first?">วิชาที่ต้องผ่านแคลคูลัส 1 ก่อน</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.9" data-question="หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต" data-question-en="How many credits are required in each course category?">หน่วยกิตแต่ละหมวดวิชา</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.10" data-question="ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต" data-question-en="What courses are in year 3 semester 1 and how many credits in total?">วิชาและหน่วยกิตปี 3 เทอม 1</button></li>
+            <li><button type="button" class="link-button" data-i18n="chip.11" data-question="ปี 4 เทอม 2 ต้องลงวิชาอะไร" data-question-en="Which courses must I take in year 4 semester 2?">วิชาปี 4 เทอม 2</button></li>
+          </ul>
+        </div>
       </div>
 
       <div class="state-loading">
-        <span class="spinner" aria-hidden="true"></span>
-        <span>กำลังค้นในเล่มหลักสูตร โดยปกติใช้ 10–60 วินาที</span>
+        <div class="skeleton-stream">
+          <div class="skeleton-bar bar-85"></div>
+          <div class="skeleton-bar bar-65"></div>
+          <div class="skeleton-bar bar-45"></div>
+        </div>
+        <div class="loading-indicator-row">
+          <div class="spinner-minimal" aria-hidden="true"></div>
+          <span id="loading-msg-text">กำลังสืบค้นฐานข้อมูลหลักสูตรและวิเคราะห์คำตอบ…</span>
+        </div>
       </div>
 
       <div class="state-success">
-        <h3 class="result-heading">คำตอบจากเล่มหลักสูตร</h3>
-        <div id="answer-box" class="answer-box">
-          <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
-          <div class="answer-body">
+        <div id="answer-box" class="answer-card">
+          <div class="answer-card-header">
+            <div class="answer-header-left">
+              <span class="ai-tag" data-i18n="answer.tag">คำตอบ</span>
+              <span id="answer-source"></span>
+            </div>
+            <div class="answer-header-right">
+              <div class="elapsed-pill"><span id="elapsed-text"></span></div>
+            </div>
+          </div>
+
+          <div class="answer-card-body">
+            <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
             <div id="answer-text" class="answer-text"></div>
-            <p id="answer-hint" class="muted" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
-            <details id="citation-details" hidden>
-              <summary>รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
+            <p id="answer-hint" data-i18n="answer.hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
+
+            <details id="citation-details" class="citation-details" hidden>
+              <summary data-i18n="cite.details">รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
               <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
             </details>
-            <p id="answer-cite" class="muted"></p>
-            <p id="answer-source" class="muted"></p>
-            <div class="answer-actions">
-              <button type="button" id="copy-button" class="secondary">คัดลอกผล</button>
+
+            <div class="citation-box">
+              <span class="citation-title" data-i18n="cite.title">📖 แหล่งอ้างอิงในเล่มหลักสูตร</span>
+              <ol id="cite-cards" class="cite-cards" aria-label="หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ" data-i18n-aria="cite.aria"></ol>
+              <p id="answer-cite"></p>
             </div>
-            <p id="copy-hint" class="muted" hidden>คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง</p>
-            <textarea id="copy-fallback" rows="6" readonly hidden aria-label="ผลลัพธ์ในรูป JSON สำหรับคัดลอก"></textarea>
-            <details>
-              <summary>ดูข้อมูลที่ใช้ตอบ</summary>
-              <h3>SQL อ้างอิง</h3>
-              <p class="muted">คำค้นประกอบคำตอบ ทางลัดอาจใช้หลายคำค้นและคำนวณเพิ่มเติม</p>
+
+            <div class="answer-footer">
+              <button type="button" id="copy-button" class="secondary" data-i18n="copy.btn">คัดลอกผล</button>
+            </div>
+            <p id="copy-hint" data-i18n="copy.hint" hidden>คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง</p>
+            <textarea id="copy-fallback" rows="4" readonly hidden aria-label="ผลลัพธ์ในรูป JSON สำหรับคัดลอก" data-i18n-aria="copy.fallbackAria"></textarea>
+
+            <details class="examiner-drawer">
+              <summary>🔍 SQL Query &amp; Raw Data</summary>
+              <h3>SQL Query</h3>
               <pre id="sql-text"></pre>
-              <h3>ข้อมูลจากฐานข้อมูล</h3>
+              <h3>Raw Data</h3>
               <pre id="rows-text"></pre>
-              <p id="elapsed-text" class="muted"></p>
             </details>
           </div>
         </div>
@@ -83,76 +137,149 @@
         <p id="ask-error-title" class="error-title"></p>
         <p id="ask-error-action"></p>
         <details id="ask-error-more" hidden>
-          <summary>รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <summary data-i18n="error.more">รายละเอียดจากเซิร์ฟเวอร์</summary>
           <pre id="ask-error-detail"></pre>
         </details>
-        <button type="button" id="ask-retry">ลองอีกครั้ง</button>
+        <button type="button" id="ask-retry" data-i18n="error.retry">ลองอีกครั้ง</button>
       </div>
     </section>
 
-    <section id="prereq-panel" class="panel panel-prereq" data-state="idle" aria-labelledby="prereq-title">
-      <h2 id="prereq-title">ตรวจวิชาบังคับก่อน</h2>
-      <p id="prereq-scope" class="muted" hidden></p>
-      <form id="prereq-form" class="inline-form" novalidate>
-        <label for="course-code">รหัสวิชา 8 หลัก</label>
-        <input id="course-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
-        <datalist id="courses-list"></datalist>
-        <button type="submit" id="prereq-button" data-busy-label="กำลังตรวจ…">ตรวจ</button>
+    <hr class="section-separator">
+
+    <section id="search-panel" class="tool-card" data-state="idle" aria-labelledby="search-title">
+      <div class="tool-card-head">
+        <div class="tool-title"><h2 id="search-title" data-i18n="search.title" class="tool-heading">ค้นหารายวิชา</h2></div>
+        <p id="search-scope" class="muted" hidden></p>
+      </div>
+      <form id="search-form" class="inline-form" novalidate>
+        <label for="search-input" data-i18n="search.label">ค้นด้วยรหัสหรือชื่อวิชา</label>
+        <input id="search-input" type="search" autocomplete="off" data-i18n-ph="search.placeholder" placeholder="พิมพ์รหัสหรือชื่อวิชา เช่น ฐานข้อมูล, calculus, 06026">
+        <button type="submit" id="search-button" data-i18n="search.btn" data-i18n-busy="search.busy">ค้นหา</button>
       </form>
-
-      <div class="state-idle">
-        <p class="muted">ดูว่าวิชาไหนต้องผ่านก่อน และเรียนวิชานี้แล้วปลดล็อกวิชาอะไรต่อ</p>
-        <p id="prereq-samples-wrap" class="muted" hidden>ลองรหัส: <span id="prereq-samples"></span></p>
-      </div>
-
+      <div class="state-idle"><p data-i18n="search.idle">พิมพ์แล้วผลจะขึ้นทันที กดที่วิชาเพื่อตรวจวิชาบังคับก่อน</p></div>
       <div class="state-loading">
-        <span class="spinner" aria-hidden="true"></span>
-        <span>กำลังตรวจข้อมูลวิชา…</span>
+        <div class="loading-indicator-row">
+          <div class="spinner-minimal" aria-hidden="true"></div>
+          <span data-i18n="search.loading">กำลังค้นรายวิชา…</span>
+        </div>
       </div>
-
       <div class="state-success">
-        <h3 id="prereq-course"></h3>
-        <p id="prereq-meta" class="muted"></p>
-        <h4>วิชาที่ต้องผ่านก่อน</h4>
-        <ul id="prereq-required" class="course-list"></ul>
-        <h4>รายวิชาที่มีวิชานี้เป็นเงื่อนไข</h4>
-        <p class="muted">การลงทะเบียนยังขึ้นกับเงื่อนไขอื่นของแต่ละรายวิชา</p>
-        <ul id="prereq-unlocks" class="course-list"></ul>
-        <p id="prereq-citations" class="muted"></p>
+        <p id="search-meta" class="search-meta"></p>
+        <ul id="search-results" class="search-results" aria-label="ผลการค้นหารายวิชา" data-i18n-aria="search.aria"></ul>
       </div>
+      <div class="state-error">
+        <p id="search-error-title" class="error-title"></p>
+        <p id="search-error-action"></p>
+        <details id="search-error-more" hidden>
+          <summary data-i18n="error.more">รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <pre id="search-error-detail"></pre>
+        </details>
+        <button type="button" id="search-retry" data-i18n="error.retry">ลองอีกครั้ง</button>
+      </div>
+    </section>
 
+    <section id="prereq-panel" class="tool-card" data-state="idle" aria-labelledby="prereq-title">
+      <div class="tool-card-head">
+        <div class="tool-title">
+          <span>🔗</span>
+          <h2 id="prereq-title" data-i18n="prereq.title" class="tool-heading">ตรวจวิชาบังคับก่อน (Prerequisite)</h2>
+        </div>
+        <p id="prereq-scope" class="muted" hidden></p>
+      </div>
+      <form id="prereq-form" class="inline-form" novalidate>
+        <label for="course-code" data-i18n="prereq.label">รหัสวิชา 8 หลัก</label>
+        <input id="course-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" data-i18n-ph="prereq.placeholder" placeholder="ป้อนรหัสวิชา 8 หลัก เช่น 06016200 หรือ 06066102">
+        <datalist id="courses-list"></datalist>
+        <button type="submit" id="prereq-button" data-i18n="prereq.btn" data-i18n-busy="prereq.busy">ตรวจ</button>
+      </form>
+      <div class="state-idle">
+        <p id="prereq-samples-wrap" class="muted" hidden><span data-i18n="prereq.samples">ลองรหัสทดสอบ:</span> <span id="prereq-samples"></span></p>
+      </div>
+      <div class="state-loading">
+        <div class="loading-indicator-row">
+          <div class="spinner-minimal" aria-hidden="true"></div>
+          <span data-i18n="prereq.loading">กำลังตรวจข้อมูลวิชาจากฐานข้อมูล…</span>
+        </div>
+      </div>
+      <div class="state-success">
+        <div class="prereq-result-area">
+          <h3 id="prereq-course"></h3>
+          <p id="prereq-meta"></p>
+          <div class="prereq-grid">
+            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-list"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-list"></ul></div>
+          </div>
+          <p id="prereq-citations" class="muted"></p>
+        </div>
+      </div>
       <div class="state-error">
         <p id="prereq-error-title" class="error-title"></p>
         <p id="prereq-error-action"></p>
         <details id="prereq-error-more" hidden>
-          <summary>รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <summary data-i18n="error.more">รายละเอียดจากเซิร์ฟเวอร์</summary>
           <pre id="prereq-error-detail"></pre>
         </details>
-        <button type="button" id="prereq-retry">ลองอีกครั้ง</button>
+        <button type="button" id="prereq-retry" data-i18n="error.retry">ลองอีกครั้ง</button>
+      </div>
+    </section>
+
+    <section id="withdraw-panel" class="tool-card" data-state="idle" aria-labelledby="withdraw-title">
+      <div class="tool-card-head">
+        <div class="tool-title"><h2 id="withdraw-title" data-i18n="withdraw.title" class="tool-heading">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2></div>
+        <p id="withdraw-scope" class="muted"></p>
+      </div>
+      <form id="withdraw-form" class="inline-form" novalidate>
+        <label for="withdraw-code" data-i18n="withdraw.label">รหัสวิชาที่กำลังพิจารณาถอน</label>
+        <input id="withdraw-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" data-i18n-ph="withdraw.placeholder" placeholder="ป้อนรหัสวิชา 8 หลัก">
+        <button type="submit" id="withdraw-button" data-i18n="withdraw.btn" data-i18n-busy="withdraw.busy">ตรวจผลกระทบ</button>
+      </form>
+      <div class="state-idle"><p data-i18n="withdraw.idle">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
+      <div class="state-loading">
+        <div class="loading-indicator-row">
+          <div class="spinner-minimal" aria-hidden="true"></div>
+          <span data-i18n="withdraw.loading">กำลังตรวจเส้นทางวิชา…</span>
+        </div>
+      </div>
+      <div class="state-success">
+        <h3 id="withdraw-course"></h3>
+        <p id="withdraw-note"></p>
+        <h4 data-i18n="withdraw.direct">ตัวต่อโดยตรง</h4>
+        <ul id="withdraw-direct" class="course-list"></ul>
+        <h4 data-i18n="withdraw.indirect">ตัวต่อทางอ้อม</h4>
+        <ul id="withdraw-indirect" class="course-list"></ul>
+        <p id="withdraw-citations"></p>
+      </div>
+      <div class="state-error">
+        <p id="withdraw-error-title" class="error-title"></p>
+        <p id="withdraw-error-action"></p>
+        <details id="withdraw-error-more" hidden>
+          <summary data-i18n="error.more">รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <pre id="withdraw-error-detail"></pre>
+        </details>
+        <button type="button" id="withdraw-retry" data-i18n="error.retry">ลองอีกครั้ง</button>
+      </div>
+    </section>
+
+    <section class="minimal-stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-title">
+          <span data-i18n="dash.overview">📘 ภาพรวมหลักสูตร</span>
+          <span id="dash-program-badge" class="dash-meta-badge">-</span>
+        </div>
+        <div class="stat-row"><span class="stat-key" data-i18n="dash.plan">แผนการเรียน</span><span class="stat-val" id="dash-plan-name">-</span></div>
+        <div class="stat-row"><span class="stat-key" data-i18n="dash.credits">หน่วยกิตรวม</span><span class="stat-val" id="dash-credits">-</span></div>
+        <div class="stat-row"><span class="stat-key" data-i18n="dash.duration">ระยะเวลา</span><span class="stat-val" id="dash-years">-</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">
+          <span data-i18n="dash.samples">📋 ตัวอย่างรายวิชา</span>
+          <span id="dash-course-count" class="dash-meta-badge">-</span>
+        </div>
+        <div id="dash-course-preview">
+          <div class="course-mini-row"><span class="mini-code">...</span><span class="mini-name" data-i18n="dash.loading">กำลังโหลดข้อมูล...</span></div>
+        </div>
       </div>
     </section>
   </main>
-  <section id="withdraw-panel" class="panel panel-prereq withdraw-panel" data-state="idle" aria-labelledby="withdraw-title">
-    <h2 id="withdraw-title">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2>
-    <p id="withdraw-scope" class="muted"></p>
-    <form id="withdraw-form" class="inline-form" novalidate>
-      <label for="withdraw-code">รหัสวิชาที่กำลังพิจารณาถอน</label>
-      <input id="withdraw-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
-      <button type="submit" id="withdraw-button" data-busy-label="กำลังตรวจ…">ตรวจผลกระทบ</button>
-    </form>
-    <div class="state-idle"><p class="muted">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
-    <div class="state-loading"><span class="spinner" aria-hidden="true"></span> กำลังตรวจเส้นทางวิชา…</div>
-    <div class="state-success">
-      <h3 id="withdraw-course"></h3><p id="withdraw-note" class="muted"></p>
-      <h4>ตัวต่อโดยตรง</h4><ul id="withdraw-direct" class="course-list"></ul>
-      <h4>ตัวต่อทางอ้อม</h4><ul id="withdraw-indirect" class="course-list"></ul>
-      <p id="withdraw-citations" class="muted"></p>
-    </div>
-    <div class="state-error">
-      <p id="withdraw-error-title" class="error-title"></p><p id="withdraw-error-action"></p>
-      <details id="withdraw-error-more"><summary>รายละเอียดจากเซิร์ฟเวอร์</summary><pre id="withdraw-error-detail"></pre></details>
-      <button type="button" id="withdraw-retry">ลองอีกครั้ง</button>
-    </div>
-  </section>
 </body>
 </html>
