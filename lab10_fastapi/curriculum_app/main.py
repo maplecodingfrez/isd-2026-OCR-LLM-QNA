@@ -1,7 +1,9 @@
 """Application 1: curriculum database question answering."""
 
+import hashlib
 import json
 import os
+import re
 import sqlite3
 import sys
 import threading
@@ -12,7 +14,7 @@ from pathlib import Path
 import requests
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import PROJECT_ROOT, settings, PROGRAMS, _project_path, program_db_path
@@ -82,9 +84,22 @@ def _database_for(program: str | None) -> CurriculumDatabase:
     return CurriculumDatabase(lab8b, path, settings.max_rows)
 
 
+_ASSET_LINK = re.compile(r'(/static/(?:style\.css|i18n\.js|app\.js))(?=")')
+
+
+def asset_version() -> str:
+    """Short hash of the three page assets: a new release gets a new URL, so a browser never keeps showing an old copy."""
+    digest = hashlib.sha1()
+    for name in ("style.css", "i18n.js", "app.js"):
+        digest.update((STATIC_DIR / name).read_bytes())
+    return digest.hexdigest()[:10]
+
+
 @app.get("/", include_in_schema=False)
-def index() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+def index() -> HTMLResponse:
+    html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    version = asset_version()
+    return HTMLResponse(_ASSET_LINK.sub(lambda m: f"{m.group(1)}?v={version}", html), headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/api/health", response_model=HealthResponse)

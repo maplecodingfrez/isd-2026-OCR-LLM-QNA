@@ -380,6 +380,10 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 /* course overview card */
 .overview-card { background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 4px 16px 12px; }
 .overview-card .course-line { border-bottom: 2px solid var(--line); }
+.overview-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+@media (max-width: 768px) { .overview-compare { grid-template-columns: minmax(0, 1fr); } }
+.overview-compare .course-line { grid-template-columns: minmax(0, 1fr); }
+.overview-compare .course-meta { justify-items: start; text-align: left; }
 .overview-facts { display: grid; gap: 10px; margin-top: 10px; }
 .overview-fact { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
 .overview-fact dt { font-weight: 600; font-size: 15px; }

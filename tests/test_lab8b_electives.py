@@ -153,7 +153,7 @@ def test_ask_adds_the_elective_hint_only_for_elective_questions(tmp_path, monkey
 
 
 def test_ask_adds_the_topic_hint_only_for_topic_questions(tmp_path, monkeypatch):
-    assert MARKER_TOPIC in _prompts_for(tmp_path, monkeypatch, "มีวิชาเกี่ยวกับเครือข่ายไหม")
+    assert MARKER_TOPIC in _prompts_for(tmp_path, monkeypatch, "มีวิชาเกี่ยวกับเครือข่ายไหม และยากไหม")
     assert MARKER_TOPIC not in _prompts_for(tmp_path, monkeypatch, "ปี 1 เทอม 1 กี่หน่วยกิต")
 
 
@@ -984,7 +984,7 @@ def test_list_of_courses_without_prerequisites_excludes_those_that_have_one(tmp_
     assert all(c in r["answer"] for c in codes) and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชาที่ไม่ต้องเรียนแคลคูลัส 1 ก่อนมีอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอคำอธิบาย"])
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน และยากไหม", "วิชาที่ไม่ต้องเรียนแคลคูลัส 1 ก่อนมีอะไรบ้าง", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอคำอธิบาย"])
 def test_no_prereq_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_no_prereq_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1093,7 +1093,7 @@ def test_term_listing_with_prerequisites(tmp_path, monkeypatch):
     assert "06020004" in r["answer"] and "06020005" in r["answer"] and "06020003" in r["answer"] and r["model_calls"] == 0
 
 
-@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง ขอคำอธิบาย"])
+@pytest.mark.parametrize("question", ["วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรมาก่อน และยากไหม", "วิชา แคลคูลัส 1 ยากไหม", "ปี 2 เทอม 2 มีวิชาอะไรบ้าง ขอคำอธิบาย"])
 def test_prereq_term_shortcut_leaves_plain_questions_alone(tmp_path, monkeypatch, question):
     assert not m._is_prereq_term_question(question) and _ask_q(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -1917,9 +1917,9 @@ def test_the_longest_matching_name_wins_over_a_shorter_name_inside_it(tmp_path, 
 
 
 @pytest.mark.parametrize("question", [
-    "แคลคูลัส 1 ยากไหม", "วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
+    "แคลคูลัส 1 ยากไหม", "วิชา แคลคูลัส 2 ต้องเรียนวิชาอะไรก่อน และยากไหม", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา",
     "ชั้นปีที่ 2 ภาคการศึกษาที่ 1 ประกอบด้วยรายวิชารหัสใดบ้าง", "ขอรหัสวิชาที่ไม่มีอยู่จริงหน่อย", "วิชา 06020001 ชื่ออะไร",
-    "รหัสวิชา 06020002 ต้องเรียนก่อนวิชาอะไร", "แคลคูลัส 1 และแคลคูลัส 2 ต่างกันอย่างไร"])
+    "รหัสวิชา 06020002 ต้องเรียนก่อนวิชาอะไร และยากไหม", "แคลคูลัส 1 และแคลคูลัส 2 ต่างกันอย่างไร"])
 def test_code_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_code(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -2181,7 +2181,7 @@ def test_a_course_in_two_plan_places_lists_both(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("question", [
     "วิชานอกแผนเรียนปีไหน", "วิชาที่ไม่มีอยู่จริงกี่หน่วยกิต", "แคลคูลัส 1 ยากไหม",
-    "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน", "ปี 1 เทอม 1 มีวิชาอะไรบ้างกี่หน่วยกิต", "วิชาอะไรเรียนปีไหนบ้าง"])
+    "แคลคูลัส 1 ต้องเรียนวิชาอะไรก่อน และยากไหม", "ปี 1 เทอม 1 มีวิชาอะไรบ้างกี่หน่วยกิต", "วิชาอะไรเรียนปีไหนบ้าง"])
 def test_course_attribute_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, question):
     assert _ask_attr(tmp_path, monkeypatch, question)["model_calls"] >= 1
 
@@ -2826,7 +2826,7 @@ def test_term_totals_come_from_the_book_term_view_without_the_model(tmp_path, mo
 
 @pytest.mark.parametrize("question", [
     "ปี 2 เทอม 1 มีกี่หน่วยกิต และมีวิชาอะไรบ้าง ขอคำอธิบาย", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง ขอเป็นรหัสวิชา", "ปี 2 เทอม 1 กับปี 3 เทอม 2 รวมกี่หน่วยกิต",
-    "ปี 9 เทอม 1 ต้องลงทะเบียนกี่วิชา", "วิชาแคลคูลัส 1 ปี 2 เทอม 1 กี่หน่วยกิต", "ปี 2 เทอม 1 วิชาไหนมีหน่วยกิตมากที่สุด", "ปี 2 เทอม 1 มีกี่วิชาที่ได้ 3 หน่วยกิต"])
+    "ปี 9 เทอม 1 ต้องลงทะเบียนกี่วิชา", "วิชาแคลคูลัส 1 ปี 2 เทอม 1 กี่หน่วยกิต", "ปี 2 เทอม 1 มีกี่วิชาที่ได้ 3 หน่วยกิต"])
 def test_term_total_shortcut_leaves_lists_compounds_missing_terms_and_courses_alone(tmp_path, monkeypatch, question):
     assert _ask_term_total(tmp_path, monkeypatch, question)["model_calls"] >= 1 or "ไม่พบ" in _ask_term_total(tmp_path, monkeypatch, question)["answer"]
 

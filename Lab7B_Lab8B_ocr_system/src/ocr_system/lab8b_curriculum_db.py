@@ -3785,6 +3785,31 @@ def _elective_credit_labels(conn: sqlite3.Connection, rows: list[dict]) -> None:
         return
 
 
+def _elective_modules_text(conn: sqlite3.Connection, rows: list[dict]) -> str:
+    """โมดูลอาชีพ (IT: M1-M3) จาก electives.json "modules"; ติด row["module"] ให้วิชาที่อยู่ในโมดูล แผนที่ไม่มีโมดูลคืน ''"""
+    try:
+        program = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()
+        match = re.match(r"^(DSBA|AIT|BIT|IT)(?:-|$)", str(program[0]) if program else "", re.I)
+        if not match:
+            return ""
+        catalog = json.loads((REPO_ROOT / "Lab7B_Lab8B_ocr_system" / "runs" / match.group(1).upper() / "electives.json").read_text(encoding="utf-8"))
+        modules = catalog.get("modules") or []
+    except (sqlite3.Error, OSError, ValueError, TypeError):
+        return ""
+    by_code = {r["code"]: r for r in rows}
+    lines = []
+    for module in modules:
+        members = [by_code[c] for c in module.get("codes", []) if c in by_code]
+        if not members:
+            continue
+        for row in members:
+            row["module"] = module["no"]
+        lines.append(f"{module['no']} {module['name_en']}: " + ", ".join(f"{r['code']} {r['course_name_th']}" for r in members))
+    if not lines:
+        return ""
+    return "โมดูลอาชีพ (ไม่บังคับเลือกโมดูล เลือกวิชานอกโมดูลหรือข้ามโมดูลได้):\n" + "\n".join(lines)
+
+
 def _elective_catalog_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """รายการวิชาเลือกทั้งหลักสูตรจาก catalog; ไม่รับคำถามรายกลุ่ม/เทอม/นับ/เลือกเสรี
     DSBA สหกิจไม่ใช้กลุ่มวิชาเลือกเพิ่มเติมของแผนไม่สหกิจ (เล่ม PDF 21–22)
@@ -3818,6 +3843,9 @@ def _elective_catalog_answer(conn: sqlite3.Connection, question: str) -> tuple[s
         for (_no, name), items in groups.items())
     if dsba_coop:
         answer = ("แสดงกลุ่มวิชาชีพเฉพาะด้านของหลักสูตร; แผนสหกิจไม่ใช้กลุ่มวิชาเลือกเพิ่มเติม 6 หน่วยกิตของแผนไม่สหกิจ\n\n" + answer)
+    modules = _elective_modules_text(conn, rows)
+    if modules:
+        answer += "\n\n" + modules
     return answer, rows, sql
 
 
@@ -5499,86 +5527,6 @@ def _prereq_register_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     return None
 
 
-# ---- "วิชา X มีตัวต่อไหม / วิชาต่อของ X" ----
-_FOLLOWUP_Q = re.compile(
-    r"มี(?:ตัว|วิชา)ต่อ(?:ไหม|หรือไม่|หรือเปล่า|มั้ย|รึเปล่า)|"
-    r"มีวิชา(?:ใด|อะไร)เป็นตัวต่อ|"
-    r"(?:ตัว|วิชา)ต่อ(?:ของ)?|"
-    r"เป็นวิชาบังคับก่อนของวิชา(?:ใด|อะไร)"
-)
-
-
-def _has_followup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
-    """"วิชา X มีตัวต่อไหม" → รายชื่อวิชาที่ใช้วิชา X เป็นวิชาบังคับก่อน (requires = X);
-    ไม่มีตัวต่อ = "ไม่มีตัวต่อ"; คำถามถอน/ดรอป/ผลกระทบ = ให้ withdrawal_graph จัดการ"""
-    if not _FOLLOWUP_Q.search(question):
-        return None
-    if re.search(r"ถอน|ดรอป|กระทบ|ผลกระทบ", question):
-        return None
-    if _YEAR_SUCCESSOR_RE.search(question):
-        return None
-
-    codes = list(dict.fromkeys(_CODE8.findall(question)))
-    code = None
-    if len(codes) == 1:
-        code = codes[0]
-    elif not codes:
-        named = _named_courses(conn, question, catalog=True)
-        if named and len(named) == 1:
-            code = next(iter(named.keys()))
-        else:
-            try:
-                import course_names
-                courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
-                hints = course_names.course_hints(question, courses)
-                if len({c for _, c in hints}) == 1:
-                    code = hints[0][1]
-                else:
-                    colloq = course_names.colloquial_courses(question, courses)
-                    if len(colloq) == 1:
-                        code = colloq[0][0]
-            except Exception:
-                pass
-
-    if not code:
-        return None
-
-    try:
-        succ_rows = conn.execute(
-            "SELECT p.code, c.name_th, c.name_en FROM prerequisite p "
-            "LEFT JOIN course c ON c.code = p.code "
-            "WHERE p.requires = ? AND p.kind = 'pre' ORDER BY p.code", (code,)
-        ).fetchall()
-        try:
-            alt_succ = conn.execute(
-                "SELECT p.code, c.name_th, c.name_en FROM prerequisite_alt p "
-                "LEFT JOIN course c ON c.code = p.code "
-                "WHERE p.requires = ? ORDER BY p.code", (code,)
-            ).fetchall()
-        except sqlite3.OperationalError:
-            alt_succ = []
-    except sqlite3.OperationalError:
-        return None
-
-    c_row = conn.execute("SELECT name_th FROM course WHERE code = ?", (code,)).fetchone()
-    c_name = f" {c_row[0]}" if c_row and c_row[0] else ""
-
-    combined: dict[str, str] = {}
-    for r in succ_rows:
-        combined[r[0]] = r[1]
-    for r in alt_succ:
-        if r[0] not in combined:
-            combined[r[0]] = r[1]
-
-    sql = f"SELECT code FROM prerequisite WHERE requires = '{code}' AND kind = 'pre'"
-    if not combined:
-        return (f"วิชา {code}{c_name} ไม่มีตัวต่อ (ไม่มีวิชาอื่นที่ต้องใช้วิชานี้เป็นวิชาบังคับก่อน)", [], sql)
-
-    listed = ", ".join(f"{c} ({nm})" if nm else c for c, nm in sorted(combined.items()))
-    rows = [{"code": c, "name_th": nm} for c, nm in sorted(combined.items())]
-    return (listed, rows, sql)
-
-
 _COOP_PLACE_ASK = re.compile(r"ปีไหน|ปีใด|ชั้นปีไหน|เทอมไหน|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|เทอมใด|ปีอะไร|เทอมอะไร")
 _COOP_PLACE_NOT = re.compile(r"แผน|ไม่|ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|หน่วยกิต|ชั่วโมง|ก่อน|รหัส|ฝึกงาน|เปลี่ยน|ย้าย|ต่างประเทศ")
 
@@ -5600,16 +5548,82 @@ def _coop_place_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
             "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'")
 
 
+def _partial_name_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาโครงงานอยู่ปีไหน": ชื่อวิชาบางส่วน → ทุกวิชาในแผนที่ชื่อมีคำนั้น พร้อมปี/เทอม (informal_questions)"""
+    from informal_questions import partial_name_term
+    return partial_name_term(conn, question)
+
+
+_MOST_PREREQ_Q = re.compile(r"(?<!ไม่)มีวิชาบังคับก่อน(?:มาก|เยอะ)(?:ที่)?สุด")
+
+
+def _most_prerequisites_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาไหนมีวิชาบังคับก่อนมากที่สุด" → วิชา(ที่เสมอกันทั้งหมด)ที่มีจำนวนวิชาบังคับก่อนสูงสุด พร้อมจำนวนและรายชื่อ"""
+    if not _MOST_PREREQ_Q.search(question) or _CODE8.search(question):
+        return None
+    sql = ("SELECT p.code, c.name_th, COUNT(DISTINCT p.requires) AS n FROM prerequisite p JOIN course c ON c.code = p.code "
+           "GROUP BY p.code ORDER BY n DESC, p.code")
+    try:
+        counts = [dict(r) for r in conn.execute(sql)]
+        names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course")}
+        if not counts:
+            return None
+        top = counts[0]["n"]
+        winners = [r for r in counts if r["n"] == top]
+        parts = []
+        for r in winners:
+            reqs = [x[0] for x in conn.execute("SELECT DISTINCT requires FROM prerequisite WHERE code = ? ORDER BY requires", (r["code"],))]
+            parts.append(f"{r['code']} {r['name_th'] or ''}".rstrip() + ": " + "; ".join(f"{c} ({names[c]})" if names.get(c) else c for c in reqs))
+    except sqlite3.Error:
+        return None
+    head = (f"วิชาที่มีวิชาบังคับก่อนมากที่สุดมี {top} วิชา" if len(winners) == 1
+            else f"มี {len(winners)} วิชาที่มีวิชาบังคับก่อนมากที่สุด วิชาละ {top} วิชา")
+    return head + "\n" + "\n".join(parts), winners, sql
+
+
+_COOP_WHEN_Q = re.compile(r"สหกิจ.*(?:ปี|เทอม|ภาค)(?:ไหน|อะไร)|(?:ปี|เทอม|ภาค)(?:ไหน|อะไร).*สหกิจ|^\s*(?:แผนนี้|หลักสูตรนี้)?มี(?:การ)?สหกิจ(?:ศึกษา)?\s*(?:ไหม|หรือไม่|มั้ย)|^\s*สหกิจ(?:ศึกษา)?\s*(?:มี|เรียน)?\s*กี่หน่วยกิต")
+
+
+def _coop_on_plan_without_coop_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามสหกิจในแผนไม่สหกิจ: บอกว่าแผนนี้ไม่มีสหกิจ แล้วตอบตามแผนสหกิจของหลักสูตรเดียวกัน (ไม่ให้ตกไปโมเดล/ไม่พบ)"""
+    if not _COOP_WHEN_Q.search(question) or _requested_plan(question) or _own_plan(conn) != "no_coop":
+        return None
+    sibling = (_sibling_plan_db(conn) or (None, None))[1]
+    if sibling is None:
+        return None
+    other = open_db(sibling, readonly=True)
+    try:
+        routed = ask(other, question, verbose=False)
+    finally:
+        other.close()
+    if routed.get("answer_type") == "ai" or not routed.get("rows"):
+        return None
+    return ("แผนไม่สหกิจไม่มีสหกิจศึกษา ตามแผนสหกิจของหลักสูตรเดียวกัน: " + str(routed["answer"]), routed["rows"], routed.get("sql") or "")
+
+
+def _plan_question_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ทางลัดคำถามเฉพาะรูปแบบเกี่ยวกับแผน (กรองหน่วยกิต/นับวิชา/คู่วิชาบังคับก่อน/สหกิจ/หัวข้อ) ตอบจากตารางของแผน ไม่ผ่านโมเดล"""
+    from plan_questions import plan_question_answer
+    return plan_question_answer(conn, question, prerequisite_status)
+
+
+def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชาเดียว + "ต้องผ่านอะไรก่อน / มีวิชาต่อไหม" → ตอบจากตาราง prerequisite ตรง ๆ (ทางลัดสุดท้าย: ทางลัดเดิมที่เจาะจงกว่าได้ก่อน, ไม่ต้องพึ่งโมเดล)"""
+    from course_overview import prerequisite_lookup
+    return prerequisite_lookup(conn, question, prerequisite_status)
+
+
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
 _SHORTCUTS = (
     _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _has_followup_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _course_identity_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
+    _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
 
@@ -5658,9 +5672,11 @@ def ask(conn: sqlite3.Connection, question: str,
     """
     try:
         from english_questions import english_to_thai
+        from informal_questions import informal_to_thai
     except ImportError:
         from .english_questions import english_to_thai
-    thai_form = english_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
+        from .informal_questions import informal_to_thai
+    thai_form = english_to_thai(question) or informal_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
     if thai_form:
         routed = ask(conn, thai_form, verbose=verbose)
         routed["question"] = question                       # เก็บข้อความเดิมของผู้ใช้

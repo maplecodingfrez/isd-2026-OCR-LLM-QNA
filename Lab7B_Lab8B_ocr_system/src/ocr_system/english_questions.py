@@ -112,6 +112,10 @@ def english_to_thai(question: str) -> str | None:
             return f"แผนสหกิจกับไม่สหกิจ ปี {year} เทอม {sem} ต่างกันยังไง"
         return "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร"
 
+    # is there a co-op option (the Thai shortcut answers from the plan, or points to the co-op plan)
+    if _search(r"^(?:is there|are there|do you have|does (?:this|the|my) (?:plan|program(?:me)?|curriculum) have)\b[^?]*\bco-?op\b", t):
+        return "มีสหกิจไหม"
+
     # free electives, then the elective list
     if "free elective" in low and _search(r"\b(?:which|what|when)\b", t):
         return "วิชาเลือกเสรีต้องลงตอนปีไหน"

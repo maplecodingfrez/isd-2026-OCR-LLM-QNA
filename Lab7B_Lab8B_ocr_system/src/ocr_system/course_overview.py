@@ -16,6 +16,23 @@ _BARE_CODE = re.compile(rf"^\s*(?:{_PREFIX}\s*)?(\d{{8}})\s*[?!.]*\s*$", re.I)
 _BARE_NAME = re.compile(rf"^\s*(?:วิชา|ข้อมูลวิชา|ขอข้อมูลวิชา|course|subject)\s*(.+?)\s*[?!.]*\s*$", re.I)
 
 
+_WHAT_IS = re.compile(r"\s*(?:ภาษา(?:อังกฤษ|ไทย))?\s*คือ(?:วิชา)?อะไร\s*[?!.]*\s*$")
+_NAME_OF = re.compile(r"^\s*ชื่อ(?:ภาษา)?(?:อังกฤษ|ไทย)?ของ\s*(?=วิชา|\d)")
+_NAME_OF_CODE = re.compile(r"^\s*ชื่อวิชา\s*(\d{8})\s*(?:ภาษา(?:อังกฤษ|ไทย))?\s*(?:คืออะไร|ว่าอะไร)?\s*[?!.]*\s*$")
+
+
+def _strip_what_is(text: str) -> str:
+    """"X คืออะไร" / "ชื่อภาษาอังกฤษของวิชา X" / "ชื่อวิชา 0602… ภาษาอังกฤษคืออะไร" ask for the course itself: reduce them to "วิชา X"."""
+    code = _NAME_OF_CODE.match(text)
+    if code:
+        return "วิชา " + code.group(1)
+    rest = _NAME_OF.sub("", text)
+    if rest == text and not _WHAT_IS.search(rest):
+        return text
+    rest = _WHAT_IS.sub("", rest).strip()
+    return rest if rest.startswith(("วิชา", "รหัส")) else "วิชา " + rest
+
+
 def _table_exists(conn, name: str) -> bool:
     return conn.execute("SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = ?", (name,)).fetchone() is not None
 
@@ -99,7 +116,7 @@ def _resolve_name(conn, phrase: str) -> str | None:
 
 def overview_for_bare_reference(conn, question: str, status_fn):
     """(answer, rows, sql) when the question is only a course reference, else None. status_fn(conn, code) -> prerequisite status."""
-    text = str(question or "")
+    text = _strip_what_is(str(question or ""))
     m = _BARE_CODE.match(text)
     code = m.group(1) if m else None
     if code is None:
@@ -150,3 +167,90 @@ def overview_for_bare_reference(conn, question: str, status_fn):
     row = {**course, "source": "plan", "terms": terms, "prerequisite_status": status,
            "prerequisites": prerequisites, "unlocks": unlocks}
     return "\n".join(lines), [row], sql
+
+
+# ---------- "what must I pass before X?" / "what does X lead to?" for one course ----------
+
+_ASKS_MORE = re.compile(r"และ|พร้อม|ยากไหม|ไม่ต้อง|ไม่มี|ไม่ได้|ไม่ใช่|กี่|ปี\s*\d|เทอม|ภาค|หน่วยกิต|ชั่วโมง|ถอน|ตก|ดรอป|ดร็อป|ชื่อ")
+_NEXT_Q = re.compile(r"ต้อง(?:เรียน|ผ่าน)ก่อนวิชา(?:อะไร|ใด|ไหน)|วิชาต่อ|เรียนต่อ|ต่อ(?:วิชา|ยอด)|แล้วต่อ|เป็นวิชาบังคับก่อน|เป็นบันได|ปลดล็อก|unlock|follow[- ]?up|lead to", re.I)
+_PRE_Q = re.compile(r"วิชาบังคับก่อน|prerequisite|ก่อนเรียน|ต้อง(?:ผ่าน|เรียน|ลง)\s*(?:วิชา)?\s*(?:ใด|อะไร|ไหน)", re.I)
+
+
+def _course_in_text(conn, question: str) -> tuple[str | None, bool]:
+    """(code, ok): ok is False when the text names no course or more than one (then the question is not about a single course)."""
+    known = {r[0]: (r[1], r[2]) for r in conn.execute("SELECT code, name_th, name_en FROM course")}
+    codes = list(dict.fromkeys(re.findall(r"\d{8}", question)))
+    if codes:
+        return (codes[0], True) if len(codes) == 1 and codes[0] in known else (None, False)
+    text = _norm(question)
+    hits = [(len(_norm(n)), code) for code, names in known.items() for n in names if _norm(n) and len(_norm(n)) >= 4 and _norm(n) in text]
+    if not hits:
+        return None, False
+    best = max(length for length, _ in hits)
+    top = {code for length, code in hits if length == best}
+    # a longer name that contains a shorter one ("แคลคูลัส 2" inside a sentence) wins; two different longest names = not one course
+    return (next(iter(top)), True) if len(top) == 1 else (None, False)
+
+
+def _alt_pairs(conn) -> set:
+    if not _table_exists(conn, "prerequisite_alt"):
+        return set()
+    return {(r[0], r[1]) for r in conn.execute("SELECT code, requires FROM prerequisite_alt")}
+
+
+def prerequisite_lookup(conn, question: str, status_fn):
+    """(answer, rows, sql) for one course asked about its prerequisites or its follow-up courses, else None.
+    Direction: "ต้องผ่าน <X> ก่อน" and "X มีวิชาต่อ / เป็นวิชาบังคับก่อนของ…" = follow-ups; "X ต้องผ่านอะไรก่อน / วิชาบังคับก่อนของ X" = prerequisites."""
+    text = str(question or "")
+    if not text.strip() or not _table_exists(conn, "prerequisite"):
+        return None
+    code, ok = _course_in_text(conn, text)
+    if not ok:
+        return None
+    course = _course_row(conn, code)
+    spellings = [code] + [n for n in ((course or {}).get("name_th"), (course or {}).get("name_en")) if n]
+    rest = text
+    for n in spellings:                                          # words inside the course's own name ("การวิเคราะห์และออกแบบระบบ") are not part of the question
+        rest = re.sub(r"\s*".join(map(re.escape, _norm(n))), " ", rest, flags=re.I)
+    if _ASKS_MORE.search(rest):
+        return None
+    after_must = any(re.search(r"ต้อง(?:ผ่าน|เรียน|ใช้)\s*(?:วิชา)?\s*" + r"\s*".join(map(re.escape, _norm(n))), text, re.I) for n in spellings)
+    owner = any(re.search(r"วิชาบังคับก่อน(?:ของ|ที่ต้องใช้ใน)\s*(?:วิชา)?\s*" + r"\s*".join(map(re.escape, _norm(n))), text, re.I) for n in spellings)
+    asks_next = bool(_NEXT_Q.search(text)) or after_must          # "วิชาที่ต้องผ่าน X ก่อน" = what X leads to
+    asks_pre = bool(_PRE_Q.search(text))
+    if owner:                                                    # "วิชาบังคับก่อนของ X" = prerequisites of X ("X เป็นวิชาบังคับก่อนของ…" has X first)
+        asks_next, asks_pre = False, True
+    elif asks_next:
+        asks_pre = False
+    if asks_next == asks_pre:
+        return None
+    head = _course_line({**course, "credits": None, "lecture_h": None}) if course else code
+    alt = _alt_pairs(conn)
+    names = {r[0]: (r[1], r[2], r[3]) for r in conn.execute("SELECT code, name_th, name_en, credits FROM course")}
+
+    def item(c: str) -> dict:
+        n = names.get(c, (None, None, None))
+        return {"code": c, "name_th": n[0], "name_en": n[1], "credits": n[2]}
+
+    def label(c: str) -> str:
+        return f"{c} ({names[c][0]})" if names.get(c, (None,))[0] else c
+
+    if asks_pre:
+        required = [r[0] for r in conn.execute("SELECT requires FROM prerequisite WHERE code = ? ORDER BY requires", (code,)).fetchall()]
+        sql = f"SELECT requires FROM prerequisite WHERE code = '{code}'"
+        if not required:
+            status = status_fn(conn, code)
+            return head + "\n" + ("วิชาบังคับก่อน: ไม่มี" if status == "none" else "วิชาบังคับก่อน: ยังไม่ทราบ (ตรวจเล่มหลักสูตร)"), [], sql
+        either = [c for c in required if (code, c) in alt]
+        must = [c for c in required if (code, c) not in alt]
+        parts = []
+        if must:
+            parts.append("; ".join(label(c) for c in must))
+        if either:
+            parts.append("ผ่านอย่างใดอย่างหนึ่ง: " + " หรือ ".join(label(c) for c in either))
+        return head + "\nวิชาบังคับก่อน: " + "; และ ".join(parts), [item(c) for c in required], sql
+    follow = [r[0] for r in conn.execute("SELECT DISTINCT code FROM prerequisite WHERE requires = ? ORDER BY code", (code,)).fetchall()]
+    sql = f"SELECT code FROM prerequisite WHERE requires = '{code}'"
+    if not follow:
+        return head + "\nวิชาต่อ: ไม่พบวิชาต่อในข้อมูลที่มี", [], sql
+    return head + "\nวิชาต่อ: " + "; ".join(label(c) + (" (วิชานี้เป็นทางเลือกหนึ่ง)" if (c, code) in alt else "") for c in follow), [item(c) for c in follow], sql
