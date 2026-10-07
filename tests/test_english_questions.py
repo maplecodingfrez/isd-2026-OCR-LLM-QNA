@@ -50,6 +50,10 @@ TRANSLATIONS = [
     ("How many credits is Database System Concepts?", "วิชา Database System Concepts มีกี่หน่วยกิต"),
     ("Which year is 06066300 taught?", "วิชา 06066300 เรียนปีไหนเทอมไหน"),
     ("What is the name of course 06066300?", "วิชา 06066300 ชื่ออะไร"),
+    ("Course 06066300", "วิชา 06066300"),
+    ("Tell me about course 06066300", "วิชา 06066300"),
+    ("Give me information on 06066300", "วิชา 06066300"),
+    ("Tell me about Database System Concepts", "วิชา Database System Concepts"),
     ("How many credits does the general education category need?", "หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต"),
     ("How do the co-op and non co-op plans differ in year 4 semester 1?", "แผนสหกิจกับไม่สหกิจ ปี 4 เทอม 1 ต่างกันยังไง"),
     ("Which courses have more than 2 lab hours per week?", "วิชาที่มีชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมงมีอะไรบ้าง"),
@@ -77,6 +81,7 @@ def test_english_template_becomes_its_thai_question(english, thai):
 
 @pytest.mark.parametrize("text", [
     "", "hello", "What is the weather today?", "How many credits?", "What courses are there?",
+    "Tell me a joke", "Tell me about the weather",
     "What is the course code of Database System Concepts?",              # the pipeline already has its own handler for this one
     "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "ปี 2 term 1 เรียนอะไรบ้าง", "วิชา 06026201 ต้องผ่านวิชาใดก่อน",
 ])

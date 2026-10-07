@@ -160,3 +160,33 @@ def test_consecutive_credit_paragraphs_become_one_credits_block(tmp_path):
       process.stdout.write(JSON.stringify(blocks.map(b => b.type + ":" + (b.entries ? b.entries.length : 1))));
     ''')
     assert out == ["credits:2", "paragraph:1"]
+
+
+# ---------- course overview card (answer_type "course_overview") ----------
+
+ROW = {"code": "06066300", "name_th": "แนวคิดระบบฐานข้อมูล", "name_en": "DATABASE SYSTEM CONCEPTS", "credits": 3,
+       "lecture_h": 2, "lab_h": 2, "self_h": 5, "source": "plan", "terms": [[2, 1]], "prerequisite_status": "none",
+       "prerequisites": [], "unlocks": [{"code": "06026212", "name_th": "การสร้างคลังข้อมูล"}]}
+
+
+def test_overview_row_is_mapped_to_the_course_line_and_the_facts(tmp_path):
+    out = run_js(tmp_path, f"process.stdout.write(JSON.stringify(m.overviewParts({json.dumps(ROW, ensure_ascii=False)})));")
+    assert out["entry"]["code"] == "06066300" and out["entry"]["name"] == "แนวคิดระบบฐานข้อมูล"
+    assert out["entry"]["nameEn"] == "DATABASE SYSTEM CONCEPTS" and out["entry"]["credits"] == "3" and out["entry"]["hours"] == ["2", "2", "5"]
+    assert out["terms"] == [{"year": 2, "semester": 1}] and out["status"] == "none" and out["source"] == "plan"
+    assert out["prerequisites"] == [] and out["unlocks"] == [{"code": "06026212", "name": "การสร้างคลังข้อมูล"}]
+
+
+def test_overview_row_outside_the_plan_has_no_hours_or_terms(tmp_path):
+    row = {"code": "06026216", "name_th": "ปัญญาประดิษฐ์", "name_en": "ARTIFICIAL INTELLIGENCE", "credits": 3, "lecture_h": None,
+           "lab_h": None, "self_h": None, "source": "elective", "terms": [], "prerequisite_status": "not_in_plan",
+           "prerequisites": [], "unlocks": []}
+    out = run_js(tmp_path, f"process.stdout.write(JSON.stringify([m.overviewParts({json.dumps(row, ensure_ascii=False)}), m.overviewParts(null), m.overviewParts({{}})]));")
+    assert out[0]["entry"]["hours"] is None and out[0]["terms"] == [] and out[0]["source"] == "elective"
+    assert out[1] is None and out[2] is None                      # no row, or a row without a code: nothing to draw
+
+
+def test_page_draws_the_overview_card_and_chips_ask_for_that_course():
+    js = APP_JS.read_text(encoding="utf-8")
+    assert 'data.answer_type === "course_overview"' in js and "buildOverviewCard" in js
+    assert '"วิชา " + code' in js                                  # a chip asks for that course next
