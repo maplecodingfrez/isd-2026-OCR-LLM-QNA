@@ -176,6 +176,16 @@ def english_to_thai(question: str) -> str | None:
         if ref and ref.casefold() not in _GENERIC:
             return f"วิชา {ref} ชื่ออะไร"
 
+    # just a course: "course 06066300", "tell me about course X", "information on X" (the Thai bare reference gets the overview)
+    m = _search(r"^(?:the )?(?:course|subject)\s+(\d{8})$", t)
+    if m:
+        return f"วิชา {m.group(1)}"
+    m = _search(r"^(?:please )?(?:tell me about|(?:(?:give|show) me )?(?:information|info|details) (?:about|on|of)|overview of)\s+(?:the )?(?:course |subject )?(.+)$", t)
+    if m:
+        ref = _ref(t, m.group(1))
+        if ref and ref.casefold() not in _GENERIC and (_CODE.search(ref) or len(ref.split()) <= 6) and not _search(r"\b(?:weather|joke|you|me)\b", ref):
+            return f"วิชา {ref}"
+
     # is there a course about a topic
     m = (_search(r"\b(?:are there|is there|do you have|do they have)\b (?:any |a )?(?:courses?|subjects?|classes) (?:about|on|in|related to|for)\s+(.+)$", t)
          or _search(r"\b(?:are there|is there|do you have|do they have)\b (?:any |a )?(.+?) (?:courses?|subjects?)$", t))

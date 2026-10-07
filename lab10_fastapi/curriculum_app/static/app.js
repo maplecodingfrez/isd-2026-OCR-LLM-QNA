@@ -412,6 +412,25 @@
     return out;
   }
 
+  // แถว rows[0] ของคำตอบ answer_type "course_overview" -> ข้อมูลที่วาดการ์ดภาพรวมวิชา (ไม่มีแถว/ไม่มีรหัส = null)
+  function overviewParts(row) {
+    if (!row || !row.code) return null;
+    var hours = row.lecture_h != null && row.lab_h != null && row.self_h != null
+      ? [String(row.lecture_h), String(row.lab_h), String(row.self_h)] : null;
+    var named = function (list) {
+      return (Array.isArray(list) ? list : []).map(function (item) { return { code: item.code, name: item.name_th || "" }; });
+    };
+    return {
+      entry: { kind: "course", code: row.code, name: row.name_th || "", nameEn: row.name_en || "",
+        credits: row.credits != null ? String(row.credits) : null, hours: hours, path: null, note: null },
+      terms: (Array.isArray(row.terms) ? row.terms : []).map(function (pair) { return { year: pair[0], semester: pair[1] }; }),
+      status: row.prerequisite_status || "unknown",
+      source: row.source || "plan",
+      prerequisites: named(row.prerequisites),
+      unlocks: named(row.unlocks)
+    };
+  }
+
   // "3 (2-2-5)" จาก API → { credits: "3", hours: ["2","2","5"] | null }
   function splitCredits(display) {
     var m = /^\s*(\d+)(?:\s*\((\d+)-(\d+)-(\d+)\))?\s*$/.exec(String(display == null ? "" : display));
@@ -443,6 +462,7 @@
   }
 
   var api = {
+    overviewParts: overviewParts,
     parseCreditLine: parseCreditLine,
     groupCreditBlocks: groupCreditBlocks,
     sampleTopicsFromApi: sampleTopicsFromApi,
@@ -720,6 +740,38 @@
     return el("section", { className: "credit-card" }, children);
   }
 
+  // การ์ดภาพรวมวิชา: บรรทัดวิชาแบบชั้น ๆ + เรียนเมื่อไร / ต้องผ่านก่อน / วิชาต่อ (ชิปกดแล้วถามภาพรวมวิชานั้นต่อ)
+  function buildOverviewCard(row) {
+    var parts = overviewParts(row);
+    var chips = function (list) {
+      return el("span", { className: "overview-chips" }, list.map(function (item) {
+        return el("button", { className: "overview-chip", text: item.name ? item.code + " " + item.name : item.code,
+          attrs: { type: "button", "data-overview-code": item.code } });
+      }));
+    };
+    var fact = function (labelKey, value) {
+      return el("div", { className: "overview-fact" }, [el("dt", { text: t(labelKey) }), el("dd", {}, [value])]);
+    };
+    var text = function (key) { return el("span", { className: "muted", text: t(key) }); };
+    var facts = [];
+    if (parts.source !== "plan") {
+      facts.push(el("p", { className: "credit-note muted", text: t("prereq.notInPlan") }));
+    } else {
+      facts.push(fact("overview.terms", parts.terms.length
+        ? el("span", { className: "overview-chips" }, parts.terms.map(function (term) {
+          return el("span", { className: "line-tag", text: t("overview.termFmt", { y: term.year, s: term.semester }) });
+        }))
+        : text("overview.noTerm")));
+      facts.push(fact("overview.prereq", parts.prerequisites.length ? chips(parts.prerequisites)
+        : text(parts.status === "none" ? "overview.none" : "overview.unknown")));
+      facts.push(fact("overview.unlocks", parts.unlocks.length ? chips(parts.unlocks) : text("overview.noUnlocks")));
+    }
+    return el("section", { className: "overview-card" }, [
+      el("ul", { className: "course-lines" }, [buildCourseLine(parts.entry)]),
+      el("dl", { className: "overview-facts" }, facts)
+    ]);
+  }
+
   function renderCourseLines(answer, entries) {
     var lead = entries[0].lead;
     if (lead) answer.appendChild(el("p", { className: "course-lead", text: lead }));
@@ -784,7 +836,9 @@
     var groupedQuestion = (/วิชาเลือก|กลุ่มวิชา/.test(data.question || "") && /อะไรบ้าง|วิชาอะไร|รายชื่อ|ให้เลือก/.test(data.question || "")) ||
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
-    if (groups.length) renderElectiveGroups(answer, groups, data);
+    if (data.answer_type === "course_overview" && Array.isArray(data.rows) && overviewParts(data.rows[0])) {
+      answer.appendChild(buildOverviewCard(data.rows[0]));       // รหัส/ชื่อวิชาเฉยๆ = ภาพรวมวิชาจากฐานข้อมูล
+    } else if (groups.length) renderElectiveGroups(answer, groups, data);
     else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
       if (block.type === "courses") {
@@ -1308,6 +1362,13 @@
     }
   });
   $("ask-retry").addEventListener("click", runAsk);
+  $("answer-text").addEventListener("click", function (event) {
+    var chip = event.target.closest("[data-overview-code]");
+    if (!chip) return;
+    var code = chip.dataset.overviewCode;
+    $("question").value = "วิชา " + code;
+    runAsk();
+  });
   $("copy-button").addEventListener("click", copyResult);
   $("topic-bar").addEventListener("keydown", function (event) {
     var pills = Array.prototype.slice.call($("topic-bar").children);

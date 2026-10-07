@@ -26,7 +26,7 @@ class AskResponse(BaseModel):
     answer: str
     citations: list[dict[str, Any]] = []
     citation_text: str = ""
-    answer_type: Literal["database", "rule", "ocr", "ai", "hybrid"] | None = None
+    answer_type: Literal["database", "rule", "ocr", "ai", "hybrid", "course_overview"] | None = None
     processing_seconds: float | None = None
 
 

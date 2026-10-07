@@ -5471,6 +5471,13 @@ def ask(conn: sqlite3.Connection, question: str,
     }
     # หน่วยกิตรายเทอมนับตามเล่ม (ดูเหตุผลที่ฟังก์ชัน); False = สร้างไม่ได้ → กลับไปใช้ view เดิมใน DB (เห็นได้จากผลลัพธ์)
     result["slot_aware_credits"] = use_slot_aware_credit_view(conn)
+    from course_overview import overview_for_bare_reference
+    overview = overview_for_bare_reference(conn, question, prerequisite_status)   # รหัส/ชื่อวิชาเฉยๆ ไม่ได้ถามอะไร = ภาพรวมวิชาจากฐานข้อมูล (ไม่ผ่านโมเดล)
+    if overview:
+        result["answer"], result["rows"], result["sql"] = overview
+        result["answer_type"] = "course_overview"
+        _attach_citations(conn, result)
+        return result
     asked_plan, own_plan = _requested_plan(question), _own_plan(conn)
     if asked_plan and own_plan and asked_plan != own_plan:                # ถามถึงอีกแผน (เช่น เลือกแผนไม่สหกิจแต่ถาม "แผนสหกิจ…") → ตอบจากฐานข้อมูลของแผนนั้น
         sib = (_sibling_plan_db(conn) or (None, None))[1]
