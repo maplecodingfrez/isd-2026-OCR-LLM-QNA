@@ -298,7 +298,7 @@
     { key: "term", n: 2, emoji: "📅", examples: [
       ["chip.3", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "What courses are in year 2 semester 1?"],
       ["chip.10", "ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต", "What courses are in year 3 semester 1 and how many credits in total?"],
-      ["chip.11", "ปี 4 เทอม 2 ต้องลงวิชาอะไร", "Which courses must I take in year 4 semester 2?"]] },
+      ["chip.11", "ปี 4 เทอม 2 เรียนวิชาอะไรบ้าง", "What courses are in year 4 semester 2?"]] },
     { key: "course", n: 3, emoji: "📘", examples: [
       ["chip.4", "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", "What are the elective courses of this program?"],
       ["chip.5", "มีวิชาเกี่ยวกับฐานข้อมูลไหม", "Are there any database courses?"]] },

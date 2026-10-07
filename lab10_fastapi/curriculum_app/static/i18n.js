@@ -55,6 +55,7 @@
     "tab.withdraw": ["ถอนวิชา", "Withdrawal"],
     "chip.12": ["ถอนวิชา 06026200 กระทบอะไร", "Withdraw 06026200: what is affected?"],
     "chip.13": ["06026200 มีวิชาต่อไหม", "Does 06026200 have follow-up courses?"],
+    "question.aria": ["คำถามเกี่ยวกับหลักสูตร", "Question about the curriculum"],
     "chip.11": ["วิชาปี 4 เทอม 2", "Year 4 Sem 2 courses"],
 
     "loading.1": ["กำลังสืบค้นฐานข้อมูลหลักสูตรและวิเคราะห์คำตอบ…", "Searching the curriculum database and analysing the answer…"],
