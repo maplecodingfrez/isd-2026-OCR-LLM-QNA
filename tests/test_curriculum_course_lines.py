@@ -190,3 +190,35 @@ def test_page_draws_the_overview_card_and_chips_ask_for_that_course():
     js = APP_JS.read_text(encoding="utf-8")
     assert 'data.answer_type === "course_overview"' in js and "buildOverviewCard" in js
     assert '"วิชา " + code' in js                                  # a chip asks for that course next
+
+
+# ---------- comparing two courses: two overview cards side by side ----------
+
+ROW2 = {**ROW, "code": "06026212", "name_th": "การสร้างคลังข้อมูล", "name_en": "DATA WAREHOUSING", "terms": [[3, 1]],
+        "prerequisite_status": "found", "prerequisites": [{"code": "06066300", "name_th": "แนวคิดระบบฐานข้อมูล"}], "unlocks": []}
+
+
+def compare_rows(tmp_path, data):
+    return run_js(tmp_path, f"process.stdout.write(JSON.stringify(m.compareRows({json.dumps(data, ensure_ascii=False)})));")
+
+
+def test_two_course_rows_for_a_compare_question_are_drawn_side_by_side(tmp_path):
+    rows = compare_rows(tmp_path, {"question": "เปรียบเทียบ 06066300 กับ 06026212", "answer_type": "database", "rows": [ROW, ROW2]})
+    assert [r["code"] for r in rows] == ["06066300", "06026212"]
+    assert compare_rows(tmp_path, {"question": "compare 06066300 and 06026212", "rows": [ROW, ROW2]}) is not None
+
+
+def test_other_answers_are_not_turned_into_a_comparison(tmp_path):
+    assert compare_rows(tmp_path, {"question": "วิชาไหนไม่มีวิชาต่อ", "rows": [ROW, ROW2]}) is None          # not a compare question
+    assert compare_rows(tmp_path, {"question": "เปรียบเทียบ 06066300 กับ 06026212", "rows": [ROW]}) is None   # not two courses
+    assert compare_rows(tmp_path, {"question": "เปรียบเทียบ A กับ B", "rows": [ROW, {"credits": 3}]}) is None  # a row without a code
+    assert compare_rows(tmp_path, {"question": "เปรียบเทียบ A กับ B", "rows": []}) is None
+
+
+def test_page_and_style_have_the_compare_layout():
+    js = APP_JS.read_text(encoding="utf-8")
+    css = (APP_JS.parent / "style.css").read_text(encoding="utf-8")
+    assert "compareRows(data)" in js and "overview-compare" in js
+    assert ".overview-compare" in css and "grid-template-columns" in css.split(".overview-compare", 1)[1].split("}", 1)[0]
+    # the two cards share the answer column, so the course line is stacked there (a 3-column line squeezed the name to one letter per row)
+    assert ".overview-compare .course-line" in css and ".overview-compare .course-meta" in css
