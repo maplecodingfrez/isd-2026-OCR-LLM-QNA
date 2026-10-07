@@ -5432,6 +5432,12 @@ def _coop_place_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
 
 
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
+def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """วิชาเดียว + "ต้องผ่านอะไรก่อน / มีวิชาต่อไหม" → ตอบจากตาราง prerequisite ตรง ๆ (ทางลัดสุดท้าย: ทางลัดเดิมที่เจาะจงกว่าได้ก่อน, ไม่ต้องพึ่งโมเดล)"""
+    from course_overview import prerequisite_lookup
+    return prerequisite_lookup(conn, question, prerequisite_status)
+
+
 _SHORTCUTS = (
     _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
@@ -5440,6 +5446,7 @@ _SHORTCUTS = (
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
+    _course_prerequisite_lookup_answer,
 )
 
 
