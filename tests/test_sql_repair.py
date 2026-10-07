@@ -221,7 +221,7 @@ def _named_course_db():
 def test_ask_sql_prompt_carries_course_name_hint(monkeypatch):
     prompts: list[str] = []
     monkeypatch.setattr(lab8b, "ollama_generate", _prompt_capture(prompts))
-    lab8b.ask(_named_course_db(), "ต้องเรียนวิชาอะไรก่อน ถึงจะเรียนการสร้างคลังข้อมูลได้", verbose=False)
+    lab8b.ask(_named_course_db(), "ต้องเรียนวิชาอะไรก่อน และยากไหม ถึงจะเรียนการสร้างคลังข้อมูลได้", verbose=False)
     assert '"การสร้างคลังข้อมูล" = 06026212' in prompts[0]
 
 
@@ -248,5 +248,5 @@ def test_ask_answer_names_the_courses_it_returns(monkeypatch):
             return '{"sql": "SELECT requires FROM prerequisite WHERE code=\'06026201\' AND kind=\'pre\'"}'
         return '{"answer": "06026200"}'
     monkeypatch.setattr(lab8b, "ollama_generate", fake)
-    got = lab8b.ask(conn, "วิชาแคลคูลัส 2 ต้องผ่านวิชาอะไรมาก่อน", verbose=False)
+    got = lab8b.ask(conn, "วิชาแคลคูลัส 2 ต้องผ่านวิชาอะไรมาก่อน และยากไหม", verbose=False)
     assert got["answer"] == "06026200 (แคลคูลัส 1)"
