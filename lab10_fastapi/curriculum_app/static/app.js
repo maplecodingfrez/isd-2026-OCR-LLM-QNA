@@ -529,7 +529,7 @@
       : t("answer.sourceDefault");
     $("sql-text").textContent = data.sql || "-";
     $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
-    $("elapsed-text").textContent = t("elapsed", { s: seconds.toFixed(2) }) + (seconds < 5.0 ? " (< 5s Bonus ⭐)" : "");
+    $("elapsed-text").textContent = t("elapsed", { s: seconds.toFixed(2) });
     resetCopyUi();
   }
 

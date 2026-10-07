@@ -565,7 +565,7 @@ button:disabled, select:disabled, textarea:disabled, input:disabled {
   color: var(--text-tertiary);
 }
 
-/* ⏱️ Prominent Latency Badge (Examiner Bonus Showcase) */
+/* ⏱️ Latency badge */
 .elapsed-pill {
   display: inline-flex;
   align-items: center;
