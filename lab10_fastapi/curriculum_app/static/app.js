@@ -440,6 +440,18 @@
   }
 
   // JS ตั้ง "สถานะ" อย่างเดียว; CSS เป็นคนซ่อน/แสดงบล็อก .state-* ตาม data-state
+  // เปลี่ยนหลักสูตร = ผลที่แสดงอยู่ถูกถามซ้ำกับหลักสูตรใหม่ (คำถาม/รหัสวิชาล่าสุดที่ผู้ใช้ส่งไป)
+  var lastAsked = "";
+  var lastPrereqCode = "";
+  var lastWithdrawCode = "";
+  var pendingRefresh = { ask: false, prereq: false, withdraw: false };   // ตอนเปลี่ยนหลักสูตร คำขอเดิมยังวิ่งอยู่: รอให้ถูกทิ้งแล้วถามใหม่
+
+  // คำขอที่ถูกทิ้งเพราะเปลี่ยนหลักสูตรกลางทาง: กลับ Idle แล้ว (ถ้ามีคำสั่งรอ) ถามใหม่กับหลักสูตรที่เลือกอยู่
+  function settleDiscarded(key, panel, controls, run) {
+    setState(panel, "idle", controls);
+    if (pendingRefresh[key]) { pendingRefresh[key] = false; run(); }
+  }
+
   function setState(panel, state, controls) {
     var wasLoading = panel.dataset.state === "loading";
     panel.dataset.state = state;
@@ -475,11 +487,12 @@
       $("withdraw-code").focus();
       return;
     }
+    lastWithdrawCode = check.value;
     var program = $("program").value;
     setState(withdrawPanel, "loading", withdrawControls);
     try {
       var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/withdrawal-impact", program));
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
+      if (program !== $("program").value) { settleDiscarded("withdraw", withdrawPanel, withdrawControls, runWithdrawal); return; }
       var rootNames = courseNames(data.course);
       $("withdraw-course").textContent = (data.course.code || "") + " " + rootNames.primary;
       $("withdraw-summary").textContent = t("withdraw.summary", { d: data.direct.length, i: data.indirect.length });
@@ -499,7 +512,7 @@
       fillCiteCards($("withdraw-citations"), data.citations, t("withdraw.noCite"));
       setState(withdrawPanel, "success", withdrawControls);
     } catch (err) {
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
+      if (program !== $("program").value) { settleDiscarded("withdraw", withdrawPanel, withdrawControls, runWithdrawal); return; }
       showError(withdrawPanel, withdrawControls, "withdraw", err, "prereq");
     }
   }
@@ -727,6 +740,7 @@
       $("question").focus();          // พาผู้ใช้ไปที่ช่องที่ต้องแก้
       return;
     }
+    lastAsked = check.value;
     var program = $("program").value || null;
     var started = performance.now();
     setState(askPanel, "loading", askControls);
@@ -749,7 +763,7 @@
         body: JSON.stringify({ question: check.value, program: program })
       }), program, function () { return $("program").value || null; });
       clearInterval(msgInterval);
-      if (data === null) { setState(askPanel, "idle", askControls); return; }
+      if (data === null) { settleDiscarded("ask", askPanel, askControls, runAsk); return; }
       var seconds = (performance.now() - started) / 1000;
       lastResult = buildCopyPayload(check.value, program, data, seconds);
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
@@ -871,12 +885,13 @@
       $("course-code").focus();
       return;
     }
+    lastPrereqCode = check.value;
     setState(prereqPanel, "loading", prereqControls);
     var program = $("program").value;
     try {
       var data = await currentProgramResult(apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", program)),
         program, function () { return $("program").value; });
-      if (data === null) { setState(prereqPanel, "idle", prereqControls); return; }
+      if (data === null) { settleDiscarded("prereq", prereqPanel, prereqControls, runPrereq); return; }
       renderPrereq(data);
       setState(prereqPanel, "success", prereqControls);
     } catch (err) {
@@ -1196,9 +1211,21 @@
   $("program").addEventListener("change", function () {
     updateScope();
     loadCourses();
-    // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: กลับไปสถานะ Idle (ถ้ากำลังตรวจอยู่ปล่อยให้เสร็จก่อน)
-    if (prereqPanel.dataset.state !== "loading") setState(prereqPanel, "idle", prereqControls);
-    if (withdrawPanel.dataset.state !== "loading") setState(withdrawPanel, "idle", withdrawControls);
+    // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: ถามซ้ำกับหลักสูตรใหม่ (ถ้ากำลังถามอยู่ รอให้คำขอเดิมถูกทิ้งก่อนแล้วถามใหม่)
+    [
+      ["ask", askPanel, askControls, runAsk, lastAsked, $("question")],
+      ["prereq", prereqPanel, prereqControls, runPrereq, lastPrereqCode, $("course-code")],
+      ["withdraw", withdrawPanel, withdrawControls, runWithdrawal, lastWithdrawCode, $("withdraw-code")]
+    ].forEach(function (item) {
+      var state = item[1].dataset.state;
+      if (item[4] && (state === "success" || state === "loading")) {
+        item[5].value = item[4];
+        if (state === "loading") pendingRefresh[item[0]] = true;
+        else item[3]();
+      } else if (item[0] !== "ask" && state !== "loading") {
+        setState(item[1], "idle", item[2]);          // ผลเก่า/ข้อผิดพลาดของหลักสูตรก่อนหน้า ล้างทิ้ง
+      }
+    });
   });
   $("search-form").addEventListener("submit", function (event) { event.preventDefault(); runSearch(); });
   $("search-retry").addEventListener("click", runSearch);
