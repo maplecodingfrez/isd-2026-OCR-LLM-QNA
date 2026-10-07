@@ -122,6 +122,9 @@
     "search.live": ["ค้นหารายวิชา: {msg}", "Course search: {msg}"],
     "hours.fmt": ["บรรยาย {l} · ปฏิบัติ {p} · ศึกษาเอง {s}", "Lecture {l} · Lab {p} · Self-study {s}"],
     "slot.tag": ["เลือกเอง", "Your choice"],
+    "prereq.tagCo": ["เรียนร่วมกัน", "co-requisite"],
+    "prereq.tagAlt": ["ทางเลือกกลุ่ม {n}: ผ่านอย่างใดอย่างหนึ่ง", "option group {n}: pass any one"],
+    "withdraw.summary": ["กระทบโดยตรง {d} วิชา · ทางอ้อม {i} วิชา", "Directly affects {d} courses · indirectly {i}"],
     "credits.unit": ["หน่วยกิต", "credits"],
 
     "prereq.title": ["ตรวจวิชาบังคับก่อน (Prerequisite)", "Check prerequisites"],

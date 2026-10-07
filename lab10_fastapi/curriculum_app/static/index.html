@@ -191,10 +191,10 @@
           <h3 id="prereq-course"></h3>
           <p id="prereq-meta"></p>
           <div class="prereq-grid">
-            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-list"></ul></div>
-            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-list"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-lines"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-lines"></ul></div>
           </div>
-          <p id="prereq-citations" class="muted"></p>
+          <ul id="prereq-citations" class="cite-cards"></ul>
         </div>
       </div>
       <div class="state-error">
@@ -227,12 +227,13 @@
       </div>
       <div class="state-success">
         <h3 id="withdraw-course"></h3>
-        <p id="withdraw-note"></p>
+        <p id="withdraw-summary" class="impact-summary"></p>
         <h4 data-i18n="withdraw.direct">ตัวต่อโดยตรง</h4>
-        <ul id="withdraw-direct" class="course-list"></ul>
+        <ul id="withdraw-direct" class="course-lines"></ul>
         <h4 data-i18n="withdraw.indirect">ตัวต่อทางอ้อม</h4>
-        <ul id="withdraw-indirect" class="course-list"></ul>
-        <p id="withdraw-citations"></p>
+        <ul id="withdraw-indirect" class="course-lines"></ul>
+        <p id="withdraw-note" class="impact-note"></p>
+        <ul id="withdraw-citations" class="cite-cards"></ul>
       </div>
       <div class="state-error">
         <p id="withdraw-error-title" class="error-title"></p>

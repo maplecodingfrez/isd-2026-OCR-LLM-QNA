@@ -338,23 +338,45 @@
     var note = null;
     var tail = /\s*\((รวม[^)]*)\)\s*$/.exec(s);
     if (tail) { note = tail[1]; s = s.slice(0, tail.index).trim(); }
+    var path = null;
+    var via = /\s*\(เส้นทาง\s+([^)]+)\)\s*$/.exec(s);
+    if (via) { path = via[1].trim(); s = s.slice(0, via.index).trim(); }
     var lead = "";
     var head = /^(.{1,40}?:)\s+(?=\d{8}\s)/.exec(s);
     if (head) { lead = head[1]; s = s.slice(head[0].length); }
     var m = COURSE_LINE.exec(s);
     if (m) {
       return { kind: "course", lead: lead, code: m[1], name: m[2].trim(), nameEn: (m[3] || "").trim(), credits: m[4],
-        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, note: note };
+        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, path: path, note: note };
     }
+    var bare = /^(\d{8})\s+\((.+)\)$/.exec(s);        // "06026200 (แคลคูลัส 1)": รหัส + ชื่อ ไม่มีหน่วยกิต
+    if (bare) return { kind: "course", lead: lead, code: bare[1], name: bare[2].trim(), nameEn: "", credits: null, hours: null, path: path, note: note };
     var slot = SLOT_LINE.exec(s);
     if (slot) return { kind: "slot", lead: lead, name: slot[1].trim(), credits: slot[2].trim(), note: note };
     return null;
+  }
+
+  // "3 (2-2-5)" จาก API → { credits: "3", hours: ["2","2","5"] | null }
+  function splitCredits(display) {
+    var m = /^\s*(\d+)(?:\s*\((\d+)-(\d+)-(\d+)\))?\s*$/.exec(String(display == null ? "" : display));
+    return m ? { credits: m[1], hours: m[2] !== undefined ? [m[2], m[3], m[4]] : null } : { credits: String(display == null ? "" : display).trim(), hours: null };
+  }
+
+  // ป้ายสั้น ๆ ข้างวิชาบังคับก่อน: เรียนร่วมกัน / ทางเลือกกลุ่ม N (ผ่านอย่างใดอย่างหนึ่ง); ไม่มี = ""
+  function prereqTag(course) {
+    if (course && course.kind === "co") return t("prereq.tagCo");
+    if (course && course.alternative_group != null) return t("prereq.tagAlt", { n: course.alternative_group });
+    return "";
   }
 
   // รวมย่อหน้าที่เป็นบรรทัดวิชาติดกันเป็นบล็อก {type:"courses", entries} เดียว; ย่อหน้าอื่นคงเดิม
   function groupCourseBlocks(blocks) {
     var out = [];
     blocks.forEach(function (block) {
+      if (block.type === "list" && block.items.length) {                       // รายการหัวข้อย่อย: ทุกข้อเป็นบรรทัดวิชา = แสดงเป็นชั้น
+        var entries = block.items.map(parseCourseLine);
+        if (entries.every(Boolean)) { out.push({ type: "courses", entries: entries }); return; }
+      }
       var entry = block.type === "paragraph" ? parseCourseLine(block.text) : null;
       if (!entry) { out.push(block); return; }
       var last = out[out.length - 1];
@@ -365,6 +387,8 @@
   }
 
   var api = {
+    splitCredits: splitCredits,
+    prereqTag: prereqTag,
     parseCourseLine: parseCourseLine,
     groupCourseBlocks: groupCourseBlocks,
     SAMPLE_TOPICS: SAMPLE_TOPICS,
@@ -456,24 +480,23 @@
     try {
       var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/withdrawal-impact", program));
       if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
-      $("withdraw-course").textContent = courseDisplay(data.course);
+      var rootNames = courseNames(data.course);
+      $("withdraw-course").textContent = (data.course.code || "") + " " + rootNames.primary;
+      $("withdraw-summary").textContent = t("withdraw.summary", { d: data.direct.length, i: data.indirect.length });
       $("withdraw-note").textContent = data.note;
       ["direct", "indirect"].forEach(function (key) {
         var list = $("withdraw-" + key);
         clear(list);
-        if (!data[key].length) list.appendChild(el("li", { text: t("withdraw.none") }));
+        if (!data[key].length) list.appendChild(el("li", { className: "muted", text: t("withdraw.none") }));
         data[key].forEach(function (course) {
           var path = [data.course.code].concat(course.path.map(function (edge) { return edge.code; })).join(" → ");
-          var conditions = course.path.map(function (edge) {
+          var notes = course.path.filter(function (edge) { return edge.kind === "co" || edge.alternative; }).map(function (edge) {
             return edge.code + ": " + (edge.kind === "co" ? t("withdraw.co") : t("withdraw.pre")) + (edge.alternative ? t("withdraw.alt") : "");
-          }).join("; ");
-          list.appendChild(el("li", {}, [
-            el("p", { text: courseDisplay(course) }),
-            el("p", { className: "muted", text: t("withdraw.path", { path: path, cond: conditions }) })
-          ]));
+          }).join("; ");     // เงื่อนไขปกติ (วิชาบังคับก่อน) ไม่ต้องบอกซ้ำ: โชว์เฉพาะเรียนร่วมกัน/มีทางเลือก
+          list.appendChild(buildCourseLine(entryFromCourse(course, { path: path, pathNote: notes })));
         });
       });
-      $("withdraw-citations").textContent = data.citations.length ? t("withdraw.cite") + data.citations.map(function (c) { return "PDF " + c.pdf_page + " (" + c.courses.join(", ") + ")"; }).join("; ") : t("withdraw.noCite");
+      fillCiteCards($("withdraw-citations"), data.citations, t("withdraw.noCite"));
       setState(withdrawPanel, "success", withdrawControls);
     } catch (err) {
       if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
@@ -534,30 +557,78 @@
   }
 
   // รายวิชาเป็นชั้น ๆ: รหัส | ชื่อภาษาที่เลือก (อีกภาษาเล็กและจาง) | หน่วยกิต + ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเอง
-  function renderCourseLines(answer, entries) {
+  // บรรทัดวิชา 1 บรรทัด: รหัส | ชื่อ (ภาษาที่เลือก + อีกภาษาจาง + ป้ายเส้นทาง/เงื่อนไข) | หน่วยกิต + ชั่วโมง
+  // entry: จากข้อความคำตอบ (parseCourseLine) หรือจาก API ผ่าน entryFromCourse; ชื่อที่ resolve แล้วอยู่ใน primary/secondary
+  function buildCourseLine(entry) {
     var english = I18N && I18N.getLang() === "en";
+    if (entry.kind === "slot") {
+      return el("li", { className: "course-line is-slot" }, [
+        el("span", { className: "slot-tag", text: t("slot.tag") }),
+        el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })]),
+        el("span", { className: "course-meta" }, [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })])
+      ]);
+    }
+    var swap = entry.primary === undefined && english && entry.nameEn;
+    var primary = entry.primary !== undefined ? entry.primary : (swap ? entry.nameEn : entry.name);
+    var secondary = entry.primary !== undefined ? entry.secondary : (swap ? entry.name : entry.nameEn);
+    var main = [el("span", { className: "course-name", text: primary })];
+    if (secondary) main.push(el("span", { className: "course-name-alt", text: secondary, attrs: swap || entry.primary !== undefined ? {} : { lang: "en" } }));
+    var tags = [];
+    if (entry.tag) tags.push(el("span", { className: "line-tag", text: entry.tag }));
+    if (entry.path) tags.push(el("span", { className: "path-tag", text: entry.path }));
+    if (entry.pathNote) tags.push(el("span", { className: "path-note", text: entry.pathNote }));
+    if (tags.length) main.push(el("span", { className: "course-tags" }, tags));
+    var meta = [];
+    if (entry.credits) meta.push(el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") }));
+    if (entry.hours) meta.push(el("span", { className: "course-hours", text: t("hours.fmt", { l: entry.hours[0], p: entry.hours[1], s: entry.hours[2] }) }));
+    return el("li", { className: "course-line" }, [
+      el("span", { className: "code", text: entry.code }),
+      el("span", { className: "course-main" }, main),
+      el("span", { className: "course-meta" }, meta)
+    ]);
+  }
+
+  // วิชาจาก API (code, name_th, name_en, credits_display) → entry สำหรับ buildCourseLine
+  function entryFromCourse(course, extra) {
+    var names = courseNames(course);
+    var split = splitCredits(course.credits_display != null ? course.credits_display : course.credits);
+    var entry = { kind: "course", code: course.code || "", primary: names.primary, secondary: names.secondary,
+      credits: split.credits || null, hours: split.hours };
+    Object.keys(extra || {}).forEach(function (key) { entry[key] = extra[key]; });
+    return entry;
+  }
+
+  // การ์ดหน้าอ้างอิง (printed_page/pdf_page + วิชาที่พบ) จาก citations ของ API ใช้ซ้ำในเครื่องมือตรวจวิชา/ผลกระทบการถอน
+  function fillCiteCards(list, citations, emptyText) {
+    clear(list);
+    if (!Array.isArray(citations) || !citations.length) {
+      if (emptyText) list.appendChild(el("li", { className: "muted", text: emptyText }));
+      return;
+    }
+    citations.forEach(function (c) {
+      var printed = c.printed_page !== null && c.printed_page !== undefined && c.printed_page !== "";
+      var head = el("div", { className: "cite-card-head" }, [
+        el("span", { className: "cite-page", text: printed ? t("cite.page", { n: c.printed_page }) : "PDF " + c.pdf_page })
+      ]);
+      if (printed) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf_page }));
+      var card = el("li", { className: "cite-card" }, [head]);
+      var codes = Array.isArray(c.courses) ? c.courses : [];
+      if (codes.length) {
+        var chips = el("ul", { className: "cite-chip-list" });
+        codes.forEach(function (code) {
+          var name = c.course_names && c.course_names[code];
+          chips.appendChild(el("li", { className: "cite-chip", text: name ? code + " " + name : code }));
+        });
+        card.appendChild(chips);
+      }
+      list.appendChild(card);
+    });
+  }
+
+  function renderCourseLines(answer, entries) {
     var lead = entries[0].lead;
     if (lead) answer.appendChild(el("p", { className: "course-lead", text: lead }));
-    answer.appendChild(el("ul", { className: "course-lines" }, entries.map(function (entry) {
-      if (entry.kind === "slot") {
-        return el("li", { className: "course-line is-slot" }, [
-          el("span", { className: "slot-tag", text: t("slot.tag") }),
-          el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })]),
-          el("span", { className: "course-meta" }, [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })])
-        ]);
-      }
-      var swap = english && entry.nameEn;
-      var main = [el("span", { className: "course-name", text: swap ? entry.nameEn : entry.name })];
-      var alt = swap ? entry.name : entry.nameEn;
-      if (alt) main.push(el("span", { className: "course-name-alt", text: alt, attrs: swap ? {} : { lang: "en" } }));
-      var meta = [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })];
-      if (entry.hours) meta.push(el("span", { className: "course-hours", text: t("hours.fmt", { l: entry.hours[0], p: entry.hours[1], s: entry.hours[2] }) }));
-      return el("li", { className: "course-line" }, [
-        el("span", { className: "code", text: entry.code }),
-        el("span", { className: "course-main" }, main),
-        el("span", { className: "course-meta" }, meta)
-      ]);
-    })));
+    answer.appendChild(el("ul", { className: "course-lines" }, entries.map(buildCourseLine)));
     var note = entries[entries.length - 1].note;
     if (note) answer.appendChild(el("p", { className: "course-tail muted", text: "(" + note + ")" }));
   }
@@ -761,8 +832,7 @@
     return (course.code || "") + " " + title + (credits ? " — " + credits + " " + t("credits.unit") : "");
   }
 
-  function fillCourseList(list, items, emptyText, format) {
-    format = format || courseDisplay;
+  function fillCourseList(list, items, emptyText, tagOf) {
     clear(list);
     var courses = Array.isArray(items) ? items : [];
     if (!courses.length) {
@@ -770,10 +840,7 @@
       return;
     }
     courses.forEach(function (course) {
-      list.appendChild(el("li", {}, [
-        el("span", { className: "code", text: course.code || "" }),
-        document.createTextNode(format(course).slice((course.code || "").length))
-      ]));
+      list.appendChild(buildCourseLine(entryFromCourse(course, { tag: tagOf ? tagOf(course) : "" })));
     });
   }
 
@@ -782,21 +849,18 @@
   function renderPrereq(data) {
     lastPrereq = data;
     var names = courseNames(data);
-    $("prereq-course").textContent = "[" + (data.code || "") + "] " + names.primary + (names.secondary ? " / " + names.secondary : "");
-    $("prereq-meta").textContent =
-      (data.credits_display || (data.credits != null ? data.credits : "")) + " " + t("credits.unit") +
-      (data.credits_display ? t("prereq.hours") : "");
-    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data), prerequisiteDisplay);
+    $("prereq-course").textContent = (data.code || "") + " " + names.primary;
+    var own = splitCredits(data.credits_display != null ? data.credits_display : data.credits);
+    var metaBox = $("prereq-meta");
+    clear(metaBox);
+    [names.secondary, own.credits ? own.credits + " " + t("credits.unit") : "",
+      own.hours ? t("hours.fmt", { l: own.hours[0], p: own.hours[1], s: own.hours[2] }) : ""].filter(Boolean).forEach(function (part, i) {
+      if (i) metaBox.appendChild(document.createTextNode(" · "));
+      metaBox.appendChild(el("span", { className: "meta-part", text: part }));     // แต่ละส่วนไม่ตัดบรรทัดกลางคำ
+    });
+    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data), prereqTag);
     fillCourseList($("prereq-unlocks"), data.unlocked_courses, t("prereq.noneUnlocks"));
-    var citeEl = $("prereq-citations");
-    if (citeEl) {
-      citeEl.textContent = data.citations && data.citations.length
-        ? t("withdraw.cite") + data.citations.map(function (c) {
-            return (c.printed_page !== null ? "หน้า " + c.printed_page + " (PDF " + c.pdf_page + ")" : "PDF " + c.pdf_page) +
-              (c.courses && c.courses.length ? " (" + c.courses.join(", ") + ")" : "");
-          }).join("; ")
-        : "";
-    }
+    fillCiteCards($("prereq-citations"), data.citations, "");
   }
 
   async function runPrereq() {
