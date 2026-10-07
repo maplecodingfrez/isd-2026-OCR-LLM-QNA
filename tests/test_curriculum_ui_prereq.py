@@ -84,7 +84,7 @@ def test_empty_answers_drop_the_copy_button_and_the_empty_citation_heading():
     js = APP_JS.read_text(encoding="utf-8")
     i18n = I18N_JS.read_text(encoding="utf-8")
     assert '.querySelector(".citation-box").hidden = !hasCitations' in js
-    assert '.querySelector(".answer-footer").hidden = isEmptyResult(data)' in js
+    assert "var noAnswer = noRealAnswer(data)" in js and '.querySelector(".answer-footer").hidden = noAnswer' in js   # not "rows are empty": rule answers have no rows
     assert '"answer.hintGeneric"' in i18n and "answer.hintGeneric" in js        # the year/term hint only for year/term questions
 
 
@@ -102,3 +102,17 @@ def test_search_results_tag_courses_outside_the_plan_and_the_idle_hint_names_acr
     assert 'data.prerequisite_status === "not_in_plan"' in js and '"prereq.notInPlan"' in i18n
     idle = next(line for line in i18n.splitlines() if line.strip().startswith('"search.idle"'))
     assert "DB" in idle and "ML" in idle                                         # the hint tells people acronyms work
+
+
+def test_a_rule_answer_without_rows_is_a_real_answer_but_not_found_and_blank_are_not(tmp_path):
+    out = run_js(tmp_path, '''
+      const cases = [
+        {answer: "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", rows: []},                                   // not found
+        {answer: "", rows: []},                                                            // nothing to show
+        {answer: "หลักสูตรนี้มีแผนการเรียนแผนเดียว ไม่แยกแผนสหกิจ/ไม่สหกิจ", rows: []},      // a rule answer: real, no rows
+        {answer: "ปี 1 เทอม 1 รวม 18 หน่วยกิต", rows: [{credits: 18}]},
+        null,
+      ];
+      process.stdout.write(JSON.stringify(cases.map(c => m.noRealAnswer(c))));
+    ''')
+    assert out == [True, True, False, False, True]
