@@ -3671,6 +3671,31 @@ def _elective_credit_labels(conn: sqlite3.Connection, rows: list[dict]) -> None:
         return
 
 
+def _elective_modules_text(conn: sqlite3.Connection, rows: list[dict]) -> str:
+    """โมดูลอาชีพ (IT: M1-M3) จาก electives.json "modules"; ติด row["module"] ให้วิชาที่อยู่ในโมดูล แผนที่ไม่มีโมดูลคืน ''"""
+    try:
+        program = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()
+        match = re.match(r"^(DSBA|AIT|BIT|IT)(?:-|$)", str(program[0]) if program else "", re.I)
+        if not match:
+            return ""
+        catalog = json.loads((REPO_ROOT / "Lab7B_Lab8B_ocr_system" / "runs" / match.group(1).upper() / "electives.json").read_text(encoding="utf-8"))
+        modules = catalog.get("modules") or []
+    except (sqlite3.Error, OSError, ValueError, TypeError):
+        return ""
+    by_code = {r["code"]: r for r in rows}
+    lines = []
+    for module in modules:
+        members = [by_code[c] for c in module.get("codes", []) if c in by_code]
+        if not members:
+            continue
+        for row in members:
+            row["module"] = module["no"]
+        lines.append(f"{module['no']} {module['name_en']}: " + ", ".join(f"{r['code']} {r['course_name_th']}" for r in members))
+    if not lines:
+        return ""
+    return "โมดูลอาชีพ (ไม่บังคับเลือกโมดูล เลือกวิชานอกโมดูลหรือข้ามโมดูลได้):\n" + "\n".join(lines)
+
+
 def _elective_catalog_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """รายการวิชาเลือกทั้งหลักสูตรจาก catalog; ไม่รับคำถามรายกลุ่ม/เทอม/นับ/เลือกเสรี
     DSBA สหกิจไม่ใช้กลุ่มวิชาเลือกเพิ่มเติมของแผนไม่สหกิจ (เล่ม PDF 21–22)
@@ -3704,6 +3729,9 @@ def _elective_catalog_answer(conn: sqlite3.Connection, question: str) -> tuple[s
         for (_no, name), items in groups.items())
     if dsba_coop:
         answer = ("แสดงกลุ่มวิชาชีพเฉพาะด้านของหลักสูตร; แผนสหกิจไม่ใช้กลุ่มวิชาเลือกเพิ่มเติม 6 หน่วยกิตของแผนไม่สหกิจ\n\n" + answer)
+    modules = _elective_modules_text(conn, rows)
+    if modules:
+        answer += "\n\n" + modules
     return answer, rows, sql
 
 
