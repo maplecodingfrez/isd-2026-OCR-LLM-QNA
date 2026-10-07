@@ -50,6 +50,11 @@ TRANSLATIONS = [
     ("How many credits is Database System Concepts?", "วิชา Database System Concepts มีกี่หน่วยกิต"),
     ("Which year is 06066300 taught?", "วิชา 06066300 เรียนปีไหนเทอมไหน"),
     ("What is the name of course 06066300?", "วิชา 06066300 ชื่ออะไร"),
+    ("How many credits does the general education category need?", "หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต"),
+    ("How do the co-op and non co-op plans differ in year 4 semester 1?", "แผนสหกิจกับไม่สหกิจ ปี 4 เทอม 1 ต่างกันยังไง"),
+    ("Which courses have more than 2 lab hours per week?", "วิชาที่มีชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมงมีอะไรบ้าง"),
+    ("How many prerequisite pairs are there in total?", "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่"),
+    ("What does the non co-op plan add compared with the co-op plan?", COMPARE),
 ]
 
 

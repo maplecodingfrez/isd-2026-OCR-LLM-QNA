@@ -116,3 +116,29 @@ def test_a_rule_answer_without_rows_is_a_real_answer_but_not_found_and_blank_are
       process.stdout.write(JSON.stringify(cases.map(c => m.noRealAnswer(c))));
     ''')
     assert out == [True, True, False, False, True]
+
+
+def test_samples_from_the_api_are_mapped_and_malformed_ones_fall_back(tmp_path):
+    out = run_js(tmp_path, '''
+      const good = [{key: "credits", examples: [
+        {label_th: "ก", label_en: "A", th: "คำถามไทย", en: "English question", needs_model: false},
+        {label_th: "", label_en: "B", th: "x", en: "y"}]},                                   // no Thai label: dropped
+        {key: "nope", examples: [{label_th: "ก", label_en: "A", th: "x", en: "y"}]},         // unknown topic: dropped
+        {key: "term", examples: "not a list"}];
+      const mapped = m.sampleTopicsFromApi(good);
+      process.stdout.write(JSON.stringify({
+        keys: mapped.map(t => t.key), n: mapped[0].n, count: mapped[0].examples.length,
+        first: mapped[0].examples[0],
+        bad: [m.sampleTopicsFromApi(null), m.sampleTopicsFromApi([]), m.sampleTopicsFromApi([{key: "term", examples: []}])],
+      }));
+    ''')
+    assert out["keys"] == ["credits"] and out["n"] == 1 and out["count"] == 1
+    assert out["first"] == {"label": {"th": "ก", "en": "A"}, "q": {"th": "คำถามไทย", "en": "English question"}}
+    assert out["bad"] == [None, None, None]
+
+
+def test_page_asks_the_plan_for_its_samples_and_keeps_a_built_in_fallback():
+    js = APP_JS.read_text(encoding="utf-8")
+    assert 'withProgram("/api/sample-questions", $("program").value)' in js
+    assert "sampleTopics = SAMPLE_TOPICS" in js                                  # request failed or empty: the built-in list
+    assert js.count("loadSamples()") >= 3                                        # defined, on start, and when the plan changes
