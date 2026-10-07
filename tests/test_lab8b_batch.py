@@ -37,6 +37,17 @@ def test_master_report_does_not_pass_a_correct_but_slow_answer(monkeypatch, seco
 
 # ---------- load_questions ----------
 
+def test_se_credit_oracle_accepts_hours_but_requires_correct_course_and_value():
+    script = Path(__file__).resolve().parents[1] / 'run_all_tests.py'
+    runner = types.ModuleType('credit_oracle')
+    exec(compile(script.read_text(encoding='utf-8'),str(script),'exec'),runner.__dict__)
+    check = next(c for c in runner.TEST_CASES if c['id'] == 70)['expect_fn']
+    for answer in ('3 หน่วยกิต', '3 (3-0-6) หน่วยกิต'):
+        assert check({'answer':answer,'rows':[{'code':'06016410','credits':3}]})
+    for answer, code, credits in (('3 (3-0-6) หน่วยกิต','06016410',2),
+                                  ('3 หน่วยกิต','06016411',3),('2 หน่วยกิต','06016410',3)):
+        assert not check({'answer':answer,'rows':[{'code':code,'credits':credits}]})
+
 def test_load_questions_txt_skips_blank_lines_and_comments(tmp_path):
     f = tmp_path / "q.txt"
     f.write_text("# ชุดทดสอบ\nหลักสูตรนี้กี่หน่วยกิต\n\n  ปี 1 เรียนอะไรบ้าง  \n", encoding="utf-8")
