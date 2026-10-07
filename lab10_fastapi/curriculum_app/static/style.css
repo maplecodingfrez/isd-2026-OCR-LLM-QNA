@@ -252,7 +252,7 @@ textarea#question::placeholder { color: var(--muted); }
 .examples { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; min-height: 48px; }
 .examples li button.link-button {
   min-height: 44px; padding: 6px 16px; border: 2px solid var(--pill-bg); border-radius: 999px;
-  background: var(--surface); color: var(--text); font-size: 15px;
+  background: var(--surface); color: var(--text); font-size: 15px; text-decoration: none;
   animation: pop-in 0.35s var(--ease) both;
 }
 .examples li:nth-child(2) button.link-button { animation-delay: 80ms; }
@@ -298,7 +298,7 @@ textarea#question::placeholder { color: var(--muted); }
 .cite-tabs { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .cite-tab {
   display: inline-flex; align-items: baseline; gap: 8px; padding: 4px 12px; border-radius: var(--radius-sm);
-  background: var(--t1-bg); color: var(--t1-fg); font-weight: 600; font-size: 14px;
+  background: var(--surface-2); border: 2px solid var(--accent); color: var(--text); font-weight: 600; font-size: 14px;
 }
 .cite-tab .pdf { font-weight: 400; font-size: 12.5px; }
 .answer-text { font-size: 17px; line-height: 1.7; max-width: 70ch; }
@@ -314,9 +314,9 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .citation-box { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 .citation-title { font-weight: 600; font-size: 15px; }
 .cite-cards { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.cite-card { padding: 8px 12px; border-radius: var(--radius-md); background: var(--t2-bg); color: var(--t2-fg); }
+.cite-card { padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-2); border: 2px solid var(--line); color: var(--text); }
 .cite-card-head { display: flex; align-items: baseline; gap: 8px; }
-.cite-page { font-weight: 600; }
+.cite-page { font-weight: 600; color: var(--accent); }
 .cite-pdf { font-size: 13px; }
 .cite-chip-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .cite-chip { font-size: 13px; padding: 2px 10px; border-radius: 999px; background: var(--surface); color: var(--text); }
@@ -403,6 +403,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 }
 
 @media (max-width: 580px) {
+  textarea#question { min-height: 104px; }
   .tab { flex: 1 1 auto; text-align: center; }
   .elective-credits { margin-left: 0; }
 }
