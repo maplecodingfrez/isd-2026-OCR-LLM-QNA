@@ -399,7 +399,7 @@ def run_master_test():
             category_stats[cat] = {"total": 0, "passed": 0}
         category_stats[cat]["total"] += 1
 
-        t0 = time.time()
+        t0 = time.perf_counter()
         ans = ""
         sql = ""
         passed = False
@@ -474,7 +474,11 @@ def run_master_test():
             ans = f"ERROR: {e}"
             passed = False
 
-        elapsed = round(time.time() - t0, 2)
+        elapsed_raw = time.perf_counter() - t0
+        elapsed = round(elapsed_raw, 2)
+        correctness_passed = passed
+        performance_passed = elapsed_raw < 5.0 if t_type == "ask" else None
+        passed = correctness_passed and performance_passed is not False
         if passed:
             category_stats[cat]["passed"] += 1
 
@@ -494,6 +498,8 @@ def run_master_test():
             "program": item.get("prog", "-"),
             "question": item.get("q", "-"),
             "passed": passed,
+            "correctness_passed": correctness_passed,
+            "performance_passed": performance_passed,
             "answer": ans,
             "sql": sql,
             "elapsed_sec": elapsed
@@ -513,7 +519,10 @@ def run_master_test():
 
     # 1. บันทึกผลลัพธ์เป็น JSON
     with open("test_master_results.json", "w", encoding="utf-8") as f:
-        json.dump({"summary": {"total": total_count, "passed": total_passed, "pass_pct": pass_pct, "category_stats": category_stats}, "results": results}, f, ensure_ascii=False, indent=2)
+        json.dump({"summary": {"total": total_count, "passed": total_passed, "pass_pct": pass_pct,
+                               "correctness_passed": sum(r["correctness_passed"] for r in results),
+                               "slow_questions": sum(r["performance_passed"] is False for r in results),
+                               "category_stats": category_stats}, "results": results}, f, ensure_ascii=False, indent=2)
 
     # 2. บันทึกรายงานผลเป็น Markdown (ลง test.md)
     generate_markdown_report(results, category_stats, total_count, total_passed, pass_pct)
@@ -527,6 +536,8 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
         f"> **Branch:** `feature/lab11-frontend`  ",
         f"> **Backend:** FastAPI + SQLite + Ollama `qwen3:4b`  ",
         f"> **ผลการทดสอบรวม: ผ่าน {total_passed} / {total_count} ข้อ ({pass_pct:.1f}%)**",
+        "> คำถามต้องผ่านทั้งเกณฑ์คำตอบและเวลา <5 วินาที; เวลาเป็นระยะรอ API ที่เครื่องทดสอบวัด",
+        f"> **คำถามเกินเกณฑ์เวลา:** {sum(r.get('performance_passed') is False for r in results)} ข้อ",
         "",
         "---",
         "",
@@ -582,7 +593,7 @@ def generate_markdown_report(results, category_stats, total_count, total_passed,
     ])
 
     for r in results:
-        sym = "✅ ผ่าน" if r["passed"] else "❌ ไม่ผ่าน"
+        sym = "✅ ผ่าน" if r["passed"] else ("❌ เกินเวลา" if r.get("correctness_passed") and r.get("performance_passed") is False else "❌ ไม่ผ่าน")
         q_or_desc = r["question"] if r["question"] != "-" else r["description"]
         clean_ans = r["answer"].replace("\n", " ").replace("|", "\\|")[:50]
         md.append(f"| {r['id']:03d} | {r['category']} | {q_or_desc} | `{r['program']}` | {sym} | {clean_ans} | {r['elapsed_sec']}s |")

@@ -3,6 +3,8 @@
     "total": 220,
     "passed": 220,
     "pass_pct": 100.0,
+    "correctness_passed": 220,
+    "slow_questions": 0,
     "category_stats": {
       "01. API Infrastructure": {
         "total": 5,
@@ -107,9 +109,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP 200: OK",
       "sql": "",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.05
     },
     {
       "id": 2,
@@ -119,9 +123,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP 200: OK",
       "sql": "",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 3,
@@ -131,9 +137,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP 200: OK",
       "sql": "",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.01
     },
     {
       "id": 4,
@@ -143,6 +151,8 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP 200: OK",
       "sql": "",
       "elapsed_sec": 0.01
@@ -155,9 +165,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP 200: OK",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 6,
@@ -167,9 +179,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.03
     },
     {
       "id": 7,
@@ -179,9 +193,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 8,
@@ -191,9 +207,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.03
     },
     {
       "id": 9,
@@ -203,9 +221,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.02
     },
     {
       "id": 10,
@@ -215,9 +235,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 11,
@@ -227,9 +249,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.03
     },
     {
       "id": 12,
@@ -239,9 +263,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
-      "answer": "HTML verified (len=5996)",
+      "correctness_passed": true,
+      "performance_passed": null,
+      "answer": "HTML verified (len=8214)",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 13,
@@ -251,6 +277,8 @@
       "program": "it_coop",
       "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 129 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
       "elapsed_sec": 0.02
@@ -263,9 +291,11 @@
       "program": "dsba_coop",
       "question": "หลักสูตรนี้เรียนกี่ปี",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
       "sql": "SELECT years FROM program",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 15,
@@ -275,9 +305,11 @@
       "program": "ait",
       "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 120 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 16,
@@ -287,9 +319,11 @@
       "program": "dsba_coop",
       "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 132 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 17,
@@ -299,9 +333,11 @@
       "program": "it_no_coop",
       "question": "ปี 1 เทอม 1 เรียนอะไรบ้าง",
       "passed": true,
-      "answer": "1 1 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ MATHEMATICS FOR INFORMATION TECHNOLOGY 3 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY FUNDAMENTALS 3 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 06016411 ระบบคอมพิวเตอร์เบื้องต้น INTRODUCTION TO COMPUTER SYSTEMS 3 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ PROBLEM SOLVING AND COMPUTER PROGRAMMING 3 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 90641001 โรงเรียนสร้างเสน่ห์ CHARM SCHOOL 2 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 90641003 กีฬาและนันทนาการ SPORTS AND RECREATIONAL ACTIVITIES 1 หมวดวิชาศึกษาทั่วไป | บังคับ; 1 1 90644007 ภาษาอังกฤษพื้นฐาน 1 FOUNDATION ENGLISH 1 3 หมวดวิชาศึกษาทั่วไป | บังคับ",
-      "sql": "SELECT p.id, p.year, p.semester, p.code, c.name_th, c.name_en, p.credits, p.alt_group, p.note FROM plan_item p LEFT JOIN course c ON c.code = p.code WHERE p.year = 1 AND p.semester = 1 LIMIT 200",
-      "elapsed_sec": 4.95
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ปี 1 เทอม 1: 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต; 06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS — 3 (2-2-5) หน่วยกิต; 06016411 ระบบคอมพิวเตอร์เบื้องต้น / INTRODUCTION TO COMPUTER SYSTEMS — 3 (2-2-5) หน่วยกิต; 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ / PROBLEM SOLVING AND COMPUTER PROGRAMMING — 3 (2-2-5) หน่วยกิต; 90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL — 2 (1-2-3) หน่วยกิต; 90641003 กีฬาและนันทนาการ / SPORTS AND RECREATIONAL ACTIVITIES — 1 (0-3-2) หน่วยกิต; 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต (รวม 18 หน่วยกิต, 7 วิชา/ช่องในแผน; กลุ่มทางเลือกนับหนึ่งรายการ)",
+      "sql": "SELECT p.code, c.name_th, c.name_en, p.credits FROM plan_item p LEFT JOIN course c ON c.code = p.code WHERE p.year = 1 AND p.semester = 1 AND NOT EXISTS (SELECT 1 FROM plan_slot t JOIN plan_slot_member m ON m.slot_id = t.id WHERE t.program_id = p.program_id AND t.year = p.year AND t.semester = p.semester AND m.code = p.code) ORDER BY p.id;\nSELECT credits, n_entries FROM main.v_semester_credits_full WHERE year = 1 AND semester = 1;\nSELECT id, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot WHERE year = 1 AND semester = 1 ORDER BY id",
+      "elapsed_sec": 0.03
     },
     {
       "id": 18,
@@ -311,9 +347,11 @@
       "program": "it_coop",
       "question": "ชั้นปีที่ 1 ภาคการศึกษาที่ 2 มีรายวิชาทั้งหมดกี่วิชา",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 2 ต้องลงทะเบียน 6 วิชา",
       "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 1 AND semester = 2",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 19,
@@ -323,6 +361,8 @@
       "program": "it_coop",
       "question": "ปี 1 เทอม 2 มีหน่วยกิตรวมเท่าไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 2 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 2",
       "elapsed_sec": 0.02
@@ -335,9 +375,11 @@
       "program": "ait",
       "question": "ปี 2 เทอม 1 มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 2 เทอม 1 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 21,
@@ -347,9 +389,11 @@
       "program": "dsba_coop",
       "question": "ปี 2 ภาคปลาย ประกอบด้วยวิชาใดบ้าง",
       "passed": true,
-      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น INTRODUCTION TO NETWORKS AND CYBERSECURITY; 06026207 ระบบฐานข้อมูลแบบโนเอสคิวแอล NOSQL DATABASE SYSTEMS; 06026208 พื้นฐานวิทยาการข้อมูล FUNDAMENTALS OF DATA SCIENCE; 06026209 การแสดงข้อมูลด้วยแผนภาพ DATA VISUALIZATION; 06026210 การหาค่าที่เหมาะสมที่สุด OPTIMIZATION; 06066102 ระบบสารสนเทศเพื่อการจัดการ MANAGEMENT INFORMATION SYSTEMS; 06066301 โครงสร้างข้อมูลและอัลกอริทึม DATA STRUCTURES AND ALGORITHMS",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY — 3 (3-0-6) หน่วยกิต; 06026207 ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS — 3 (2-2-5) หน่วยกิต; 06026208 พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE — 3 (3-0-6) หน่วยกิต; 06026209 การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION — 3 (2-2-5) หน่วยกิต; 06026210 การหาค่าที่เหมาะสมที่สุด / OPTIMIZATION — 3 (3-0-6) หน่วยกิต; 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS — 3 (3-0-6) หน่วยกิต; 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS — 3 (2-2-5) หน่วยกิต",
       "sql": "SELECT p.code, c.name_th, c.name_en FROM v_plan p JOIN course c ON p.code = c.code WHERE p.year = 2 AND p.semester = 2 LIMIT 200",
-      "elapsed_sec": 4.83
+      "elapsed_sec": 3.92
     },
     {
       "id": 22,
@@ -359,6 +403,8 @@
       "program": "bit_coop",
       "question": "ปี 3 เทอม 1 เรียนกี่วิชา",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 3 เทอม 1 ต้องลงทะเบียน 6 วิชา",
       "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 3 AND semester = 1",
       "elapsed_sec": 0.01
@@ -371,9 +417,11 @@
       "program": "it_coop",
       "question": "ปี 4 เทอม 1 เรียนอะไรบ้าง",
       "passed": true,
-      "answer": "06016406 โครงงาน 1 PROJECT 1 3 หมวดวิชาศึกษาทั่วไป | บังคับ; 90643021 ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS 3 หมวดวิชาเฉพาะ | เลือก",
-      "sql": "SELECT p.code, name_th, name_en, p.credits, p.alt_group, p.note FROM v_plan p WHERE p.year = 4 AND p.semester = 1 LIMIT 200",
-      "elapsed_sec": 2.79
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ปี 4 เทอม 1: 06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต; 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS — 3 (3-0-6) หน่วยกิต; ช่องที่นักศึกษาเลือกเอง: วิชาเลือกทางเทคโนโลยีสารสนเทศ 1 3 หน่วยกิต; ช่องที่นักศึกษาเลือกเอง: วิชาเลือก หมวดศึกษาทั่วไป 1 3 หน่วยกิต; ช่องที่นักศึกษาเลือกเอง: กลุ่มวิชาตามเกณฑ์ของคณะ (Faculty requirement) ผู้ประกอบการสมัยใหม่ 6 หน่วยกิต (รวม 18 หน่วยกิต, 5 วิชา/ช่องในแผน; กลุ่มทางเลือกนับหนึ่งรายการ)",
+      "sql": "SELECT p.code, c.name_th, c.name_en, p.credits FROM plan_item p LEFT JOIN course c ON c.code = p.code WHERE p.year = 4 AND p.semester = 1 AND NOT EXISTS (SELECT 1 FROM plan_slot t JOIN plan_slot_member m ON m.slot_id = t.id WHERE t.program_id = p.program_id AND t.year = p.year AND t.semester = p.semester AND m.code = p.code) ORDER BY p.id;\nSELECT credits, n_entries FROM main.v_semester_credits_full WHERE year = 4 AND semester = 1;\nSELECT id, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot WHERE year = 4 AND semester = 1 ORDER BY id;\nSELECT m.group_no, m.group_name, m.code, c.name_th, c.name_en, c.credits FROM plan_slot_member m LEFT JOIN course c ON c.code = m.code WHERE m.slot_id = 5 ORDER BY m.group_no, m.code;\nSELECT m.group_no, m.group_name, m.code, c.name_th, c.name_en, c.credits FROM plan_slot_member m LEFT JOIN course c ON c.code = m.code WHERE m.slot_id = 6 ORDER BY m.group_no, m.code;\nSELECT m.group_no, m.group_name, m.code, c.name_th, c.name_en, c.credits FROM plan_slot_member m LEFT JOIN course c ON c.code = m.code WHERE m.slot_id = 7 ORDER BY m.group_no, m.code",
+      "elapsed_sec": 0.01
     },
     {
       "id": 24,
@@ -383,9 +431,11 @@
       "program": "dsba_no_coop",
       "question": "ปี 1 ทั้งปี มีหน่วยกิตรวมเท่าไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เรียนรวม 39 หน่วยกิต",
       "sql": "SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full WHERE year = 1 GROUP BY year",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.04
     },
     {
       "id": 25,
@@ -395,9 +445,11 @@
       "program": "it_coop",
       "question": "รหัสวิชา 06066303 ชื่อวิชาภาษาไทยว่าอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์",
       "sql": "SELECT name_th FROM course WHERE code = '06066303' LIMIT 200",
-      "elapsed_sec": 15.28
+      "elapsed_sec": 1.83
     },
     {
       "id": 26,
@@ -407,9 +459,11 @@
       "program": "it_coop",
       "question": "รหัสวิชา 06066304 มีชื่อภาษาอังกฤษว่าอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "INFORMATION SYSTEM ANALYSIS AND DESIGN",
       "sql": "SELECT name_en FROM course WHERE code = '06066304' LIMIT 200",
-      "elapsed_sec": 17.12
+      "elapsed_sec": 1.65
     },
     {
       "id": 27,
@@ -419,8 +473,10 @@
       "program": "dsba_coop",
       "question": "วิชาผู้ประกอบการสมัยใหม่มีรหัสวิชาอะไร",
       "passed": true,
-      "answer": "90643021 (ผู้ประกอบการสมัยใหม่)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('90643021')",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90643021 (ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('90643021')",
       "elapsed_sec": 0.02
     },
     {
@@ -431,9 +487,11 @@
       "program": "it_coop",
       "question": "วิชา DIGITAL INTELLIGENCE QUOTIENT รหัสอะไร",
       "passed": true,
-      "answer": "90641002 (ความฉลาดทางดิจิทัล)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('90641002')",
-      "elapsed_sec": 0.03
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90641002 (ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('90641002')",
+      "elapsed_sec": 0.02
     },
     {
       "id": 29,
@@ -443,8 +501,10 @@
       "program": "dsba_coop",
       "question": "ขอรหัสวิชาของแนวคิดระบบฐานข้อมูลหน่อย",
       "passed": true,
-      "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('06066300')",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066300 (แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066300')",
       "elapsed_sec": 0.04
     },
     {
@@ -455,9 +515,11 @@
       "program": "dsba_no_coop",
       "question": "วิชา Calculus 1 กี่หน่วยกิต",
       "passed": true,
-      "answer": "06026200 แคลคูลัส 1: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06026200'",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.02
     },
     {
       "id": 31,
@@ -467,9 +529,11 @@
       "program": "it_coop",
       "question": "วิชาความน่าจะเป็นและสถิติอยู่ชั้นปีที่เท่าไร",
       "passed": true,
-      "answer": "06066001 ความน่าจะเป็นและสถิติ: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06066001' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.04
     },
     {
       "id": 32,
@@ -479,9 +543,11 @@
       "program": "it_coop",
       "question": "วิชาโครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการมีกี่หน่วยกิต",
       "passed": true,
-      "answer": "06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ORGANIZATION AND OPERATING SYSTEM — 3 (2-2-5) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06016412'",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 33,
@@ -491,7 +557,9 @@
       "program": "it_coop",
       "question": "วิชา 06016402 บรรยายสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ: ชั่วโมงบรรยาย 2 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS — 3 (2-2-5) หน่วยกิต: ชั่วโมงบรรยาย 2 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '06016402'",
       "elapsed_sec": 0.02
     },
@@ -503,7 +571,9 @@
       "program": "it_coop",
       "question": "วิชา 06016411 แล็บสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06016411 ระบบคอมพิวเตอร์เบื้องต้น: ชั่วโมงปฏิบัติ 2 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016411 ระบบคอมพิวเตอร์เบื้องต้น / INTRODUCTION TO COMPUTER SYSTEMS — 3 (2-2-5) หน่วยกิต: ชั่วโมงปฏิบัติ 2 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06016411'",
       "elapsed_sec": 0.01
     },
@@ -515,7 +585,9 @@
       "program": "it_coop",
       "question": "ภาษาอังกฤษพื้นฐาน 1 และ 2 รวมกี่หน่วยกิต",
       "passed": true,
-      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1: 3 หน่วยกิต; 90644008 ภาษาอังกฤษพื้นฐาน 2: 3 หน่วยกิต — รวม 6 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต; 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2 — 3 (3-0-6) หน่วยกิต — รวม 6 หน่วยกิต",
       "sql": "SELECT code, credits FROM course WHERE code IN ('90644007', '90644008')",
       "elapsed_sec": 0.03
     },
@@ -527,9 +599,11 @@
       "program": "dsba_coop",
       "question": "การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 21.13
+      "elapsed_sec": 1.73
     },
     {
       "id": 37,
@@ -539,9 +613,11 @@
       "program": "it_coop",
       "question": "รหัสวิชา 06016418 มีวิชาบังคับก่อนคือวิชาใด",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016408 (การสร้างโปรแกรมเชิงวัตถุ)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06016418' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 30.89
+      "elapsed_sec": 1.76
     },
     {
       "id": 38,
@@ -551,21 +627,25 @@
       "program": "it_coop",
       "question": "วิชาใดบ้างที่มี 06066101 เป็นวิชาบังคับก่อน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066102 (ระบบสารสนเทศเพื่อการจัดการ)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06066101' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 34.38
+      "elapsed_sec": 1.97
     },
     {
       "id": 39,
       "category": "06. Prerequisites",
-      "description": "จำนวนคู่วิชาบังคับก่อนทั้งหมด",
+      "description": "จำนวนคู่วิชาบังคับก่อนทั้งหมด (source-corrected Gold v2.2)",
       "type": "ask",
       "program": "it_coop",
       "question": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่",
       "passed": true,
-      "answer": "8 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "9 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
       "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.02
     },
     {
       "id": 40,
@@ -575,9 +655,11 @@
       "program": "it_coop",
       "question": "วิชา 06066303 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-      "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 24.44
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ (06066303) ไม่มีวิชาบังคับก่อน",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06066303' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 41,
@@ -587,9 +669,11 @@
       "program": "it_coop",
       "question": "ผ่านวิชา 06066101 แล้วลงอะไรได้ต่อ",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066102 (ระบบสารสนเทศเพื่อการจัดการ)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06066101' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 15.98
+      "elapsed_sec": 1.73
     },
     {
       "id": 42,
@@ -599,9 +683,11 @@
       "program": "it_coop",
       "question": "06066101 กับ 06066102 วิชาไหนเรียนก่อน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ) เรียนก่อน",
       "sql": "SELECT requires FROM prerequisite WHERE code='06066101' AND kind='pre' UNION SELECT requires FROM prerequisite WHERE code='06066102' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 50.25
+      "elapsed_sec": 2.18
     },
     {
       "id": 43,
@@ -611,9 +697,11 @@
       "program": "it_coop",
       "question": "วิชา 06016418 ต้องเรียนวิชาอะไรก่อน ถ้ายังไม่ผ่านลงได้ไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016408 (การสร้างโปรแกรมเชิงวัตถุ)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06016418' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 31.43
+      "elapsed_sec": 1.78
     },
     {
       "id": 44,
@@ -623,9 +711,11 @@
       "program": "dsba_coop",
       "question": "ผ่านวิชา 06026200 แล้วลงอะไรได้ต่อ",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06026201 (แคลคูลัส 2)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06026200' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 37.11
+      "elapsed_sec": 1.87
     },
     {
       "id": 45,
@@ -635,6 +725,8 @@
       "program": "dsba_coop",
       "question": "ถ้าตกแคลคูลัส 1 จะลงแคลคูลัส 2 ได้ไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่ได้ — แคลคูลัส 2 (06026201) มี แคลคูลัส 1 (06026200) เป็นวิชาบังคับก่อน (ต้องผ่าน แคลคูลัส 1 ก่อนจึงจะเรียน แคลคูลัส 2 ได้)",
       "sql": "SELECT code, requires FROM prerequisite WHERE code = '06026201' AND requires = '06026200' AND kind = 'pre'",
       "elapsed_sec": 0.03
@@ -647,9 +739,11 @@
       "program": "dsba_coop",
       "question": "ไม่ผ่าน 06026200 ลง 06026201 ได้ไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่ได้ — แคลคูลัส 2 (06026201) มี แคลคูลัส 1 (06026200) เป็นวิชาบังคับก่อน (ต้องผ่าน แคลคูลัส 1 ก่อนจึงจะเรียน แคลคูลัส 2 ได้)",
       "sql": "SELECT code, requires FROM prerequisite WHERE code = '06026201' AND requires = '06026200' AND kind = 'pre'",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.02
     },
     {
       "id": 47,
@@ -659,9 +753,11 @@
       "program": "it_coop",
       "question": "มีวิชาไหนบ้างที่ไม่มีวิชาบังคับก่อนเลย",
       "passed": true,
-      "answer": "มี 29 วิชาในแผนการศึกษาที่ระบุว่าไม่มีวิชาบังคับก่อน: 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ, 06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ, 06016403 เทคโนโลยีสื่อประสม, 06016404 เทคโนโลยีกลุ่มเมฆ, 06016405 พื้นฐานความมั่นคงปลอดภัยไซเบอร์, 06016406 โครงงาน 1, 06016408 การสร้างโปรแกรมเชิงวัตถุ, 06016409 การประมวลทางกายภาพ, 06016410 วิศวกรรมซอฟต์แวร์, 06016411 ระบบคอมพิวเตอร์เบื้องต้น, 06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ, 06016413 ระบบเครือข่ายเบื้องต้น, 06016414 ระบบฐานข้อมูลแบบโนเอสคิวแอล, 06016415 การเขียนโปรแกรมเชิงฟังก์ชัน, 06016416 วิศวกรรมความต้องการ, 06016417 เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์, 06016424 การออกแบบส่วนต่อประสานกับมนุษย์, 06016425 พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์, 06016426 คอมพิวเตอร์กราฟิกส์และแอนิเมชัน, 06016427 การออกแบบและพัฒนาเกมเบื้องต้น, 06066000 คณิตศาสตร์ไม่ต่อเนื่อง, 06066001 ความน่าจะเป็นและสถิติ, 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ, 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ, 06066300 แนวคิดระบบฐานข้อมูล, 06066301 โครงสร้างข้อมูลและอัลกอริทึม, 06066302 การเขียนโปรแกรมเว็บพื้นฐาน, 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์, 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ; ไม่ทราบ: 06016481 สหกิจศึกษา, 06016482 สหกิจศึกษาต่างประเทศ, 90641001 โรงเรียนสร้างเสน่ห์, 90641002 ความฉลาดทางดิจิทัล, 90641003 กีฬาและนันทนาการ, 90642033 กฎหมายสำหรับคนรุ่นใหม่, 90643021 ผู้ประกอบการสมัยใหม่, 90644007 ภาษาอังกฤษพื้นฐาน 1, 90644008 ภาษาอังกฤษพื้นฐาน 2, 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "มี 32 วิชาในแผนการศึกษาที่ระบุว่าไม่มีวิชาบังคับก่อน: 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต, 06016402 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS — 3 (2-2-5) หน่วยกิต, 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY — 3 (2-2-5) หน่วยกิต, 06016404 เทคโนโลยีกลุ่มเมฆ / CLOUD COMPUTING — 3 (2-2-5) หน่วยกิต, 06016405 พื้นฐานความมั่นคงปลอดภัยไซเบอร์ / CYBERSECURITY FUNDAMENTALS — 3 (3-0-6) หน่วยกิต, 06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต, 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต, 06016409 การประมวลทางกายภาพ / PHYSICAL COMPUTING — 3 (2-2-5) หน่วยกิต, 06016410 วิศวกรรมซอฟต์แวร์ / SOFTWARE ENGINEERING — 3 (3-0-6) หน่วยกิต, 06016411 ระบบคอมพิวเตอร์เบื้องต้น / INTRODUCTION TO COMPUTER SYSTEMS — 3 (2-2-5) หน่วยกิต, 06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ORGANIZATION AND OPERATING SYSTEM — 3 (2-2-5) หน่วยกิต, 06016413 ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS — 3 (3-0-6) หน่วยกิต, 06016414 ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS — 3 (2-2-5) หน่วยกิต, 06016415 การเขียนโปรแกรมเชิงฟังก์ชัน / FUNCTIONAL PROGRAMMING — 3 (2-2-5) หน่วยกิต, 06016416 วิศวกรรมความต้องการ / REQUIREMENT ENGINEERING — 3 (3-0-6) หน่วยกิต, 06016417 เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์ / SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS — 3 (2-2-5) หน่วยกิต, 06016424 การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN — 3 (3-0-6) หน่วยกิต, 06016425 พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์ / VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA — 3 (2-2-5) หน่วยกิต, 06016426 คอมพิวเตอร์กราฟิกส์และแอนิเมชัน / COMPUTER GRAPHICS AND ANIMATION — 3 (2-2-5) หน่วยกิต, 06016427 การออกแบบและพัฒนาเกมเบื้องต้น / INTRODUCTION TO GAME DESIGN AND DEVELOPMENT — 3 (2-2-5) หน่วยกิต, 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต, 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต, 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS — 3 (3-0-6) หน่วยกิต, 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS — 3 (3-0-6) หน่วยกิต, 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT — 3 (3-0-6) หน่วยกิต, 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต, 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต, 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS — 3 (2-2-5) หน่วยกิต, 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING — 3 (2-2-5) หน่วยกิต, 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ / PROBLEM SOLVING AND COMPUTER PROGRAMMING — 3 (2-2-5) หน่วยกิต, 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN — 3 (3-0-6) หน่วยกิต, 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต; ไม่ทราบ: 90641001 โรงเรียนสร้างเสน่ห์, 90641002 ความฉลาดทางดิจิทัล, 90641003 กีฬาและนันทนาการ, 90642033 กฎหมายสำหรับคนรุ่นใหม่, 90643021 ผู้ประกอบการสมัยใหม่, 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ",
       "sql": "SELECT c.code, c.name_th, c.credits FROM course c WHERE c.code IN (SELECT code FROM plan_item) AND NOT EXISTS (SELECT 1 FROM prerequisite p WHERE p.code = c.code AND p.kind = 'pre') AND NOT EXISTS (SELECT 1 FROM prerequisite_alt a WHERE a.code = c.code) AND EXISTS (SELECT 1 FROM prerequisite_status st WHERE st.code = c.code AND st.status = 'none') ORDER BY c.code",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 48,
@@ -671,9 +767,11 @@
       "program": "it_coop",
       "question": "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร",
       "passed": true,
-      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06016481 สหกิจศึกษา; 06016482 สหกิจศึกษาต่างประเทศ | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 129, แผนไม่สหกิจ 129 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 129, แผนไม่สหกิจ 129 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
       "sql": "SELECT DISTINCT code FROM plan_item -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบรหัสวิชาสองชุดนี้",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.02
     },
     {
       "id": 49,
@@ -683,9 +781,11 @@
       "program": "dsba_coop",
       "question": "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร",
       "passed": true,
-      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ; 06026260 สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 132, แผนไม่สหกิจ 132 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต; 06026260 สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / OVERSEA COOPERERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 132, แผนไม่สหกิจ 132 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
       "sql": "SELECT DISTINCT code FROM plan_item -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบรหัสวิชาสองชุดนี้",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.03
     },
     {
       "id": 50,
@@ -695,9 +795,11 @@
       "program": "bit_coop",
       "question": "แผนสหกิจกับไม่สหกิจต่างกันตรงปีไหนเทอมไหน",
       "passed": true,
-      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06036147 สหกิจศึกษา; 06036148 สหกิจศึกษาต่างประเทศ | เฉพาะแผนไม่สหกิจ 2 วิชา: 06036145 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1; 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 126, แผนไม่สหกิจ 126 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06036147 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-35-0) หน่วยกิต; 06036148 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-35-0) หน่วยกิต | เฉพาะแผนไม่สหกิจ 2 วิชา: 06036145 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 1; 06036146 โครงงานทางด้านเทคโนโลยีสารสนเทศเชิงธุรกิจ 2 | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 126, แผนไม่สหกิจ 126 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
       "sql": "SELECT DISTINCT code FROM plan_item -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบรหัสวิชาสองชุดนี้",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.03
     },
     {
       "id": 51,
@@ -707,9 +809,11 @@
       "program": "it_coop",
       "question": "ถ้าไม่ไปสหกิจ ต้องเรียนวิชาอะไรแทน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 20.07
+      "elapsed_sec": 0.87
     },
     {
       "id": 52,
@@ -719,9 +823,11 @@
       "program": "it_coop",
       "question": "วิชา 06016481 กับ 06016482 ต่างกันอย่างไร",
       "passed": true,
-      "answer": "06016481 สหกิจศึกษา COOPERATIVE EDUCATION 6 0 36 0; 06016482 สหกิจศึกษาต่างประเทศ OVERSEA COOPERATIVE EDUCATION 6 0 36 0",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต บรรยาย 0 ชั่วโมงต่อสัปดาห์ ปฏิบัติ 36 ชั่วโมงต่อสัปดาห์ ศึกษาด้วยตนเอง 0 ชั่วโมงต่อสัปดาห์; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต บรรยาย 0 ชั่วโมงต่อสัปดาห์ ปฏิบัติ 36 ชั่วโมงต่อสัปดาห์ ศึกษาด้วยตนเอง 0 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, name_en, credits, lecture_h, lab_h, self_h, description_th FROM course WHERE code IN ('06016481', '06016482') LIMIT 200",
-      "elapsed_sec": 65.94
+      "elapsed_sec": 2.28
     },
     {
       "id": 53,
@@ -731,9 +837,11 @@
       "program": "dsba_coop",
       "question": "ในแผนปี 1-2 มีรายวิชากี่วิชาที่มีหน่วยกิตเท่ากับ 3",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "24 วิชา",
       "sql": "SELECT COUNT(*) FROM v_plan WHERE year BETWEEN 1 AND 2 AND credits = 3 LIMIT 200",
-      "elapsed_sec": 34.41
+      "elapsed_sec": 1.53
     },
     {
       "id": 54,
@@ -743,9 +851,11 @@
       "program": "dsba_coop",
       "question": "ปี 1 กับปี 2 วิชาที่บรรยายนานที่สุดสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06026200 แคลคูลัส 1 และ 06026201 แคลคูลัส 2 และ 06026202 พีชคณิตเชิงเส้น และ 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น และ 06026205 การตลาดเบื้องต้น และ 06026208 พื้นฐานวิทยาการข้อมูล และ 06026210 การหาค่าที่เหมาะสมที่สุด และ 06066000 คณิตศาสตร์ไม่ต่อเนื่อง และ 06066001 ความน่าจะเป็นและสถิติ และ 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ และ 06066102 ระบบสารสนเทศเพื่อการจัดการ และ 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ และ 90641002 ความฉลาดทางดิจิทัล และ 90642033 กฎหมายสำหรับคนรุ่นใหม่ และ 90644007 ภาษาอังกฤษพื้นฐาน 1 และ 90644008 ภาษาอังกฤษพื้นฐาน 2 (3 ชั่วโมงต่อสัปดาห์)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต และ 06026201 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต และ 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA — 3 (3-0-6) หน่วยกิต และ 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY — 3 (3-0-6) หน่วยกิต และ 06026205 การตลาดเบื้องต้น / INTRODUCTION TO MARKETING — 3 (3-0-6) หน่วยกิต และ 06026208 พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE — 3 (3-0-6) หน่วยกิต และ 06026210 การหาค่าที่เหมาะสมที่สุด / OPTIMIZATION — 3 (3-0-6) หน่วยกิต และ 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS — 3 (3-0-6) หน่วยกิต และ 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS — 3 (3-0-6) หน่วยกิต และ 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต และ 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS — 3 (3-0-6) หน่วยกิต และ 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN — 3 (3-0-6) หน่วยกิต และ 90641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT — 3 (3-0-6) หน่วยกิต และ 90642033 กฎหมายสำหรับคนรุ่นใหม่ / LAW FOR NEW GENERATION — 3 (3-0-6) หน่วยกิต และ 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต และ 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2 — 3 (3-0-6) หน่วยกิต (3 ชั่วโมงต่อสัปดาห์)",
       "sql": "SELECT DISTINCT c.code, c.name_th, c.lecture_h FROM course c JOIN plan_item p ON p.code = c.code WHERE c.lecture_h IS NOT NULL AND p.year IN (1, 2) ORDER BY c.lecture_h DESC",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 55,
@@ -755,9 +865,11 @@
       "program": "dsba_coop",
       "question": "มีรายวิชากี่วิชาที่ชื่อภาษาไทยมีคำว่าข้อมูล",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "21 วิชา",
       "sql": "SELECT COUNT(*) FROM course WHERE name_th LIKE '%ข้อมูล%' LIMIT 200",
-      "elapsed_sec": 31.62
+      "elapsed_sec": 1.41
     },
     {
       "id": 56,
@@ -767,9 +879,11 @@
       "program": "it_coop",
       "question": "เทอมไหนมีหน่วยกิตมากที่สุด",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "เทอมที่เรียนมากที่สุดคือ ปี 1 เทอม 1 และ ปี 1 เทอม 2 และ ปี 2 เทอม 1 และ ปี 2 เทอม 2 และ ปี 3 เทอม 1 และ ปี 4 เทอม 1 (18 หน่วยกิต)",
       "sql": "SELECT year, semester, credits FROM main.v_semester_credits_full ORDER BY credits DESC",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.01
     },
     {
       "id": 57,
@@ -779,9 +893,11 @@
       "program": "it_no_coop",
       "question": "ค่าเทอมเท่าไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 8.86
+      "elapsed_sec": 0.67
     },
     {
       "id": 58,
@@ -791,9 +907,11 @@
       "program": "dsba_coop",
       "question": "อาจารย์ประจำวิชาชื่ออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 8.7
+      "elapsed_sec": 0.45
     },
     {
       "id": 59,
@@ -803,9 +921,11 @@
       "program": "it_coop",
       "question": "ปี 7 เทอม 1 ต้องเรียนวิชาอะไรบ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-      "sql": "SELECT code, name_th, name_en FROM v_plan WHERE year=7 AND semester=1 LIMIT 200",
-      "elapsed_sec": 20.75
+      "sql": "SELECT code, name_th, name_en, credits, alt_group, note FROM v_plan WHERE year=7 AND semester=1 LIMIT 200",
+      "elapsed_sec": 0.81
     },
     {
       "id": 60,
@@ -815,9 +935,11 @@
       "program": "it_coop",
       "question": "วิชาการเล่นหมากรุกสากลขั้นสูงมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 33.94
+      "elapsed_sec": 0.9
     },
     {
       "id": 61,
@@ -827,6 +949,8 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP status: 422",
       "sql": "",
       "elapsed_sec": 0.02
@@ -839,9 +963,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP status: 404",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 63,
@@ -851,9 +977,11 @@
       "program": "-",
       "question": "-",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": null,
       "answer": "HTTP status: 422",
       "sql": "",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.0
     },
     {
       "id": 64,
@@ -863,9 +991,11 @@
       "program": "it_coop",
       "question": "วิชา OS รหัสอะไร",
       "passed": true,
-      "answer": "06016412 (โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('06016412')",
-      "elapsed_sec": 0.04
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016412 (โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ORGANIZATION AND OPERATING SYSTEM)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06016412')",
+      "elapsed_sec": 0.02
     },
     {
       "id": 65,
@@ -875,9 +1005,11 @@
       "program": "ait",
       "question": "วิชา AI เรียนตอนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 15.93
+      "elapsed_sec": 0.58
     },
     {
       "id": 66,
@@ -887,9 +1019,11 @@
       "program": "it_coop",
       "question": "วิชา DB อยู่ปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": null,
-      "elapsed_sec": 48.46
+      "elapsed_sec": 1.72
     },
     {
       "id": 67,
@@ -899,9 +1033,11 @@
       "program": "dsba_coop",
       "question": "วิชา MIS ต้องผ่านวิชาอะไรมาก่อน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06066102' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 38.51
+      "elapsed_sec": 1.5
     },
     {
       "id": 68,
@@ -911,9 +1047,11 @@
       "program": "it_coop",
       "question": "วิชา OOP อยู่เทอมไหน",
       "passed": true,
-      "answer": "06016408 การสร้างโปรแกรมเชิงวัตถุ: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06016408' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.05
     },
     {
       "id": 69,
@@ -923,9 +1061,11 @@
       "program": "dsba_coop",
       "question": "วิชา BI เรียนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": null,
-      "elapsed_sec": 55.89
+      "elapsed_sec": 1.83
     },
     {
       "id": 70,
@@ -935,9 +1075,11 @@
       "program": "it_coop",
       "question": "วิชา SE มีกี่หน่วยกิต",
       "passed": true,
-      "answer": "06016410 วิศวกรรมซอฟต์แวร์: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016410 วิศวกรรมซอฟต์แวร์ / SOFTWARE ENGINEERING — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06016410'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 71,
@@ -947,9 +1089,11 @@
       "program": "it_coop",
       "question": "วิชา HCI อยู่ปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 14.87
+      "elapsed_sec": 0.61
     },
     {
       "id": 72,
@@ -959,9 +1103,11 @@
       "program": "dsba_coop",
       "question": "วิชา ML เรียนตอนไหน",
       "passed": true,
-      "answer": "06026211 การเรียนรู้ของเครื่องเชิงประยุกต์: ปี 3 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026211 การเรียนรู้ของเครื่องเชิงประยุกต์ / APPLIED MACHINE LEARNING — 3 (2-2-5) หน่วยกิต: ปี 3 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06026211' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.03
     },
     {
       "id": 73,
@@ -971,9 +1117,11 @@
       "program": "it_coop",
       "question": "วิชา UX/UI มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 14.08
+      "elapsed_sec": 0.59
     },
     {
       "id": 74,
@@ -983,9 +1131,11 @@
       "program": "dsba_coop",
       "question": "วิชา DW ต้องผ่านอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 38.13
+      "elapsed_sec": 1.51
     },
     {
       "id": 75,
@@ -995,9 +1145,11 @@
       "program": "it_coop",
       "question": "วิชา DIQ รหัสอะไร",
       "passed": true,
-      "answer": "90641002 (ความฉลาดทางดิจิทัล)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('90641002')",
-      "elapsed_sec": 0.04
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90641002 (ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('90641002')",
+      "elapsed_sec": 0.03
     },
     {
       "id": 76,
@@ -1007,9 +1159,11 @@
       "program": "it_coop",
       "question": "วิชา SAD รหัสอะไร",
       "passed": true,
-      "answer": "06066304 (การวิเคราะห์และออกแบบระบบสารสนเทศ)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('06066304')",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066304 (การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066304')",
+      "elapsed_sec": 0.03
     },
     {
       "id": 77,
@@ -1019,9 +1173,11 @@
       "program": "it_coop",
       "question": "วิชา CN เรียนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 13.74
+      "elapsed_sec": 0.65
     },
     {
       "id": 78,
@@ -1031,9 +1187,11 @@
       "program": "dsba_coop",
       "question": "วิชา DS เรียนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": null,
-      "elapsed_sec": 50.55
+      "elapsed_sec": 1.78
     },
     {
       "id": 79,
@@ -1043,9 +1201,11 @@
       "program": "dsba_coop",
       "question": "วิชา CAL 1 กี่หน่วยกิต",
       "passed": true,
-      "answer": "06026200 แคลคูลัส 1: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06026200'",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 80,
@@ -1055,9 +1215,11 @@
       "program": "dsba_coop",
       "question": "วิชา CAL 2 ต้องผ่านอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06026200 (แคลคูลัส 1)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06026201' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 16.85
+      "elapsed_sec": 1.5
     },
     {
       "id": 81,
@@ -1067,9 +1229,11 @@
       "program": "dsba_coop",
       "question": "วิชา CALCULUS 1 กี่หน่วยกิต",
       "passed": true,
-      "answer": "06026200 แคลคูลัส 1: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06026200'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 82,
@@ -1079,9 +1243,11 @@
       "program": "it_coop",
       "question": "วิชา ENG 1 เรียนปีไหน",
       "passed": true,
-      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '90644007' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.04
     },
     {
       "id": 83,
@@ -1091,9 +1257,11 @@
       "program": "it_coop",
       "question": "วิชา FOUNDATION ENGLISH 1 รหัสอะไร",
       "passed": true,
-      "answer": "90644007 (ภาษาอังกฤษพื้นฐาน 1)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('90644007')",
-      "elapsed_sec": 0.04
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90644007 (ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('90644007')",
+      "elapsed_sec": 0.02
     },
     {
       "id": 84,
@@ -1103,9 +1271,11 @@
       "program": "dsba_coop",
       "question": "วิชา DATA WAREHOUSE ต้องผ่านวิชาอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 12.1
+      "elapsed_sec": 1.65
     },
     {
       "id": 85,
@@ -1115,9 +1285,11 @@
       "program": "dsba_coop",
       "question": "วิชา BUSINESS INTELLIGENCE เรียนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 18.92
+      "elapsed_sec": 0.87
     },
     {
       "id": 86,
@@ -1127,9 +1299,11 @@
       "program": "it_coop",
       "question": "วิชา COMPUTER PROGRAMMING รหัสอะไร",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"COMPUTER PROGRAMMING\" ตรงตัว) — วิชาที่ใกล้เคียง: 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ (PROBLEM SOLVING AND COMPUTER PROGRAMMING) — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"COMPUTER PROGRAMMING\" ตรงตัว) — วิชาที่ใกล้เคียง: 06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ / PROBLEM SOLVING AND COMPUTER PROGRAMMING — 3 (2-2-5) หน่วยกิต (PROBLEM SOLVING AND COMPUTER PROGRAMMING) — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT code, name_th, credits FROM course WHERE code IN ('06066303') -- วิชาใกล้เคียงกับ \"COMPUTER PROGRAMMING\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
-      "elapsed_sec": 0.06
+      "elapsed_sec": 0.08
     },
     {
       "id": 87,
@@ -1139,9 +1313,11 @@
       "program": "it_coop",
       "question": "วิชา CHARM SCHOOL มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "2 หน่วยกิต",
       "sql": "SELECT credits FROM course WHERE code = '90641001' LIMIT 200",
-      "elapsed_sec": 28.31
+      "elapsed_sec": 1.36
     },
     {
       "id": 88,
@@ -1151,9 +1327,11 @@
       "program": "it_coop",
       "question": "วิชา WEB PROGRAMMING อยู่ปีไหน",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"WEB PROGRAMMING\" ตรงตัว) — วิชาที่ใกล้เคียง: 06066302 การเขียนโปรแกรมเว็บพื้นฐาน (FUNDAMENTAL WEB PROGRAMMING): ปี 2 เทอม 2 — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"WEB PROGRAMMING\" ตรงตัว) — วิชาที่ใกล้เคียง: 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING — 3 (2-2-5) หน่วยกิต (FUNDAMENTAL WEB PROGRAMMING): ปี 2 เทอม 2 — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code IN ('06066302') -- วิชาใกล้เคียงกับ \"WEB PROGRAMMING\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.07
     },
     {
       "id": 89,
@@ -1163,7 +1341,9 @@
       "program": "it_coop",
       "question": "วิชา NETWORK อยู่ปีไหน",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"NETWORK\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016413 ระบบเครือข่ายเบื้องต้น (INTRODUCTION TO NETWORK SYSTEMS): ปี 2 เทอม 1; 06016419 โครงสร้างพื้นฐานเครือข่ายการสื่อสาร (COMMUNICATION NETWORK INFRASTRUCTURE): ปี 2 เทอม 2 — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"NETWORK\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016413 ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS — 3 (3-0-6) หน่วยกิต (INTRODUCTION TO NETWORK SYSTEMS): ปี 2 เทอม 1; 06016419 โครงสร้างพื้นฐานเครือข่ายการสื่อสาร / COMMUNICATION NETWORK INFRASTRUCTURE — 3 (2-2-5) หน่วยกิต (COMMUNICATION NETWORK INFRASTRUCTURE): ปี 2 เทอม 2 — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code IN ('06016413', '06016419') -- วิชาใกล้เคียงกับ \"NETWORK\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
       "elapsed_sec": 0.04
     },
@@ -1175,9 +1355,11 @@
       "program": "it_coop",
       "question": "วิชา DATABASE SYSTEMS รหัสอะไร",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"DATABASE SYSTEMS\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016414 ระบบฐานข้อมูลแบบโนเอสคิวแอล (NOSQL DATABASE SYSTEMS); 06066300 แนวคิดระบบฐานข้อมูล (DATABASE SYSTEM CONCEPTS) — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"DATABASE SYSTEMS\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016414 ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS — 3 (2-2-5) หน่วยกิต (NOSQL DATABASE SYSTEMS); 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต (DATABASE SYSTEM CONCEPTS) — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT code, name_th, credits FROM course WHERE code IN ('06016414', '06066300') -- วิชาใกล้เคียงกับ \"DATABASE SYSTEMS\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.07
     },
     {
       "id": 91,
@@ -1187,9 +1369,11 @@
       "program": "it_coop",
       "question": "วิชา SOFTWARE ENGINEERING กี่หน่วยกิต",
       "passed": true,
-      "answer": "06016410 วิศวกรรมซอฟต์แวร์: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016410 วิศวกรรมซอฟต์แวร์ / SOFTWARE ENGINEERING — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06016410'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.05
     },
     {
       "id": 92,
@@ -1199,9 +1383,11 @@
       "program": "it_coop",
       "question": "วิชา OPERATING SYSTEMS มีกี่หน่วยกิต",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"OPERATING SYSTEMS\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ (COMPUTER ORGANIZATION AND OPERATING SYSTEM): 3 หน่วยกิต — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"OPERATING SYSTEMS\" ตรงตัว) — วิชาที่ใกล้เคียง: 06016412 โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ORGANIZATION AND OPERATING SYSTEM — 3 (2-2-5) หน่วยกิต (COMPUTER ORGANIZATION AND OPERATING SYSTEM): 3 หน่วยกิต — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT code, name_th, credits FROM course WHERE code IN ('06016412') -- วิชาใกล้เคียงกับ \"OPERATING SYSTEMS\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.08
     },
     {
       "id": 93,
@@ -1211,9 +1397,11 @@
       "program": "dsba_coop",
       "question": "วิชา แคล 1 กี่หน่วยกิต",
       "passed": true,
-      "answer": "06026200 แคลคูลัส 1: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06026200'",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 94,
@@ -1223,9 +1411,11 @@
       "program": "dsba_coop",
       "question": "วิชา แคล 2 ต้องผ่านอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06026200 (แคลคูลัส 1)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06026201' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 36.55
+      "elapsed_sec": 1.62
     },
     {
       "id": 95,
@@ -1235,9 +1425,11 @@
       "program": "dsba_coop",
       "question": "วิชา ฐานข้อมูล อยู่ปีไหน",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"ฐานข้อมูล\" ตรงตัว) — วิชาที่ใกล้เคียง: 06026207 ระบบฐานข้อมูลแบบโนเอสคิวแอล (NOSQL DATABASE SYSTEMS): ปี 2 เทอม 2; 06066300 แนวคิดระบบฐานข้อมูล (DATABASE SYSTEM CONCEPTS): ปี 2 เทอม 1; 06026243 ระบบฐานข้อมูลขั้นสูง (ADVANCED DATABASE SYSTEMS): ไม่อยู่ในแผน; 06026244 การดูแลและบำรุงรักษาระบบฐานข้อมูล (DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION): ไม่อยู่ในแผน; 06026245 ระบบฐานข้อมูลแบบกระจาย (DISTRIBUTED DATABASE SYSTEMS): ไม่อยู่ในแผน — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีวิชาชื่อ \"ฐานข้อมูล\" ตรงตัว) — วิชาที่ใกล้เคียง: 06026207 ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS — 3 (2-2-5) หน่วยกิต (NOSQL DATABASE SYSTEMS): ปี 2 เทอม 2; 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต (DATABASE SYSTEM CONCEPTS): ปี 2 เทอม 1; 06026243 ระบบฐานข้อมูลขั้นสูง / ADVANCED DATABASE SYSTEMS — 3 (3-0-6) หน่วยกิต (ADVANCED DATABASE SYSTEMS): ไม่อยู่ในแผน; 06026244 การดูแลและบำรุงรักษาระบบฐานข้อมูล / DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION — 3 (2-2-5) หน่วยกิต (DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION): ไม่อยู่ในแผน; 06026245 ระบบฐานข้อมูลแบบกระจาย / DISTRIBUTED DATABASE SYSTEMS — 3 (3-0-6) หน่วยกิต (DISTRIBUTED DATABASE SYSTEMS): ไม่อยู่ในแผน — ถ้าหมายถึงวิชาใด ระบุรหัสหรือชื่อเต็มเพื่อยืนยัน",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code IN ('06026207', '06066300', '06026243', '06026244', '06026245') -- วิชาใกล้เคียงกับ \"ฐานข้อมูล\" (ชื่อไม่ตรงตัว) ผู้ใช้ต้องยืนยันวิชาเอง",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.05
     },
     {
       "id": 96,
@@ -1247,9 +1439,11 @@
       "program": "dsba_coop",
       "question": "วิชา แนวคิดฐานข้อมูล รหัสอะไร",
       "passed": true,
-      "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('06066300')",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066300 (แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066300')",
+      "elapsed_sec": 0.05
     },
     {
       "id": 97,
@@ -1259,9 +1453,11 @@
       "program": "it_coop",
       "question": "วิชา โปรแกรมมิ่ง 1 เรียนตอนไหน",
       "passed": true,
-      "answer": "06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066303 การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์ / PROBLEM SOLVING AND COMPUTER PROGRAMMING — 3 (2-2-5) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06066303' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.03
     },
     {
       "id": 98,
@@ -1271,7 +1467,9 @@
       "program": "it_coop",
       "question": "วิชา สหกิจ อยู่ปีไหน",
       "passed": true,
-      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา; 06016482 สหกิจศึกษาต่างประเทศ",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต",
       "sql": "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'",
       "elapsed_sec": 0.02
     },
@@ -1283,9 +1481,11 @@
       "program": "it_coop",
       "question": "วิชา สหกิจศึกษา อยู่ปีไหน",
       "passed": true,
-      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา; 06016482 สหกิจศึกษาต่างประเทศ",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต",
       "sql": "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 100,
@@ -1295,9 +1495,11 @@
       "program": "it_coop",
       "question": "เราต้องลงสหกิจปีไหน",
       "passed": true,
-      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา; 06016482 สหกิจศึกษาต่างประเทศ",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต",
       "sql": "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 101,
@@ -1307,9 +1509,11 @@
       "program": "it_coop",
       "question": "สหกิจศึกษาเรียนตอนปีไหน เทอมไหน",
       "passed": true,
-      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา; 06016482 สหกิจศึกษาต่างประเทศ",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "สหกิจศึกษาอยู่ปี 3 เทอม 2: 06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต; 06016482 สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต",
       "sql": "SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 102,
@@ -1319,7 +1523,9 @@
       "program": "it_coop",
       "question": "วิชาสหกิจศึกษามีกี่หน่วยกิต",
       "passed": true,
-      "answer": "06016481 สหกิจศึกษา: 6 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016481 สหกิจศึกษา / COOPERATIVE EDUCATION — 6 (0-36-0) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06016481'",
       "elapsed_sec": 0.02
     },
@@ -1331,7 +1537,9 @@
       "program": "it_coop",
       "question": "วิชา อิ้ง 1 เรียนปีไหน",
       "passed": true,
-      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '90644007' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.02
     },
@@ -1343,9 +1551,11 @@
       "program": "it_coop",
       "question": "วิชา ภาษาอังกฤษ 1 เรียนปีไหน",
       "passed": true,
-      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '90644007' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 105,
@@ -1355,7 +1565,9 @@
       "program": "it_coop",
       "question": "วิชา สถิติ อยู่ปีไหน",
       "passed": true,
-      "answer": "06066001 ความน่าจะเป็นและสถิติ: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06066001' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.02
     },
@@ -1367,7 +1579,9 @@
       "program": "dsba_coop",
       "question": "dsba ปี 2 มีวิชาตัวไหนที่เป็นตัวต่อจากปี 1",
       "passed": true,
-      "answer": "วิชาปี 2 ที่ต่อจากวิชาปี 1 (มีวิชาบังคับก่อนเป็นวิชาปี 1) มี 1 วิชา: 06066102 ระบบสารสนเทศเพื่อการจัดการ (ปี 2 เทอม 2) ต่อจาก 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ (ปี 1 เทอม 1)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาปี 2 ที่ต่อจากวิชาปี 1 (มีวิชาบังคับก่อนเป็นวิชาปี 1) มี 1 วิชา: 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS — 3 (3-0-6) หน่วยกิต (ปี 2 เทอม 2) ต่อจาก 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ (ปี 1 เทอม 1)",
       "sql": "SELECT DISTINCT p2.code, c2.name_th, p2.year, p2.semester, pr.requires, c1.name_th AS requires_name_th, p1.year AS requires_year, p1.semester AS requires_semester FROM plan_item p2 JOIN prerequisite pr ON pr.code = p2.code AND pr.kind = 'pre' JOIN plan_item p1 ON p1.code = pr.requires JOIN course c2 ON c2.code = p2.code JOIN course c1 ON c1.code = pr.requires WHERE p2.year = 2 AND p1.year = 1 ORDER BY p2.semester, p2.code, pr.requires",
       "elapsed_sec": 0.02
     },
@@ -1379,6 +1593,8 @@
       "program": "it_coop",
       "question": "จบ 3 ปีครึ่งได้ไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
       "elapsed_sec": 0.02
@@ -1391,9 +1607,11 @@
       "program": "it_coop",
       "question": "ถ้าจะจบการศึกษาต้องมีหน่วยกิตรวมเท่าไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "129 หน่วยกิตรวม",
       "sql": "SELECT total_credits FROM program LIMIT 200",
-      "elapsed_sec": 24.75
+      "elapsed_sec": 1.4
     },
     {
       "id": 109,
@@ -1403,7 +1621,9 @@
       "program": "ait",
       "question": "วิชา แคลคูลัส 2 เรียนตอนปีไหน",
       "passed": true,
-      "answer": "06046401 แคลคูลัส 2: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06046401 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06046401' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.02
     },
@@ -1415,9 +1635,11 @@
       "program": "dsba_coop",
       "question": "วิชา แคลคูลัส 2 เรียนตอนปีไหน",
       "passed": true,
-      "answer": "06026201 แคลคูลัส 2: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026201 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06026201' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.05
+      "elapsed_sec": 0.03
     },
     {
       "id": 111,
@@ -1427,9 +1649,11 @@
       "program": "ait",
       "question": "วิชา แคลคูลัส 1 เรียนตอนปีไหน",
       "passed": true,
-      "answer": "06046400 แคลคูลัส 1: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06046400 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06046400' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 112,
@@ -1439,9 +1663,11 @@
       "program": "dsba_coop",
       "question": "วิชา แคลคูลัส 1 เรียนตอนปีไหน",
       "passed": true,
-      "answer": "06026200 แคลคูลัส 1: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06026200' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.02
     },
     {
       "id": 113,
@@ -1451,9 +1677,11 @@
       "program": "it_coop",
       "question": "วิชา แคลคูลัส 1 มีไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 18.35
+      "elapsed_sec": 0.89
     },
     {
       "id": 114,
@@ -1463,7 +1691,9 @@
       "program": "it_coop",
       "question": "วิชา คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ อยู่ปีไหน",
       "passed": true,
-      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06016401' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.02
     },
@@ -1475,6 +1705,8 @@
       "program": "dsba_coop",
       "question": "วิชา 06026201 มีในหลักสูตรไหนบ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "DSBA-coop",
       "sql": "SELECT program_id FROM plan_item WHERE code = '06026201' LIMIT 200",
       "elapsed_sec": 0.01
@@ -1487,6 +1719,8 @@
       "program": "ait",
       "question": "วิชา 06046401 มีในหลักสูตรไหนบ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "AIT",
       "sql": "SELECT program_id FROM plan_item WHERE code = '06046401' LIMIT 200",
       "elapsed_sec": 0.01
@@ -1499,9 +1733,11 @@
       "program": "dsba_coop",
       "question": "วิชาเลือกเสรีมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาเลือกเสรี: 6 หน่วยกิต",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
-      "elapsed_sec": 0.04
+      "elapsed_sec": 0.05
     },
     {
       "id": 118,
@@ -1511,9 +1747,11 @@
       "program": "it_coop",
       "question": "วิชาเลือกเสรีมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาเลือกเสรี: 6 หน่วยกิต",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.04
     },
     {
       "id": 119,
@@ -1523,9 +1761,11 @@
       "program": "ait",
       "question": "วิชาเลือกเสรีมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาเลือกเสรี: 6 หน่วยกิต",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.06
     },
     {
       "id": 120,
@@ -1535,9 +1775,11 @@
       "program": "dsba_coop",
       "question": "วิชาเลือกเสรีเลือกวิชาอะไรได้บ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "วิชาเลือกเสรี 1 (ปี 4 เทอม 1): เลือกเรียนจากรายวิชาที่เปิดสอนในสถาบันได้ 3 หน่วยกิต ไม่มีรายชื่อวิชากำหนดในเล่ม; วิชาเลือกเสรี 2 (ปี 4 เทอม 1): เลือกเรียนจากรายวิชาที่เปิดสอนในสถาบันได้ 3 หน่วยกิต ไม่มีรายชื่อวิชากำหนดในเล่ม",
       "sql": "SELECT year, semester, name_th AS slot, code AS code_pattern, credits FROM plan_slot WHERE year = 4 AND semester = 1 AND (name_th = 'วิชาเลือกเสรี 1' OR name_th = 'วิชาเลือกเสรี 2') ORDER BY id",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.01
     },
     {
       "id": 121,
@@ -1547,6 +1789,8 @@
       "program": "dsba_coop",
       "question": "วิชาเลือกเสรี 1 และ 2 รวมกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาเลือกเสรี: 6 หน่วยกิต",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
       "elapsed_sec": 0.02
@@ -1559,9 +1803,11 @@
       "program": "dsba_coop",
       "question": "วิชาเลือกเสรีต้องลงตอนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "วิชาเลือกเสรี 1, วิชาเลือกเสรี 2 อยู่ปี 4 เทอม 1",
       "sql": "SELECT name_th AS slot, year, semester, credits FROM plan_slot WHERE name_th LIKE 'วิชาเลือกเสรี%' ORDER BY year, semester, id",
-      "elapsed_sec": 0.06
+      "elapsed_sec": 0.07
     },
     {
       "id": 123,
@@ -1571,9 +1817,11 @@
       "program": "it_coop",
       "question": "ปี 3 เทอม 2 เลือกวิชาอะไรได้บ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 3 เทอม 2 มีช่องให้เลือก 1 ช่อง — เลือกอย่างใดอย่างหนึ่ง (A หรือ B) (6 หน่วยกิต): A หรือ B: 06016481 สหกิจศึกษา, 06016482 สหกิจศึกษาต่างประเทศ",
       "sql": "SELECT year, semester, kind, name_th AS slot, code AS code_pattern, credits FROM plan_slot WHERE year = 3 AND semester = 2 ORDER BY id",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.01
     },
     {
       "id": 124,
@@ -1583,6 +1831,8 @@
       "program": "dsba_coop",
       "question": "หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาศึกษาทั่วไป: 30 หน่วยกิต — ประกอบด้วย กลุ่มวิชาพื้นฐาน 6, กลุ่มวิชาด้านภาษาและการสื่อสาร 9, กลุ่มวิชาตามเกณฑ์ของคณะ 9, กลุ่มวิชาเลือกหมวดวิชาการศึกษาทั่วไป 6",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
       "elapsed_sec": 0.03
@@ -1595,6 +1845,8 @@
       "program": "dsba_coop",
       "question": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา: บัณฑิตเมื่อสําเร็จการศึกษาหลักสูตรนี้ จะมีความรู้ความสามารถและความเชี่ยวชาญเฉพาะด้าน วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจที่เพียงพอในการประกอบอาชีพและตอบสนองความต้องการ ของตลาดแรงงาน ทั้งหน่วยงานภาครัฐและภาคเอกชน สําหรับตําแหน่งงานด้านต่าง ๆ ได้แก่ 1) นักวิทยาการข้อมูล (Data Scientist) 2) นักวิเคราะห์ข้อมูล (Data Analyst) 2.1) ผู้เชี่ยวชาญด้านอัจฉริยะทางธุรกิจ (Bl Specialist) 2.2) นักวิเคราะห์ด้านอัจฉริยะทางธุรกิจ (BI Analyst) 2.3) นักพัฒนาด้านอัจฉริยะทางธุรกิจ (BI Developer) 2.4) นักพัฒนาข้อมูลเชิงลึกทางธุรกิจ (Business Insight Data Developer) 3) วิศวกรข้อมูล (Data Engineer) 3.1) นักพัฒนาคลังข้อมูล (Data Warehouse Developer) 4) วิศวกรการเรียนรู้ของเครื่อง (Machine Learning Engineer) 5) นักพัฒนาแบบจําลองข้อมูล (Data Modeler)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('อาชีพ')",
       "elapsed_sec": 0.02
@@ -1607,6 +1859,8 @@
       "program": "it_coop",
       "question": "จบแล้วทำงานอะไรได้บ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา: 1) อาชีพที่เกี่ยวข้องกับเทคโนโลยีสารสนเทศทั่วไป เช่น - นักเทคโนโลยีสารสนเทศ - นักวิชาการคอมพิวเตอร์ - ผู้ประสานงานโครงการด้านเทคโนโลยีสารสนเทศ 2) อาชีพตามความเชี่ยวชาญเฉพาะสอดคล้องตามกลุ่มวิชาเฉพาะ 2.1) กลุ่มวิชาด้านการพัฒนาซอฟต์แวร์ ประกอบอาชีพเกี่ยวกับการพัฒนาซอฟต์แวร์ ทั้งที่เป็นเว็บ แอพพลิเคชันและบนอุปกรณ์เคลื่อนที่ ได้แก่ - นักโปรแกรมคอมพิวเตอร์ (Programmer) - นักพัฒนาเว็บไซต์ (Web Developer) - ผู้ทดสอบโปรแกรม (Software Tester) - นักวิเคราะห์ระบบ (System Analyst) - นักออกแบบสถาปัตยกรรมซอฟต์แวร์ (Software Architect) - ผู้ช่วยผู้จัดการโครงการ (Project Manager Assistant) 2.2) กลุ่มวิชาด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ ประกอบอาชีพเกี่ยวกับการออกแบบ พัฒนาและบริหารระบบเครือข่าย ได้แก่ - นักออกแบบระบบเครือข่าย (Network System Designer) - นักพัฒนาระบบเครือข่าย (Network System Engineer) - ผู้ดูแลระบบเครือข่าย (Network System Administrator) 2.3) กลุ่มวิชาด้านสื่อประสมสําหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม ประกอบอาชีหเกี่ยวกับ การออกแบบและพัฒนาเว็บและเกม ได้แก่ - นักพัฒนาเกม (Game Developer) - นักออกแบบและพัฒนาเว็บ (Web Designer/Developer) - นักออกแบบ บ|/ป% 3) อาชีพตามความเชี่ยวชาญเฉพาะสอดคล้องตามโมดูลอาชีพ ได้แก่ - ใ[นน-5เล๕ Web Developer - Game Developer",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('อาชีพ')",
       "elapsed_sec": 0.02
@@ -1619,6 +1873,8 @@
       "program": "ait",
       "question": "ปรัชญาของหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปรัชญาของหลักสูตร: หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์ เป็นหลักสูตรที่พัฒนาขึ้นบนแนวคิดปรัชญา มุ่งสร้างองค์ความรู้ ผลิต และ พัฒนา ทรัพยากรบุคคลของชาติ เพื่อเพิ่มขีดความสามารถในการแข่งขันของประเทศ และเพื่อสนับสนุนการพัฒนาบนฐานข้อมูลความรู้ เทคโนโลยี วิจัย และ นวัตกรรม ด้านวิทยาศาสตร์และเทคโนโลยี อันเป็นรากฐานที่ดีของการพัฒนาประเทศ จุดเด่นของหลักสูตร คือ การออกแบบที่มุ่งเน้นการวางรากฐาน คณิตศาสตร์ที่แข็งแรง การวางรากฐานองค์ความรู้ด้านปัญญาประดิษฐ์สมัยใหม่ ได้แก่ การเรียนรู้ของเครื่องและการ เรียนรู้เชิงลึก และการสร้างความร่วมมือกับภาคธุรกิจอุตสาหกรรมเพื่อให้ผู้เรียน ได้ทํางานกับโจทย์จริงตั้งแต่ปี การศึกษาที่สาม",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ปรัชญา')",
       "elapsed_sec": 0.02
@@ -1631,9 +1887,11 @@
       "program": "dsba_coop",
       "question": "วัตถุประสงค์ของหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "วัตถุประสงค์ของหลักสูตร: 1) เพื่อผลิตบัณฑิตที่สามารถอธิบายกระบวนการ ศึกษา วิเคราะห์และสรุปประเด็นปัญหา รวมทั้งความความต้องการด้านวิทยาการข้อมูล การวิเคราะห์เชิงสถิติ และวิศวกรรมข้อมูล",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('วัตถุประสงค์')",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 129,
@@ -1643,6 +1901,8 @@
       "program": "it_coop",
       "question": "คุณสมบัติของผู้เข้าศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "คุณสมบัติของผู้เข้าศึกษา: สําเร็จการศึกษาระดับมัธยมศึกษาตอนปลายหรือเทียบเท่าโดยผ่านการคัดเลือกตามเกณฑ์ของ สํานักงานคณะกรรมการอุดมศึกษาและ/หรือเป็นไปตามระเบียบข้อบังคับและประกาศการคัดเลือกของ สถาบันฯ",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('คุณสมบัติผู้เข้าศึกษา')",
       "elapsed_sec": 0.02
@@ -1655,9 +1915,11 @@
       "program": "dsba_coop",
       "question": "สถานที่จัดการเรียนการสอนคือที่ไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "สถานที่จัดการเรียนการสอน: ในสถานที่ตั้งสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('สถานที่จัดการเรียนการสอน')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 131,
@@ -1667,6 +1929,8 @@
       "program": "it_coop",
       "question": "ชื่อปริญญาของหลักสูตรนี้คืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ชื่อปริญญาและสาขาวิชา: ชื่อเต็ม (ภาษาไทย) : วิทยาศาสตรบัณฑิต (เทคโนโลยีสารสนเทศ) (ภาษาอังกฤษ) เ: Bachelor of Science (Information Technology) ชซื่อย่อ (ภาษาไทย) : วท.บ. (เทคโนโลยีสารสนเทศ) (ภาษาอังกฤษ) : B.Sc. (Information Technology)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ชื่อปริญญา')",
       "elapsed_sec": 0.02
@@ -1679,9 +1943,11 @@
       "program": "ait",
       "question": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "เกณฑ์การสำเร็จการศึกษา: เป็นไปตามข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบังว่าด้วยการศึกษาระดับ ปริญญาตรี พ.ศ. 2565 (ภาคผนวก ก) และบรรลุผลลัพธ์การเรียนรู้ (0น05) ของหลักสูตร",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('เกณฑ์สำเร็จการศึกษา')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 133,
@@ -1691,9 +1957,11 @@
       "program": "dsba_coop",
       "question": "โครงสร้างหลักสูตรแบ่งเป็นกี่หมวดวิชา",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "โครงสร้างหลักสูตรแบ่งเป็น 3 หมวด (รวม 132 หน่วยกิต): หมวดวิชาศึกษาทั่วไป 30, หมวดวิชาเฉพาะ 96, หมวดวิชาเลือกเสรี 6",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 134,
@@ -1703,9 +1971,11 @@
       "program": "it_coop",
       "question": "หมวดวิชาเฉพาะมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาเฉพาะ: 93 หน่วยกิต — ประกอบด้วย กลุ่มวิชาแกน 12, กลุ่มวิชาเฉพาะด้าน 57, กลุ่มวิชาบังคับเฉพาะสาขา 15, กลุ่มวิชาเลือกทางเทคโนโลยีสารสนเทศ 9, กลุ่มวิชาการศึกษาทางเลือก 6 (หมายเหตุ: กลุ่มวิชาการศึกษาทางเลือก 6 ไม่นับรวมใน 93)",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.05
     },
     {
       "id": 135,
@@ -1715,9 +1985,11 @@
       "program": "it_coop",
       "question": "วิชาโครงงาน 2 ต้องผ่านวิชาอะไรมาก่อน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016406 (โครงงาน 1)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 33.74
+      "elapsed_sec": 1.48
     },
     {
       "id": 136,
@@ -1727,7 +1999,9 @@
       "program": "it_coop",
       "question": "วิชา 06016406 เรียนปีไหนเทอมไหน",
       "passed": true,
-      "answer": "06016406 โครงงาน 1: ปี 4 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต: ปี 4 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06016406' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.01
     },
@@ -1739,9 +2013,11 @@
       "program": "ait",
       "question": "หลักสูตร AIT เรียนทั้งหมดกี่ปี",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
       "sql": "SELECT years FROM program",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 138,
@@ -1751,6 +2027,8 @@
       "program": "bit_coop",
       "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
       "elapsed_sec": 0.01
@@ -1763,6 +2041,8 @@
       "program": "bit_no_coop",
       "question": "หลักสูตรนี้มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
       "elapsed_sec": 0.01
@@ -1775,6 +2055,8 @@
       "program": "dsba_no_coop",
       "question": "หลักสูตรนี้มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 132 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
       "elapsed_sec": 0.02
@@ -1787,6 +2069,8 @@
       "program": "it_no_coop",
       "question": "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หน่วยกิตรวมตลอดหลักสูตร 129 หน่วยกิต",
       "sql": "SELECT total_credits FROM program",
       "elapsed_sec": 0.02
@@ -1799,6 +2083,8 @@
       "program": "bit_coop",
       "question": "หลักสูตรนี้เรียนกี่ปี",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
       "sql": "SELECT years FROM program",
       "elapsed_sec": 0.01
@@ -1811,6 +2097,8 @@
       "program": "bit_no_coop",
       "question": "หลักสูตรนี้เรียนกี่ปี",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
       "sql": "SELECT years FROM program",
       "elapsed_sec": 0.01
@@ -1823,7 +2111,9 @@
       "program": "it_coop",
       "question": "วิชา 06016401 บรรยายสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '06016401'",
       "elapsed_sec": 0.01
     },
@@ -1835,7 +2125,9 @@
       "program": "it_coop",
       "question": "วิชา 06016401 แล็บสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06016401'",
       "elapsed_sec": 0.01
     },
@@ -1847,7 +2139,9 @@
       "program": "dsba_coop",
       "question": "วิชา 06066300 บรรยายสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06066300 แนวคิดระบบฐานข้อมูล: ชั่วโมงบรรยาย 2 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต: ชั่วโมงบรรยาย 2 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '06066300'",
       "elapsed_sec": 0.01
     },
@@ -1859,9 +2153,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06026204 แล็บสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY — 3 (3-0-6) หน่วยกิต: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06026204'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 148,
@@ -1871,7 +2167,9 @@
       "program": "dsba_coop",
       "question": "วิชา 06026204 ศึกษาด้วยตนเองสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น: ชั่วโมงศึกษาด้วยตนเอง 6 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY — 3 (3-0-6) หน่วยกิต: ชั่วโมงศึกษาด้วยตนเอง 6 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, self_h FROM course WHERE code = '06026204'",
       "elapsed_sec": 0.01
     },
@@ -1883,9 +2181,11 @@
       "program": "it_coop",
       "question": "เรียนผ่าน 06016406 แล้วจะลงเรียนวิชาอะไรต่อได้",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016407 (โครงงาน 2)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06016406' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 2.43
+      "elapsed_sec": 1.58
     },
     {
       "id": 150,
@@ -1895,9 +2195,11 @@
       "program": "it_coop",
       "question": "วิชา 06016407 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06016406 (โครงงาน 1)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 14.73
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "โครงงาน 2 (06016407) มีวิชาบังคับก่อน: 06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06016407' AND kind = 'pre'",
+      "elapsed_sec": 0.03
     },
     {
       "id": 151,
@@ -1907,9 +2209,11 @@
       "program": "it_coop",
       "question": "วิชา 06016401 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-      "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 15.16
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ (06016401) ไม่มีวิชาบังคับก่อน",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06016401' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 152,
@@ -1919,9 +2223,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06026201 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06026200 (แคลคูลัส 1)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06026201' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 10.28
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "แคลคูลัส 2 (06026201) มีวิชาบังคับก่อน: 06026200 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06026201' AND kind = 'pre'",
+      "elapsed_sec": 0.02
     },
     {
       "id": 153,
@@ -1931,7 +2237,9 @@
       "program": "it_coop",
       "question": "วิชาโครงงาน 1 มีกี่หน่วยกิต",
       "passed": true,
-      "answer": "06016406 โครงงาน 1: 3 หน่วยกิต",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต",
       "sql": "SELECT code, name_th, credits FROM course WHERE code = '06016406'",
       "elapsed_sec": 0.03
     },
@@ -1943,6 +2251,8 @@
       "program": "dsba_coop",
       "question": "ปรัชญาของหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปรัชญาของหลักสูตร: ข้อมูลและสารสนเทศมีบทบาทสําคัญอย่างยิ่งต่อการดําเนินงานขององค์กรและหน่วยงานต่าง ๆ ทั้งภาครัฐและเอกชน เพื่อช่วยในการปรับปรุงกระบวนการทํางานในส่วนงานต่าง ๆ ให้มีประสิทธิภาพ รวมทั้งช่วยทําให้การวางแผน ควบคุม และตัดสินใจของผู้บริหารเป็นไปอย่างมีประสิทธิผล สามารถนําพา องค์กรและหน่วยงานให้ประสบความสําเร็จตามเป้าหมายที่กําหนด ช่วยกระตุ้นให้เกิดการแข่งขัน ส่งผล ต่อการเปลี่ยนแปลงและพัฒนาด้านเศรษฐกิจและสังคมของประเทศในภาพรวมให้ดีขึ้น การได้มาซึ่งข้อมูล และสารสนเทศดังกล่าว ต้องอาศัยศาสตร์ด้านวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจเข้ามาช่วย เพื่อ ทําให้สามารถรวมรวบข้อมูลจากฐานข้อมูล (Database) และคลังข้อมูล (Data warehouse) จากแหล่ง ต่าง ๆ ซึ่งมีความซับซ้อนและมีปริมาณเพิ่มมากขึ้นอย่างมหาศาลในระดับข้อมูลมหัต (Big data) เพื่อ นํามาจัดเตรียมและประมวลผลด้วยเครื่องมือซึ่งใช้กลไกของอัลกอริท็ม (Algorithm) ขั้นสูง เพื่อทําให้ได้ สารสนเทศที่สามารถนําไปใช้ในการวิเคราะห์และพยากรณ์ได้อย่างถูกต้องรวดเร็ว ส่งผลทําให้การ ดําเนินการ รวมทั้งการตัดสินใจและแก้ปัญหา เป็นไปอย่างมีประสิทธิภาพและเกิดประสิทธิผลสูงสุด คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ได้ตระหนัก ถึงความสําคัญและความจําเป็นที่จะต้องจัดเตรียมบุคลากรที่มีความรู้ทางด้านวิทยาการข้อมูลและการ",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ปรัชญา')",
       "elapsed_sec": 0.04
@@ -1955,9 +2265,11 @@
       "program": "dsba_coop",
       "question": "คุณสมบัติของผู้เข้าศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "คุณสมบัติของผู้เข้าศึกษา: สําเร็จการศึกษาระดับมัธยมศึกษาตอนปลายหรือเทียบเท่า โดยผ่านการคัดเลือกตามเกณฑ์ของ สํานักงานคณะกรรมการอุดมศึกษา และ/หรือเป็นไปตามระเบียบข้อบังคับและประกาศการคัดเลือก ของสถาบันฯ",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('คุณสมบัติผู้เข้าศึกษา')",
-      "elapsed_sec": 0.06
+      "elapsed_sec": 0.04
     },
     {
       "id": 156,
@@ -1967,9 +2279,11 @@
       "program": "dsba_coop",
       "question": "ชื่อปริญญาของหลักสูตรนี้คืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ชื่อปริญญาและสาขาวิชา: ขือเต็ม (ภาษาไทย) : วิทยาศาสตรบัณฑิต (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) (ภาษาอังกฤษ) เ: Bachelor of Science (Data Science and Business Analytics) (ภาษาไทย) : วท.บ. (วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) (ภาษาอังกฤษ) : B.Sc. (Data Science and Business Analytics)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ชื่อปริญญา')",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 157,
@@ -1979,9 +2293,11 @@
       "program": "ait",
       "question": "สถานที่จัดการเรียนการสอนคือที่ไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "สถานที่จัดการเรียนการสอน: สถานที่ตั้งสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง (กรุงเทพฯๆ ] สถานที่ตั้งสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง (วิทยาเขตชุมพรเขตรอุดมศักดิ์) นอกสถานที่ตั้ง ได้แก่ เวออววว้ค้คคคคคลลแลลลครรรแแลอแรรรระแรรรรรรรอแรรวรระแลลระ",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('สถานที่จัดการเรียนการสอน')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 158,
@@ -1991,6 +2307,8 @@
       "program": "ait",
       "question": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา: บัณฑิตเมือสําเร็จการศึกษาหลักสูตรนี่ จะมีความรู้ความสามารถและความเชี่ยวชาญเฉพาะด้านเทคโนโลยี ปัญญาประดิษฐ์ทีเพียงพอในการประกอบอาชีพและตอบสนองความต้องการของตลาดแรงงาน ทั้งหน่วยงานภาครัฐ ภาคเอกชน และภาคอุตสาหกรรมสําหรับตําแหน่งงานด้านต่าง ๆ ได้แก่ (1) นักวิทยาศาสตร์ด้านการเรียนรู้เชิงลึก (2) นักวิทยาศาสตร์หรือวิศวกรข้อมูล (3) ผู้พัฒนาระบบธุรกิจอัจฉริยะ (@) วิศวกรการเรียนรู้ของเครื่อง (5) นักวิจัยและนักวิชาการด้านปัญญาประดิษฐ์ (6) วิศวกรวางสถาปัตยกรรมข้อมูลขนาดใหญ่ (7) นักพัฒนาระบบฝังตัวหรือระบบเชือมต่อสรรหสิง (8) ผู้เชียวชาญด้านการมองเห็นด้วยเครื่องจักร (9) ผู้เชียวชาญด้านการประมวลผลภาษามนุษย์ (10) ผู้ประสานงานหรือผู้จัดการโครงการด้านปัญญาประดิษฐ์ (11) ผู้ประสานงานหรือผู้จัดการโครงการวิเคราะห์ข้อมูล (12) ทีปรึกษาด้านปัญญาประดิษฐ์ เอเณพรก เทเถเถถถกกถากรรร - น-6ง6งยงยงยงยสยสงสงสงสงสงสรสงสส3เฮล",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('อาชีพ')",
       "elapsed_sec": 0.02
@@ -2003,6 +2321,8 @@
       "program": "it_coop",
       "question": "หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาศึกษาทั่วไป: 30 หน่วยกิต — ประกอบด้วย กลุ่มวิชาพื้นฐาน 6, กลุ่มวิชาด้านภาษาและการสื่อสาร 9, กลุ่มวิชาตามเกณฑ์ของคณะ 9, กลุ่มวิชาเลือกหมวดวิชาศึกษาทั่วไป 6",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
       "elapsed_sec": 0.04
@@ -2015,6 +2335,8 @@
       "program": "ait",
       "question": "หมวดวิชาศึกษาทั่วไปมีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาศึกษาทั่วไป: 24 หน่วยกิต",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
       "elapsed_sec": 0.03
@@ -2027,9 +2349,11 @@
       "program": "it_no_coop",
       "question": "ปี 1 เทอม 2 มีหน่วยกิตรวมเท่าไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 2 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 2",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 162,
@@ -2039,9 +2363,11 @@
       "program": "dsba_coop",
       "question": "ปี 3 เทอม 1 เรียนกี่วิชา",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 3 เทอม 1 ต้องลงทะเบียน 6 วิชา",
       "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 3 AND semester = 1",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.05
     },
     {
       "id": 163,
@@ -2051,9 +2377,11 @@
       "program": "dsba_no_coop",
       "question": "ปี 2 เทอม 1 มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 2 เทอม 1 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 164,
@@ -2063,9 +2391,11 @@
       "program": "bit_coop",
       "question": "ปี 1 เทอม 1 มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 1 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 1",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 165,
@@ -2075,9 +2405,11 @@
       "program": "ait",
       "question": "วิชา 06046401 เรียนปีไหนเทอมไหน",
       "passed": true,
-      "answer": "06046401 แคลคูลัส 2: ปี 1 เทอม 2",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06046401 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต: ปี 1 เทอม 2",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06046401' ORDER BY p.year, p.semester",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.03
     },
     {
       "id": 166,
@@ -2087,9 +2419,11 @@
       "program": "it_coop",
       "question": "แผนสหกิจกับไม่สหกิจ ปี 4 เทอม 1 ต่างกันยังไง",
       "passed": true,
-      "answer": "ปี 4 เทอม 1 — แผนสหกิจ (รวม 18 หน่วยกิต): 06016406 โครงงาน 1 [บังคับ]; 90643021 ผู้ประกอบการสมัยใหม่ [เลือก]; ช่อง: วิชาเลือกทางเทคโนโลยีสารสนเทศ 1; ช่อง: วิชาเลือก หมวดศึกษาทั่วไป 1; ช่อง: กลุ่มวิชาตามเกณฑ์ของคณะ (Faculty requirement) ผู้ประกอบการสมัยใหม่ | แผนไม่สหกิจ (รวม 15 หน่วยกิต): 06016406 โครงงาน 1 [บังคับ]; 90643021 ผู้ประกอบการสมัยใหม่ [บังคับ]; ช่อง: วิชาเลือกทางเทคโนโลยีสารสนเทศ 3; ช่อง: วิชาเลือกหมวดศึกษาทั่วไป 1; ช่อง: วิชาเลือกเสรี 1 | เฉพาะแผนสหกิจ: ไม่มี | เฉพาะแผนไม่สหกิจ: ไม่มี",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ปี 4 เทอม 1 — แผนสหกิจ (รวม 18 หน่วยกิต): 06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต [บังคับ]; 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS — 3 (3-0-6) หน่วยกิต [เลือก]; ช่อง: วิชาเลือกทางเทคโนโลยีสารสนเทศ 1; ช่อง: วิชาเลือก หมวดศึกษาทั่วไป 1; ช่อง: กลุ่มวิชาตามเกณฑ์ของคณะ (Faculty requirement) ผู้ประกอบการสมัยใหม่ | แผนไม่สหกิจ (รวม 15 หน่วยกิต): 06016406 โครงงาน 1 / PROJECT 1 — 3 (0-9-0) หน่วยกิต [บังคับ]; 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS — 3 (3-0-6) หน่วยกิต [บังคับ]; ช่อง: วิชาเลือกทางเทคโนโลยีสารสนเทศ 3; ช่อง: วิชาเลือกหมวดศึกษาทั่วไป 1; ช่อง: วิชาเลือกเสรี 1 | เฉพาะแผนสหกิจ: ไม่มี | เฉพาะแผนไม่สหกิจ: ไม่มี",
       "sql": "SELECT code, note FROM plan_item WHERE year = 4 AND semester = 1 -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบกัน",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 167,
@@ -2099,9 +2433,11 @@
       "program": "dsba_coop",
       "question": "แผนสหกิจกับไม่สหกิจ ต่างกันอย่างไร",
       "passed": true,
-      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ; 06026260 สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 132, แผนไม่สหกิจ 132 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "เฉพาะแผนสหกิจ 2 วิชา: 06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต; 06026260 สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / OVERSEA COOPERERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต | เฉพาะแผนไม่สหกิจ 0 วิชา: ไม่มี | หน่วยกิตรวม (นับช่องตามเล่ม): แผนสหกิจ 132, แผนไม่สหกิจ 132 (เทียบรหัสวิชาในแผน ไม่รวมช่องวิชาเลือกที่นักศึกษาเลือกเอง)",
       "sql": "SELECT DISTINCT code FROM plan_item -- รันบน DB ของแผนสหกิจและไม่สหกิจ แล้วเทียบรหัสวิชาสองชุดนี้",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 168,
@@ -2111,9 +2447,11 @@
       "program": "it_coop",
       "question": "รหัสวิชา 11112222 ชื่อวิชาว่าอะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 22.95
+      "elapsed_sec": 0.84
     },
     {
       "id": 169,
@@ -2123,9 +2461,11 @@
       "program": "it_coop",
       "question": "วิชาว่ายน้ำ มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 17.02
+      "elapsed_sec": 0.66
     },
     {
       "id": 170,
@@ -2135,9 +2475,11 @@
       "program": "dsba_coop",
       "question": "อาจารย์หัวหน้าภาควิชาคือใคร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 5.71
+      "elapsed_sec": 0.49
     },
     {
       "id": 171,
@@ -2147,6 +2489,8 @@
       "program": "bit_coop",
       "question": "ปรัชญาของหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปรัชญาของหลักสูตร: หลักสูตร วิทยาศาสตรบัณฑิต สาขา เทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) เป็น หลักสูตรที่พัฒนาขึ้นบนแนวคิดปรัชญา การผลิตบัณฑิตให้มีความรู้ ความเชี่ยวชาญ และทักษะพร้อมใน การทํางานด้านเทคโนโลยีสารสนเทศทางธุรกิจระดับสากล โดยมีหลัก 3 องค์ประกอบ คือ (1) ความรู้ และทักษะทางเทคโนโลยีสารสนเทศที่ทันสมัย (2) แนวคิดและมุมมองเชิงธุรกิจแนวใหม่ (3) ทัศนคติที่ เปิดกว้าง การยอมรับและการทํางานในวัฒนธรรมที่หลากหลาย และมีความเป็นสากล",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ปรัชญา')",
       "elapsed_sec": 0.03
@@ -2159,9 +2503,11 @@
       "program": "bit_coop",
       "question": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา: บัณฑิตเมื่อสําเร็จการศึกษาหลักสูตรนี้ จะมีความรู้ความสามารถและความเชี่ยวชาญด้าน เทคโนโลยีสารสนเทศทางรธุรกิจที่เพียงพอในการประกอบอาชีพและตอบสนองความต้องการของ ตลาดแรงงาน ทั้งหน่วยงานภาครัฐและภาคธุรกิจเอกชน สําหรับตัวอย่างตําแหน่งงานและอาชีพด้าน ต่าง ๆ ได้แก่ กลุ่มอาชีพที่ 1 : การวิเคราะห์เชิงธุรกิจ (Business Analysis) (1) นักวิเคราะห์ระบบเทคโนโลยีสารสนเทศ (2) นักออกแบบระบบเทคโนโลยีสารสนเทศ (3) ที่ปรึกษา/นักวิเคราะห์เชิงเทคนิค กลุ่มอาชีพที่ 2 : ระบบระดับองค์กร (Enterprise System, Business Process Improvement) (1) ที่ปรึกษาด้าน ERP (2) นักวิเคราะห์ด้าน ERP (2) ที่ปรึกษาด้านการจัดการกระบวนการทางธุรกิจ กลุ่มอาชีพที่ 3: การตลาดเชิงดิจิทัล (Digital Marketing) (1) ผู้สร้างเนื้อหาทางการตลาด (Content Creator) (2) ที่ปรึกษาฝ่ายการตลาดดิจิทัล (3) ผู้เชี่ยวชาญด้าน SEO กลุ่มอาชีพที่ 4: การออกแบบและพัฒนาส่วนติดต่อกับผู้ใช้งาน (บ>/ป)) (1) ผู้ทดสอบการใช้งานและระบบ (2) นักวิเคราะห์การใช้งาน (3) นักออกแบบ บวะ/ป|",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('อาชีพ')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 173,
@@ -2171,6 +2517,8 @@
       "program": "bit_coop",
       "question": "ชื่อปริญญาของหลักสูตรนี้คืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ชื่อปริญญาและสาขาวิชา: ชื่อเต็ม (ภาษาไทย) : วิทยาศาสตรบัณฑิต (เทคโนโลยีสารสนเทศทางธุรกิจ) (ภาษาอังกฤษ) : Bachelor of Science (Business Information Technology) ชื่อย่อ (ภาษาไทย) : วท.บ. (เทคโนโลยีสารสนเทศทางธุรกิจ) (ภาษาอังกฤษ) : B.Sc. (Business Information Technology)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('ชื่อปริญญา')",
       "elapsed_sec": 0.02
@@ -2183,9 +2531,11 @@
       "program": "bit_coop",
       "question": "คุณสมบัติของผู้เข้าศึกษาคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "คุณสมบัติของผู้เข้าศึกษา: สําเร็จการศึกษาระดับมัธยมศึกษาตอนปลายหรือเทียบเท่า โดยผ่านการคัดเลือกตามเกณฑ์ของ สํานักงานคณะกรรมการอุดมศึกษา และ/หรือเป็นไปตามระเบียบข้อบังคับและประกาศการคัดเลือกของ สถาบันฯ",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('คุณสมบัติผู้เข้าศึกษา')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.01
     },
     {
       "id": 175,
@@ -2195,9 +2545,11 @@
       "program": "bit_coop",
       "question": "ปี 1 เทอม 1 เรียนกี่วิชา",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 1 ต้องลงทะเบียน 7 วิชา",
       "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 1 AND semester = 1",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.01
     },
     {
       "id": 176,
@@ -2207,9 +2559,11 @@
       "program": "bit_coop",
       "question": "วิชา คณิตศาสตร์สำหรับธุรกิจ รหัสอะไร",
       "passed": true,
-      "answer": "06036101 (คณิตศาสตร์สำหรับธุรกิจ)",
-      "sql": "SELECT code, name_th FROM course WHERE code IN ('06036101')",
-      "elapsed_sec": 0.03
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06036101 (คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS)",
+      "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06036101')",
+      "elapsed_sec": 0.01
     },
     {
       "id": 177,
@@ -2219,9 +2573,11 @@
       "program": "bit_coop",
       "question": "วิชา 06036101 บรรยายสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06036101 คณิตศาสตร์สำหรับธุรกิจ: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06036101 คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS — 3 (3-0-6) หน่วยกิต: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '06036101'",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.03
     },
     {
       "id": 178,
@@ -2231,7 +2587,9 @@
       "program": "bit_coop",
       "question": "วิชา 06036100 เรียนปีไหนเทอมไหน",
       "passed": true,
-      "answer": "06036100 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ: ปี 1 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06036100 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS — 3 (2-2-5) หน่วยกิต: ปี 1 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06036100' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.03
     },
@@ -2243,9 +2601,11 @@
       "program": "dsba_no_coop",
       "question": "วิชาเลือกเสรีต้องลงตอนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "วิชาเลือกเสรี 1, วิชาเลือกเสรี 2 อยู่ปี 4 เทอม 2",
       "sql": "SELECT name_th AS slot, year, semester, credits FROM plan_slot WHERE name_th LIKE 'วิชาเลือกเสรี%' ORDER BY year, semester, id",
-      "elapsed_sec": 0.07
+      "elapsed_sec": 0.04
     },
     {
       "id": 180,
@@ -2255,9 +2615,11 @@
       "program": "ait",
       "question": "วิชาเลือกเสรีต้องลงตอนปีไหน",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "วิชาเลือกเสรี 1 อยู่ปี 3 เทอม 2; วิชาเลือกเสรี 2 อยู่ปี 4 เทอม 1",
       "sql": "SELECT name_th AS slot, year, semester, credits FROM plan_slot WHERE name_th LIKE 'วิชาเลือกเสรี%' ORDER BY year, semester, id",
-      "elapsed_sec": 0.06
+      "elapsed_sec": 0.05
     },
     {
       "id": 181,
@@ -2267,9 +2629,11 @@
       "program": "dsba_coop",
       "question": "ปี 1 เทอม 2 มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 1 เทอม 2 รวม 21 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 2",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 182,
@@ -2279,9 +2643,11 @@
       "program": "it_no_coop",
       "question": "ปี 2 เทอม 1 มีกี่หน่วยกิต",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ปี 2 เทอม 1 รวม 18 หน่วยกิต",
       "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 183,
@@ -2291,9 +2657,11 @@
       "program": "bit_coop",
       "question": "วิชา 06036114 มีวิชาบังคับก่อนไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06036119 (พื้นฐานการเขียนโปรแกรม), 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06036114' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 36.09
+      "elapsed_sec": 1.57
     },
     {
       "id": 184,
@@ -2303,9 +2671,11 @@
       "program": "bit_coop",
       "question": "เรียนผ่าน 06036119 แล้วจะลงเรียนวิชาอะไรต่อได้",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06036119' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 36.65
+      "elapsed_sec": 1.62
     },
     {
       "id": 185,
@@ -2315,7 +2685,9 @@
       "program": "ait",
       "question": "วิชา 06046402 บรรยายสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06046402 พีชคณิตเชิงเส้น: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06046402 พีชคณิตเชิงเส้น / LINEAR ALGEBRA — 3 (3-0-6) หน่วยกิต: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '06046402'",
       "elapsed_sec": 0.01
     },
@@ -2327,7 +2699,9 @@
       "program": "ait",
       "question": "วิชา 06046402 แล็บสัปดาห์ละกี่ชั่วโมง",
       "passed": true,
-      "answer": "06046402 พีชคณิตเชิงเส้น: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06046402 พีชคณิตเชิงเส้น / LINEAR ALGEBRA — 3 (3-0-6) หน่วยกิต: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
       "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06046402'",
       "elapsed_sec": 0.01
     },
@@ -2339,9 +2713,11 @@
       "program": "ait",
       "question": "วิชา 06046400 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-      "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 5.38
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "แคลคูลัส 1 (06046400) ไม่มีวิชาบังคับก่อน",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06046400' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 188,
@@ -2351,9 +2727,11 @@
       "program": "ait",
       "question": "วิชา 06046401 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06046400 (แคลคูลัส 1)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06046401' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 2.36
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "แคลคูลัส 2 (06046401) มีวิชาบังคับก่อน: 06046400 แคลคูลัส 1 / CALCULUS 1 — 3 (3-0-6) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06046401' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 189,
@@ -2363,9 +2741,11 @@
       "program": "ait",
       "question": "วิชา 06046406 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06046401 (แคลคูลัส 2), 06046402 (พีชคณิตเชิงเส้น)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06046406' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 12.18
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "พื้นฐานการเรียนรู้เชิงลึก (06046406) มีวิชาบังคับก่อน: 06046401 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต, 06046402 พีชคณิตเชิงเส้น / LINEAR ALGEBRA — 3 (3-0-6) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06046406' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 190,
@@ -2375,9 +2755,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06026213 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06026213' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 6.2
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ระบบข้อมูลมหัต (06026213) มีวิชาบังคับก่อน: 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06026213' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 191,
@@ -2387,9 +2769,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06026212 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 31.84
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "การสร้างคลังข้อมูล (06026212) มีวิชาบังคับก่อน: 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06026212' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 192,
@@ -2399,9 +2783,11 @@
       "program": "dsba_coop",
       "question": "เรียนผ่าน 06066300 แล้วจะลงเรียนวิชาอะไรต่อได้",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06026212 (การสร้างคลังข้อมูล), 06026213 (ระบบข้อมูลมหัต)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06066300' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 28.67
+      "elapsed_sec": 1.72
     },
     {
       "id": 193,
@@ -2411,9 +2797,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06066102 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06066102' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 4.05
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "ระบบสารสนเทศเพื่อการจัดการ (06066102) มีวิชาบังคับก่อน: 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY — 3 (3-0-6) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06066102' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 194,
@@ -2423,9 +2811,11 @@
       "program": "it_coop",
       "question": "วิชา 06016418 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06016408 (การสร้างโปรแกรมเชิงวัตถุ)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06016418' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 16.22
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ (06016418) มีวิชาบังคับก่อน: 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06016418' AND kind = 'pre'",
+      "elapsed_sec": 0.02
     },
     {
       "id": 195,
@@ -2435,9 +2825,11 @@
       "program": "it_coop",
       "question": "วิชา 06016419 มีวิชาบังคับก่อนไหม",
       "passed": true,
-      "answer": "06016413 (ระบบเครือข่ายเบื้องต้น)",
-      "sql": "SELECT requires FROM prerequisite WHERE code='06016419' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 28.39
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร (06016419) มีวิชาบังคับก่อน: 06016413 ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS — 3 (3-0-6) หน่วยกิต",
+      "sql": "SELECT requires FROM prerequisite WHERE code = '06016419' AND kind = 'pre'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 196,
@@ -2447,9 +2839,11 @@
       "program": "it_coop",
       "question": "เรียนผ่าน 06016413 แล้วจะลงเรียนวิชาอะไรต่อได้",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016419 (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร), 06016420 (ระบบโครงสร้างพื้นฐานและการบริการ), 06016421 (ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ), 06016422 (อินเทอร์เน็ตของสรรพสิ่ง), 06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06016413' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 25.93
+      "elapsed_sec": 2.28
     },
     {
       "id": 197,
@@ -2459,7 +2853,9 @@
       "program": "it_coop",
       "question": "วิชา 06016418 เรียนปีไหนเทอมไหน",
       "passed": true,
-      "answer": "06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์: ปี 3 เทอม 1",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT — 3 (2-2-5) หน่วยกิต: ปี 3 เทอม 1",
       "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06016418' ORDER BY p.year, p.semester",
       "elapsed_sec": 0.01
     },
@@ -2471,9 +2867,11 @@
       "program": "it_coop",
       "question": "ค่าเทอมของหลักสูตรนี้เท่าไหร่",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 13.46
+      "elapsed_sec": 0.65
     },
     {
       "id": 199,
@@ -2483,9 +2881,11 @@
       "program": "dsba_coop",
       "question": "มีทุนการศึกษาอะไรบ้าง",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 10.49
+      "elapsed_sec": 0.54
     },
     {
       "id": 200,
@@ -2495,9 +2895,11 @@
       "program": "bit_coop",
       "question": "มีหอพักในมหาวิทยาลัยไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 12.98
+      "elapsed_sec": 0.54
     },
     {
       "id": 201,
@@ -2507,9 +2909,11 @@
       "program": "it_coop",
       "question": "วิชาหมวด 0601 มีวิชาอะไรบ้าง",
       "passed": true,
-      "answer": "วิชาหมวด 0601 มี 29 วิชา: 06016401 (คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ), 06016402 (พื้นฐานทางด้านเทคโนโลยีสารสนเทศ), 06016403 (เทคโนโลยีสื่อประสม), 06016404 (เทคโนโลยีกลุ่มเมฆ), 06016405 (พื้นฐานความมั่นคงปลอดภัยไซเบอร์), 06016406 (โครงงาน 1), 06016407 (โครงงาน 2), 06016408 (การสร้างโปรแกรมเชิงวัตถุ), 06016409 (การประมวลทางกายภาพ), 06016410 (วิศวกรรมซอฟต์แวร์), 06016411 (ระบบคอมพิวเตอร์เบื้องต้น), 06016412 (โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ), 06016413 (ระบบเครือข่ายเบื้องต้น), 06016414 (ระบบฐานข้อมูลแบบโนเอสคิวแอล), 06016415 (การเขียนโปรแกรมเชิงฟังก์ชัน), 06016416 (วิศวกรรมความต้องการ), 06016417 (เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์), 06016418 (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์), 06016419 (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร), 06016420 (ระบบโครงสร้างพื้นฐานและการบริการ), 06016421 (ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ), 06016422 (อินเทอร์เน็ตของสรรพสิ่ง), 06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้), 06016424 (การออกแบบส่วนต่อประสานกับมนุษย์), 06016425 (พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์), 06016426 (คอมพิวเตอร์กราฟิกส์และแอนิเมชัน), 06016427 (การออกแบบและพัฒนาเกมเบื้องต้น), 06016481 (สหกิจศึกษา), 06016482 (สหกิจศึกษาต่างประเทศ)",
-      "sql": "SELECT DISTINCT code, name_th FROM course WHERE code LIKE '0601%' ORDER BY code",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาหมวด 0601 มี 29 วิชา:\n- 06016401 (คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY)\n- 06016402 (พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS)\n- 06016403 (เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY)\n- 06016404 (เทคโนโลยีกลุ่มเมฆ / CLOUD COMPUTING)\n- 06016405 (พื้นฐานความมั่นคงปลอดภัยไซเบอร์ / CYBERSECURITY FUNDAMENTALS)\n- 06016406 (โครงงาน 1 / PROJECT 1)\n- 06016407 (โครงงาน 2 / PROJECT 2)\n- 06016408 (การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING)\n- 06016409 (การประมวลทางกายภาพ / PHYSICAL COMPUTING)\n- 06016410 (วิศวกรรมซอฟต์แวร์ / SOFTWARE ENGINEERING)\n- 06016411 (ระบบคอมพิวเตอร์เบื้องต้น / INTRODUCTION TO COMPUTER SYSTEMS)\n- 06016412 (โครงสร้างระบบคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ORGANIZATION AND OPERATING SYSTEM)\n- 06016413 (ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS)\n- 06016414 (ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS)\n- 06016415 (การเขียนโปรแกรมเชิงฟังก์ชัน / FUNCTIONAL PROGRAMMING)\n- 06016416 (วิศวกรรมความต้องการ / REQUIREMENT ENGINEERING)\n- 06016417 (เครื่องมือและสภาพแวดล้อมสำหรับการพัฒนาซอฟต์แวร์ / SOFTWARE DEVELOPMENT TOOLS AND ENVIRONMENTS)\n- 06016418 (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT)\n- 06016419 (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร / COMMUNICATION NETWORK INFRASTRUCTURE)\n- 06016420 (ระบบโครงสร้างพื้นฐานและการบริการ / INFRASTRUCTURE SYSTEMS AND SERVICES)\n- 06016421 (ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY)\n- 06016422 (อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS)\n- 06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้ / INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION)\n- 06016424 (การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN)\n- 06016425 (พื้นฐานการออกแบบทัศนศิลป์สำหรับสื่อปฏิสัมพันธ์ / VISUAL DESIGN FUNDAMENTALS FOR INTERACTIVE MEDIA)\n- 06016426 (คอมพิวเตอร์กราฟิกส์และแอนิเมชัน / COMPUTER GRAPHICS AND ANIMATION)\n- 06016427 (การออกแบบและพัฒนาเกมเบื้องต้น / INTRODUCTION TO GAME DESIGN AND DEVELOPMENT)\n- 06016481 (สหกิจศึกษา / COOPERATIVE EDUCATION)\n- 06016482 (สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION)",
+      "sql": "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE '0601%' ORDER BY code",
+      "elapsed_sec": 0.03
     },
     {
       "id": 202,
@@ -2519,9 +2923,11 @@
       "program": "dsba_coop",
       "question": "วิชาหมวด 0602 มีวิชาอะไรบ้าง",
       "passed": true,
-      "answer": "วิชาหมวด 0602 มี 32 วิชา: 06026200 (แคลคูลัส 1), 06026201 (แคลคูลัส 2), 06026202 (พีชคณิตเชิงเส้น), 06026203 (การโปรแกรมคอมพิวเตอร์), 06026204 (เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น), 06026205 (การตลาดเบื้องต้น), 06026206 (การวิเคราะห์ข้อมูลและการโปรแกรม), 06026207 (ระบบฐานข้อมูลแบบโนเอสคิวแอล), 06026208 (พื้นฐานวิทยาการข้อมูล), 06026209 (การแสดงข้อมูลด้วยแผนภาพ), 06026210 (การหาค่าที่เหมาะสมที่สุด), 06026211 (การเรียนรู้ของเครื่องเชิงประยุกต์), 06026212 (การสร้างคลังข้อมูล), 06026213 (ระบบข้อมูลมหัต), 06026214 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1), 06026215 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2), 06026243 (ระบบฐานข้อมูลขั้นสูง), 06026244 (การดูแลและบำรุงรักษาระบบฐานข้อมูล), 06026245 (ระบบฐานข้อมูลแบบกระจาย), 06026246 (หัวข้อพิเศษทางวิศวกรรมข้อมูล 1), 06026247 (หัวข้อพิเศษทางวิศวกรรมข้อมูล 2), 06026248 (ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1), 06026249 (ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2), 06026250 (วิทยาการข้อมูลสำหรับธุรกิจ), 06026251 (บัญชีการเงิน), 06026252 (การวิเคราะห์ด้านการเงิน), 06026253 (การวิเคราะห์ด้านการตลาด), 06026254 (เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น), 06026255 (การได้มาและการจัดการข้อมูลทางด้านคลินิก), 06026256 (การจัดการการปฏิบัติการ), 06026259 (สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ), 06026260 (สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ)",
-      "sql": "SELECT DISTINCT code, name_th FROM course WHERE code LIKE '0602%' ORDER BY code",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาหมวด 0602 มี 32 วิชา:\n- 06026200 (แคลคูลัส 1 / CALCULUS 1)\n- 06026201 (แคลคูลัส 2 / CALCULUS 2)\n- 06026202 (พีชคณิตเชิงเส้น / LINEAR ALGEBRA)\n- 06026203 (การโปรแกรมคอมพิวเตอร์ / COMPUTER PROGRAMMING)\n- 06026204 (เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY)\n- 06026205 (การตลาดเบื้องต้น / INTRODUCTION TO MARKETING)\n- 06026206 (การวิเคราะห์ข้อมูลและการโปรแกรม / DATA ANALYTICS AND PROGRAMMING)\n- 06026207 (ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS)\n- 06026208 (พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE)\n- 06026209 (การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION)\n- 06026210 (การหาค่าที่เหมาะสมที่สุด / OPTIMIZATION)\n- 06026211 (การเรียนรู้ของเครื่องเชิงประยุกต์ / APPLIED MACHINE LEARNING)\n- 06026212 (การสร้างคลังข้อมูล / DATA WAREHOUSING)\n- 06026213 (ระบบข้อมูลมหัต / BIG DATA SYSTEMS)\n- 06026214 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1)\n- 06026215 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2)\n- 06026243 (ระบบฐานข้อมูลขั้นสูง / ADVANCED DATABASE SYSTEMS)\n- 06026244 (การดูแลและบำรุงรักษาระบบฐานข้อมูล / DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION)\n- 06026245 (ระบบฐานข้อมูลแบบกระจาย / DISTRIBUTED DATABASE SYSTEMS)\n- 06026246 (หัวข้อพิเศษทางวิศวกรรมข้อมูล 1 / SPECIAL TOPICS IN DATA ENGINEERING 1)\n- 06026247 (หัวข้อพิเศษทางวิศวกรรมข้อมูล 2 / SPECIAL TOPICS IN DATA ENGINEERING 2)\n- 06026248 (ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 1 / SPECIAL WORKSHOP IN DATA ENGINEERING 1)\n- 06026249 (ปฏิบัติการพิเศษทางวิศวกรรมข้อมูล 2 / SPECIAL WORKSHOP IN DATA ENGINEERING 2)\n- 06026250 (วิทยาการข้อมูลสำหรับธุรกิจ / DATA SCIENCE FOR BUSINESS)\n- 06026251 (บัญชีการเงิน / FINANCIAL ACCOUNTING)\n- 06026252 (การวิเคราะห์ด้านการเงิน / FINANCIAL ANALYTICS)\n- 06026253 (การวิเคราะห์ด้านการตลาด / MARKETING ANALYTICS)\n- 06026254 (เทคโนโลยีสุขภาพสนเทศศาสตร์เบื้องต้น / INTRODUCTION TO HEALTH ANALYTICS)\n- 06026255 (การได้มาและการจัดการข้อมูลทางด้านคลินิก / CLINICAL DATA ACQUISITION AND MANAGEMENT)\n- 06026256 (การจัดการการปฏิบัติการ / OPERATIONS MANAGEMENT)\n- 06026259 (สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS)\n- 06026260 (สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / OVERSEA COOPERERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS)",
+      "sql": "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE '0602%' ORDER BY code",
+      "elapsed_sec": 0.04
     },
     {
       "id": 203,
@@ -2531,9 +2937,11 @@
       "program": "bit_coop",
       "question": "วิชาหมวด 0603 มีวิชาอะไรบ้าง",
       "passed": true,
-      "answer": "วิชาหมวด 0603 มี 28 วิชา: 06036100 (พื้นฐานทางด้านเทคโนโลยีสารสนเทศ), 06036101 (คณิตศาสตร์สำหรับธุรกิจ), 06036102 (การวิเคราะห์เชิงสถิติสำหรับธุรกิจ), 06036103 (บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ), 06036104 (องค์กรและการจัดการ), 06036105 (บัญชีการเงินสำหรับผู้มิใช่นักบัญชี), 06036106 (การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่), 06036107 (การบริหารโครงการเทคโนโลยีสารสนเทศ), 06036108 (เศรษฐศาสตร์เทคโนโลยีสารสนเทศ), 06036109 (กระบวนการและโมเดลทางธุรกิจ), 06036110 (การวางแผนทรัพยากรองค์กร), 06036111 (เทคโนโลยีดิจิทัลสำหรับธุรกิจ), 06036112 (แนวคิดระบบฐานข้อมูล), 06036113 (การออกแบบส่วนต่อประสานกับมนุษย์), 06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก), 06036115 (ความมั่นคงของระบบสารสนเทศ), 06036116 (การตลาดเชิงดิจิทัล), 06036117 (อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่), 06036118 (การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ), 06036119 (พื้นฐานการเขียนโปรแกรม), 06036120 (หลักการโครงสร้างข้อมูลและอัลกอริทึม), 06036121 (การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ), 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ), 06036123 (เทคโนโลยีกลุ่มเมฆ), 06036124 (เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น), 06036125 (สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ), 06036147 (สหกิจศึกษา), 06036148 (สหกิจศึกษาต่างประเทศ)",
-      "sql": "SELECT DISTINCT code, name_th FROM course WHERE code LIKE '0603%' ORDER BY code",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาหมวด 0603 มี 28 วิชา:\n- 06036100 (พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS)\n- 06036101 (คณิตศาสตร์สำหรับธุรกิจ / MATHEMATICS FOR BUSINESS)\n- 06036102 (การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS)\n- 06036103 (บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS)\n- 06036104 (องค์กรและการจัดการ / MANAGEMENT AND ORGANIZATIONS)\n- 06036105 (บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS)\n- 06036106 (การจัดการข้อมูลธุรกิจและเทคโนโลยีเกิดใหม่ / MANAGING BUSINESS INFORMATION AND EMERGING TECHNOLOGIES)\n- 06036107 (การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT)\n- 06036108 (เศรษฐศาสตร์เทคโนโลยีสารสนเทศ / ECONOMICS OF INFORMATION TECHNOLOGY)\n- 06036109 (กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL)\n- 06036110 (การวางแผนทรัพยากรองค์กร / ENTERPRISE RESOURCE PLANNING)\n- 06036111 (เทคโนโลยีดิจิทัลสำหรับธุรกิจ / DIGITAL TECHNOLOGY FOR BUSINESS)\n- 06036112 (แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS)\n- 06036113 (การออกแบบส่วนต่อประสานกับมนุษย์ / HUMAN INTERFACE DESIGN)\n- 06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS)\n- 06036115 (ความมั่นคงของระบบสารสนเทศ / INFORMATION SYSTEM SECURITY)\n- 06036116 (การตลาดเชิงดิจิทัล / DIGITAL MARKETING)\n- 06036117 (อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA)\n- 06036118 (การแก้ปัญหาทางด้านเทคโนโลยีสารสนเทศ / PROBLEM SOLVING IN INFORMATION TECHNOLOGY)\n- 06036119 (พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS)\n- 06036120 (หลักการโครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS PRINCIPLES)\n- 06036121 (การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ / BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN)\n- 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS)\n- 06036123 (เทคโนโลยีกลุ่มเมฆ / CLOUD TECHNOLOGY)\n- 06036124 (เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY)\n- 06036125 (สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM)\n- 06036147 (สหกิจศึกษา / COOPERATIVE EDUCATION)\n- 06036148 (สหกิจศึกษาต่างประเทศ / OVERSEA COOPERATIVE EDUCATION)",
+      "sql": "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE '0603%' ORDER BY code",
+      "elapsed_sec": 0.07
     },
     {
       "id": 204,
@@ -2543,9 +2951,11 @@
       "program": "ait",
       "question": "วิชาหมวด 0604 มีวิชาอะไรบ้าง",
       "passed": true,
-      "answer": "วิชาหมวด 0604 มี 21 วิชา: 06046400 (แคลคูลัส 1), 06046401 (แคลคูลัส 2), 06046402 (พีชคณิตเชิงเส้น), 06046403 (การโปรแกรมคอมพิวเตอร์), 06046404 (พื้นฐานของระบบสมองกลฝังตัว), 06046405 (การเรียนรู้ของเครื่องเชิงความน่าจะเป็น), 06046406 (พื้นฐานการเรียนรู้เชิงลึก), 06046407 (พื้นฐานวิทยาการข้อมูล), 06046408 (การแสดงข้อมูลด้วยแผนภาพ), 06046409 (คอมพิวเตอร์ทัศนเบื้องต้น), 06046410 (การประมวลผลภาษาธรรมชาติเบื้องต้น), 06046411 (การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย), 06046412 (การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม), 06046413 (ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง), 06046414 (การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก), 06046415 (การประมวลผลสัญญาณ), 06046440 (วิชาสัมมนาปัญญาประดิษฐ์), 06046441 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1), 06046442 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2), 06046443 (สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์), 06046444 (สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์)",
-      "sql": "SELECT DISTINCT code, name_th FROM course WHERE code LIKE '0604%' ORDER BY code",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "วิชาหมวด 0604 มี 21 วิชา:\n- 06046400 (แคลคูลัส 1 / CALCULUS 1)\n- 06046401 (แคลคูลัส 2 / CALCULUS 2)\n- 06046402 (พีชคณิตเชิงเส้น / LINEAR ALGEBRA)\n- 06046403 (การโปรแกรมคอมพิวเตอร์ / COMPUTER PROGRAMMING)\n- 06046404 (พื้นฐานของระบบสมองกลฝังตัว / FUNDAMENTAL OF EMBEDDED SYSTEM)\n- 06046405 (การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING)\n- 06046406 (พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING)\n- 06046407 (พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE)\n- 06046408 (การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION)\n- 06046409 (คอมพิวเตอร์ทัศนเบื้องต้น / INTRODUCTION TO COMPUTER VISION)\n- 06046410 (การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING)\n- 06046411 (การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION)\n- 06046412 (การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม / NEURAL NETWORK OPTIMIZATION)\n- 06046413 (ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง / ARTIFICIAL INTELLIGENCE AND INTERNET OF THING)\n- 06046414 (การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก / NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING)\n- 06046415 (การประมวลผลสัญญาณ / SIGNAL PROCESSING)\n- 06046440 (วิชาสัมมนาปัญญาประดิษฐ์ / SEMINAR IN ARTIFICIAL INTELLIGENCE)\n- 06046441 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 1 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 1)\n- 06046442 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2)\n- 06046443 (สหกิจศึกษาทางเทคโนโลยีปัญญาประดิษฐ์)\n- 06046444 (สหกิจศึกษาต่างประเทศทางเทคโนโลยีปัญญาประดิษฐ์ / OVERSEA COOPERPERATIVE EDUCATION IN ARTIFICIAL INTELLIGENCE TECHNOLOGY)",
+      "sql": "SELECT DISTINCT code, name_th, name_en FROM course WHERE code LIKE '0604%' ORDER BY code",
+      "elapsed_sec": 0.04
     },
     {
       "id": 205,
@@ -2555,9 +2965,11 @@
       "program": "it_coop",
       "question": "หมวดศึกษาทั่วไปมีกลุ่มวิชาอะไรบ้าง",
       "passed": true,
-      "answer": "หมวดวิชาศึกษาทั่วไปในแผนของหลักสูตรนี้ — วิชาบังคับในแผนของหลักสูตรนี้: 90641001 โรงเรียนสร้างเสน่ห์ (2 หน่วยกิต), 90641002 ความฉลาดทางดิจิทัล (3 หน่วยกิต), 90641003 กีฬาและนันทนาการ (1 หน่วยกิต), 90642033 กฎหมายสำหรับคนรุ่นใหม่ (3 หน่วยกิต), 90643021 ผู้ประกอบการสมัยใหม่ (3 หน่วยกิต), 90644007 ภาษาอังกฤษพื้นฐาน 1 (3 หน่วยกิต), 90644008 ภาษาอังกฤษพื้นฐาน 2 (3 หน่วยกิต), 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ (3 หน่วยกิต); ช่องที่นักศึกษาเลือกเอง: วิชาเลือกหมวดภาษาและการสื่อสาร (ปี 3 เทอม 1, 3 หน่วยกิต), วิชาเลือก หมวดศึกษาทั่วไป 1 (ปี 4 เทอม 1, 3 หน่วยกิต), วิชาเลือก หมวดศึกษาทั่วไป 2 (ปี 4 เทอม 2, 3 หน่วยกิต) — ถามรายชื่อวิชาที่เลือกได้ต่อเป็นรายช่อง เช่น \"วิชาเลือกหมวดภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง\"",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "หมวดวิชาศึกษาทั่วไปในแผนของหลักสูตรนี้ — วิชาบังคับในแผนของหลักสูตรนี้: 90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL — 2 (1-2-3) หน่วยกิต (2 หน่วยกิต), 90641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต), 90641003 กีฬาและนันทนาการ / SPORTS AND RECREATIONAL ACTIVITIES — 1 (0-3-2) หน่วยกิต (1 หน่วยกิต), 90642033 กฎหมายสำหรับคนรุ่นใหม่ / LAW FOR NEW GENERATION — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต), 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต), 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1 — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต), 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2 — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต), 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION — 3 (3-0-6) หน่วยกิต (3 หน่วยกิต); ช่องที่นักศึกษาเลือกเอง: วิชาเลือกหมวดภาษาและการสื่อสาร (ปี 3 เทอม 1, 3 หน่วยกิต), วิชาเลือก หมวดศึกษาทั่วไป 1 (ปี 4 เทอม 1, 3 หน่วยกิต), วิชาเลือก หมวดศึกษาทั่วไป 2 (ปี 4 เทอม 2, 3 หน่วยกิต) — ถามรายชื่อวิชาที่เลือกได้ต่อเป็นรายช่อง เช่น \"วิชาเลือกหมวดภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง\"",
       "sql": "SELECT DISTINCT c.code, c.name_th, c.credits FROM plan_item p JOIN course c ON c.code = p.code WHERE c.code LIKE '9064%' OR c.code LIKE '9664%' ORDER BY c.code",
-      "elapsed_sec": 0.01
+      "elapsed_sec": 0.04
     },
     {
       "id": 206,
@@ -2567,6 +2979,8 @@
       "program": "dsba_coop",
       "question": "หมวดวิชาศึกษาทั่วไปแบ่งเป็นกี่กลุ่ม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "หมวดวิชาศึกษาทั่วไป: 30 หน่วยกิต — ประกอบด้วย กลุ่มวิชาพื้นฐาน 6, กลุ่มวิชาด้านภาษาและการสื่อสาร 9, กลุ่มวิชาตามเกณฑ์ของคณะ 9, กลุ่มวิชาเลือกหมวดวิชาการศึกษาทั่วไป 6",
       "sql": "SELECT name_th, level, credits, parent, pdf_page FROM credit_structure",
       "elapsed_sec": 0.02
@@ -2579,9 +2993,11 @@
       "program": "it_coop",
       "question": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "เกณฑ์การสำเร็จการศึกษา: เป็นไปตามข้อบังคับสถาบันสถาบันโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบังว่าด้วย การศึกษาระดับปริญญาตรี พ.ศ. 2564 (ภาคผนวก ก )",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('เกณฑ์สำเร็จการศึกษา')",
-      "elapsed_sec": 0.02
+      "elapsed_sec": 0.04
     },
     {
       "id": 208,
@@ -2591,6 +3007,8 @@
       "program": "dsba_coop",
       "question": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "เกณฑ์การสำเร็จการศึกษา: เป็นไปตามข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบังว่าด้วยการศึกษา ระดับปริญญาตรี พ.ศ. 2564 (ภาคผนวก A)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('เกณฑ์สำเร็จการศึกษา')",
       "elapsed_sec": 0.03
@@ -2603,6 +3021,8 @@
       "program": "bit_coop",
       "question": "เกณฑ์การสำเร็จการศึกษาตามหลักสูตรคืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "เกณฑ์การสำเร็จการศึกษา: เป็นไปตามข้อบังคับสถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบังว่าด้วยการศึกษา ระดับปริญญาตรี W.A. 2564 (ภาคผนวก ก)",
       "sql": "SELECT topic, heading, body, pdf_page FROM book_section WHERE topic IN ('เกณฑ์สำเร็จการศึกษา')",
       "elapsed_sec": 0.01
@@ -2615,9 +3035,11 @@
       "program": "it_coop",
       "question": "หลักสูตรนี้มีเรียนภาคฤดูร้อนไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
       "sql": "SELECT NULL WHERE 0",
-      "elapsed_sec": 0.03
+      "elapsed_sec": 0.02
     },
     {
       "id": 211,
@@ -2627,9 +3049,11 @@
       "program": "it_coop",
       "question": "ถ้าถอนวิชา 06016408 จะกระทบกับอะไร",
       "passed": true,
-      "answer": "ถ้าถอน/ดรอป การสร้างโปรแกรมเชิงวัตถุ (06016408) วิชาที่ได้รับผลกระทบ (ลงไม่ได้จนกว่าจะผ่านก่อน): การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ (06016418)",
-      "sql": "SELECT code, requires FROM prerequisite WHERE requires IN ('06016408')",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "หากถอน 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต และยังไม่เคยผ่านวิชานี้ วิชาตัวต่อที่อาจได้รับผลกระทบมีดังนี้\nโดยตรง:\n- 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT — 3 (2-2-5) หน่วยกิต (เส้นทาง 06016408 → 06016418)\nทางอ้อม: ไม่พบความสัมพันธ์ในข้อมูลที่มี\nหากเคยผ่านวิชานี้แล้วหรือผ่านวิชาทางเลือก ผลอาจต่างออกไป ไม่ใช่การยืนยันสิทธิ์ลงทะเบียนหรือการเลื่อนจบ",
+      "sql": "WITH RECURSIVE affected(code) AS (SELECT code FROM prerequisite WHERE requires = '06016408' UNION SELECT p.code FROM prerequisite p JOIN affected a ON p.requires = a.code) SELECT c.code, c.name_th, c.name_en, c.credits FROM course c JOIN affected a ON c.code = a.code WHERE c.code != '06016408'",
+      "elapsed_sec": 0.04
     },
     {
       "id": 212,
@@ -2639,9 +3063,11 @@
       "program": "it_coop",
       "question": "ถอนวิชา 06016408 แล้วจะกระทบวิชาไหน",
       "passed": true,
-      "answer": "ถ้าถอน/ดรอป การสร้างโปรแกรมเชิงวัตถุ (06016408) วิชาที่ได้รับผลกระทบ (ลงไม่ได้จนกว่าจะผ่านก่อน): การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ (06016418)",
-      "sql": "SELECT code, requires FROM prerequisite WHERE requires IN ('06016408')",
-      "elapsed_sec": 0.02
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "หากถอน 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต และยังไม่เคยผ่านวิชานี้ วิชาตัวต่อที่อาจได้รับผลกระทบมีดังนี้\nโดยตรง:\n- 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT — 3 (2-2-5) หน่วยกิต (เส้นทาง 06016408 → 06016418)\nทางอ้อม: ไม่พบความสัมพันธ์ในข้อมูลที่มี\nหากเคยผ่านวิชานี้แล้วหรือผ่านวิชาทางเลือก ผลอาจต่างออกไป ไม่ใช่การยืนยันสิทธิ์ลงทะเบียนหรือการเลื่อนจบ",
+      "sql": "WITH RECURSIVE affected(code) AS (SELECT code FROM prerequisite WHERE requires = '06016408' UNION SELECT p.code FROM prerequisite p JOIN affected a ON p.requires = a.code) SELECT c.code, c.name_th, c.name_en, c.credits FROM course c JOIN affected a ON c.code = a.code WHERE c.code != '06016408'",
+      "elapsed_sec": 0.01
     },
     {
       "id": 213,
@@ -2651,8 +3077,10 @@
       "program": "it_coop",
       "question": "ถ้าดรอปวิชา 06016408 จะกระทบกับอะไร",
       "passed": true,
-      "answer": "ถ้าถอน/ดรอป การสร้างโปรแกรมเชิงวัตถุ (06016408) วิชาที่ได้รับผลกระทบ (ลงไม่ได้จนกว่าจะผ่านก่อน): การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ (06016418)",
-      "sql": "SELECT code, requires FROM prerequisite WHERE requires IN ('06016408')",
+      "correctness_passed": true,
+      "performance_passed": true,
+      "answer": "หากถอน 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING — 3 (2-2-5) หน่วยกิต และยังไม่เคยผ่านวิชานี้ วิชาตัวต่อที่อาจได้รับผลกระทบมีดังนี้\nโดยตรง:\n- 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT — 3 (2-2-5) หน่วยกิต (เส้นทาง 06016408 → 06016418)\nทางอ้อม: ไม่พบความสัมพันธ์ในข้อมูลที่มี\nหากเคยผ่านวิชานี้แล้วหรือผ่านวิชาทางเลือก ผลอาจต่างออกไป ไม่ใช่การยืนยันสิทธิ์ลงทะเบียนหรือการเลื่อนจบ",
+      "sql": "WITH RECURSIVE affected(code) AS (SELECT code FROM prerequisite WHERE requires = '06016408' UNION SELECT p.code FROM prerequisite p JOIN affected a ON p.requires = a.code) SELECT c.code, c.name_th, c.name_en, c.credits FROM course c JOIN affected a ON c.code = a.code WHERE c.code != '06016408'",
       "elapsed_sec": 0.01
     },
     {
@@ -2663,9 +3091,11 @@
       "program": "it_coop",
       "question": "วิชา 06016408 มีตัวต่อไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016418 (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06016408' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 34.88
+      "elapsed_sec": 1.44
     },
     {
       "id": 215,
@@ -2675,9 +3105,11 @@
       "program": "it_coop",
       "question": "วิชา 06016408 มีวิชาต่อไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016418 (การพัฒนาเว็บฝั่งเซิร์ฟเวอร์)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06016408' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 44.81
+      "elapsed_sec": 1.69
     },
     {
       "id": 216,
@@ -2687,9 +3119,11 @@
       "program": "it_coop",
       "question": "วิชา 06016406 มีวิชาต่อไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016407 (โครงงาน 2)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06016406' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 42.61
+      "elapsed_sec": 1.52
     },
     {
       "id": 217,
@@ -2699,9 +3133,11 @@
       "program": "dsba_coop",
       "question": "วิชา 06066300 มีตัวต่อไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06026212 (การสร้างคลังข้อมูล), 06026213 (ระบบข้อมูลมหัต)",
       "sql": "SELECT code FROM prerequisite WHERE requires='06066300' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 39.03
+      "elapsed_sec": 1.83
     },
     {
       "id": 218,
@@ -2711,9 +3147,11 @@
       "program": "it_coop",
       "question": "วิชา 06016408 ถอนได้มั้ย",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-      "sql": "SELECT NULL WHERE 0 LIMIT 200",
-      "elapsed_sec": 7.1
+      "sql": "SELECT NULL WHERE 0",
+      "elapsed_sec": 0.01
     },
     {
       "id": 219,
@@ -2723,9 +3161,11 @@
       "program": "it_coop",
       "question": "วิชา 06016407 มี prequisite ไหม",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016406 (โครงงาน 1)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 1.72
+      "elapsed_sec": 1.56
     },
     {
       "id": 220,
@@ -2735,9 +3175,11 @@
       "program": "it_coop",
       "question": "วิชา 06016407 prerequisite คืออะไร",
       "passed": true,
+      "correctness_passed": true,
+      "performance_passed": true,
       "answer": "06016406 (โครงงาน 1)",
       "sql": "SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre' LIMIT 200",
-      "elapsed_sec": 1.68
+      "elapsed_sec": 1.52
     }
   ]
 }
