@@ -45,6 +45,20 @@ class CourseResponse(CourseCreate):
     pass
 
 
+class CourseSearchItem(BaseModel):
+    """A course found by GET /api/courses. `source` says which table named it: plan (placed in the plan),
+    elective (an elective or general-education group) or catalog (only described in the book)."""
+    code: str
+    name_th: str | None = None
+    name_en: str | None = None
+    credits: int | None = None
+    lecture_h: int | None = None
+    lab_h: int | None = None
+    self_h: int | None = None
+    description_th: str | None = None
+    source: Literal["plan", "elective", "catalog"] = "plan"
+
+
 class HealthResponse(BaseModel):
     status: str
     database: str
@@ -68,10 +82,10 @@ class CoursePrerequisitesResponse(BaseModel):
     code: str
     name_th: str
     name_en: str | None = None
-    credits: int
+    credits: int | None = None
     credits_display: str | None = None
     citations: list[dict[str, Any]] = Field(default_factory=list)
-    prerequisite_status: Literal['found', 'none', 'not_found', 'unreadable', 'unknown'] = 'unknown'
+    prerequisite_status: Literal['found', 'none', 'not_found', 'unreadable', 'unknown', 'not_in_plan'] = 'unknown'
     prerequisites_required: list[PrerequisiteItem] = Field(
         default_factory=list,
         description="รายวิชาที่ต้องเรียนผ่านก่อน จึงจะสามารถลงเรียนวิชานี้ได้"

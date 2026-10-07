@@ -28,7 +28,7 @@ import lab8b_curriculum_db as lab8b  # noqa: E402
 from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
-    AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse, ProgramInfo,
+    AskRequest, AskResponse, CourseCreate, CourseResponse, CourseSearchItem, HealthResponse, ProgramInfo,
     CoursePrerequisitesResponse,
 )
 
@@ -127,7 +127,7 @@ def list_programs() -> list[dict]:
         items.append(item)                                         
     return items                                                   
 
-@app.get("/api/courses", response_model=list[CourseResponse])
+@app.get("/api/courses", response_model=list[CourseSearchItem])
 def get_courses(
     search: str = Query(default="", max_length=100),
     limit: int = Query(default=20, ge=1, le=100),

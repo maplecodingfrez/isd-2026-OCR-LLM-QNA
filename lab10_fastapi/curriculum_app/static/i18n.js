@@ -114,7 +114,7 @@
     "search.placeholder": ["พิมพ์รหัสหรือชื่อวิชา เช่น ฐานข้อมูล, calculus, 06026", "Type a code or name, e.g. database, calculus, 06026"],
     "search.btn": ["ค้นหา", "Search"],
     "search.busy": ["กำลังค้น…", "Searching…"],
-    "search.idle": ["พิมพ์แล้วผลจะขึ้นทันที กดที่วิชาเพื่อตรวจวิชาบังคับก่อน", "Results appear as you type. Click a course to check its prerequisites."],
+    "search.idle": ["พิมพ์รหัส ชื่อไทย/อังกฤษ หรือตัวย่อ เช่น DB, ML, OS (พิมพ์หลายคำได้ ไม่ต้องเรียง) แล้วกดวิชาเพื่อตรวจวิชาบังคับก่อน", "Type a code, a Thai or English name, or an acronym such as DB, ML or OS (several words, any order), then click a course to check its prerequisites"],
     "search.loading": ["กำลังค้นรายวิชา…", "Searching courses…"],
     "search.aria": ["ผลการค้นหารายวิชา", "Course search results"],
     "search.scope": ["ค้นจากหลักสูตร: {name}", "Searching in: {name}"],
@@ -127,6 +127,9 @@
     "prereq.tagCo": ["เรียนร่วมกัน", "co-requisite"],
     "prereq.tagAlt": ["ทางเลือกกลุ่ม {n}: ผ่านอย่างใดอย่างหนึ่ง", "option group {n}: pass any one"],
     "withdraw.summary": ["กระทบโดยตรง {d} วิชา · ทางอ้อม {i} วิชา", "Directly affects {d} courses · indirectly {i}"],
+    "search.tagElective": ["วิชาเลือก", "Elective"],
+    "search.tagCatalog": ["อยู่ในเล่ม ไม่อยู่ในแผน", "In the book, not in the plan"],
+    "prereq.notInPlan": ["วิชานี้ไม่อยู่ในแผนการเรียนของหลักสูตรนี้ (วิชาเลือกหรือวิชาที่มีในเล่ม) จึงยังไม่มีข้อมูลวิชาบังคับก่อนในระบบ", "This course is not in this program's plan (an elective or a course the book describes), so the system has no prerequisite data for it"],
     "credits.unit": ["หน่วยกิต", "credits"],
 
     "prereq.title": ["ตรวจวิชาบังคับก่อน (Prerequisite)", "Check prerequisites"],

@@ -4,6 +4,8 @@ from pathlib import Path
 from types import ModuleType
 import sqlite3
 
+from . import course_search
+
 
 class CurriculumDatabase:
     def __init__(self, lab8b: ModuleType, path: Path, max_rows: int = 100):
@@ -28,17 +30,14 @@ class CurriculumDatabase:
         self._require_db()
         limit = min(max(limit, 1), self.max_rows)
         offset = max(offset, 0)
-        sql = "SELECT * FROM course"
-        params: list[object] = []
-        if search.strip():
-            sql += " WHERE code LIKE ? OR name_th LIKE ? OR name_en LIKE ?"
-            pattern = f"%{search.strip()}%"
-            params.extend([pattern, pattern, pattern])
-        sql += " ORDER BY code LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
         conn = self.lab8b.open_db(self.path, readonly=True)
         try:
-            return [dict(row) for row in conn.execute(sql, params).fetchall()]
+            if search.strip():
+                # a query searches every table that names a course (plan, elective groups, book catalogue)
+                return course_search.search_courses(conn, search, limit, offset)
+            # no query = the plan's own course list (the page's autocomplete and overview card)
+            rows = conn.execute("SELECT * FROM course ORDER BY code LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+            return [{**dict(row), "source": "plan"} for row in rows]
         finally:
             conn.close()
 
@@ -80,7 +79,20 @@ class CurriculumDatabase:
                 (code,),
             ).fetchone()
             if not course_row:
-                return None
+                outside = course_search.known_course(conn, code)       # an elective or catalogue course: known, but not in the plan
+                if outside is None:
+                    return None
+                return {
+                    "code": code,
+                    "name_th": outside["name_th"] or outside["name_en"] or code,
+                    "name_en": outside["name_en"],
+                    "credits": outside["credits"],
+                    "credits_display": None,
+                    "prerequisites_required": [],
+                    "unlocked_courses": [],
+                    "citations": [],
+                    "prerequisite_status": "not_in_plan",
+                }
             course_info = dict(course_row)
 
             # วิชาที่ต้องผ่านก่อนวิชานี้ (requires)
@@ -141,7 +153,12 @@ class CurriculumDatabase:
         try:
             data = self.lab8b.withdrawal_graph(conn, code)
             if data is None:
-                return None
+                outside = course_search.known_course(conn, code)
+                if outside is None:
+                    return None
+                data = {"course": {"code": code, "name_th": outside["name_th"], "name_en": outside["name_en"],
+                                   "credits": outside["credits"], "credits_display": None},
+                        "direct": [], "indirect": []}
             results = data["direct"] + data["indirect"]
             affected = {r["code"] for r in results}
             cites = []

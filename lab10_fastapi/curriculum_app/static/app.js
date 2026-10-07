@@ -877,8 +877,9 @@
       if (i) metaBox.appendChild(document.createTextNode(" · "));
       metaBox.appendChild(el("span", { className: "meta-part", text: part }));     // แต่ละส่วนไม่ตัดบรรทัดกลางคำ
     });
-    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data), prereqTag);
-    fillCourseList($("prereq-unlocks"), data.unlocked_courses, t("prereq.noneUnlocks"));
+    fillCourseList($("prereq-required"), data.prerequisites_required,
+      data.prerequisite_status === "not_in_plan" ? t("prereq.notInPlan") : prerequisiteEmptyText(data), prereqTag);
+    fillCourseList($("prereq-unlocks"), data.unlocked_courses, data.prerequisite_status === "not_in_plan" ? t("prereq.notInPlan") : t("prereq.noneUnlocks"));
     fillCiteCards($("prereq-citations"), data.citations, "");
   }
 
@@ -1022,7 +1023,7 @@
   }
 
   // ---------- ค้นหารายวิชา (GET /api/courses?search=) ----------
-  var SEARCH_LIMIT = 20;
+  var SEARCH_LIMIT = 50;
   var SEARCH_MAX_CHARS = 100;      // ตรงกับ max_length ของ backend
   var SEARCH_DELAY_MS = 250;
   var searchPanel = $("search-panel");
@@ -1042,6 +1043,9 @@
         el("span", { className: "name", text: names.primary }),
         el("span", { className: "credits", text: course.credits != null ? course.credits + " " + t("credits.unit") : "" })
       ];
+      if (course.source === "elective" || course.source === "catalog") {      // วิชานอกแผน: บอกว่ามาจากไหน
+        children.splice(2, 0, el("span", { className: "source-tag", text: t(course.source === "elective" ? "search.tagElective" : "search.tagCatalog") }));
+      }
       if (names.secondary) children.push(el("span", { className: "name-en", text: names.secondary }));
       list.appendChild(el("li", {}, [
         el("button", { className: "search-result", attrs: { type: "button", "data-code": course.code || "" } }, children)
