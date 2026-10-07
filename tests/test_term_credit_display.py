@@ -49,7 +49,7 @@ def test_term_lists_cover_all_seven_plans_without_llm(monkeypatch):
         raise AssertionError('term lists must use the database')
     monkeypatch.setattr(m, 'ollama_generate', no_llm)
     runs = DB.parents[3]
-    databases = sorted(runs.rglob('lab8b_output/curriculum.db'))
+    databases = sorted(d for d in runs.rglob('lab8b_output/curriculum.db') if '_retry' not in d.parts[-3])   # *_retry are scratch re-runs, not plans
     assert len(databases) == 7
     for database in databases:
         with closing(m.open_db(database, readonly=True)) as conn:
