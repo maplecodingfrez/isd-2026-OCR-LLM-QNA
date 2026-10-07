@@ -165,6 +165,7 @@ input[type="search"], input[type="text"], select, textarea#question { min-height
   background: var(--bg);
   border-bottom: 2px solid var(--line);
 }
+.brand-heading { font-size: inherit; letter-spacing: inherit; }
 .brand { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--accent); }
 .brand-text { font-family: var(--font-head); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
 .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -215,7 +216,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 }
 .omnibox:focus-within { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; }
 .omnibox-input-row { display: flex; gap: 10px; align-items: flex-start; }
-.omnibox-icon { font-size: 20px; padding-top: 6px; }
+.omnibox-icon { flex: none; margin-top: 8px; color: var(--accent); }   /* centres the 22px icon on the first text line (6px textarea padding + half a 25.5px line) */
 textarea#question {
   flex: 1; border: 0; background: transparent; resize: none; outline: none;
   font-size: 17px; line-height: 1.5; padding: 6px 0;
@@ -260,7 +261,7 @@ textarea#question::placeholder { color: var(--muted); }
 .examples li:nth-child(2) button.link-button { animation-delay: 80ms; }
 .examples li:nth-child(3) button.link-button { animation-delay: 160ms; }
 .examples li button.link-button:hover { background: var(--pill-bg); color: var(--pill-fg); }
-.link-button { border: 0; background: transparent; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.link-button { min-height: 32px; padding: 4px 6px; border: 0; background: transparent; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }   /* 32px with a mouse; 44px on touch below */
 
 /* ---------- panel states ---------- */
 .state-idle, .state-loading, .state-success, .state-error { display: none; }
@@ -319,7 +320,7 @@ textarea#question::placeholder { color: var(--muted); }
 .answer-list li::before { content: ""; position: absolute; left: 0; top: 0.8em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 #answer-hint { margin-top: 10px; color: var(--warn-fg); background: var(--warn-bg); padding: 8px 12px; border-radius: var(--radius-sm); }
 .examiner-drawer, .elective-section { margin-top: 14px; }
-details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-height: 44px; display: flex; align-items: center; }
+details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-height: 44px; display: flex; align-items: center; gap: 8px; }
 .citation-box { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 .citation-title { font-weight: 600; font-size: 15px; }
 .cite-cards { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
@@ -329,7 +330,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .cite-pdf { font-size: 15px; }
 .cite-chip-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .cite-chip { font-size: 15px; padding: 2px 10px; border-radius: 999px; background: var(--surface); color: var(--text); }
-.answer-footer { margin-top: 16px; }
+.answer-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .examiner-drawer h3 { font-size: 15px; margin: 10px 0 4px; }
 .examiner-drawer pre, textarea#copy-fallback {
   background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px; max-height: 280px; overflow: auto; width: 100%;
@@ -374,7 +375,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .credit-card { background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; }
 .credit-card + .credit-card { margin-top: 12px; }
 .credit-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.credit-title { font-family: var(--font-head); font-weight: 700; font-size: 19px; }
+.credit-title { font-family: var(--font-head); font-weight: 700; font-size: 18px; }
 .credit-total { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .credit-parts { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
 .credit-part { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(70px, 1fr) 2.5ch; gap: 12px; align-items: center; font-size: 15px; }
@@ -472,14 +473,16 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  /* movement carries no information here: drop entrances, hover lifts and bounces; keep colour changes and a calm loading cue */
+  html { scroll-behavior: auto; }
+  .answer-card, .tool-card, .examples li button.link-button { animation: none; }
+  .topic-pill:hover, .tab:hover, #ask-button:hover:not(:disabled), #ask-button:active:not(:disabled),
+  .inline-form button[type="submit"]:hover:not(:disabled) { transform: none; }
+  .dots i { animation: dots-pulse 1.4s ease-in-out infinite; }
+  .dots i:nth-child(2) { animation-delay: 0.2s; }
+  .dots i:nth-child(3) { animation-delay: 0.4s; }
 }
+@keyframes dots-pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 
 /* touch: every remaining small control reaches the 44px target */
 @media (pointer: coarse), (max-width: 580px) {
@@ -501,7 +504,6 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 #clear-button:hover { background: var(--surface-hover); }
 
 /* folded sections: a drawn chevron so the summary reads as openable (display:flex removes the browser marker) */
-details > summary { gap: 8px; }
 details > summary::before {
   content: ""; width: 12px; height: 9px; flex: none; margin-right: 4px;
   background: currentColor; clip-path: polygon(0 0, 100% 0, 50% 100%);
@@ -511,7 +513,6 @@ details[open] > summary::before { transform: rotate(0deg); }
 .tools-fold > summary { color: var(--text); }
 .tools-fold[open] > summary { margin-bottom: 8px; }
 .examples:empty { display: none; }
-.omnibox-icon { flex: none; color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   details > summary::before { transition: none; }
 }
@@ -528,7 +529,5 @@ details[open] > summary::before { transform: rotate(0deg); }
 .tool-about { color: var(--muted); font-size: 15px; margin-top: 2px; }
 
 /* answer footer holds two copy actions; the "/" hint only helps people with a keyboard */
-.answer-footer { display: flex; flex-wrap: wrap; gap: 8px; }
-.answer-footer button.secondary.is-copied { background: var(--ok-bg); color: var(--ok-fg); border-color: transparent; }
 .hint-extra { white-space: nowrap; }
 @media (pointer: coarse), (max-width: 580px) { .hint-extra { display: none; } }

@@ -12,10 +12,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from .config import PROJECT_ROOT, settings, PROGRAMS, _project_path, program_db_path
 
@@ -69,6 +70,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)   # js/css/json ใหญ่ ๆ ส่งแบบบีบอัด (ฟอนต์ woff2 ถูกข้ามเองเพราะบีบแล้ว)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 database = CurriculumDatabase(lab8b, settings.db_path, settings.max_rows)
 model = QwenTextToSQL(settings, lab8b)
@@ -93,6 +95,21 @@ def asset_version() -> str:
     for name in ("style.css", "i18n.js", "app.js"):
         digest.update((STATIC_DIR / name).read_bytes())
     return digest.hexdigest()[:10]
+
+
+@app.middleware("http")
+async def static_cache_headers(request: Request, call_next):
+    """ลิงก์ที่มี ?v=<hash> เปลี่ยนตามเนื้อหา จึงแคชได้ยาว; ฟอนต์แคชหนึ่งสัปดาห์; ไฟล์อื่นให้เบราว์เซอร์ถามซ้ำด้วย ETag"""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/static/") and response.status_code == 200:
+        if request.query_params.get("v"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path.startswith("/static/fonts/"):
+            response.headers["Cache-Control"] = "public, max-age=604800"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 @app.get("/", include_in_schema=False)
