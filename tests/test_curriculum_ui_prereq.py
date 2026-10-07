@@ -70,3 +70,11 @@ def test_i18n_has_both_languages_for_prerequisite_labels(tmp_path):
 def test_no_challenge_bonus_text_in_the_frontend():
     for path in (STATIC / "app.js", STATIC / "i18n.js", STATIC / "index.html", STATIC / "style.css"):
         assert "Bonus" not in path.read_text(encoding="utf-8"), path.name
+
+
+def test_citations_are_not_repeated_and_the_original_answer_lives_in_the_drawer():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = APP_JS.read_text(encoding="utf-8")
+    assert "citation-details" not in html and "cite-detail" not in html        # same pages and codes as the citation cards
+    assert 'id="original-text"' in html and '$("original-text").textContent' in js
+    assert "original-answer" not in js                                          # no per-answer-type "view original" block
