@@ -16,6 +16,23 @@ _BARE_CODE = re.compile(rf"^\s*(?:{_PREFIX}\s*)?(\d{{8}})\s*[?!.]*\s*$", re.I)
 _BARE_NAME = re.compile(rf"^\s*(?:วิชา|ข้อมูลวิชา|ขอข้อมูลวิชา|course|subject)\s*(.+?)\s*[?!.]*\s*$", re.I)
 
 
+_WHAT_IS = re.compile(r"\s*(?:ภาษา(?:อังกฤษ|ไทย))?\s*คือ(?:วิชา)?อะไร\s*[?!.]*\s*$")
+_NAME_OF = re.compile(r"^\s*ชื่อ(?:ภาษา)?(?:อังกฤษ|ไทย)?ของ\s*(?=วิชา|\d)")
+_NAME_OF_CODE = re.compile(r"^\s*ชื่อวิชา\s*(\d{8})\s*(?:ภาษา(?:อังกฤษ|ไทย))?\s*(?:คืออะไร|ว่าอะไร)?\s*[?!.]*\s*$")
+
+
+def _strip_what_is(text: str) -> str:
+    """"X คืออะไร" / "ชื่อภาษาอังกฤษของวิชา X" / "ชื่อวิชา 0602… ภาษาอังกฤษคืออะไร" ask for the course itself: reduce them to "วิชา X"."""
+    code = _NAME_OF_CODE.match(text)
+    if code:
+        return "วิชา " + code.group(1)
+    rest = _NAME_OF.sub("", text)
+    if rest == text and not _WHAT_IS.search(rest):
+        return text
+    rest = _WHAT_IS.sub("", rest).strip()
+    return rest if rest.startswith(("วิชา", "รหัส")) else "วิชา " + rest
+
+
 def _table_exists(conn, name: str) -> bool:
     return conn.execute("SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = ?", (name,)).fetchone() is not None
 
@@ -77,7 +94,7 @@ def _resolve_name(conn, phrase: str) -> str | None:
 
 def overview_for_bare_reference(conn, question: str, status_fn):
     """(answer, rows, sql) when the question is only a course reference, else None. status_fn(conn, code) -> prerequisite status."""
-    text = str(question or "")
+    text = _strip_what_is(str(question or ""))
     m = _BARE_CODE.match(text)
     code = m.group(1) if m else None
     if code is None:

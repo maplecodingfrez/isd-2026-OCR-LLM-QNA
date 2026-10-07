@@ -5432,6 +5432,59 @@ def _coop_place_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
 
 
 # ทางลัดเชิงกำหนดตามลำดับความสำคัญ — ตัวแรกที่ตอบได้ชนะ (ไม่ผ่านโมเดล); ทุกตัวต้องปฏิเสธ (None) เมื่อไม่แน่ใจ ดีกว่าตอบผิด
+def _partial_name_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาโครงงานอยู่ปีไหน": ชื่อวิชาบางส่วน → ทุกวิชาในแผนที่ชื่อมีคำนั้น พร้อมปี/เทอม (informal_questions)"""
+    from informal_questions import partial_name_term
+    return partial_name_term(conn, question)
+
+
+_MOST_PREREQ_Q = re.compile(r"(?<!ไม่)มีวิชาบังคับก่อน(?:มาก|เยอะ)(?:ที่)?สุด")
+
+
+def _most_prerequisites_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาไหนมีวิชาบังคับก่อนมากที่สุด" → วิชา(ที่เสมอกันทั้งหมด)ที่มีจำนวนวิชาบังคับก่อนสูงสุด พร้อมจำนวนและรายชื่อ"""
+    if not _MOST_PREREQ_Q.search(question) or _CODE8.search(question):
+        return None
+    sql = ("SELECT p.code, c.name_th, COUNT(DISTINCT p.requires) AS n FROM prerequisite p JOIN course c ON c.code = p.code "
+           "GROUP BY p.code ORDER BY n DESC, p.code")
+    try:
+        counts = [dict(r) for r in conn.execute(sql)]
+        names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course")}
+        if not counts:
+            return None
+        top = counts[0]["n"]
+        winners = [r for r in counts if r["n"] == top]
+        parts = []
+        for r in winners:
+            reqs = [x[0] for x in conn.execute("SELECT DISTINCT requires FROM prerequisite WHERE code = ? ORDER BY requires", (r["code"],))]
+            parts.append(f"{r['code']} {r['name_th'] or ''}".rstrip() + ": " + "; ".join(f"{c} ({names[c]})" if names.get(c) else c for c in reqs))
+    except sqlite3.Error:
+        return None
+    head = (f"วิชาที่มีวิชาบังคับก่อนมากที่สุดมี {top} วิชา" if len(winners) == 1
+            else f"มี {len(winners)} วิชาที่มีวิชาบังคับก่อนมากที่สุด วิชาละ {top} วิชา")
+    return head + "\n" + "\n".join(parts), winners, sql
+
+
+_COOP_WHEN_Q = re.compile(r"สหกิจ.*(?:ปี|เทอม|ภาค)(?:ไหน|อะไร)|(?:ปี|เทอม|ภาค)(?:ไหน|อะไร).*สหกิจ")
+
+
+def _coop_on_plan_without_coop_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามสหกิจในแผนไม่สหกิจ: บอกว่าแผนนี้ไม่มีสหกิจ แล้วตอบตามแผนสหกิจของหลักสูตรเดียวกัน (ไม่ให้ตกไปโมเดล/ไม่พบ)"""
+    if not _COOP_WHEN_Q.search(question) or _requested_plan(question) or _own_plan(conn) != "no_coop":
+        return None
+    sibling = (_sibling_plan_db(conn) or (None, None))[1]
+    if sibling is None:
+        return None
+    other = open_db(sibling, readonly=True)
+    try:
+        routed = ask(other, question, verbose=False)
+    finally:
+        other.close()
+    if routed.get("answer_type") == "ai" or not routed.get("rows"):
+        return None
+    return ("แผนไม่สหกิจไม่มีสหกิจศึกษา ตามแผนสหกิจของหลักสูตรเดียวกัน: " + str(routed["answer"]), routed["rows"], routed.get("sql") or "")
+
+
 def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """วิชาเดียว + "ต้องผ่านอะไรก่อน / มีวิชาต่อไหม" → ตอบจากตาราง prerequisite ตรง ๆ (ทางลัดสุดท้าย: ทางลัดเดิมที่เจาะจงกว่าได้ก่อน, ไม่ต้องพึ่งโมเดล)"""
     from course_overview import prerequisite_lookup
@@ -5440,13 +5493,13 @@ def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) 
 
 _SHORTCUTS = (
     _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
-    _course_prerequisite_lookup_answer,
+    _course_prerequisite_lookup_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
 
@@ -5494,7 +5547,8 @@ def ask(conn: sqlite3.Connection, question: str,
     แล้วถ้ายังไม่ผ่านอีก ให้ยอมแพ้ ไม่เดาคำตอบ
     """
     from english_questions import english_to_thai
-    thai_form = english_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
+    from informal_questions import informal_to_thai
+    thai_form = english_to_thai(question) or informal_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
     if thai_form:
         routed = ask(conn, thai_form, verbose=verbose)
         routed["question"] = question                       # เก็บข้อความเดิมของผู้ใช้
