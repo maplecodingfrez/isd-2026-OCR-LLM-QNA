@@ -720,6 +720,11 @@
       }
     });
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
+    var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
+    $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
+    var hasCitations = items.length > 0 || (typeof data.citation_text === "string" && data.citation_text !== "");
+    $("answer-box").querySelector(".citation-box").hidden = !hasCitations;          // ไม่มีหน้าอ้างอิง = ไม่โชว์หัวข้อเปล่า ๆ
+    $("answer-box").querySelector(".answer-footer").hidden = isEmptyResult(data);   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
@@ -964,8 +969,6 @@
     if (show) $("search-scope").textContent = t("search.scope", { name: option.textContent });
     var planName = $("dash-plan-name");
     if (planName && option) planName.textContent = option.textContent;
-    var planBadge = $("dash-program-badge");
-    if (planBadge && option) planBadge.textContent = select.value || t("dash.default");
     var info = programInfo[select.value];                     // หน่วยกิต/ปีการศึกษาจริงจาก /api/programs (ไม่ฮาร์ดโค้ด)
     $("dash-credits").textContent = info && info.total_credits != null ? t("dash.creditsVal", { n: info.total_credits }) : "-";
     $("dash-years").textContent = info && info.years != null ? t("dash.yearsVal", { n: info.years }) : "-";
@@ -993,6 +996,7 @@
         el("span", { className: "mini-credits", text: course.credits != null ? t("dash.unit", { n: course.credits }) : "" })
       ]));
     });
+    if (loadedCourses.length > 4) previewBox.appendChild(el("p", { className: "muted", text: t("dash.more", { n: loadedCourses.length - 4 }) }));
     $("dash-course-count").textContent = t("dash.count", { n: loadedCourses.length });
   }
 
