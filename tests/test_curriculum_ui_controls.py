@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(not (STATIC / "i18n.js").exists(), reason="stati
 NEW_KEYS = [
     "btn.clear", "examples.summary", "recent.title", "recent.aria", "tools.summary", "ask.help",
     "search.about", "prereq.about", "withdraw.about", "drawer.summary", "drawer.sql", "drawer.rows",
-    "hint.toFocus", "link.btn", "link.done", "err.network.dev",
+    "hint.toFocus", "link.btn", "link.done", "err.network.dev", "notfound.note",
 ]
 
 
@@ -271,3 +271,83 @@ def test_no_text_role_is_smaller_than_15px_except_keys_and_code_blocks():
         selector, size = match.group(1).strip(), float(match.group(2))
         if size < 15:
             assert selector in (".kbd", "pre"), (selector, size)
+
+
+# ---------- ตอบจากแผนไหน + สถานะ "ไม่พบ" ----------
+
+def test_not_found_note_is_hidden_by_default_and_sits_before_the_hint():
+    html = read("index.html")
+    note = tag(html, "notfound-note")
+    assert re.search(r"\bhidden\b", note) and 'data-i18n="notfound.note"' in note
+    assert html.index('id="notfound-note"') < html.index('id="answer-hint"')
+
+
+def test_not_found_look_follows_no_real_answer_and_is_cleared_for_real_answers():
+    js = read("app.js")
+    assert '$("answer-box").classList.toggle("is-notfound", noAnswer);' in js
+    assert '$("notfound-note").hidden = !noAnswer;' in js
+    assert "var noAnswer = noRealAnswer(data);" in js                    # ใช้เงื่อนไขเดียวกับที่ซ่อนปุ่มคัดลอก
+
+
+def test_not_found_is_calm_not_an_amber_warning():
+    css = read("style.css")
+    rule = re.search(r"\.answer-card\.is-notfound #answer-hint \{([^}]*)\}", css).group(1)
+    assert "warn" not in rule and "var(--surface-2)" in rule and "dashed" in rule
+    title = re.search(r"\.answer-card\.is-notfound \.answer-text p \{([^}]*)\}", css).group(1)
+    assert "var(--font-head)" in title and "font-size: 18px" in title    # อยู่ใน type ramp
+    assert ".notfound-note" in css
+
+
+def test_answer_source_is_one_clear_plan_badge():
+    css = read("style.css")
+    assert len(re.findall(r"^#answer-source \{", css, re.M)) == 1          # ไม่ซ้ำสองกฎ
+    rule = re.search(r"^#answer-source \{([^}]*)\}", css, re.M).group(1)
+    for needle in ("border: 2px solid var(--line)", "border-radius: 999px", "font-weight: 600", "color: var(--text)"):
+        assert needle in rule, needle
+
+
+def test_answer_source_text_names_the_selected_plan():
+    js = read("app.js")
+    assert 't("answer.source", { name: select.selectedOptions[0].textContent })' in js
+
+
+# ---------- พิมพ์ / บันทึกเป็น PDF + สคริปต์สาธิต ----------
+
+def print_block():
+    css = read("style.css")
+    start = css.index("@media print {")
+    return css[start:css.index(chr(10) + "}" + chr(10), start)]
+
+
+def test_print_hides_tools_and_chrome_but_keeps_the_answer_and_its_citation():
+    block = print_block()
+    for hidden in (".site-header", ".tools", ".omnibox", ".answer-footer", ".examiner-drawer", ".minimal-stats-grid", ".examples-drawer", ".state-error"):
+        assert hidden in block.split("{")[1], hidden
+    assert "display: none !important" in block
+    for kept in (".answer-card", ".answer-text", ".cite-block", ".cite-tab"):
+        assert kept not in block.split("display: none !important")[0], kept      # ไม่อยู่ในรายการที่ซ่อน
+
+
+def test_print_is_black_on_white_whatever_the_theme_and_prints_the_question():
+    block = print_block()
+    assert "color: #000 !important" in block and "background: #fff !important" in block
+    assert "content: attr(data-question)" in block
+    js = read("app.js")
+    assert '$("answer-box").dataset.question = typeof data.question === "string" ? data.question : "";' in js
+
+
+def test_demo_script_in_the_readme_lists_six_questions_with_real_page_numbers():
+    readme = (STATIC.parent / "README.md").read_text(encoding="utf-8")
+    section = readme[readme.index("## สคริปต์สาธิต"):readme.index("## คำถามที่พบบ่อย")]
+    rows = [line for line in section.splitlines() if line.startswith("| ") and line.split("|")[1].strip().isdigit()]
+    assert len(rows) == 6
+    for needle in ("ปี 1 เทอม 1 เรียนกี่หน่วยกิต", "06026201 ต้องเรียนอะไรก่อน", "ถ้าถอนวิชา 06026200", "เปรียบเทียบ 06026200 กับ 06026201", "มหาวิทยาลัยตั้งอยู่ที่ไหน", "AIT"):
+        assert needle in section, needle
+    assert "หน้า 29 / PDF 30" in section and "หน้า 313 / PDF 314" in section and "120" in section
+
+
+def test_count_up_is_skipped_when_the_tab_is_hidden_or_motion_is_reduced():
+    js = read("app.js")
+    body = js[js.index("function animateCount(node, target)"):][:600]
+    assert "document.hidden" in body and "prefers-reduced-motion: reduce" in body    # ไม่ค้างที่ 0 เมื่อแท็บถูกซ่อน
+
