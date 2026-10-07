@@ -88,11 +88,6 @@
             <div id="answer-text" class="answer-text"></div>
             <p id="answer-hint" data-i18n="answer.hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
 
-            <details id="citation-details" class="citation-details" hidden>
-              <summary data-i18n="cite.details">รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
-              <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
-            </details>
-
             <div class="citation-box">
               <span class="citation-title" data-i18n="cite.title">📖 แหล่งอ้างอิงในเล่มหลักสูตร</span>
               <ol id="cite-cards" class="cite-cards" aria-label="หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ" data-i18n-aria="cite.aria"></ol>
@@ -107,6 +102,8 @@
 
             <details class="examiner-drawer">
               <summary>🔍 SQL Query &amp; Raw Data</summary>
+              <h3 data-i18n="drawer.original">ข้อความคำตอบต้นฉบับ</h3>
+              <pre id="original-text"></pre>
               <h3>SQL Query</h3>
               <pre id="sql-text"></pre>
               <h3>Raw Data</h3>

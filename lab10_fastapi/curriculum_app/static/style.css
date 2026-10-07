@@ -308,9 +308,8 @@ textarea#question::placeholder { color: var(--muted); }
 .answer-list li { padding-left: 18px; position: relative; }
 .answer-list li::before { content: ""; position: absolute; left: 0; top: 0.8em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 #answer-hint { margin-top: 10px; color: var(--warn-fg); background: var(--warn-bg); padding: 8px 12px; border-radius: var(--radius-sm); }
-.citation-details, .examiner-drawer, .elective-section, .original-answer { margin-top: 14px; }
+.examiner-drawer, .elective-section { margin-top: 14px; }
 details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-height: 44px; display: flex; align-items: center; }
-.cite-detail { list-style: none; display: grid; gap: 4px; font-size: 14px; }
 .citation-box { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 .citation-title { font-weight: 600; font-size: 15px; }
 .cite-cards { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }

@@ -68,7 +68,6 @@
     "answer.hint": ["ลองระบุปีหรือเทอมให้ชัดขึ้น", "Try specifying the year or semester"],
     "answer.none": ["(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)", "(The server returned no answer)"],
     "cite.title": ["📖 แหล่งอ้างอิงในเล่มหลักสูตร", "📖 Sources in the curriculum book"],
-    "cite.details": ["รายวิชาที่ใช้อ้างอิงในแต่ละหน้า", "Courses cited on each page"],
     "cite.aria": ["หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ", "Cited pages with the courses found on each"],
     "cite.page": ["หน้า {n}", "Page {n}"],
     "elapsed": ["⏱️ ตอบใน {s} วินาที", "⏱️ Answered in {s} s"],
@@ -176,7 +175,7 @@
     "elective.overview": ["{g} กลุ่ม รวม {n} รายการ — กดชื่อกลุ่มเพื่อดูรายวิชา", "{g} groups, {n} items in total — click a group to see its courses"],
     "elective.hours": ["หน่วยกิต (ชั่วโมงบรรยาย–ปฏิบัติ–ศึกษาด้วยตนเองต่อสัปดาห์)", "Credits (lecture–lab–self-study hours per week)"],
     "elective.count": ["{n} รายการ", "{n} items"],
-    "elective.original": ["ดูคำตอบต้นฉบับ", "View original answer"]
+    "drawer.original": ["ข้อความคำตอบต้นฉบับ", "Original answer text"]
   };
 
   var lang = 0;   // 0 = ไทย, 1 = English

@@ -531,10 +531,6 @@
       })));
       answer.appendChild(section);
     });
-    answer.appendChild(el("details", { className: "original-answer" }, [
-      el("summary", { text: t("elective.original") }),
-      el("p", { text: answerText(data) })
-    ]));
   }
 
   // รายวิชาเป็นชั้น ๆ: รหัส | ชื่อภาษาที่เลือก (อีกภาษาเล็กและจาง) | หน่วยกิต + ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเอง
@@ -595,18 +591,6 @@
       });
     }
 
-    var detail = $("cite-detail");
-    if (detail) {
-      clear(detail);
-      items.forEach(function (c) {
-        if (!c.courses.length) return;
-        detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
-          ": " + c.courses.map(function (code) { return [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / "); }).join(", ") }));
-      });
-      var detailsWrap = $("citation-details");
-      if (detailsWrap) detailsWrap.hidden = !items.some(function (c) { return c.courses.length; });
-    }
-
     var cards = $("cite-cards");                             // 1 หน้าอ้างอิง = 1 การ์ด: เลขหน้า + วิชาที่พบในหน้านั้น
     if (cards) {
       clear(cards);
@@ -657,6 +641,7 @@
     $("answer-source").textContent = select.value && select.selectedOptions[0]
       ? t("answer.source", { name: select.selectedOptions[0].textContent })
       : t("answer.sourceDefault");
+    $("original-text").textContent = answerText(data) || "-";
     $("sql-text").textContent = data.sql || "-";
     $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
     $("elapsed-text").textContent = t("elapsed", { s: seconds.toFixed(2) });
