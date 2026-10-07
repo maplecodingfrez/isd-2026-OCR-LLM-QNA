@@ -187,6 +187,14 @@
     return !(data && Array.isArray(data.rows) && data.rows.length > 0);
   }
 
+  // ไม่มีคำตอบจริง: ไม่มีข้อความ หรือเป็นประโยค "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" — ต่างจาก isEmptyResult ที่ดูแค่ว่าไม่มีแถว
+  // (คำตอบแบบกฎ เช่น "มีแผนเดียว" ไม่มีแถวแต่เป็นคำตอบจริง ต้องมีปุ่มคัดลอก/ไม่โชว์คำแนะนำปีเทอม)
+  function noRealAnswer(data) {
+    if (!data) return true;
+    var text = typeof data.answer === "string" ? data.answer.trim() : "";      // ข้อความดิบ (answerText ใส่ข้อความแทนเมื่อว่าง)
+    return text === "" || (isEmptyResult(data) && text.indexOf("ไม่พบข้อมูลนี้ในเล่มหลักสูตร") !== -1);
+  }
+
   function electiveGroups(data) {
     var rows = data && Array.isArray(data.rows) ? data.rows : [];
     if (!rows.length || !rows.every(function (row) {
@@ -387,6 +395,7 @@
   }
 
   var api = {
+    noRealAnswer: noRealAnswer,
     splitCredits: splitCredits,
     prereqTag: prereqTag,
     parseCourseLine: parseCourseLine,
@@ -720,11 +729,13 @@
       }
     });
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
+    var noAnswer = noRealAnswer(data);
+    $("answer-hint").hidden = !noAnswer;                  // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
     var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
     $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
     var hasCitations = items.length > 0 || (typeof data.citation_text === "string" && data.citation_text !== "");
     $("answer-box").querySelector(".citation-box").hidden = !hasCitations;          // ไม่มีหน้าอ้างอิง = ไม่โชว์หัวข้อเปล่า ๆ
-    $("answer-box").querySelector(".answer-footer").hidden = isEmptyResult(data);   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
+    $("answer-box").querySelector(".answer-footer").hidden = noAnswer;   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
