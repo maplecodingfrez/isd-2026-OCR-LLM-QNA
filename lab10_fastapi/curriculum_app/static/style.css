@@ -326,6 +326,27 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
   background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-sm); padding: 10px; max-height: 280px; overflow: auto; width: 100%;
 }
 
+/* layered course lines: code | name (+ other language) | credits and hours */
+.course-lead { font-family: var(--font-head); font-weight: 700; font-size: 18px; margin-bottom: 4px; }
+.course-lines { list-style: none; display: grid; }
+.course-line {
+  display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
+  padding: 10px 0; border-bottom: 2px solid var(--line);
+}
+.course-line:last-child { border-bottom: 0; }
+.course-main { display: grid; gap: 1px; }
+.course-name { font-weight: 600; }
+.course-name-alt { color: var(--muted); font-size: 14px; }
+.course-meta { display: grid; justify-items: end; gap: 1px; text-align: right; }
+.course-credits { font-weight: 600; white-space: nowrap; }
+.course-hours { color: var(--muted); font-size: 13px; }
+.slot-tag { justify-self: start; font-size: 13px; font-weight: 600; padding: 1px 10px; border-radius: 999px; background: var(--t6-bg); color: var(--t6-fg); }
+.course-tail { margin-top: 8px; }
+@media (max-width: 580px) {
+  .course-line { grid-template-columns: minmax(0, 1fr) auto; }
+  .course-line .code, .course-line .slot-tag { grid-column: 1 / -1; }
+}
+
 /* elective groups */
 .group-overview { font-weight: 600; }
 .elective-section { border: 2px solid var(--line); border-radius: var(--radius-md); padding: 4px 14px 10px; background: var(--surface-2); }

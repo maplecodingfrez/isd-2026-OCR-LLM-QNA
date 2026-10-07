@@ -120,6 +120,8 @@
     "search.many": ["แสดง {n} รายการแรก พิมพ์เพิ่มเพื่อให้แคบลง", "Showing the first {n}. Type more to narrow down."],
     "search.count": ["พบ {n} รายวิชา", "{n} courses found"],
     "search.live": ["ค้นหารายวิชา: {msg}", "Course search: {msg}"],
+    "hours.fmt": ["บรรยาย {l} · ปฏิบัติ {p} · ศึกษาเอง {s}", "Lecture {l} · Lab {p} · Self-study {s}"],
+    "slot.tag": ["เลือกเอง", "Your choice"],
     "credits.unit": ["หน่วยกิต", "credits"],
 
     "prereq.title": ["ตรวจวิชาบังคับก่อน (Prerequisite)", "Check prerequisites"],

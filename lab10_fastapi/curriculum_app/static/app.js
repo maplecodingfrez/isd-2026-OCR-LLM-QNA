@@ -329,7 +329,44 @@
     return m ? { before: m[1], n: parseInt(m[2], 10), after: m[3] } : null;
   }
 
+  // บรรทัดวิชาจาก backend: "06016403 ชื่อไทย / ENGLISH NAME — 3 (2-2-5) หน่วยกิต" (+ หัวข้อนำหน้า "ปี 2 เทอม 1:" และหมายเหตุท้าย "(รวม …)")
+  var COURSE_LINE = /^(\d{8})\s+(.+?)(?:\s+\/\s+(.+?))?\s+—\s+(\d+)(?:\s+\((\d+)-(\d+)-(\d+)\))?\s+หน่วยกิต$/;
+  var SLOT_LINE = /^ช่องที่นักศึกษาเลือกเอง:\s*(.+?)\s+(\d+(?:\s+\(\d+-\d+-\d+\))?(?:\s+หรือ\s+\d+(?:\s+\(\d+-\d+-\d+\))?)*)\s+หน่วยกิต$/;
+
+  function parseCourseLine(text) {
+    var s = String(text == null ? "" : text).trim();
+    var note = null;
+    var tail = /\s*\((รวม[^)]*)\)\s*$/.exec(s);
+    if (tail) { note = tail[1]; s = s.slice(0, tail.index).trim(); }
+    var lead = "";
+    var head = /^(.{1,40}?:)\s+(?=\d{8}\s)/.exec(s);
+    if (head) { lead = head[1]; s = s.slice(head[0].length); }
+    var m = COURSE_LINE.exec(s);
+    if (m) {
+      return { kind: "course", lead: lead, code: m[1], name: m[2].trim(), nameEn: (m[3] || "").trim(), credits: m[4],
+        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, note: note };
+    }
+    var slot = SLOT_LINE.exec(s);
+    if (slot) return { kind: "slot", lead: lead, name: slot[1].trim(), credits: slot[2].trim(), note: note };
+    return null;
+  }
+
+  // รวมย่อหน้าที่เป็นบรรทัดวิชาติดกันเป็นบล็อก {type:"courses", entries} เดียว; ย่อหน้าอื่นคงเดิม
+  function groupCourseBlocks(blocks) {
+    var out = [];
+    blocks.forEach(function (block) {
+      var entry = block.type === "paragraph" ? parseCourseLine(block.text) : null;
+      if (!entry) { out.push(block); return; }
+      var last = out[out.length - 1];
+      if (last && last.type === "courses") last.entries.push(entry);
+      else out.push({ type: "courses", entries: [entry] });
+    });
+    return out;
+  }
+
   var api = {
+    parseCourseLine: parseCourseLine,
+    groupCourseBlocks: groupCourseBlocks,
     SAMPLE_TOPICS: SAMPLE_TOPICS,
     nextTabIndex: nextTabIndex,
     countUpParts: countUpParts,
@@ -500,6 +537,35 @@
     ]));
   }
 
+  // รายวิชาเป็นชั้น ๆ: รหัส | ชื่อภาษาที่เลือก (อีกภาษาเล็กและจาง) | หน่วยกิต + ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเอง
+  function renderCourseLines(answer, entries) {
+    var english = I18N && I18N.getLang() === "en";
+    var lead = entries[0].lead;
+    if (lead) answer.appendChild(el("p", { className: "course-lead", text: lead }));
+    answer.appendChild(el("ul", { className: "course-lines" }, entries.map(function (entry) {
+      if (entry.kind === "slot") {
+        return el("li", { className: "course-line is-slot" }, [
+          el("span", { className: "slot-tag", text: t("slot.tag") }),
+          el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })]),
+          el("span", { className: "course-meta" }, [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })])
+        ]);
+      }
+      var swap = english && entry.nameEn;
+      var main = [el("span", { className: "course-name", text: swap ? entry.nameEn : entry.name })];
+      var alt = swap ? entry.name : entry.nameEn;
+      if (alt) main.push(el("span", { className: "course-name-alt", text: alt, attrs: swap ? {} : { lang: "en" } }));
+      var meta = [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })];
+      if (entry.hours) meta.push(el("span", { className: "course-hours", text: t("hours.fmt", { l: entry.hours[0], p: entry.hours[1], s: entry.hours[2] }) }));
+      return el("li", { className: "course-line" }, [
+        el("span", { className: "code", text: entry.code }),
+        el("span", { className: "course-main" }, main),
+        el("span", { className: "course-meta" }, meta)
+      ]);
+    })));
+    var note = entries[entries.length - 1].note;
+    if (note) answer.appendChild(el("p", { className: "course-tail muted", text: "(" + note + ")" }));
+  }
+
   // เลขเดี่ยวในคำตอบนับขึ้นจาก 0 ใน 0.7 วินาที; ตัวเลขสุดท้ายตรงกับข้อมูลเสมอ และข้ามเมื่อผู้ใช้ปิดแอนิเมชัน
   function animateCount(node, target) {
     if (!window.requestAnimationFrame || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
@@ -569,9 +635,11 @@
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
     if (groups.length) renderElectiveGroups(answer, groups, data);
-    else answerBlocks(data).forEach(function (block, _i, blocks) {
-      var counted = blocks.length === 1 && block.type !== "list" ? countUpParts(block.text) : null;
-      if (counted) {
+    else groupCourseBlocks(answerBlocks(data)).forEach(function (block, _i, blocks) {
+      var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
+      if (block.type === "courses") {
+        renderCourseLines(answer, block.entries);
+      } else if (counted) {
         var number = el("span", { className: "count-big", text: String(counted.n) });
         answer.appendChild(el("p", {}, [document.createTextNode(counted.before), number, document.createTextNode(counted.after)]));
         animateCount(number, counted.n);
