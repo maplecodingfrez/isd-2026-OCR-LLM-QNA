@@ -47,22 +47,34 @@
       <form id="ask-form" novalidate>
         <div class="omnibox">
           <div class="omnibox-input-row">
-            <span class="omnibox-icon" aria-hidden="true">🔍</span>
+            <svg class="omnibox-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             <textarea id="question" rows="2" aria-label="คำถามเกี่ยวกับหลักสูตร" data-i18n-aria="question.aria" data-i18n-ph="question.placeholder" placeholder="พิมพ์คำถามเกี่ยวกับหลักสูตร เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต, วิชาเลือกมีอะไรบ้าง..."></textarea>
           </div>
           <div class="omnibox-actions">
             <div class="omnibox-hint">
               <span data-i18n="hint.press">กด</span> <span class="kbd">Enter ↵</span> <span data-i18n="hint.toAsk">เพื่อถาม</span>
+              <span class="hint-extra"> · <span data-i18n="hint.press">กด</span> <span class="kbd">/</span> <span data-i18n="hint.toFocus">เพื่อไปที่ช่องคำถาม</span></span>
             </div>
-            <button type="submit" id="ask-button" data-i18n="btn.ask" data-i18n-busy="btn.ask.busy">ถาม</button>
+            <div class="omnibox-buttons">
+              <button type="button" id="clear-button" class="secondary" hidden data-i18n="btn.clear">ล้าง</button>
+              <button type="submit" id="ask-button" data-i18n="btn.ask" data-i18n-busy="btn.ask.busy">ถาม</button>
+            </div>
           </div>
         </div>
       </form>
+      <p class="ask-help" data-i18n="ask.help">ตอบจากเล่มหลักสูตร (มคอ.2) พร้อมหน้าที่อ้างอิง ถ้าในเล่มไม่มีคำตอบ ระบบจะบอกว่าไม่พบ ไม่เดา</p>
 
-      <div class="question-examples">
-        <div id="topic-bar" class="topic-bar" role="group" aria-label="หัวข้อคำถามตัวอย่าง" data-i18n-aria="topic.aria"></div>
-        <ul id="examples" class="examples" aria-label="คำถามตัวอย่าง" data-i18n-aria="examples.aria"></ul>
-      </div>
+      <details id="examples-drawer" class="examples-drawer" open>
+        <summary data-i18n="examples.summary">คำถามตัวอย่าง</summary>
+        <div class="question-examples">
+          <div id="topic-bar" class="topic-bar" role="group" aria-label="หัวข้อคำถามตัวอย่าง" data-i18n-aria="topic.aria"></div>
+          <ul id="examples" class="examples" aria-label="คำถามตัวอย่าง" data-i18n-aria="examples.aria"></ul>
+          <div id="recent-wrap" class="recent-wrap" hidden>
+            <p class="muted" data-i18n="recent.title">ถามล่าสุด</p>
+            <ul id="recent" class="examples recent" aria-label="คำถามที่ถามล่าสุด" data-i18n-aria="recent.aria"></ul>
+          </div>
+        </div>
+      </details>
 
       <div class="state-loading">
         <div class="loading-indicator-row">
@@ -84,29 +96,34 @@
           </div>
 
           <div class="answer-card-body">
-            <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
             <div id="answer-text" class="answer-text"></div>
             <p id="answer-hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
 
+            <div class="cite-block">
+              <span class="citation-title" data-i18n="cite.title">แหล่งอ้างอิงในเล่มหลักสูตร</span>
+              <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
+            </div>
+
             <div class="citation-box">
-              <span class="citation-title" data-i18n="cite.title">📖 แหล่งอ้างอิงในเล่มหลักสูตร</span>
+              <span class="citation-title" data-i18n="cite.title">แหล่งอ้างอิงในเล่มหลักสูตร</span>
               <ol id="cite-cards" class="cite-cards" aria-label="หน้าอ้างอิงในเล่มหลักสูตรพร้อมรายวิชาที่พบ" data-i18n-aria="cite.aria"></ol>
               <p id="answer-cite"></p>
             </div>
 
             <div class="answer-footer">
               <button type="button" id="copy-button" class="secondary" data-i18n="copy.btn">คัดลอกผล</button>
+              <button type="button" id="link-copy-button" class="secondary" data-i18n="link.btn">คัดลอกลิงก์</button>
             </div>
             <p id="copy-hint" data-i18n="copy.hint" hidden>คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง</p>
             <textarea id="copy-fallback" rows="4" readonly hidden aria-label="ผลลัพธ์ในรูป JSON สำหรับคัดลอก" data-i18n-aria="copy.fallbackAria"></textarea>
 
             <details class="examiner-drawer">
-              <summary>🔍 SQL Query &amp; Raw Data</summary>
+              <summary data-i18n="drawer.summary">SQL และข้อมูลดิบที่ใช้ตอบ</summary>
               <h3 data-i18n="drawer.original">ข้อความคำตอบต้นฉบับ</h3>
               <pre id="original-text"></pre>
-              <h3>SQL Query</h3>
+              <h3 data-i18n="drawer.sql">คำสั่ง SQL</h3>
               <pre id="sql-text"></pre>
-              <h3>Raw Data</h3>
+              <h3 data-i18n="drawer.rows">ข้อมูลดิบ</h3>
               <pre id="rows-text"></pre>
             </details>
           </div>
@@ -125,6 +142,8 @@
     </section>
 
     <aside class="tools" aria-label="เครื่องมือช่วยค้นหา" data-i18n-aria="tools.aria">
+    <details id="tools-fold" class="tools-fold">
+    <summary data-i18n="tools.summary">เครื่องมือ: ค้นวิชา · บังคับก่อน · ถอนวิชา</summary>
     <div id="tool-tabs" class="tabs" role="tablist" aria-label="เลือกเครื่องมือ" data-i18n-aria="tabs.aria">
       <button type="button" id="tab-search" class="tab" role="tab" aria-selected="true" aria-controls="search-panel" data-i18n="tab.search">ค้นหารายวิชา</button>
       <button type="button" id="tab-prereq" class="tab" role="tab" aria-selected="false" aria-controls="prereq-panel" tabindex="-1" data-i18n="tab.prereq">บังคับก่อน</button>
@@ -135,6 +154,7 @@
       <div class="tool-card-head">
         <div class="tool-title"><h2 id="search-title" data-i18n="search.title" class="tool-heading">ค้นหารายวิชา</h2></div>
         <p id="search-scope" class="muted" hidden></p>
+        <p class="tool-about" data-i18n="search.about">หาวิชาจากรหัสหรือชื่อ ภาษาไทยหรืออังกฤษก็ได้</p>
       </div>
       <form id="search-form" class="inline-form" novalidate>
         <label for="search-input" data-i18n="search.label">ค้นด้วยรหัสหรือชื่อวิชา</label>
@@ -166,10 +186,10 @@
     <section id="prereq-panel" role="tabpanel" hidden class="tool-card" data-state="idle" aria-labelledby="prereq-title">
       <div class="tool-card-head">
         <div class="tool-title">
-          <span>🔗</span>
-          <h2 id="prereq-title" data-i18n="prereq.title" class="tool-heading">ตรวจวิชาบังคับก่อน (Prerequisite)</h2>
+          <h2 id="prereq-title" data-i18n="prereq.title" class="tool-heading">ตรวจวิชาบังคับก่อน</h2>
         </div>
         <p id="prereq-scope" class="muted" hidden></p>
+        <p class="tool-about" data-i18n="prereq.about">ดูว่าต้องผ่านวิชาไหนก่อน และเรียนผ่านแล้วปลดล็อกวิชาอะไร</p>
       </div>
       <form id="prereq-form" class="inline-form" novalidate>
         <label for="course-code" data-i18n="prereq.label">รหัสวิชา 8 หลัก</label>
@@ -191,8 +211,8 @@
           <h3 id="prereq-course"></h3>
           <p id="prereq-meta"></p>
           <div class="prereq-grid">
-            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-lines"></ul></div>
-            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-lines"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.required">ต้องผ่านก่อน</h4><ul id="prereq-required" class="course-lines"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">ปลดล็อกให้เรียนต่อ</h4><ul id="prereq-unlocks" class="course-lines"></ul></div>
           </div>
           <ul id="prereq-citations" class="cite-cards"></ul>
         </div>
@@ -212,6 +232,7 @@
       <div class="tool-card-head">
         <div class="tool-title"><h2 id="withdraw-title" data-i18n="withdraw.title" class="tool-heading">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2></div>
         <p id="withdraw-scope" class="muted"></p>
+        <p class="tool-about" data-i18n="withdraw.about">ดูว่าวิชาต่อเนื่องที่เรียนไม่ได้ ทั้งโดยตรงและทางอ้อม ถ้าถอนวิชานี้</p>
       </div>
       <form id="withdraw-form" class="inline-form" novalidate>
         <label for="withdraw-code" data-i18n="withdraw.label">รหัสวิชาที่กำลังพิจารณาถอน</label>
@@ -246,13 +267,14 @@
       </div>
     </section>
 
+    </details>
     </aside>
     </div>
 
     <section class="minimal-stats-grid">
       <div class="stat-card">
         <div class="stat-card-title">
-          <span data-i18n="dash.overview">📘 ภาพรวมหลักสูตร</span>
+          <span data-i18n="dash.overview">ภาพรวมหลักสูตร</span>
         </div>
         <div class="stat-row"><span class="stat-key" data-i18n="dash.plan">แผนการเรียน</span><span class="stat-val" id="dash-plan-name">-</span></div>
         <div class="stat-row"><span class="stat-key" data-i18n="dash.credits">หน่วยกิตรวม</span><span class="stat-val" id="dash-credits">-</span></div>
@@ -260,7 +282,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-card-title">
-          <span data-i18n="dash.samples">📋 ตัวอย่างรายวิชา</span>
+          <span data-i18n="dash.samples">ตัวอย่างรายวิชา</span>
           <span id="dash-course-count" class="dash-meta-badge">-</span>
         </div>
         <div id="dash-course-preview">

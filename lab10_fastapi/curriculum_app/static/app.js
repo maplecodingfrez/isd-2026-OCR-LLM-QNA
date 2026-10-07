@@ -5,6 +5,7 @@
 
   var QUESTION_MIN = 2;
   var QUESTION_MAX = 500;
+  var urlParams = (typeof location !== "undefined" && typeof URLSearchParams !== "undefined") ? new URLSearchParams(location.search) : null;   // ลิงก์แชร์: ?plan=…&q=…
   var INITIAL_PROGRAM = "dsba_coop";   // หลักสูตรที่เลือกไว้ตอนเปิดหน้า (ตรงกับ DB ที่เซิร์ฟเวอร์ใช้อยู่) — ผู้ใช้เปลี่ยนเองได้
 
   try {
@@ -374,7 +375,10 @@
         hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, path: path, note: note };
     }
     var bare = /^(\d{8})\s+\((.+)\)$/.exec(s);        // "06026200 (แคลคูลัส 1)": รหัส + ชื่อ ไม่มีหน่วยกิต
-    if (bare) return { kind: "course", lead: lead, code: bare[1], name: bare[2].trim(), nameEn: "", credits: null, hours: null, path: path, note: note };
+    if (bare) {
+      var names = bare[2].split(/\s+\/\s+/);
+      return { kind: "course", lead: lead, code: bare[1], name: names[0].trim(), nameEn: names.slice(1).join(" / ").trim(), credits: null, hours: null, path: path, note: note };
+    }
     var slot = SLOT_LINE.exec(s);
     if (slot) return { kind: "slot", lead: lead, name: slot[1].trim(), credits: slot[2].trim(), note: note };
     return null;
@@ -468,7 +472,33 @@
     return overviewParts(data.rows[0]) && overviewParts(data.rows[1]) ? data.rows : null;
   }
 
+  // Term rows preserve elective slots and their alternatives without parsing prose.
+  function termAnswerParts(data) {
+    var rows = data && Array.isArray(data.rows) ? data.rows : [];
+    var question = data && data.question || "";
+    if (!/(?:ปี\s*\d|year\s*\d)/i.test(question) || !/(?:เทอม\s*\d|ภาคการศึกษาที่\s*\d|semester\s*\d)/i.test(question) ||
+        !/อะไรบ้าง|วิชาอะไร|รายชื่อ|what courses/i.test(question)) return null;
+    var slots = rows.filter(function (row) { return row && typeof row.slot === "string"; });
+    if (!slots.length || !rows.every(function (row) {
+      return row && Number.isFinite(row.total_credits) && row.total_credits === rows[0].total_credits &&
+        (typeof row.slot === "string" || typeof row.code === "string");
+    })) return null;
+    return { year: slots[0].year, semester: slots[0].semester, total: rows[0].total_credits,
+      courses: rows.filter(function (row) { return !row.slot; }),
+      slots: slots.map(function (slot) {
+        var groups = [];
+        (Array.isArray(slot.alternatives) ? slot.alternatives : []).forEach(function (course) {
+          var group = groups.find(function (item) { return item.number === course.group_no; });
+          if (!group) { group = { number: course.group_no, name: course.group_name, courses: [] }; groups.push(group); }
+          group.courses.push(course);
+        });
+        return { name: slot.slot, kind: slot.kind, credits: slot.credits_display || String(slot.credits), groups: groups };
+      }) };
+  }
+
   var api = {
+    renderTermAnswer: renderTermAnswer,
+    termAnswerParts: termAnswerParts,
     compareRows: compareRows,
     overviewParts: overviewParts,
     parseCreditLine: parseCreditLine,
@@ -556,6 +586,10 @@
     var heading = panel.querySelector("h2");
     var say = { loading: t("live.busy"), success: t("live.ok"), error: t("live.err"), idle: "" }[state];
     $("live-status").textContent = say ? (heading ? heading.textContent + ": " : "") + say : "";
+    if (panel === askPanel) {
+      if (state !== "loading") $("examples-drawer").open = state !== "success";   // มีคำตอบแล้ว พับตัวอย่างให้เห็นคำตอบเร็วขึ้น; กลับมาเปิดเมื่อล้าง/ผิดพลาด
+      syncClearButton();
+    }
   }
 
   var askPanel = $("ask-panel");
@@ -611,6 +645,7 @@
     var local = !!(opts && opts.local);
     var message = describeError(err, where);
     var detail = err instanceof ApiError ? err.detail : (err && err.message ? String(err.message) : "");
+    if (err instanceof ApiError && err.kind === "network") detail = (detail ? String(detail) + "\n" : "") + t("err.network.dev");   // hint for the operator lives in the details, not the main message
     var action = local && detail ? message.action + " (" + detail + ")" : message.action;
     $(prefix + "-error-title").textContent = message.title;
     $(prefix + "-error-action").textContent = action;
@@ -697,6 +732,29 @@
       credits: split.credits || null, hours: split.hours };
     Object.keys(extra || {}).forEach(function (key) { entry[key] = extra[key]; });
     return entry;
+  }
+
+  function renderTermAnswer(answer, parts) {
+    answer.appendChild(el("p", { className: "group-overview", text:
+      t("term.summary", { y: parts.year, s: parts.semester, n: parts.total }) }));
+    if (parts.courses.length) renderCourseLines(answer, parts.courses.map(function (course) { return entryFromCourse(course); }));
+    parts.slots.forEach(function (slot) {
+      if (!slot.groups.length) {
+        renderCourseLines(answer, [{ kind: "slot", name: slot.name, credits: slot.credits }]);
+        return;
+      }
+      var section = el("section", { className: "elective-section" });
+      section.appendChild(el("h3", { className: "elective-title", text: slot.name + " — " + slot.credits + " " + t("credits.unit") }));
+      section.appendChild(el("p", { className: "muted", text: t(slot.kind === "choose_group" ? "term.chooseGroup" : "term.chooseCourse") }));
+      slot.groups.forEach(function (group) {
+        section.appendChild(el("h4", { className: "term-group-heading" }, [
+          el("span", { className: "slot-tag", text: t("slot.tag") }),
+          el("span", { text: group.name || t("term.group", { n: group.number }) })
+        ]));
+        renderCourseLines(section, group.courses.map(function (course) { return entryFromCourse(course); }));
+      });
+      answer.appendChild(section);
+    });
   }
 
   // การ์ดหน้าอ้างอิง (printed_page/pdf_page + วิชาที่พบ) จาก citations ของ API ใช้ซ้ำในเครื่องมือตรวจวิชา/ผลกระทบการถอน
@@ -808,35 +866,26 @@
     var tabs = $("cite-tabs");
     if (tabs) {
       clear(tabs);
-      items.forEach(function (c) {
-        var tab = el("li", { className: "cite-tab" }, [
+      items.forEach(function (c) {        // 1 หน้าอ้างอิง = 1 แถว: ตราเลขหน้า + วิชาที่พบในหน้านั้น
+        var stamp = el("span", { className: "cite-tab" }, [
           el("span", { className: "page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf }),
           c.printed !== null ? el("span", { className: "pdf", text: "PDF " + c.pdf }) : null
         ].filter(Boolean));
-        tabs.appendChild(tab);
-      });
-    }
-
-    var cards = $("cite-cards");                             // 1 หน้าอ้างอิง = 1 การ์ด: เลขหน้า + วิชาที่พบในหน้านั้น
-    if (cards) {
-      clear(cards);
-      items.forEach(function (c) {
-        var head = el("div", { className: "cite-card-head" }, [
-          el("span", { className: "cite-page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf })
-        ]);
-        if (c.printed !== null) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf }));
-        var card = el("li", { className: "cite-card" }, [head]);
+        var row = el("li", { className: "cite-row" }, [stamp]);
         if (c.courses.length) {
           var chipList = el("ul", { className: "cite-chip-list" });
           c.courses.forEach(function (code) {
             var label = [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / ");
             chipList.appendChild(el("li", { className: "cite-chip", text: label }));
           });
-          card.appendChild(chipList);
+          row.appendChild(chipList);
         }
-        cards.appendChild(card);
+        tabs.appendChild(row);
       });
     }
+
+    var cards = $("cite-cards");
+    if (cards) clear(cards);
 
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
     var answer = $("answer-text");
@@ -845,11 +894,13 @@
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
     var comparison = compareRows(data);
+    var term = termAnswerParts(data);
     if (data.answer_type === "course_overview" && Array.isArray(data.rows) && overviewParts(data.rows[0])) {
       answer.appendChild(buildOverviewCard(data.rows[0]));       // รหัส/ชื่อวิชาเฉยๆ = ภาพรวมวิชาจากฐานข้อมูล
     } else if (comparison) {
       answer.appendChild(el("div", { className: "overview-compare" }, comparison.map(buildOverviewCard)));   // เปรียบเทียบสองวิชา = สองการ์ดเคียงกัน
-    } else if (groups.length) renderElectiveGroups(answer, groups, data);
+    } else if (term) renderTermAnswer(answer, term);
+    else if (groups.length) renderElectiveGroups(answer, groups, data);
     else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
       if (block.type === "courses") {
@@ -873,7 +924,8 @@
     $("answer-hint").hidden = !noAnswer;                  // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
     var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
     $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
-    var hasCitations = items.length > 0 || (typeof data.citation_text === "string" && data.citation_text !== "");
+    // กล่องแหล่งอ้างอิงด้านล่างเหลือไว้เฉพาะกรณีมีแค่ข้อความอ้างอิง (ไม่มีเลขหน้า); เลขหน้าอยู่ในแถวตราด้านบนแล้ว
+    var hasCitations = items.length === 0 && typeof data.citation_text === "string" && data.citation_text !== "";
     $("answer-box").querySelector(".citation-box").hidden = !hasCitations;          // ไม่มีหน้าอ้างอิง = ไม่โชว์หัวข้อเปล่า ๆ
     $("answer-box").querySelector(".answer-footer").hidden = noAnswer;   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
@@ -925,6 +977,8 @@
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
       lastAnswer = { data: data, seconds: seconds };
       setState(askPanel, "success", askControls);
+      rememberQuestion(check.value);
+      syncShareUrl(check.value, program);
     } catch (err) {
       clearInterval(msgInterval);
       showError(askPanel, askControls, "ask", err, "ask");
@@ -936,6 +990,8 @@
     clearTimeout(copyTimer);
     $("copy-button").textContent = t("copy.btn");
     $("copy-button").classList.remove("is-copied");
+    $("link-copy-button").textContent = t("link.btn");
+    $("link-copy-button").classList.remove("is-copied");
     $("copy-fallback").hidden = true;
     $("copy-hint").hidden = true;
   }
@@ -980,6 +1036,32 @@
     box.hidden = false;
     $("copy-hint").hidden = false;
     $("live-status").textContent = "คัดลอกอัตโนมัติไม่ได้ โปรดคัดลอกจากกล่องด้านล่าง";
+    box.focus();
+    box.select();
+  }
+
+  // คัดลอกลิงก์ของคำถามนี้ (ที่อยู่หน้าเว็บมี ?plan=…&q=… อยู่แล้วหลังถามสำเร็จ)
+  var linkTimer = null;
+  async function copyLink() {
+    var text = window.location.href;
+    var ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); ok = true; }
+    } catch (e) { ok = false; }
+    if (!ok) ok = legacyCopy(text);
+    var button = $("link-copy-button");
+    if (ok) {
+      button.textContent = t("link.done");
+      button.classList.add("is-copied");
+      $("live-status").textContent = t("link.done");
+      clearTimeout(linkTimer);
+      linkTimer = setTimeout(function () { button.textContent = t("link.btn"); button.classList.remove("is-copied"); }, 2000);
+      return;
+    }
+    var box = $("copy-fallback");        // คัดลอกอัตโนมัติไม่ได้: โชว์ลิงก์ในกล่องที่เลือกไว้ให้
+    box.value = text;
+    box.hidden = false;
+    $("copy-hint").hidden = false;
     box.focus();
     box.select();
   }
@@ -1087,7 +1169,9 @@
       programsLoaded = true;
       relabelPrograms();
       var usable = Array.from(select.options).filter(function (o) { return !o.disabled; });
-      var initial = usable.find(function (o) { return o.value === INITIAL_PROGRAM; }) || usable[0];
+      var wantedPlan = urlParams && urlParams.get("plan");
+      var initial = usable.find(function (o) { return o.value === wantedPlan; }) ||
+        usable.find(function (o) { return o.value === INITIAL_PROGRAM; }) || usable[0];
       if (initial) select.value = initial.value;
     } catch (e) {
       clear(select);
@@ -1297,7 +1381,7 @@
   }
 
   // ---------- หัวข้อคำถามตัวอย่าง ----------
-  var currentTopic = 0;
+  var currentTopic = -1;                     // -1 = ยังไม่เลือกหัวข้อ: หน้าแรกโชว์แค่ปุ่มหัวข้อ ตัวอย่างโผล่เมื่อกดหัวข้อ
   var sampleTopics = SAMPLE_TOPICS;          // รายการสำรองในไฟล์ จนกว่า /api/sample-questions จะตอบ (หรือถ้าเรียกไม่ได้)
   var samplesRequest = 0;
 
@@ -1318,14 +1402,15 @@
       if (mine !== samplesRequest) return;
       sampleTopics = SAMPLE_TOPICS;          // เรียกไม่ได้ = ใช้รายการสำรอง ไม่ต้องรบกวนผู้ใช้
     }
-    if (currentTopic >= sampleTopics.length) currentTopic = 0;
+    if (currentTopic >= sampleTopics.length) currentTopic = -1;
     renderTopics();
   }
 
   function renderExamples() {
-    var topic = sampleTopics[currentTopic] || sampleTopics[0];
+    var topic = sampleTopics[currentTopic];
     var list = $("examples");
     clear(list);
+    if (!topic) { list.className = "examples"; return; }
     list.className = "examples topic-" + topic.n;
     topic.examples.forEach(function (example) {
       var parts = exampleParts(example);
@@ -1344,10 +1429,65 @@
     sampleTopics.forEach(function (topic, i) {
       var pill = el("button", { className: "topic-pill topic-" + topic.n, text: topic.emoji + " " + t("topic." + topic.key),
         attrs: { type: "button", "aria-pressed": i === currentTopic ? "true" : "false" } });
-      pill.addEventListener("click", function () { currentTopic = i; renderTopics(); $("topic-bar").children[i].focus(); });
+      pill.addEventListener("click", function () { currentTopic = currentTopic === i ? -1 : i; renderTopics(); $("topic-bar").children[i].focus(); });   // กดซ้ำ = พับตัวอย่าง
       bar.appendChild(pill);
     });
     renderExamples();
+    renderRecent();
+  }
+
+  // ---------- คำถามล่าสุด (เก็บในเบราว์เซอร์ 5 ข้อ) + ปุ่มล้าง ----------
+  var RECENT_KEY = "recent-questions";
+  var RECENT_MAX = 5;
+
+  function loadRecent() {
+    try {
+      var list = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      return Array.isArray(list) ? list.filter(function (q) { return typeof q === "string" && q; }).slice(0, RECENT_MAX) : [];
+    } catch (e) { return []; }                               // โหมดส่วนตัว/ข้อมูลเสีย: ไม่มีรายการล่าสุดก็ใช้งานได้
+  }
+
+  function rememberQuestion(question) {
+    var list = loadRecent().filter(function (q) { return q !== question; });
+    list.unshift(question);
+    store(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
+    renderRecent();
+  }
+
+  function renderRecent() {
+    var list = $("recent");
+    var items = loadRecent();
+    clear(list);
+    items.forEach(function (question) {
+      var button = el("button", { className: "link-button", text: question, attrs: { type: "button" } });
+      button.addEventListener("click", function () { $("question").value = question; runAsk(); });
+      list.appendChild(el("li", {}, [button]));
+    });
+    $("recent-wrap").hidden = items.length === 0;
+  }
+
+  // ล้างช่องคำถามและผลที่แสดง กลับสู่หน้าตั้งต้น; ปุ่มโผล่เมื่อมีข้อความหรือมีผลค้างอยู่
+  function syncClearButton() {
+    $("clear-button").hidden = !$("question").value && askPanel.dataset.state === "idle";
+  }
+
+  // ที่อยู่หน้าเว็บตามคำถามล่าสุด (แผน + คำถาม) เพื่อคัดลอกแชร์ได้; ล้าง = กลับที่อยู่เปล่า
+  function syncShareUrl(question, program) {
+    try {
+      var query = question ? "?" + new URLSearchParams({ plan: program || "", q: question }).toString() : location.pathname;
+      window.history.replaceState(null, "", query);
+    } catch (e) { /* ไม่รองรับ history: ใช้งานได้เหมือนเดิม */ }
+  }
+
+  function clearAsk() {
+    if (askPanel.dataset.state === "loading") return;
+    $("question").value = "";
+    lastAsked = "";
+    lastAnswer = null;
+    lastResult = null;
+    syncShareUrl("", null);
+    setState(askPanel, "idle", askControls);
+    $("question").focus();
   }
 
   // ---------- แท็บเครื่องมือ ----------
@@ -1366,6 +1506,16 @@
 
   // ---------- ผูกเหตุการณ์ ----------
   $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
+  $("clear-button").addEventListener("click", clearAsk);
+  $("link-copy-button").addEventListener("click", copyLink);
+  document.addEventListener("keydown", function (event) {      // "/" = ไปที่ช่องคำถาม (ไม่แย่งตอนกำลังพิมพ์ในช่องอื่น)
+    var tag = event.target && event.target.tagName;
+    if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (event.target && event.target.isContentEditable)) return;
+    event.preventDefault();
+    $("question").focus();
+  });
+  $("question").addEventListener("input", syncClearButton);
   $("question").addEventListener("keydown", function (event) {
     if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {   // Enter = ถาม, Shift+Enter = ขึ้นบรรทัดใหม่
       event.preventDefault();
@@ -1429,6 +1579,7 @@
     $("course-code").value = button.dataset.code;
     selectTab(1, false);                                   // ผลตรวจอยู่แท็บ "บังคับก่อน": สลับไปให้เห็น
     runPrereq();
+    $("tools-fold").open = true;                           // เครื่องมือพับอยู่: เปิดให้เห็นผลตรวจ
     prereqPanel.scrollIntoView({ block: "nearest" });
   });
   $("program").addEventListener("change", function () {
@@ -1460,5 +1611,9 @@
   selectTab(savedTab >= 0 && savedTab < toolTabs.length ? savedTab : 0, false);
 
   applyLang(document.documentElement.lang === "en" ? "en" : "th");   // ภาษา/ธีมที่บันทึกไว้ถูกตั้งบน <html> ตั้งแต่ก่อนวาดหน้า
-  loadPrograms().then(function () { updateScope(); loadCourses(); loadSamples(); });
+  loadPrograms().then(function () {
+    updateScope(); loadCourses(); loadSamples();
+    var sharedQuestion = urlParams && urlParams.get("q");
+    if (sharedQuestion) { $("question").value = sharedQuestion.slice(0, 500); syncClearButton(); runAsk(); }   // เปิดจากลิงก์ที่แชร์: ถามให้เลย
+  });
 })();
