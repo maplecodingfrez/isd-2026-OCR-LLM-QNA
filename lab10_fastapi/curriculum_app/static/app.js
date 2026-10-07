@@ -289,7 +289,50 @@
       : course.alternative_group != null ? t("prereq.alt").replace("{n}", course.alternative_group) : "");
   }
 
+  // หัวข้อคำถามตัวอย่าง: [รหัสป้ายใน i18n, คำถามไทย, คำถามอังกฤษ] — เลข n เลือกสีคู่ที่ 1-6 ใน style.css
+  var SAMPLE_TOPICS = [
+    { key: "credits", n: 1, emoji: "🎓", examples: [
+      ["chip.1", "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "How many credits in total does the program have?"],
+      ["chip.2", "ปี 1 เทอม 1 เรียนกี่หน่วยกิต", "How many credits in year 1 semester 1?"],
+      ["chip.9", "หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต", "How many credits are required in each course category?"]] },
+    { key: "term", n: 2, emoji: "📅", examples: [
+      ["chip.3", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "What courses are in year 2 semester 1?"],
+      ["chip.10", "ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต", "What courses are in year 3 semester 1 and how many credits in total?"],
+      ["chip.11", "ปี 4 เทอม 2 ต้องลงวิชาอะไร", "Which courses must I take in year 4 semester 2?"]] },
+    { key: "course", n: 3, emoji: "📘", examples: [
+      ["chip.4", "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", "What are the elective courses of this program?"],
+      ["chip.5", "มีวิชาเกี่ยวกับฐานข้อมูลไหม", "Are there any database courses?"]] },
+    { key: "prereq", n: 4, emoji: "🔗", examples: [
+      ["chip.7", "วิชา 06026201 ต้องผ่านวิชาใดก่อน", "What are the prerequisites of 06026201?"],
+      ["chip.8", "วิชาที่ต้องผ่านแคลคูลัส 1 ก่อนมีอะไรบ้าง", "Which courses require Calculus 1 first?"]] },
+    { key: "withdraw", n: 5, emoji: "↩", examples: [
+      ["chip.12", "ถ้าถอนวิชา 06026200 จะกระทบกับอะไร", "What is affected if I withdraw from 06026200?"],
+      ["chip.13", "วิชา 06026200 มีวิชาต่อไหม", "Does 06026200 have follow-up courses?"]] },
+    { key: "compare", n: 6, emoji: "⚖", examples: [
+      ["chip.6", "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร", "How do the co-op and non co-op plans differ?"]] }
+  ];
+
+  // ลูกศร/Home/End บนแถบแท็บหรือแถบหัวข้อ → ตำแหน่งใหม่ (-1 = ไม่ใช่ปุ่มเลื่อน)
+  function nextTabIndex(current, count, key) {
+    if (!count) return -1;
+    if (key === "ArrowRight" || key === "ArrowDown") return (current + 1) % count;
+    if (key === "ArrowLeft" || key === "ArrowUp") return (current - 1 + count) % count;
+    if (key === "Home") return 0;
+    if (key === "End") return count - 1;
+    return -1;
+  }
+
+  // คำตอบที่เป็นเลขเดี่ยวชัดเจน เช่น "ปี 1 เทอม 1 รวม 18 หน่วยกิต" → {before, n, after} สำหรับเลขนับขึ้น; ยาวหรือหลายบรรทัด = null
+  function countUpParts(text) {
+    if (typeof text !== "string" || text.length > 60 || text.indexOf("\n") !== -1) return null;
+    var m = /^(.*?(?:รวม|ทั้งหมด)[^\d\n]{0,20})(\d{1,3})(\s*หน่วยกิต.*)$/.exec(text.trim());
+    return m ? { before: m[1], n: parseInt(m[2], 10), after: m[3] } : null;
+  }
+
   var api = {
+    SAMPLE_TOPICS: SAMPLE_TOPICS,
+    nextTabIndex: nextTabIndex,
+    countUpParts: countUpParts,
     prerequisiteEmptyText: prerequisiteEmptyText,
     prerequisiteDisplay: prerequisiteDisplay,
     currentProgramResult: currentProgramResult,
@@ -457,6 +500,20 @@
     ]));
   }
 
+  // เลขเดี่ยวในคำตอบนับขึ้นจาก 0 ใน 0.7 วินาที; ตัวเลขสุดท้ายตรงกับข้อมูลเสมอ และข้ามเมื่อผู้ใช้ปิดแอนิเมชัน
+  function animateCount(node, target) {
+    if (!window.requestAnimationFrame || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    var start = null;
+    node.textContent = "0";
+    function tick(now) {
+      if (start === null) start = now;
+      var p = Math.min((now - start) / 700, 1);
+      node.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) window.requestAnimationFrame(tick);
+    }
+    window.requestAnimationFrame(tick);
+  }
+
   function renderAnswer(data, seconds) {
     var items = citationItems(data);
 
@@ -512,8 +569,13 @@
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
     if (groups.length) renderElectiveGroups(answer, groups, data);
-    else answerBlocks(data).forEach(function (block) {
-      if (block.type === "list") {
+    else answerBlocks(data).forEach(function (block, _i, blocks) {
+      var counted = blocks.length === 1 && block.type !== "list" ? countUpParts(block.text) : null;
+      if (counted) {
+        var number = el("span", { className: "count-big", text: String(counted.n) });
+        answer.appendChild(el("p", {}, [document.createTextNode(counted.before), number, document.createTextNode(counted.after)]));
+        animateCount(number, counted.n);
+      } else if (block.type === "list") {
         answer.appendChild(el("ul", { className: "answer-list" }, block.items.map(function (item) {
           return el("li", { text: item });
         })));
@@ -888,10 +950,20 @@
     try { localStorage.setItem(key, value); } catch (e) { /* โหมดส่วนตัว: ไม่บันทึกก็ใช้งานได้ */ }
   }
 
+  function currentTheme() {
+    var chosen = document.documentElement.dataset.theme;
+    if (chosen === "light" || chosen === "dark") return chosen;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";   // ยังไม่เลือก = ตามระบบ
+  }
+
+  function syncThemeButton() {
+    $("theme-toggle").textContent = t(currentTheme() === "dark" ? "theme.toLight" : "theme.toDark");   // ปุ่มบอกธีมที่จะสลับไป
+  }
+
   function applyTheme(name) {
     var theme = name === "light" ? "light" : "dark";
     document.documentElement.dataset.theme = theme;
-    $("theme-toggle").textContent = t(theme === "dark" ? "theme.toLight" : "theme.toDark");   // ปุ่มบอกธีมที่จะสลับไป
+    syncThemeButton();
     store("theme", theme);
   }
 
@@ -910,7 +982,8 @@
     });
     document.querySelectorAll("[data-i18n-ph]").forEach(function (node) { node.placeholder = t(node.dataset.i18nPh); });
     document.querySelectorAll("[data-i18n-aria]").forEach(function (node) { node.setAttribute("aria-label", t(node.dataset.i18nAria)); });
-    applyTheme(document.documentElement.dataset.theme);
+    syncThemeButton();
+    renderTopics();
 
     if ($("health").dataset.health === "unknown") $("health").textContent = t("health.checking");
     var firstOption = $("program").options[0];
@@ -932,6 +1005,51 @@
     $("live-status").textContent = "";
   }
 
+  // ---------- หัวข้อคำถามตัวอย่าง ----------
+  var currentTopic = 0;
+
+  function renderExamples() {
+    var topic = SAMPLE_TOPICS[currentTopic];
+    var list = $("examples");
+    clear(list);
+    list.className = "examples topic-" + topic.n;
+    var english = I18N && I18N.getLang() === "en";
+    topic.examples.forEach(function (example) {
+      var button = el("button", { className: "link-button", text: t(example[0]), attrs: { type: "button" } });
+      button.addEventListener("click", function () {
+        $("question").value = english ? example[2] : example[1];    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
+        runAsk();
+      });
+      list.appendChild(el("li", {}, [button]));
+    });
+  }
+
+  function renderTopics() {
+    var bar = $("topic-bar");
+    clear(bar);
+    SAMPLE_TOPICS.forEach(function (topic, i) {
+      var pill = el("button", { className: "topic-pill topic-" + topic.n, text: topic.emoji + " " + t("topic." + topic.key),
+        attrs: { type: "button", "aria-pressed": i === currentTopic ? "true" : "false" } });
+      pill.addEventListener("click", function () { currentTopic = i; renderTopics(); $("topic-bar").children[i].focus(); });
+      bar.appendChild(pill);
+    });
+    renderExamples();
+  }
+
+  // ---------- แท็บเครื่องมือ ----------
+  var toolTabs = ["tab-search", "tab-prereq", "tab-withdraw"].map($);
+  var toolPanels = ["search-panel", "prereq-panel", "withdraw-panel"].map($);
+
+  function selectTab(index, focus) {
+    toolTabs.forEach(function (tab, i) {
+      tab.setAttribute("aria-selected", i === index ? "true" : "false");
+      tab.tabIndex = i === index ? 0 : -1;
+      toolPanels[i].hidden = i !== index;
+    });
+    if (focus) toolTabs[index].focus();
+    store("tool-tab", String(index));
+  }
+
   // ---------- ผูกเหตุการณ์ ----------
   $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
   $("question").addEventListener("keydown", function (event) {
@@ -942,13 +1060,22 @@
   });
   $("ask-retry").addEventListener("click", runAsk);
   $("copy-button").addEventListener("click", copyResult);
-  document.querySelectorAll("[data-question]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var english = I18N && I18N.getLang() === "en" && button.dataset.questionEn;    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
-      $("question").value = english ? button.dataset.questionEn : button.dataset.question;
-      $("question").focus();
-    });
+  $("topic-bar").addEventListener("keydown", function (event) {
+    var pills = Array.prototype.slice.call($("topic-bar").children);
+    var next = nextTabIndex(pills.indexOf(document.activeElement), pills.length, event.key);
+    if (next < 0) return;
+    event.preventDefault();
+    currentTopic = next;
+    renderTopics();
+    $("topic-bar").children[next].focus();
   });
+  $("tool-tabs").addEventListener("keydown", function (event) {
+    var next = nextTabIndex(toolTabs.indexOf(document.activeElement), toolTabs.length, event.key);
+    if (next < 0) return;
+    event.preventDefault();
+    selectTab(next, true);
+  });
+  toolTabs.forEach(function (tab, index) { tab.addEventListener("click", function () { selectTab(index, false); }); });
   $("program").addEventListener("change", function () {
     updateScope();
     loadCourses();
@@ -966,6 +1093,7 @@
     var button = event.target.closest("[data-code]");       // กดวิชาที่ค้นเจอ = ตรวจวิชาบังคับก่อนของวิชานั้นต่อเลย
     if (!button) return;
     $("course-code").value = button.dataset.code;
+    selectTab(1, false);                                   // ผลตรวจอยู่แท็บ "บังคับก่อน": สลับไปให้เห็น
     runPrereq();
     prereqPanel.scrollIntoView({ block: "nearest" });
   });
@@ -987,8 +1115,15 @@
     button.addEventListener("click", function () { applyLang(button.dataset.lang); });
   });
   $("theme-toggle").addEventListener("click", function () {
-    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeButton);
+  }
+
+  var savedTab = 0;
+  try { savedTab = parseInt(localStorage.getItem("tool-tab"), 10); } catch (e) { savedTab = 0; }
+  selectTab(savedTab >= 0 && savedTab < toolTabs.length ? savedTab : 0, false);
 
   applyLang(document.documentElement.lang === "en" ? "en" : "th");   // ภาษา/ธีมที่บันทึกไว้ถูกตั้งบน <html> ตั้งแต่ก่อนวาดหน้า
   loadPrograms().then(function () { updateScope(); loadCourses(); });
