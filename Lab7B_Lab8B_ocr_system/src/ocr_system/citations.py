@@ -113,8 +113,22 @@ def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, st
     last = None
     n_confirmed = 0
     for pdf, chunk in zip(pages, chunks):
+        printed = printed_by_pdf.get(pdf)
+        tags = set(PAGE_NUMBER_TAG_RE.findall(chunk))
+        if printed is None and len(tags) == 1:
+            # The aligned image tag must also agree with independent neighboring OCR.
+            printed = consistent_printed({**printed_by_pdf, pdf: next(iter(tags))}).get(pdf)
         terms = [(int(y), int(s)) for y, s in HEADING_RE.findall(chunk)]
         has_heading = bool(terms)
+        if has_heading and last is not None:
+            leading = HEADING_RE.split(chunk, maxsplit=1)[0]
+            codes = set(re.findall(r'(?<!\d)\d{8}(?!\d)', leading))
+            book_leading = HEADING_RE.split((book_text_by_pdf or {}).get(pdf, ''), maxsplit=1)[0]
+            confirmed = book_text_by_pdf is None or (bool(codes) and
+                len(codes & set(re.findall(r'(?<!\d)\d{8}(?!\d)', book_leading))) * 2 >= len(codes))
+            if '<table' in leading and codes and confirmed:
+                out.append({'year': last[0], 'semester': last[1], 'pdf_page': pdf,
+                            'printed_page': printed})
         if not terms and last is not None and "<table" in chunk:
             terms = [last]
         if terms and book_text_by_pdf is not None and not _confirmed(chunk, terms, book_text_by_pdf.get(pdf, "")):
@@ -123,7 +137,7 @@ def _plan_rows(pages: list[int], chunks: list[str], printed_by_pdf: dict[int, st
         if has_heading:
             n_confirmed += 1
         for y, s in dict.fromkeys(terms):
-            out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed_by_pdf.get(pdf)})
+            out.append({"year": y, "semester": s, "pdf_page": pdf, "printed_page": printed})
         if terms:
             last = terms[-1]
     return out, n_confirmed

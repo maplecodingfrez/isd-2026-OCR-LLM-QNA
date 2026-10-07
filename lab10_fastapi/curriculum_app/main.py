@@ -28,8 +28,8 @@ import lab8b_curriculum_db as lab8b  # noqa: E402
 from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
-    AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse, ProgramInfo,
-    CoursePrerequisitesResponse,
+    AskRequest, AskResponse, CourseCreate, CourseResponse, CourseSearchItem, HealthResponse, ProgramInfo,
+    CoursePrerequisitesResponse, SampleQuestionsResponse,
 )
 
 
@@ -54,7 +54,16 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -118,7 +127,16 @@ def list_programs() -> list[dict]:
         items.append(item)                                         
     return items                                                   
 
-@app.get("/api/courses", response_model=list[CourseResponse])
+@app.get("/api/sample-questions", response_model=SampleQuestionsResponse)
+def get_sample_questions(program: str | None = Query(default=None)) -> dict:
+    """ตัวอย่างคำถามของแผนที่เลือก: สร้างจากข้อมูลของแผนนั้น (วิชาจริง) และมีเฉพาะข้อที่แผนนั้นตอบได้"""
+    try:
+        return {"topics": _database_for(program).sample_questions()}
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/courses", response_model=list[CourseSearchItem])
 def get_courses(
     search: str = Query(default="", max_length=100),
     limit: int = Query(default=20, ge=1, le=100),
@@ -133,9 +151,9 @@ def get_courses(
 
 @app.post("/api/courses", response_model=CourseResponse,
           status_code=status.HTTP_201_CREATED)
-def post_course(course: CourseCreate) -> dict:
+def post_course(course: CourseCreate, program: str | None = Query(default=None)) -> dict:
     try:
-        return database.create_course(course.model_dump())
+        return _database_for(program).create_course(course.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except sqlite3.IntegrityError as exc:

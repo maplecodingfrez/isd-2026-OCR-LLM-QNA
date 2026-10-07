@@ -52,11 +52,13 @@ IT ไม่เปลี่ยน ตัวสร้าง `gold_questions/build
 `frozen.json` ล็อก hash ใหม่และบันทึก revision `gold-v2.1-source-correction` พร้อมเหตุผลในแต่ละแผนที่แก้
 seed เดิมใช้รักษาคำถามและลำดับเดิม ไม่ได้สุ่มชุดคำถามใหม่
 
+อัปเดตต่อ 2026-10-05: `gold-v2.2-source-correction` แก้เฉพาะเฉลยเพิ่ม4ข้อโดยคำถาม210ข้อเดิมคงเดิม: AIT F4 7→8 (90641009→90641008; zero-credit courseอยู่ปี1/1), ITทั้งสองแผน F4 8→9 (90644008→90644007), ITสหกิจ E3 0→2ชั่วโมงปฏิบัติของ06016425 (PDF334/พิมพ์333 ยืนยัน3(2-2-5)). Manifestระบุsource/บรรทัด/SHA256/เหตุผล/ก่อนและหลัง; generatorไม่อ่านruntimeDB Master39ใช้9คู่ตามหลักฐานเดียวกัน ชุดv2.1ก่อนแก้เก็บbyte-for-byteในaudit ZIPเดิม รวมgenerator/frozen/คำถามทั้งหมด แยกคะแนนrevisionเดิมจากrevisionใหม่และไม่เรียกชุดนี้ว่าheld-outใหม่ IT OCR TXT/JSONแนบการre-OCRเฉพาะPDF220ที่ตรวจภาพแล้ว ไม่ใช่ผลOCRทั้งเล่มรอบใหม่หรือpipelineล้วน
+
 Gold v2 เดิมทั้ง 7 แผน, frozen manifest และตัวสร้างเดิม เก็บแบบ byte-for-byte ในสำรอง local
 `../../archived/curriculum-audit-20261005/gold-v2-frozen-before-20261005-correction.zip`
 และเรียกดู Gold ที่ commit เดิมได้ด้วย `git show 0231932:Lab9_evaluation/gold_questions/<แผน>_gold_questions.json`
 ผลประเมินย้อนหลังยังเป็นผลของ Gold เดิม; ฉบับแก้เฉลยนี้เป็นการตรวจหลังพบข้อผิดพลาดของ oracle
-จึงไม่ใช่ held-out benchmark ใหม่ และยังไม่มีผลประเมินเต็มชุดภายใต้ hash ใหม่จนกว่าจะรันใหม่
+จึงไม่ใช่ held-out benchmark ใหม่; หลังแก้เฉลย v2.2 รัน HTTP ครบ210ข้อที่ `9be5a5c` ได้210/210 ไม่มีerror/ข้อเกิน5s (qwen3:4b) แยกจากผล pipeline/OCR ย้อนหลังข้างต้น
 
 ## วิธีรัน
 

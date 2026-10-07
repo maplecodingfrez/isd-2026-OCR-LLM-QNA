@@ -185,7 +185,8 @@
       "semester": 1,
       "category": "หมวดวิชาศึกษาทั่วไป",
       "type": "บังคับ",
-      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1",
+      "prerequisite": "90641008"
     },
     {
       "code": "06046407",
@@ -250,7 +251,8 @@
       "semester": 2,
       "category": "หมวดวิชาเฉพาะ",
       "type": "บังคับ",
-      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+      "name_en": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2",
+      "prerequisite": "90641009"
     },
     {
       "code": "90641005",
@@ -413,7 +415,25 @@
       "name_en": "TEAM-PROJECT 1",
       "_code_from_book": {
         "from": null
-      }
+      },
+      "prerequisite": "ไม่มี"
+    },
+    {
+      "code": "90641008",
+      "name_th": "พื้นฐานทักษะการสื่อสารภาษาอังกฤษ",
+      "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+      "credits": "0(0-0-45)",
+      "year": 1,
+      "semester": 1,
+      "category": null,
+      "type": null,
+      "_code_from_book": {
+        "from": null,
+        "via": "zero_credit_plan_table",
+        "pdf_page": 23,
+        "line": 731
+      },
+      "prerequisite": "ไม่มี"
     }
   ],
   "_meta": {
@@ -440,6 +460,20 @@
         "to": "90641004",
         "term": "1/2",
         "name_th": "โครงงานกลุ่ม 1"
+      }
+    ],
+    "book_repairs": [
+      {
+        "action": "add",
+        "to": "90641008",
+        "term": "1/1",
+        "pdf_page": 23,
+        "line": 731
+      },
+      {
+        "action": "name_en",
+        "to": "90641008",
+        "name_en": "INTRODUCTION TO ENGLISH COMMUNICATION SKILLS"
       }
     ]
   }

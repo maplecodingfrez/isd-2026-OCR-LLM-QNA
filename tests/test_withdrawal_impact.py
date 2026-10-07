@@ -1,9 +1,82 @@
 import sqlite3
 from types import SimpleNamespace
+from pathlib import Path
 
 from lab10_fastapi.curriculum_app.database import CurriculumDatabase
 import lab8b_curriculum_db as m
 from prereq_from_book import extract_prerequisites
+
+
+def test_source_corrected_english_chains_and_zero_credit_course():
+    runs = Path(__file__).resolve().parents[1] / 'Lab7B_Lab8B_ocr_system/runs'
+    with m.open_db(runs / 'AIT/lab8b_output/curriculum.db', readonly=True) as conn:
+        row = conn.execute("SELECT credits,lecture_h,lab_h,self_h,name_en FROM course WHERE code='90641008'").fetchone()
+        assert tuple(row) == (0,0,0,45,'INTRODUCTION TO ENGLISH COMMUNICATION SKILLS')
+        assert tuple(conn.execute("SELECT year,semester,credits FROM plan_item WHERE code='90641008'").fetchone()) == (1,1,0)
+        assert {tuple(r) for r in conn.execute("SELECT code,requires FROM prerequisite WHERE code IN ('90641009','90641010')")} == {
+            ('90641009','90641008'),('90641010','90641009')}
+        assert conn.execute("SELECT COUNT(*) FROM prerequisite WHERE kind='pre'").fetchone()[0] == 8
+    for rel in ['IT/coop','IT/no_coop']:
+        with m.open_db(runs / rel / 'lab8b_output/curriculum.db', readonly=True) as conn:
+            assert conn.execute("SELECT requires FROM prerequisite WHERE code='90644008'").fetchone()[0] == '90644007'
+            assert m.prerequisite_status(conn,'90644008') == 'found'
+            assert any(p['pdf_page']==220 for p in m._prereq_pair_pages(conn,{'90644008'}))
+            assert any(p['pdf_page']==359 for p in m._prereq_pair_pages(conn,{'06066303'}))
+
+
+def test_prerequisite_status_never_confuses_missing_or_conflicting_data():
+    with sqlite3.connect(":memory:") as conn:
+        conn.executescript("""
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT);
+        CREATE TABLE prerequisite_status(code TEXT, status TEXT);
+        INSERT INTO prerequisite_status VALUES
+          ('00000001','none'),('00000002','found'),('00000003','not_found'),
+          ('00000004','unreadable'),('00000005','none'),('00000006','found');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre'),
+          ('00000005','00000001','pre');
+        """)
+        for code, expected in [('00000001','none'),('00000002','found'),
+                               ('00000003','not_found'),('00000004','unreadable'),
+                               ('00000005','unknown'),('00000006','unknown'),
+                               ('99999999','unknown')]:
+            assert m.prerequisite_status(conn, code) == expected
+        conn.execute("INSERT INTO prerequisite VALUES ('00000001','00000002','co')")
+        assert m.prerequisite_status(conn, '00000001') == 'none'
+        conn.execute('DROP TABLE prerequisite_status')
+        assert m.prerequisite_status(conn, '00000001') == 'unknown'
+
+
+def test_prerequisite_yesno_code_is_scoped_and_handles_unknown():
+    with sqlite3.connect(":memory:") as conn:
+        conn.row_factory = sqlite3.Row
+        conn.executescript("""
+        CREATE TABLE course(code TEXT, name_th TEXT, name_en TEXT, credits INTEGER);
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT);
+        CREATE TABLE prerequisite_alt(code TEXT, requires TEXT, group_no INTEGER);
+        CREATE TABLE prerequisite_status(code TEXT, status TEXT);
+        INSERT INTO course VALUES ('00000001','วิชาแรก','FIRST',3),
+          ('00000002','วิชาสอง','SECOND',3),('00000003','วิชาสาม','THIRD',3);
+        INSERT INTO prerequisite_status VALUES ('00000001','none'),
+          ('00000002','found'),('00000003','not_found');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre');
+        """)
+        answer, rows, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000001 มีวิชาบังคับก่อนไหม')
+        assert 'ไม่มีวิชาบังคับก่อน' in answer and rows[0]['code'] == '00000001'
+        answer, rows, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000002 มีวิชาบังคับก่อนไหม')
+        assert rows[0]['code'] == '00000001'
+        answer, _, _ = m._has_prereq_yesno_answer(conn, 'วิชา 00000003 มีวิชาบังคับก่อนไหม')
+        assert 'ยังไม่ทราบ' in answer
+        for question in ('หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000001 ไว้อย่างไร',
+                         'DSBA ไม่สหกิจ รหัส 00000001 มีวิชาบังคับก่อนที่ระบุไว้หรือไม่'):
+            result = m._has_prereq_yesno_answer(conn, question)
+            assert result is not None and 'ไม่มีวิชาบังคับก่อน' in result[0]
+        assert m._has_prereq_yesno_answer(conn, 'หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000003 ไว้อย่างไร')[1][0]['prerequisite_status'] == 'not_found'
+        assert m._has_prereq_yesno_answer(conn, 'หลักสูตร AIT ระบุวิชาที่ต้องผ่านก่อน 00000001 ไว้อย่างไร และหน่วยกิตเท่าไร') is None
+        for question in ['วิชา 99999999 มีวิชาบังคับก่อนไหม',
+                         'วิชา 00000001 กับ 00000002 มีวิชาบังคับก่อนไหม',
+                         'วิชา 00000001 มีวิชาบังคับก่อนไหม และเรียนปีไหน',
+                         'วิชา 00000001 วิชาสอง มีวิชาบังคับก่อนไหม']:
+            assert m._has_prereq_yesno_answer(conn, question) is None
 
 
 def test_course_display_preserves_zero_hours_and_never_fills_missing_hours():
@@ -63,6 +136,67 @@ def test_reverse_impact_handles_branch_cycle_alternative_and_corequisite(tmp_pat
     assert db.withdrawal_impact("00000005")["direct"][0]["code"] == "00000002"
     assert db.withdrawal_impact("99999999") is None
     assert db.withdrawal_impact("00000004")["direct"] == []
+
+
+def test_prerequisite_header_code_fallback_requires_unique_full_title():
+    names = {'90644007': ['FOUNDATION ENGLISH 1'],
+             '90644008': ['FOUNDATION ENGLISH 2']}
+    lines = ['--- Page 220 ---', '90641008 ภาษาอังกฤษพื้นฐาน 2 3 (3-0-6)',
+             'FOUNDATION ENGLISH 2', 'PREREQUISITE : FOUNDATION ENGLISH 1']
+    result = extract_prerequisites(lines, ['90644008'], known_codes=names,
+                                   course_names=names)['90644008']
+    assert result['status'] == 'found' and result['requires'] == ['90644007']
+    assert result['source_headers'] == [{'code': '90641008', 'line': 2, 'pdf_page': 220}]
+    names['99999999'] = ['FOUNDATION ENGLISH 2']
+    assert extract_prerequisites(lines, ['90644008'], course_names=names)['90644008']['status'] == 'not_found'
+    names.pop('99999999')
+    names['90641008'] = ['DIFFERENT REAL COURSE']
+    assert extract_prerequisites(lines, ['90644008'], course_names=names)['90644008']['status'] == 'not_found'
+
+
+def test_conflicting_prerequisite_occurrences_do_not_use_majority_vote():
+    lines = ['00000002 TARGET 3 (3-0-6)', 'PREREQUISITE : NONE',
+             '00000002 TARGET 3 (3-0-6)', 'PREREQUISITE : 00000001 SOURCE']
+    result = extract_prerequisites(lines, ['00000002'])['00000002']
+    assert result['status'] == 'unreadable' and result['requires'] == []
+    assert result['note'] == 'conflicting_occurrences'
+
+
+def test_prerequisite_header_rejects_another_known_full_title():
+    names = {'00000001': ['FIRST COURSE'], '00000002': ['SECOND COURSE']}
+    lines = ['00000001 FIRST COURSE 3 (3-0-6)', 'SECOND COURSE',
+             'PREREQUISITE : NONE']
+    result = extract_prerequisites(lines, ['00000001'], known_codes=names,
+                                   course_names=names)['00000001']
+    assert result['status'] == 'not_found'
+    names['00000002'] = ['FIRST COURSE']
+    lines[1] = 'FIRST COURSE'
+    assert extract_prerequisites(lines, ['00000001'], known_codes=names,
+                                 course_names=names)['00000001']['status'] == 'none'
+
+
+def test_prerequisite_reload_replaces_old_edges_and_preserves_corequisites(tmp_path):
+    path = tmp_path / 'curriculum.db'
+    with sqlite3.connect(path) as conn:
+        conn.executescript("""
+        CREATE TABLE course(code TEXT PRIMARY KEY, name_th TEXT, name_en TEXT);
+        CREATE TABLE prerequisite(code TEXT, requires TEXT, kind TEXT,
+                                  PRIMARY KEY(code,requires,kind));
+        INSERT INTO course VALUES ('00000001','แรก','FIRST'),('00000002','สอง','SECOND');
+        INSERT INTO prerequisite VALUES ('00000002','00000001','pre'),
+          ('00000001','00000002','co');
+        """)
+    book = tmp_path / 'book.txt'
+    book.write_text('00000002 สอง 3(3-0-6)\nSECOND\nPREREQUISITE : NONE', encoding='utf-8')
+    args = SimpleNamespace(database=path, text=book, output=None)
+    m.cmd_load_prerequisites(args)
+    with sqlite3.connect(path) as conn:
+        assert conn.execute('SELECT * FROM prerequisite').fetchall() == [('00000001','00000002','co')]
+        first = conn.execute('SELECT * FROM prerequisite_status ORDER BY code').fetchall()
+    m.cmd_load_prerequisites(args)
+    with sqlite3.connect(path) as conn:
+        assert conn.execute('SELECT * FROM prerequisite_status ORDER BY code').fetchall() == first
+        assert conn.execute('SELECT * FROM prerequisite').fetchall() == [('00000001','00000002','co')]
 
 
 def test_name_prerequisite_requires_exact_unique_name():

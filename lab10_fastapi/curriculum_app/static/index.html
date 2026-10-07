@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th" data-theme="dark">
+<html lang="th">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28,6 +28,7 @@
     <noscript><p data-i18n="noscript" class="noscript-hint">หน้านี้ต้องเปิดใช้ JavaScript</p></noscript>
     <p id="live-status" class="visually-hidden" role="status"></p>
 
+    <div class="layout">
     <section id="ask-panel" class="hero-section" data-state="idle" aria-labelledby="ask-title">
       <h2 id="ask-title" class="visually-hidden" data-i18n="ask.title">ถามเรื่องเล่มหลักสูตร</h2>
 
@@ -47,7 +48,7 @@
         <div class="omnibox">
           <div class="omnibox-input-row">
             <span class="omnibox-icon" aria-hidden="true">🔍</span>
-            <textarea id="question" rows="2" data-i18n-ph="question.placeholder" placeholder="พิมพ์คำถามเกี่ยวกับหลักสูตร เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต, วิชาเลือกมีอะไรบ้าง..."></textarea>
+            <textarea id="question" rows="2" aria-label="คำถามเกี่ยวกับหลักสูตร" data-i18n-aria="question.aria" data-i18n-ph="question.placeholder" placeholder="พิมพ์คำถามเกี่ยวกับหลักสูตร เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต, วิชาเลือกมีอะไรบ้าง..."></textarea>
           </div>
           <div class="omnibox-actions">
             <div class="omnibox-hint">
@@ -59,31 +60,13 @@
       </form>
 
       <div class="question-examples">
-        <div class="suggestion-wrap">
-          <ul class="examples">
-            <li><button type="button" class="link-button" data-i18n="chip.1" data-question="หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต" data-question-en="How many credits in total does the program have?">หน่วยกิตรวมตลอดหลักสูตร</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.2" data-question="ปี 1 เทอม 1 เรียนกี่หน่วยกิต" data-question-en="How many credits in year 1 semester 1?">หน่วยกิตปี 1 เทอม 1</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.3" data-question="ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง" data-question-en="What courses are in year 2 semester 1?">วิชาปี 2 เทอม 1</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.4" data-question="วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง" data-question-en="What are the elective courses of this program?">วิชาเลือกของหลักสูตร</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.5" data-question="มีวิชาเกี่ยวกับฐานข้อมูลไหม" data-question-en="Are there any database courses?">วิชาฐานข้อมูล</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.6" data-question="แผนสหกิจกับไม่สหกิจต่างกันอย่างไร" data-question-en="How do the co-op and non co-op plans differ?">เปรียบเทียบแผนสหกิจ</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.7" data-question="วิชา 06026201 ต้องผ่านวิชาใดก่อน" data-question-en="What are the prerequisites of 06026201?">วิชาบังคับก่อนของ 06026201</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.8" data-question="วิชาที่ต้องผ่านแคลคูลัส 1 ก่อนมีอะไรบ้าง" data-question-en="Which courses require Calculus 1 first?">วิชาที่ต้องผ่านแคลคูลัส 1 ก่อน</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.9" data-question="หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต" data-question-en="How many credits are required in each course category?">หน่วยกิตแต่ละหมวดวิชา</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.10" data-question="ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต" data-question-en="What courses are in year 3 semester 1 and how many credits in total?">วิชาและหน่วยกิตปี 3 เทอม 1</button></li>
-            <li><button type="button" class="link-button" data-i18n="chip.11" data-question="ปี 4 เทอม 2 ต้องลงวิชาอะไร" data-question-en="Which courses must I take in year 4 semester 2?">วิชาปี 4 เทอม 2</button></li>
-          </ul>
-        </div>
+        <div id="topic-bar" class="topic-bar" role="group" aria-label="หัวข้อคำถามตัวอย่าง" data-i18n-aria="topic.aria"></div>
+        <ul id="examples" class="examples" aria-label="คำถามตัวอย่าง" data-i18n-aria="examples.aria"></ul>
       </div>
 
       <div class="state-loading">
-        <div class="skeleton-stream">
-          <div class="skeleton-bar bar-85"></div>
-          <div class="skeleton-bar bar-65"></div>
-          <div class="skeleton-bar bar-45"></div>
-        </div>
         <div class="loading-indicator-row">
-          <div class="spinner-minimal" aria-hidden="true"></div>
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <span id="loading-msg-text">กำลังสืบค้นฐานข้อมูลหลักสูตรและวิเคราะห์คำตอบ…</span>
         </div>
       </div>
@@ -103,12 +86,7 @@
           <div class="answer-card-body">
             <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
             <div id="answer-text" class="answer-text"></div>
-            <p id="answer-hint" data-i18n="answer.hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
-
-            <details id="citation-details" class="citation-details" hidden>
-              <summary data-i18n="cite.details">รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
-              <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
-            </details>
+            <p id="answer-hint" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
 
             <div class="citation-box">
               <span class="citation-title" data-i18n="cite.title">📖 แหล่งอ้างอิงในเล่มหลักสูตร</span>
@@ -124,6 +102,8 @@
 
             <details class="examiner-drawer">
               <summary>🔍 SQL Query &amp; Raw Data</summary>
+              <h3 data-i18n="drawer.original">ข้อความคำตอบต้นฉบับ</h3>
+              <pre id="original-text"></pre>
               <h3>SQL Query</h3>
               <pre id="sql-text"></pre>
               <h3>Raw Data</h3>
@@ -144,9 +124,14 @@
       </div>
     </section>
 
-    <hr class="section-separator">
+    <aside class="tools" aria-label="เครื่องมือช่วยค้นหา" data-i18n-aria="tools.aria">
+    <div id="tool-tabs" class="tabs" role="tablist" aria-label="เลือกเครื่องมือ" data-i18n-aria="tabs.aria">
+      <button type="button" id="tab-search" class="tab" role="tab" aria-selected="true" aria-controls="search-panel" data-i18n="tab.search">ค้นหารายวิชา</button>
+      <button type="button" id="tab-prereq" class="tab" role="tab" aria-selected="false" aria-controls="prereq-panel" tabindex="-1" data-i18n="tab.prereq">บังคับก่อน</button>
+      <button type="button" id="tab-withdraw" class="tab" role="tab" aria-selected="false" aria-controls="withdraw-panel" tabindex="-1" data-i18n="tab.withdraw">ถอนวิชา</button>
+    </div>
 
-    <section id="search-panel" class="tool-card" data-state="idle" aria-labelledby="search-title">
+    <section id="search-panel" role="tabpanel" class="tool-card" data-state="idle" aria-labelledby="search-title">
       <div class="tool-card-head">
         <div class="tool-title"><h2 id="search-title" data-i18n="search.title" class="tool-heading">ค้นหารายวิชา</h2></div>
         <p id="search-scope" class="muted" hidden></p>
@@ -159,7 +144,7 @@
       <div class="state-idle"><p data-i18n="search.idle">พิมพ์แล้วผลจะขึ้นทันที กดที่วิชาเพื่อตรวจวิชาบังคับก่อน</p></div>
       <div class="state-loading">
         <div class="loading-indicator-row">
-          <div class="spinner-minimal" aria-hidden="true"></div>
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <span data-i18n="search.loading">กำลังค้นรายวิชา…</span>
         </div>
       </div>
@@ -178,7 +163,7 @@
       </div>
     </section>
 
-    <section id="prereq-panel" class="tool-card" data-state="idle" aria-labelledby="prereq-title">
+    <section id="prereq-panel" role="tabpanel" hidden class="tool-card" data-state="idle" aria-labelledby="prereq-title">
       <div class="tool-card-head">
         <div class="tool-title">
           <span>🔗</span>
@@ -197,7 +182,7 @@
       </div>
       <div class="state-loading">
         <div class="loading-indicator-row">
-          <div class="spinner-minimal" aria-hidden="true"></div>
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <span data-i18n="prereq.loading">กำลังตรวจข้อมูลวิชาจากฐานข้อมูล…</span>
         </div>
       </div>
@@ -206,10 +191,10 @@
           <h3 id="prereq-course"></h3>
           <p id="prereq-meta"></p>
           <div class="prereq-grid">
-            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-list"></ul></div>
-            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-list"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.required">🔒 ต้องผ่านก่อน (Prerequisite)</h4><ul id="prereq-required" class="course-lines"></ul></div>
+            <div class="prereq-box"><h4 data-i18n="prereq.unlocks">🔓 ปลดล็อกให้เรียนต่อ (Unlocked Courses)</h4><ul id="prereq-unlocks" class="course-lines"></ul></div>
           </div>
-          <p id="prereq-citations" class="muted"></p>
+          <ul id="prereq-citations" class="cite-cards"></ul>
         </div>
       </div>
       <div class="state-error">
@@ -223,7 +208,7 @@
       </div>
     </section>
 
-    <section id="withdraw-panel" class="tool-card" data-state="idle" aria-labelledby="withdraw-title">
+    <section id="withdraw-panel" role="tabpanel" hidden class="tool-card" data-state="idle" aria-labelledby="withdraw-title">
       <div class="tool-card-head">
         <div class="tool-title"><h2 id="withdraw-title" data-i18n="withdraw.title" class="tool-heading">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2></div>
         <p id="withdraw-scope" class="muted"></p>
@@ -236,18 +221,19 @@
       <div class="state-idle"><p data-i18n="withdraw.idle">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
       <div class="state-loading">
         <div class="loading-indicator-row">
-          <div class="spinner-minimal" aria-hidden="true"></div>
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
           <span data-i18n="withdraw.loading">กำลังตรวจเส้นทางวิชา…</span>
         </div>
       </div>
       <div class="state-success">
         <h3 id="withdraw-course"></h3>
-        <p id="withdraw-note"></p>
+        <p id="withdraw-summary" class="impact-summary"></p>
         <h4 data-i18n="withdraw.direct">ตัวต่อโดยตรง</h4>
-        <ul id="withdraw-direct" class="course-list"></ul>
+        <ul id="withdraw-direct" class="course-lines"></ul>
         <h4 data-i18n="withdraw.indirect">ตัวต่อทางอ้อม</h4>
-        <ul id="withdraw-indirect" class="course-list"></ul>
-        <p id="withdraw-citations"></p>
+        <ul id="withdraw-indirect" class="course-lines"></ul>
+        <p id="withdraw-note" class="impact-note"></p>
+        <ul id="withdraw-citations" class="cite-cards"></ul>
       </div>
       <div class="state-error">
         <p id="withdraw-error-title" class="error-title"></p>
@@ -260,11 +246,13 @@
       </div>
     </section>
 
+    </aside>
+    </div>
+
     <section class="minimal-stats-grid">
       <div class="stat-card">
         <div class="stat-card-title">
           <span data-i18n="dash.overview">📘 ภาพรวมหลักสูตร</span>
-          <span id="dash-program-badge" class="dash-meta-badge">-</span>
         </div>
         <div class="stat-row"><span class="stat-key" data-i18n="dash.plan">แผนการเรียน</span><span class="stat-val" id="dash-plan-name">-</span></div>
         <div class="stat-row"><span class="stat-key" data-i18n="dash.credits">หน่วยกิตรวม</span><span class="stat-val" id="dash-credits">-</span></div>

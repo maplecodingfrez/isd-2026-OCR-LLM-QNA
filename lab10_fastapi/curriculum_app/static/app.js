@@ -187,6 +187,14 @@
     return !(data && Array.isArray(data.rows) && data.rows.length > 0);
   }
 
+  // ไม่มีคำตอบจริง: ไม่มีข้อความ หรือเป็นประโยค "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" — ต่างจาก isEmptyResult ที่ดูแค่ว่าไม่มีแถว
+  // (คำตอบแบบกฎ เช่น "มีแผนเดียว" ไม่มีแถวแต่เป็นคำตอบจริง ต้องมีปุ่มคัดลอก/ไม่โชว์คำแนะนำปีเทอม)
+  function noRealAnswer(data) {
+    if (!data) return true;
+    var text = typeof data.answer === "string" ? data.answer.trim() : "";      // ข้อความดิบ (answerText ใส่ข้อความแทนเมื่อว่าง)
+    return text === "" || (isEmptyResult(data) && text.indexOf("ไม่พบข้อมูลนี้ในเล่มหลักสูตร") !== -1);
+  }
+
   function electiveGroups(data) {
     var rows = data && Array.isArray(data.rows) ? data.rows : [];
     if (!rows.length || !rows.every(function (row) {
@@ -285,11 +293,187 @@
   }
 
   function prerequisiteDisplay(course) {
-    return courseDisplay(course) + (course.kind === "co" ? " (เรียนร่วมกัน)"
-      : course.alternative_group != null ? " (ทางเลือกกลุ่ม " + course.alternative_group + ": ผ่านอย่างใดอย่างหนึ่ง)" : "");
+    return courseDisplay(course) + (course.kind === "co" ? t("prereq.co")
+      : course.alternative_group != null ? t("prereq.alt").replace("{n}", course.alternative_group) : "");
+  }
+
+  // หัวข้อคำถามตัวอย่าง: [รหัสป้ายใน i18n, คำถามไทย, คำถามอังกฤษ] — เลข n เลือกสีคู่ที่ 1-6 ใน style.css
+  var SAMPLE_TOPICS = [
+    { key: "credits", n: 1, emoji: "🎓", examples: [
+      ["chip.1", "หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต", "How many credits in total does the program have?"],
+      ["chip.2", "ปี 1 เทอม 1 เรียนกี่หน่วยกิต", "How many credits in year 1 semester 1?"],
+      ["chip.9", "หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต", "How many credits are required in each course category?"]] },
+    { key: "term", n: 2, emoji: "📅", examples: [
+      ["chip.3", "ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง", "What courses are in year 2 semester 1?"],
+      ["chip.10", "ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต", "What courses are in year 3 semester 1 and how many credits in total?"],
+      ["chip.11", "ปี 4 เทอม 2 เรียนวิชาอะไรบ้าง", "What courses are in year 4 semester 2?"]] },
+    { key: "course", n: 3, emoji: "📘", examples: [
+      ["chip.4", "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง", "What are the elective courses of this program?"],
+      ["chip.5", "มีวิชาเกี่ยวกับฐานข้อมูลไหม", "Are there any database courses?"]] },
+    { key: "prereq", n: 4, emoji: "🔗", examples: [
+      ["chip.7", "วิชา 06026201 ต้องผ่านวิชาใดก่อน", "What are the prerequisites of 06026201?"],
+      ["chip.8", "วิชาที่ต้องผ่านแคลคูลัส 1 ก่อนมีอะไรบ้าง", "Which courses require Calculus 1 first?"]] },
+    { key: "withdraw", n: 5, emoji: "↩", examples: [
+      ["chip.12", "ถ้าถอนวิชา 06026200 จะกระทบกับอะไร", "What is affected if I withdraw from 06026200?"],
+      ["chip.13", "วิชา 06026200 มีวิชาต่อไหม", "Does 06026200 have follow-up courses?"]] },
+    { key: "compare", n: 6, emoji: "⚖", examples: [
+      ["chip.6", "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร", "How do the co-op and non co-op plans differ?"]] }
+  ];
+
+  // ตัวอย่างคำถามจาก /api/sample-questions (สร้างจากข้อมูลของแผนที่เลือก) -> รูปแบบเดียวกับ SAMPLE_TOPICS
+  // ตัวอย่างหนึ่งข้อ = { label: { th, en }, q: { th, en } }; ว่าง/ผิดรูป = null (หน้าใช้รายการสำรองในไฟล์)
+  function sampleTopicsFromApi(apiTopics) {
+    if (!Array.isArray(apiTopics)) return null;
+    var out = [];
+    apiTopics.forEach(function (topic) {
+      var meta = SAMPLE_TOPICS.filter(function (item) { return item.key === (topic && topic.key); })[0];
+      if (!meta || !Array.isArray(topic.examples)) return;
+      var examples = topic.examples.filter(function (e) { return e && e.th && e.en && e.label_th && e.label_en; }).map(function (e) {
+        return { label: { th: e.label_th, en: e.label_en }, q: { th: e.th, en: e.en } };
+      });
+      if (examples.length) out.push({ key: meta.key, n: meta.n, emoji: meta.emoji, examples: examples });
+    });
+    return out.length ? out : null;
+  }
+
+  // ลูกศร/Home/End บนแถบแท็บหรือแถบหัวข้อ → ตำแหน่งใหม่ (-1 = ไม่ใช่ปุ่มเลื่อน)
+  function nextTabIndex(current, count, key) {
+    if (!count) return -1;
+    if (key === "ArrowRight" || key === "ArrowDown") return (current + 1) % count;
+    if (key === "ArrowLeft" || key === "ArrowUp") return (current - 1 + count) % count;
+    if (key === "Home") return 0;
+    if (key === "End") return count - 1;
+    return -1;
+  }
+
+  // คำตอบที่เป็นเลขเดี่ยวชัดเจน เช่น "ปี 1 เทอม 1 รวม 18 หน่วยกิต" → {before, n, after} สำหรับเลขนับขึ้น; ยาวหรือหลายบรรทัด = null
+  function countUpParts(text) {
+    if (typeof text !== "string" || text.length > 60 || text.indexOf("\n") !== -1) return null;
+    var m = /^(.*?(?:รวม|ทั้งหมด)[^\d\n]{0,20})(\d{1,3})(\s*หน่วยกิต.*)$/.exec(text.trim());
+    return m ? { before: m[1], n: parseInt(m[2], 10), after: m[3] } : null;
+  }
+
+  // บรรทัดวิชาจาก backend: "06016403 ชื่อไทย / ENGLISH NAME — 3 (2-2-5) หน่วยกิต" (+ หัวข้อนำหน้า "ปี 2 เทอม 1:" และหมายเหตุท้าย "(รวม …)")
+  var COURSE_LINE = /^(\d{8})\s+(.+?)(?:\s+\/\s+(.+?))?\s+—\s+(\d+)(?:\s+\((\d+)-(\d+)-(\d+)\))?\s+หน่วยกิต$/;
+  var SLOT_LINE = /^ช่องที่นักศึกษาเลือกเอง:\s*(.+?)\s+(\d+(?:\s+\(\d+-\d+-\d+\))?(?:\s+หรือ\s+\d+(?:\s+\(\d+-\d+-\d+\))?)*)\s+หน่วยกิต$/;
+
+  function parseCourseLine(text) {
+    var s = String(text == null ? "" : text).trim();
+    var note = null;
+    var tail = /\s*\((รวม[^)]*)\)\s*$/.exec(s);
+    if (tail) { note = tail[1]; s = s.slice(0, tail.index).trim(); }
+    var path = null;
+    var via = /\s*\(เส้นทาง\s+([^)]+)\)\s*$/.exec(s);
+    if (via) { path = via[1].trim(); s = s.slice(0, via.index).trim(); }
+    var lead = "";
+    var head = /^(.{1,40}?:)\s+(?=\d{8}\s)/.exec(s);
+    if (head) { lead = head[1]; s = s.slice(head[0].length); }
+    var m = COURSE_LINE.exec(s);
+    if (m) {
+      return { kind: "course", lead: lead, code: m[1], name: m[2].trim(), nameEn: (m[3] || "").trim(), credits: m[4],
+        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, path: path, note: note };
+    }
+    var bare = /^(\d{8})\s+\((.+)\)$/.exec(s);        // "06026200 (แคลคูลัส 1)": รหัส + ชื่อ ไม่มีหน่วยกิต
+    if (bare) return { kind: "course", lead: lead, code: bare[1], name: bare[2].trim(), nameEn: "", credits: null, hours: null, path: path, note: note };
+    var slot = SLOT_LINE.exec(s);
+    if (slot) return { kind: "slot", lead: lead, name: slot[1].trim(), credits: slot[2].trim(), note: note };
+    return null;
+  }
+
+  // โครงสร้างหน่วยกิต: "หมวด: N หน่วยกิต — ประกอบด้วย กลุ่ม n, กลุ่ม n (หมายเหตุ)" -> {title, credits, parts:[{name, credits}], note}
+  // ไม่ตรงรูปแบบ (รวมถึงส่วนย่อยที่ไม่มีตัวเลขท้าย) = null แล้วแสดงเป็นข้อความเดิม
+  var CREDIT_LINE = /^([^:()]+?):\s*(\d+)\s*หน่วยกิต(?:\s*—\s*ประกอบด้วย\s*(.+?))?(?:\s*\(([^)]*)\))?\s*$/;
+
+  function parseCreditLine(text) {
+    var m = CREDIT_LINE.exec(String(text == null ? "" : text).trim());
+    if (!m) return null;
+    var parts = [];
+    if (m[3]) {
+      var pieces = m[3].split(/,\s*/);
+      for (var i = 0; i < pieces.length; i++) {
+        var p = /^(.+?)\s+(\d+)$/.exec(pieces[i].trim());
+        if (!p) return null;
+        parts.push({ name: p[1], credits: parseInt(p[2], 10) });
+      }
+    }
+    return { title: m[1].trim(), credits: parseInt(m[2], 10), parts: parts, note: m[4] ? m[4].trim() : null };
+  }
+
+  // ย่อหน้าโครงสร้างหน่วยกิตที่ติดกันรวมเป็นบล็อก {type:"credits", entries} เดียว
+  function groupCreditBlocks(blocks) {
+    var out = [];
+    blocks.forEach(function (block) {
+      var entry = block.type === "paragraph" ? parseCreditLine(block.text) : null;
+      if (!entry) { out.push(block); return; }
+      var last = out[out.length - 1];
+      if (last && last.type === "credits") last.entries.push(entry);
+      else out.push({ type: "credits", entries: [entry] });
+    });
+    return out;
+  }
+
+  // แถว rows[0] ของคำตอบ answer_type "course_overview" -> ข้อมูลที่วาดการ์ดภาพรวมวิชา (ไม่มีแถว/ไม่มีรหัส = null)
+  function overviewParts(row) {
+    if (!row || !row.code) return null;
+    var hours = row.lecture_h != null && row.lab_h != null && row.self_h != null
+      ? [String(row.lecture_h), String(row.lab_h), String(row.self_h)] : null;
+    var named = function (list) {
+      return (Array.isArray(list) ? list : []).map(function (item) { return { code: item.code, name: item.name_th || "" }; });
+    };
+    return {
+      entry: { kind: "course", code: row.code, name: row.name_th || "", nameEn: row.name_en || "",
+        credits: row.credits != null ? String(row.credits) : null, hours: hours, path: null, note: null },
+      terms: (Array.isArray(row.terms) ? row.terms : []).map(function (pair) { return { year: pair[0], semester: pair[1] }; }),
+      status: row.prerequisite_status || "unknown",
+      source: row.source || "plan",
+      prerequisites: named(row.prerequisites),
+      unlocks: named(row.unlocks)
+    };
+  }
+
+  // "3 (2-2-5)" จาก API → { credits: "3", hours: ["2","2","5"] | null }
+  function splitCredits(display) {
+    var m = /^\s*(\d+)(?:\s*\((\d+)-(\d+)-(\d+)\))?\s*$/.exec(String(display == null ? "" : display));
+    return m ? { credits: m[1], hours: m[2] !== undefined ? [m[2], m[3], m[4]] : null } : { credits: String(display == null ? "" : display).trim(), hours: null };
+  }
+
+  // ป้ายสั้น ๆ ข้างวิชาบังคับก่อน: เรียนร่วมกัน / ทางเลือกกลุ่ม N (ผ่านอย่างใดอย่างหนึ่ง); ไม่มี = ""
+  function prereqTag(course) {
+    if (course && course.kind === "co") return t("prereq.tagCo");
+    if (course && course.alternative_group != null) return t("prereq.tagAlt", { n: course.alternative_group });
+    return "";
+  }
+
+  // รวมย่อหน้าที่เป็นบรรทัดวิชาติดกันเป็นบล็อก {type:"courses", entries} เดียว; ย่อหน้าอื่นคงเดิม
+  function groupCourseBlocks(blocks) {
+    var out = [];
+    blocks.forEach(function (block) {
+      if (block.type === "list" && block.items.length) {                       // รายการหัวข้อย่อย: ทุกข้อเป็นบรรทัดวิชา = แสดงเป็นชั้น
+        var entries = block.items.map(parseCourseLine);
+        if (entries.every(Boolean)) { out.push({ type: "courses", entries: entries }); return; }
+      }
+      var entry = block.type === "paragraph" ? parseCourseLine(block.text) : null;
+      if (!entry) { out.push(block); return; }
+      var last = out[out.length - 1];
+      if (last && last.type === "courses") last.entries.push(entry);
+      else out.push({ type: "courses", entries: [entry] });
+    });
+    return out;
   }
 
   var api = {
+    overviewParts: overviewParts,
+    parseCreditLine: parseCreditLine,
+    groupCreditBlocks: groupCreditBlocks,
+    sampleTopicsFromApi: sampleTopicsFromApi,
+    noRealAnswer: noRealAnswer,
+    splitCredits: splitCredits,
+    prereqTag: prereqTag,
+    parseCourseLine: parseCourseLine,
+    groupCourseBlocks: groupCourseBlocks,
+    SAMPLE_TOPICS: SAMPLE_TOPICS,
+    nextTabIndex: nextTabIndex,
+    countUpParts: countUpParts,
     prerequisiteEmptyText: prerequisiteEmptyText,
     prerequisiteDisplay: prerequisiteDisplay,
     currentProgramResult: currentProgramResult,
@@ -336,6 +520,18 @@
   }
 
   // JS ตั้ง "สถานะ" อย่างเดียว; CSS เป็นคนซ่อน/แสดงบล็อก .state-* ตาม data-state
+  // เปลี่ยนหลักสูตร = ผลที่แสดงอยู่ถูกถามซ้ำกับหลักสูตรใหม่ (คำถาม/รหัสวิชาล่าสุดที่ผู้ใช้ส่งไป)
+  var lastAsked = "";
+  var lastPrereqCode = "";
+  var lastWithdrawCode = "";
+  var pendingRefresh = { ask: false, prereq: false, withdraw: false };   // ตอนเปลี่ยนหลักสูตร คำขอเดิมยังวิ่งอยู่: รอให้ถูกทิ้งแล้วถามใหม่
+
+  // คำขอที่ถูกทิ้งเพราะเปลี่ยนหลักสูตรกลางทาง: กลับ Idle แล้ว (ถ้ามีคำสั่งรอ) ถามใหม่กับหลักสูตรที่เลือกอยู่
+  function settleDiscarded(key, panel, controls, run) {
+    setState(panel, "idle", controls);
+    if (pendingRefresh[key]) { pendingRefresh[key] = false; run(); }
+  }
+
   function setState(panel, state, controls) {
     var wasLoading = panel.dataset.state === "loading";
     panel.dataset.state = state;
@@ -371,32 +567,32 @@
       $("withdraw-code").focus();
       return;
     }
+    lastWithdrawCode = check.value;
     var program = $("program").value;
     setState(withdrawPanel, "loading", withdrawControls);
     try {
       var data = await apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/withdrawal-impact", program));
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
-      $("withdraw-course").textContent = courseDisplay(data.course);
+      if (program !== $("program").value) { settleDiscarded("withdraw", withdrawPanel, withdrawControls, runWithdrawal); return; }
+      var rootNames = courseNames(data.course);
+      $("withdraw-course").textContent = (data.course.code || "") + " " + rootNames.primary;
+      $("withdraw-summary").textContent = t("withdraw.summary", { d: data.direct.length, i: data.indirect.length });
       $("withdraw-note").textContent = data.note;
       ["direct", "indirect"].forEach(function (key) {
         var list = $("withdraw-" + key);
         clear(list);
-        if (!data[key].length) list.appendChild(el("li", { text: t("withdraw.none") }));
+        if (!data[key].length) list.appendChild(el("li", { className: "muted", text: t("withdraw.none") }));
         data[key].forEach(function (course) {
           var path = [data.course.code].concat(course.path.map(function (edge) { return edge.code; })).join(" → ");
-          var conditions = course.path.map(function (edge) {
+          var notes = course.path.filter(function (edge) { return edge.kind === "co" || edge.alternative; }).map(function (edge) {
             return edge.code + ": " + (edge.kind === "co" ? t("withdraw.co") : t("withdraw.pre")) + (edge.alternative ? t("withdraw.alt") : "");
-          }).join("; ");
-          list.appendChild(el("li", {}, [
-            el("p", { text: courseDisplay(course) }),
-            el("p", { className: "muted", text: t("withdraw.path", { path: path, cond: conditions }) })
-          ]));
+          }).join("; ");     // เงื่อนไขปกติ (วิชาบังคับก่อน) ไม่ต้องบอกซ้ำ: โชว์เฉพาะเรียนร่วมกัน/มีทางเลือก
+          list.appendChild(buildCourseLine(entryFromCourse(course, { path: path, pathNote: notes })));
         });
       });
-      $("withdraw-citations").textContent = data.citations.length ? t("withdraw.cite") + data.citations.map(function (c) { return "PDF " + c.pdf_page + " (" + c.courses.join(", ") + ")"; }).join("; ") : t("withdraw.noCite");
+      fillCiteCards($("withdraw-citations"), data.citations, t("withdraw.noCite"));
       setState(withdrawPanel, "success", withdrawControls);
     } catch (err) {
-      if (program !== $("program").value) { setState(withdrawPanel, "idle", withdrawControls); return; }
+      if (program !== $("program").value) { settleDiscarded("withdraw", withdrawPanel, withdrawControls, runWithdrawal); return; }
       showError(withdrawPanel, withdrawControls, "withdraw", err, "prereq");
     }
   }
@@ -451,10 +647,151 @@
       })));
       answer.appendChild(section);
     });
-    answer.appendChild(el("details", { className: "original-answer" }, [
-      el("summary", { text: t("elective.original") }),
-      el("p", { text: answerText(data) })
-    ]));
+  }
+
+  // รายวิชาเป็นชั้น ๆ: รหัส | ชื่อภาษาที่เลือก (อีกภาษาเล็กและจาง) | หน่วยกิต + ชั่วโมงบรรยาย/ปฏิบัติ/ศึกษาเอง
+  // บรรทัดวิชา 1 บรรทัด: รหัส | ชื่อ (ภาษาที่เลือก + อีกภาษาจาง + ป้ายเส้นทาง/เงื่อนไข) | หน่วยกิต + ชั่วโมง
+  // entry: จากข้อความคำตอบ (parseCourseLine) หรือจาก API ผ่าน entryFromCourse; ชื่อที่ resolve แล้วอยู่ใน primary/secondary
+  function buildCourseLine(entry) {
+    var english = I18N && I18N.getLang() === "en";
+    if (entry.kind === "slot") {
+      return el("li", { className: "course-line is-slot" }, [
+        el("span", { className: "slot-tag", text: t("slot.tag") }),
+        el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })]),
+        el("span", { className: "course-meta" }, [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })])
+      ]);
+    }
+    var swap = entry.primary === undefined && english && entry.nameEn;
+    var primary = entry.primary !== undefined ? entry.primary : (swap ? entry.nameEn : entry.name);
+    var secondary = entry.primary !== undefined ? entry.secondary : (swap ? entry.name : entry.nameEn);
+    var main = [el("span", { className: "course-name", text: primary })];
+    if (secondary) main.push(el("span", { className: "course-name-alt", text: secondary, attrs: swap || entry.primary !== undefined ? {} : { lang: "en" } }));
+    var tags = [];
+    if (entry.tag) tags.push(el("span", { className: "line-tag", text: entry.tag }));
+    if (entry.path) tags.push(el("span", { className: "path-tag", text: entry.path }));
+    if (entry.pathNote) tags.push(el("span", { className: "path-note", text: entry.pathNote }));
+    if (tags.length) main.push(el("span", { className: "course-tags" }, tags));
+    var meta = [];
+    if (entry.credits) meta.push(el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") }));
+    if (entry.hours) meta.push(el("span", { className: "course-hours", text: t("hours.fmt", { l: entry.hours[0], p: entry.hours[1], s: entry.hours[2] }) }));
+    return el("li", { className: "course-line" }, [
+      el("span", { className: "code", text: entry.code }),
+      el("span", { className: "course-main" }, main),
+      el("span", { className: "course-meta" }, meta)
+    ]);
+  }
+
+  // วิชาจาก API (code, name_th, name_en, credits_display) → entry สำหรับ buildCourseLine
+  function entryFromCourse(course, extra) {
+    var names = courseNames(course);
+    var split = splitCredits(course.credits_display != null ? course.credits_display : course.credits);
+    var entry = { kind: "course", code: course.code || "", primary: names.primary, secondary: names.secondary,
+      credits: split.credits || null, hours: split.hours };
+    Object.keys(extra || {}).forEach(function (key) { entry[key] = extra[key]; });
+    return entry;
+  }
+
+  // การ์ดหน้าอ้างอิง (printed_page/pdf_page + วิชาที่พบ) จาก citations ของ API ใช้ซ้ำในเครื่องมือตรวจวิชา/ผลกระทบการถอน
+  function fillCiteCards(list, citations, emptyText) {
+    clear(list);
+    if (!Array.isArray(citations) || !citations.length) {
+      if (emptyText) list.appendChild(el("li", { className: "muted", text: emptyText }));
+      return;
+    }
+    citations.forEach(function (c) {
+      var printed = c.printed_page !== null && c.printed_page !== undefined && c.printed_page !== "";
+      var head = el("div", { className: "cite-card-head" }, [
+        el("span", { className: "cite-page", text: printed ? t("cite.page", { n: c.printed_page }) : "PDF " + c.pdf_page })
+      ]);
+      if (printed) head.appendChild(el("span", { className: "cite-pdf", text: "PDF " + c.pdf_page }));
+      var card = el("li", { className: "cite-card" }, [head]);
+      var codes = Array.isArray(c.courses) ? c.courses : [];
+      if (codes.length) {
+        var chips = el("ul", { className: "cite-chip-list" });
+        codes.forEach(function (code) {
+          var name = c.course_names && c.course_names[code];
+          chips.appendChild(el("li", { className: "cite-chip", text: name ? code + " " + name : code }));
+        });
+        card.appendChild(chips);
+      }
+      list.appendChild(card);
+    });
+  }
+
+  // การ์ดโครงสร้างหน่วยกิต: ชื่อหมวด + หน่วยกิตรวมตัวใหญ่ + แถบเทียบแต่ละกลุ่ม (ตัวเลขอยู่ในข้อความเสมอ แถบเป็นภาพประกอบ)
+  function buildCreditCard(entry) {
+    var children = [el("div", { className: "credit-head" }, [
+      el("span", { className: "credit-title", text: entry.title }),
+      el("span", { className: "credit-total" }, [
+        el("span", { className: "count-big", text: String(entry.credits) }),
+        document.createTextNode(" " + t("credits.unit"))
+      ])
+    ])];
+    if (entry.parts.length) {
+      children.push(el("ul", { className: "credit-parts" }, entry.parts.map(function (part) {
+        return el("li", { className: "credit-part" }, [
+          el("span", { className: "credit-name", text: part.name }),
+          el("progress", { className: "credit-bar", attrs: { max: String(entry.credits), value: String(part.credits), "aria-hidden": "true" } }),
+          el("span", { className: "credit-value", text: String(part.credits) })
+        ]);
+      })));
+    }
+    if (entry.note) children.push(el("p", { className: "credit-note muted", text: entry.note }));
+    return el("section", { className: "credit-card" }, children);
+  }
+
+  // การ์ดภาพรวมวิชา: บรรทัดวิชาแบบชั้น ๆ + เรียนเมื่อไร / ต้องผ่านก่อน / วิชาต่อ (ชิปกดแล้วถามภาพรวมวิชานั้นต่อ)
+  function buildOverviewCard(row) {
+    var parts = overviewParts(row);
+    var chips = function (list) {
+      return el("span", { className: "overview-chips" }, list.map(function (item) {
+        return el("button", { className: "overview-chip", text: item.name ? item.code + " " + item.name : item.code,
+          attrs: { type: "button", "data-overview-code": item.code } });
+      }));
+    };
+    var fact = function (labelKey, value) {
+      return el("div", { className: "overview-fact" }, [el("dt", { text: t(labelKey) }), el("dd", {}, [value])]);
+    };
+    var text = function (key) { return el("span", { className: "muted", text: t(key) }); };
+    var facts = [];
+    if (parts.source !== "plan") {
+      facts.push(el("p", { className: "credit-note muted", text: t("prereq.notInPlan") }));
+    } else {
+      facts.push(fact("overview.terms", parts.terms.length
+        ? el("span", { className: "overview-chips" }, parts.terms.map(function (term) {
+          return el("span", { className: "line-tag", text: t("overview.termFmt", { y: term.year, s: term.semester }) });
+        }))
+        : text("overview.noTerm")));
+      facts.push(fact("overview.prereq", parts.prerequisites.length ? chips(parts.prerequisites)
+        : text(parts.status === "none" ? "overview.none" : "overview.unknown")));
+      facts.push(fact("overview.unlocks", parts.unlocks.length ? chips(parts.unlocks) : text("overview.noUnlocks")));
+    }
+    return el("section", { className: "overview-card" }, [
+      el("ul", { className: "course-lines" }, [buildCourseLine(parts.entry)]),
+      el("dl", { className: "overview-facts" }, facts)
+    ]);
+  }
+
+  function renderCourseLines(answer, entries) {
+    var lead = entries[0].lead;
+    if (lead) answer.appendChild(el("p", { className: "course-lead", text: lead }));
+    answer.appendChild(el("ul", { className: "course-lines" }, entries.map(buildCourseLine)));
+    var note = entries[entries.length - 1].note;
+    if (note) answer.appendChild(el("p", { className: "course-tail muted", text: "(" + note + ")" }));
+  }
+
+  // เลขเดี่ยวในคำตอบนับขึ้นจาก 0 ใน 0.7 วินาที; ตัวเลขสุดท้ายตรงกับข้อมูลเสมอ และข้ามเมื่อผู้ใช้ปิดแอนิเมชัน
+  function animateCount(node, target) {
+    if (!window.requestAnimationFrame || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    var start = null;
+    node.textContent = "0";
+    function tick(now) {
+      if (start === null) start = now;
+      var p = Math.min((now - start) / 700, 1);
+      node.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) window.requestAnimationFrame(tick);
+    }
+    window.requestAnimationFrame(tick);
   }
 
   function renderAnswer(data, seconds) {
@@ -470,18 +807,6 @@
         ].filter(Boolean));
         tabs.appendChild(tab);
       });
-    }
-
-    var detail = $("cite-detail");
-    if (detail) {
-      clear(detail);
-      items.forEach(function (c) {
-        if (!c.courses.length) return;
-        detail.appendChild(el("li", { text: (c.printed !== null ? "หน้า " + c.printed + " (PDF " + c.pdf + ")" : "PDF " + c.pdf) +
-          ": " + c.courses.map(function (code) { return [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / "); }).join(", ") }));
-      });
-      var detailsWrap = $("citation-details");
-      if (detailsWrap) detailsWrap.hidden = !items.some(function (c) { return c.courses.length; });
     }
 
     var cards = $("cite-cards");                             // 1 หน้าอ้างอิง = 1 การ์ด: เลขหน้า + วิชาที่พบในหน้านั้น
@@ -511,9 +836,20 @@
     var groupedQuestion = (/วิชาเลือก|กลุ่มวิชา/.test(data.question || "") && /อะไรบ้าง|วิชาอะไร|รายชื่อ|ให้เลือก/.test(data.question || "")) ||
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
-    if (groups.length) renderElectiveGroups(answer, groups, data);
-    else answerBlocks(data).forEach(function (block) {
-      if (block.type === "list") {
+    if (data.answer_type === "course_overview" && Array.isArray(data.rows) && overviewParts(data.rows[0])) {
+      answer.appendChild(buildOverviewCard(data.rows[0]));       // รหัส/ชื่อวิชาเฉยๆ = ภาพรวมวิชาจากฐานข้อมูล
+    } else if (groups.length) renderElectiveGroups(answer, groups, data);
+    else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
+      var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
+      if (block.type === "courses") {
+        renderCourseLines(answer, block.entries);
+      } else if (block.type === "credits") {
+        block.entries.forEach(function (entry) { answer.appendChild(buildCreditCard(entry)); });
+      } else if (counted) {
+        var number = el("span", { className: "count-big", text: String(counted.n) });
+        answer.appendChild(el("p", {}, [document.createTextNode(counted.before), number, document.createTextNode(counted.after)]));
+        animateCount(number, counted.n);
+      } else if (block.type === "list") {
         answer.appendChild(el("ul", { className: "answer-list" }, block.items.map(function (item) {
           return el("li", { text: item });
         })));
@@ -522,14 +858,22 @@
       }
     });
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
+    var noAnswer = noRealAnswer(data);
+    $("answer-hint").hidden = !noAnswer;                  // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
+    var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
+    $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
+    var hasCitations = items.length > 0 || (typeof data.citation_text === "string" && data.citation_text !== "");
+    $("answer-box").querySelector(".citation-box").hidden = !hasCitations;          // ไม่มีหน้าอ้างอิง = ไม่โชว์หัวข้อเปล่า ๆ
+    $("answer-box").querySelector(".answer-footer").hidden = noAnswer;   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
       ? t("answer.source", { name: select.selectedOptions[0].textContent })
       : t("answer.sourceDefault");
+    $("original-text").textContent = answerText(data) || "-";
     $("sql-text").textContent = data.sql || "-";
     $("rows-text").textContent = JSON.stringify(data.rows == null ? [] : data.rows, null, 2);
-    $("elapsed-text").textContent = t("elapsed", { s: seconds.toFixed(2) }) + (seconds < 5.0 ? " (< 5s Bonus ⭐)" : "");
+    $("elapsed-text").textContent = t("elapsed", { s: seconds.toFixed(2) });
     resetCopyUi();
   }
 
@@ -541,6 +885,7 @@
       $("question").focus();          // พาผู้ใช้ไปที่ช่องที่ต้องแก้
       return;
     }
+    lastAsked = check.value;
     var program = $("program").value || null;
     var started = performance.now();
     setState(askPanel, "loading", askControls);
@@ -563,7 +908,7 @@
         body: JSON.stringify({ question: check.value, program: program })
       }), program, function () { return $("program").value || null; });
       clearInterval(msgInterval);
-      if (data === null) { setState(askPanel, "idle", askControls); return; }
+      if (data === null) { settleDiscarded("ask", askPanel, askControls, runAsk); return; }
       var seconds = (performance.now() - started) / 1000;
       lastResult = buildCopyPayload(check.value, program, data, seconds);
       renderAnswer(data, seconds);          // ถ้า render พัง จะตกลง catch แล้วขึ้น Error ไม่ค้าง Loading
@@ -646,7 +991,7 @@
     return (course.code || "") + " " + title + (credits ? " — " + credits + " " + t("credits.unit") : "");
   }
 
-  function fillCourseList(list, items, emptyText) {
+  function fillCourseList(list, items, emptyText, tagOf) {
     clear(list);
     var courses = Array.isArray(items) ? items : [];
     if (!courses.length) {
@@ -654,10 +999,7 @@
       return;
     }
     courses.forEach(function (course) {
-      list.appendChild(el("li", {}, [
-        el("span", { className: "code", text: course.code || "" }),
-        document.createTextNode(courseDisplay(course).slice((course.code || "").length))
-      ]));
+      list.appendChild(buildCourseLine(entryFromCourse(course, { tag: tagOf ? tagOf(course) : "" })));
     });
   }
 
@@ -666,21 +1008,19 @@
   function renderPrereq(data) {
     lastPrereq = data;
     var names = courseNames(data);
-    $("prereq-course").textContent = "[" + (data.code || "") + "] " + names.primary + (names.secondary ? " / " + names.secondary : "");
-    $("prereq-meta").textContent =
-      (data.credits_display || (data.credits != null ? data.credits : "")) + " " + t("credits.unit") +
-      (data.credits_display ? t("prereq.hours") : "");
-    fillCourseList($("prereq-required"), data.prerequisites_required, prerequisiteEmptyText(data));
-    fillCourseList($("prereq-unlocks"), data.unlocked_courses, t("prereq.noneUnlocks"));
-    var citeEl = $("prereq-citations");
-    if (citeEl) {
-      citeEl.textContent = data.citations && data.citations.length
-        ? t("withdraw.cite") + data.citations.map(function (c) {
-            return (c.printed_page !== null ? "หน้า " + c.printed_page + " (PDF " + c.pdf_page + ")" : "PDF " + c.pdf_page) +
-              (c.courses && c.courses.length ? " (" + c.courses.join(", ") + ")" : "");
-          }).join("; ")
-        : "";
-    }
+    $("prereq-course").textContent = (data.code || "") + " " + names.primary;
+    var own = splitCredits(data.credits_display != null ? data.credits_display : data.credits);
+    var metaBox = $("prereq-meta");
+    clear(metaBox);
+    [names.secondary, own.credits ? own.credits + " " + t("credits.unit") : "",
+      own.hours ? t("hours.fmt", { l: own.hours[0], p: own.hours[1], s: own.hours[2] }) : ""].filter(Boolean).forEach(function (part, i) {
+      if (i) metaBox.appendChild(document.createTextNode(" · "));
+      metaBox.appendChild(el("span", { className: "meta-part", text: part }));     // แต่ละส่วนไม่ตัดบรรทัดกลางคำ
+    });
+    fillCourseList($("prereq-required"), data.prerequisites_required,
+      data.prerequisite_status === "not_in_plan" ? t("prereq.notInPlan") : prerequisiteEmptyText(data), prereqTag);
+    fillCourseList($("prereq-unlocks"), data.unlocked_courses, data.prerequisite_status === "not_in_plan" ? t("prereq.notInPlan") : t("prereq.noneUnlocks"));
+    fillCiteCards($("prereq-citations"), data.citations, "");
   }
 
   async function runPrereq() {
@@ -691,12 +1031,13 @@
       $("course-code").focus();
       return;
     }
+    lastPrereqCode = check.value;
     setState(prereqPanel, "loading", prereqControls);
     var program = $("program").value;
     try {
       var data = await currentProgramResult(apiFetch(withProgram("/api/courses/" + encodeURIComponent(check.value) + "/prerequisites", program)),
         program, function () { return $("program").value; });
-      if (data === null) { setState(prereqPanel, "idle", prereqControls); return; }
+      if (data === null) { settleDiscarded("prereq", prereqPanel, prereqControls, runPrereq); return; }
       renderPrereq(data);
       setState(prereqPanel, "success", prereqControls);
     } catch (err) {
@@ -769,8 +1110,6 @@
     if (show) $("search-scope").textContent = t("search.scope", { name: option.textContent });
     var planName = $("dash-plan-name");
     if (planName && option) planName.textContent = option.textContent;
-    var planBadge = $("dash-program-badge");
-    if (planBadge && option) planBadge.textContent = select.value || t("dash.default");
     var info = programInfo[select.value];                     // หน่วยกิต/ปีการศึกษาจริงจาก /api/programs (ไม่ฮาร์ดโค้ด)
     $("dash-credits").textContent = info && info.total_credits != null ? t("dash.creditsVal", { n: info.total_credits }) : "-";
     $("dash-years").textContent = info && info.years != null ? t("dash.yearsVal", { n: info.years }) : "-";
@@ -798,6 +1137,7 @@
         el("span", { className: "mini-credits", text: course.credits != null ? t("dash.unit", { n: course.credits }) : "" })
       ]));
     });
+    if (loadedCourses.length > 4) previewBox.appendChild(el("p", { className: "muted", text: t("dash.more", { n: loadedCourses.length - 4 }) }));
     $("dash-course-count").textContent = t("dash.count", { n: loadedCourses.length });
   }
 
@@ -823,7 +1163,7 @@
   }
 
   // ---------- ค้นหารายวิชา (GET /api/courses?search=) ----------
-  var SEARCH_LIMIT = 20;
+  var SEARCH_LIMIT = 50;
   var SEARCH_MAX_CHARS = 100;      // ตรงกับ max_length ของ backend
   var SEARCH_DELAY_MS = 250;
   var searchPanel = $("search-panel");
@@ -843,6 +1183,9 @@
         el("span", { className: "name", text: names.primary }),
         el("span", { className: "credits", text: course.credits != null ? course.credits + " " + t("credits.unit") : "" })
       ];
+      if (course.source === "elective" || course.source === "catalog") {      // วิชานอกแผน: บอกว่ามาจากไหน
+        children.splice(2, 0, el("span", { className: "source-tag", text: t(course.source === "elective" ? "search.tagElective" : "search.tagCatalog") }));
+      }
       if (names.secondary) children.push(el("span", { className: "name-en", text: names.secondary }));
       list.appendChild(el("li", {}, [
         el("button", { className: "search-result", attrs: { type: "button", "data-code": course.code || "" } }, children)
@@ -887,10 +1230,20 @@
     try { localStorage.setItem(key, value); } catch (e) { /* โหมดส่วนตัว: ไม่บันทึกก็ใช้งานได้ */ }
   }
 
+  function currentTheme() {
+    var chosen = document.documentElement.dataset.theme;
+    if (chosen === "light" || chosen === "dark") return chosen;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";   // ยังไม่เลือก = ตามระบบ
+  }
+
+  function syncThemeButton() {
+    $("theme-toggle").textContent = t(currentTheme() === "dark" ? "theme.toLight" : "theme.toDark");   // ปุ่มบอกธีมที่จะสลับไป
+  }
+
   function applyTheme(name) {
     var theme = name === "light" ? "light" : "dark";
     document.documentElement.dataset.theme = theme;
-    $("theme-toggle").textContent = t(theme === "dark" ? "theme.toLight" : "theme.toDark");   // ปุ่มบอกธีมที่จะสลับไป
+    syncThemeButton();
     store("theme", theme);
   }
 
@@ -909,7 +1262,8 @@
     });
     document.querySelectorAll("[data-i18n-ph]").forEach(function (node) { node.placeholder = t(node.dataset.i18nPh); });
     document.querySelectorAll("[data-i18n-aria]").forEach(function (node) { node.setAttribute("aria-label", t(node.dataset.i18nAria)); });
-    applyTheme(document.documentElement.dataset.theme);
+    syncThemeButton();
+    renderTopics();
 
     if ($("health").dataset.health === "unknown") $("health").textContent = t("health.checking");
     var firstOption = $("program").options[0];
@@ -931,6 +1285,74 @@
     $("live-status").textContent = "";
   }
 
+  // ---------- หัวข้อคำถามตัวอย่าง ----------
+  var currentTopic = 0;
+  var sampleTopics = SAMPLE_TOPICS;          // รายการสำรองในไฟล์ จนกว่า /api/sample-questions จะตอบ (หรือถ้าเรียกไม่ได้)
+  var samplesRequest = 0;
+
+  // ข้อมูลของตัวอย่างหนึ่งข้อ: รายการสำรองเป็น [รหัสป้าย i18n, ไทย, อังกฤษ]; จาก API เป็น { label: {th,en}, q: {th,en} }
+  function exampleParts(example) {
+    var english = I18N && I18N.getLang() === "en";
+    if (Array.isArray(example)) return { label: t(example[0]), question: english ? example[2] : example[1] };
+    return { label: english ? example.label.en : example.label.th, question: english ? example.q.en : example.q.th };
+  }
+
+  async function loadSamples() {
+    var mine = ++samplesRequest;             // ใช้เฉพาะผลของคำขอล่าสุด (เปลี่ยนแผนเร็ว ๆ)
+    try {
+      var data = await apiFetch(withProgram("/api/sample-questions", $("program").value), {}, { timeoutMs: 10000 });
+      if (mine !== samplesRequest) return;
+      sampleTopics = sampleTopicsFromApi(data && data.topics) || SAMPLE_TOPICS;
+    } catch (err) {
+      if (mine !== samplesRequest) return;
+      sampleTopics = SAMPLE_TOPICS;          // เรียกไม่ได้ = ใช้รายการสำรอง ไม่ต้องรบกวนผู้ใช้
+    }
+    if (currentTopic >= sampleTopics.length) currentTopic = 0;
+    renderTopics();
+  }
+
+  function renderExamples() {
+    var topic = sampleTopics[currentTopic] || sampleTopics[0];
+    var list = $("examples");
+    clear(list);
+    list.className = "examples topic-" + topic.n;
+    topic.examples.forEach(function (example) {
+      var parts = exampleParts(example);
+      var button = el("button", { className: "link-button", text: parts.label, attrs: { type: "button" } });
+      button.addEventListener("click", function () {
+        $("question").value = parts.question;    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend แปลงเป็นประโยคไทยที่ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
+        runAsk();
+      });
+      list.appendChild(el("li", {}, [button]));
+    });
+  }
+
+  function renderTopics() {
+    var bar = $("topic-bar");
+    clear(bar);
+    sampleTopics.forEach(function (topic, i) {
+      var pill = el("button", { className: "topic-pill topic-" + topic.n, text: topic.emoji + " " + t("topic." + topic.key),
+        attrs: { type: "button", "aria-pressed": i === currentTopic ? "true" : "false" } });
+      pill.addEventListener("click", function () { currentTopic = i; renderTopics(); $("topic-bar").children[i].focus(); });
+      bar.appendChild(pill);
+    });
+    renderExamples();
+  }
+
+  // ---------- แท็บเครื่องมือ ----------
+  var toolTabs = ["tab-search", "tab-prereq", "tab-withdraw"].map($);
+  var toolPanels = ["search-panel", "prereq-panel", "withdraw-panel"].map($);
+
+  function selectTab(index, focus) {
+    toolTabs.forEach(function (tab, i) {
+      tab.setAttribute("aria-selected", i === index ? "true" : "false");
+      tab.tabIndex = i === index ? 0 : -1;
+      toolPanels[i].hidden = i !== index;
+    });
+    if (focus) toolTabs[index].focus();
+    store("tool-tab", String(index));
+  }
+
   // ---------- ผูกเหตุการณ์ ----------
   $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
   $("question").addEventListener("keydown", function (event) {
@@ -940,20 +1362,49 @@
     }
   });
   $("ask-retry").addEventListener("click", runAsk);
-  $("copy-button").addEventListener("click", copyResult);
-  document.querySelectorAll("[data-question]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var english = I18N && I18N.getLang() === "en" && button.dataset.questionEn;    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
-      $("question").value = english ? button.dataset.questionEn : button.dataset.question;
-      $("question").focus();
-    });
+  $("answer-text").addEventListener("click", function (event) {
+    var chip = event.target.closest("[data-overview-code]");
+    if (!chip) return;
+    var code = chip.dataset.overviewCode;
+    $("question").value = "วิชา " + code;
+    runAsk();
   });
+  $("copy-button").addEventListener("click", copyResult);
+  $("topic-bar").addEventListener("keydown", function (event) {
+    var pills = Array.prototype.slice.call($("topic-bar").children);
+    var next = nextTabIndex(pills.indexOf(document.activeElement), pills.length, event.key);
+    if (next < 0) return;
+    event.preventDefault();
+    currentTopic = next;
+    renderTopics();
+    $("topic-bar").children[next].focus();
+  });
+  $("tool-tabs").addEventListener("keydown", function (event) {
+    var next = nextTabIndex(toolTabs.indexOf(document.activeElement), toolTabs.length, event.key);
+    if (next < 0) return;
+    event.preventDefault();
+    selectTab(next, true);
+  });
+  toolTabs.forEach(function (tab, index) { tab.addEventListener("click", function () { selectTab(index, false); }); });
   $("program").addEventListener("change", function () {
     updateScope();
     loadCourses();
-    // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: กลับไปสถานะ Idle (ถ้ากำลังตรวจอยู่ปล่อยให้เสร็จก่อน)
-    if (prereqPanel.dataset.state !== "loading") setState(prereqPanel, "idle", prereqControls);
-    if (withdrawPanel.dataset.state !== "loading") setState(withdrawPanel, "idle", withdrawControls);
+    loadSamples();                           // ตัวอย่างคำถามตามแผนที่เลือก
+    // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: ถามซ้ำกับหลักสูตรใหม่ (ถ้ากำลังถามอยู่ รอให้คำขอเดิมถูกทิ้งก่อนแล้วถามใหม่)
+    [
+      ["ask", askPanel, askControls, runAsk, lastAsked, $("question")],
+      ["prereq", prereqPanel, prereqControls, runPrereq, lastPrereqCode, $("course-code")],
+      ["withdraw", withdrawPanel, withdrawControls, runWithdrawal, lastWithdrawCode, $("withdraw-code")]
+    ].forEach(function (item) {
+      var state = item[1].dataset.state;
+      if (item[4] && (state === "success" || state === "loading")) {
+        item[5].value = item[4];
+        if (state === "loading") pendingRefresh[item[0]] = true;
+        else item[3]();
+      } else if (item[0] !== "ask" && state !== "loading") {
+        setState(item[1], "idle", item[2]);          // ผลเก่า/ข้อผิดพลาดของหลักสูตรก่อนหน้า ล้างทิ้ง
+      }
+    });
   });
   $("search-form").addEventListener("submit", function (event) { event.preventDefault(); runSearch(); });
   $("search-retry").addEventListener("click", runSearch);
@@ -965,6 +1416,7 @@
     var button = event.target.closest("[data-code]");       // กดวิชาที่ค้นเจอ = ตรวจวิชาบังคับก่อนของวิชานั้นต่อเลย
     if (!button) return;
     $("course-code").value = button.dataset.code;
+    selectTab(1, false);                                   // ผลตรวจอยู่แท็บ "บังคับก่อน": สลับไปให้เห็น
     runPrereq();
     prereqPanel.scrollIntoView({ block: "nearest" });
   });
@@ -986,9 +1438,16 @@
     button.addEventListener("click", function () { applyLang(button.dataset.lang); });
   });
   $("theme-toggle").addEventListener("click", function () {
-    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeButton);
+  }
+
+  var savedTab = 0;
+  try { savedTab = parseInt(localStorage.getItem("tool-tab"), 10); } catch (e) { savedTab = 0; }
+  selectTab(savedTab >= 0 && savedTab < toolTabs.length ? savedTab : 0, false);
 
   applyLang(document.documentElement.lang === "en" ? "en" : "th");   // ภาษา/ธีมที่บันทึกไว้ถูกตั้งบน <html> ตั้งแต่ก่อนวาดหน้า
-  loadPrograms().then(function () { updateScope(); loadCourses(); });
+  loadPrograms().then(function () { updateScope(); loadCourses(); loadSamples(); });
 })();

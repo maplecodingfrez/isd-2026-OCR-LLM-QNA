@@ -1,8 +1,8 @@
 {
-  "source_courses": 38,
-  "converted_courses": 33,
-  "plan_items": 33,
-  "prerequisites": 6,
+  "source_courses": 39,
+  "converted_courses": 34,
+  "plan_items": 34,
+  "prerequisites": 8,
   "skipped_wildcards": 5,
   "skipped_flexible_plan_items": 0,
   "terms_recovered_from_markdown": [],

@@ -160,25 +160,48 @@ def extract_prerequisites(lines: Iterable[str], wanted: Iterable[str],
     out: dict[str, dict] = {}
     for code in wanted:
         results = []
+        source_headers = []
+        page = None
         for i, l in enumerate(L):
-            if not re.match(r"\s*" + re.escape(code) + r"\b", l):
+            page_match = re.match(r"--- Page (\d+) ---", l.strip())
+            if page_match:
+                page = int(page_match.group(1))
+            header = _HDR.match(l)
+            if not header:
                 continue
+            source_code = header.group(1)
+            titles = L[i + 1:i + 3]
+            exact_titles = {candidate for title in titles
+                            for candidate in names.get(re.sub(r"\s+", "", title).casefold(), set())}
+            if source_code == code and exact_titles and code not in exact_titles:
+                continue
+            if source_code != code:
+                # A typo in an unknown header code may be resolved only by one
+                # exact full title. Never redirect another known course's code.
+                if source_code in (known or set(course_names or {})) or exact_titles != {code}:
+                    continue
             # A unique exact course-title line also anchors the header when OCR
             # damaged its credit notation. Never use partial/fuzzy title matches.
             if not any(_CRED.search(x) for x in L[i:i + 3]) and not any(
                 names.get(re.sub(r"\s+", "", x).casefold()) == {code} for x in L[i + 1:i + 3]
             ):
                 continue
-            r = _one_occurrence(L, i, code, names)
+            r = _one_occurrence(L, i, source_code, names)
             if r is not None:
                 results.append(_merge(r["th"], r["en"]))
+                source_headers.append({'code': source_code, 'line': i + 1, 'pdf_page': page})
         if not results:
             out[code] = {"status": "not_found", "requires": [], "op": None, "note": None,
                          "occurrences": 0, "dropped": []}
             continue
         usable = [r for r in results if r[0] != "unreadable"] or results
-        # หลายจุดในเล่มที่ตรงกัน → ใช้ค่าที่พบบ่อยสุด
+        # Certify repeated readable occurrences only when their claims agree.
         key = lambda r: (r[0], tuple(sorted(r[1])), r[2])          # noqa: E731
+        if len({key(r) for r in usable}) > 1 or any(r[3] == 'th_en_conflict' for r in usable):
+            out[code] = {'status': 'unreadable', 'requires': [], 'op': None,
+                         'note': 'conflicting_occurrences', 'occurrences': len(results),
+                         'dropped': [], 'source_headers': source_headers}
+            continue
         best = Counter(map(key, usable)).most_common(1)[0][0]
         status, cs, op = best[0], list(best[1]), best[2]
         note = next((r[3] for r in usable if key(r) == best and r[3]), None)
@@ -192,7 +215,8 @@ def extract_prerequisites(lines: Iterable[str], wanted: Iterable[str],
             elif len(cs) == 1:
                 op = None
         out[code] = {"status": status, "requires": cs, "op": op, "note": note,
-                     "occurrences": len(results), "dropped": dropped}
+                     "occurrences": len(results), "dropped": dropped,
+                     "source_headers": source_headers}
     return out
 
 

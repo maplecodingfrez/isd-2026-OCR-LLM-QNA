@@ -383,31 +383,39 @@ def test_isd_acronym_resolves_one_course_with_existing_case_rules():
     assert cn.acronym_courses("ISD รหัสอะไร", courses + [dict(courses[0], code="06099999")]) == []
 
 
-def test_custom_user_acronyms_resolve_correctly():
-    test_courses = [
-        {"code": "06066304", "name_th": "การวิเคราะห์และออกแบบระบบสารสนเทศ", "name_en": "INFORMATION SYSTEM ANALYSIS AND DESIGN"},
-        {"code": "06066301", "name_th": "โครงสร้างข้อมูลและอัลกอริทึม", "name_en": "DATA STRUCTURES AND ALGORITHMS"},
-        {"code": "06066303", "name_th": "การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์", "name_en": "PROBLEM SOLVING AND COMPUTER PROGRAMMING"},
-        {"code": "06016402", "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ", "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS"},
-        {"code": "06016419", "name_th": "โครงสร้างพื้นฐานเครือข่ายการสื่อสาร", "name_en": "COMMUNICATION NETWORK INFRASTRUCTURE"},
-        {"code": "06036110", "name_th": "การวางแผนทรัพยากรองค์กร", "name_en": "ENTERPRISE RESOURCE PLANNING"},
-        {"code": "06046410", "name_th": "การประมวลผลภาษาธรรมชาติเบื้องต้น", "name_en": "NATURAL LANGUAGE PROCESSING"},
-        {"code": "06046413", "name_th": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง", "name_en": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"},
-    ]
-    # ISAD resolves to 06066304
-    assert [c for c, _ in cn.acronym_courses("วิชา ISAD รหัสอะไร", test_courses)] == ["06066304"]
-    # DSA resolves to 06066301
-    assert [c for c, _ in cn.acronym_courses("วิชา DSA รหัสอะไร", test_courses)] == ["06066301"]
-    assert [c for c, _ in cn.acronym_courses("วิชา dsa กี่หน่วยกิต", test_courses)] == ["06066301"]
-    # PSP resolves to 06066303
-    assert [c for c, _ in cn.acronym_courses("วิชา PSP รหัสอะไร", test_courses)] == ["06066303"]
-    # ITF resolves to 06016402
-    assert [c for c, _ in cn.acronym_courses("วิชา ITF รหัสอะไร", test_courses)] == ["06016402"]
-    # CNI resolves to 06016419
-    assert [c for c, _ in cn.acronym_courses("วิชา CNI รหัสอะไร", test_courses)] == ["06016419"]
-    # ERP resolves to 06036110
-    assert [c for c, _ in cn.acronym_courses("วิชา ERP รหัสอะไร", test_courses)] == ["06036110"]
-    # NLP resolves to 06046410
-    assert [c for c, _ in cn.acronym_courses("วิชา NLP รหัสอะไร", test_courses)] == ["06046410"]
-    # AIoT resolves to 06046413
-    assert [c for c, _ in cn.acronym_courses("วิชา AIoT รหัสอะไร", test_courses)] == ["06046413"]
+ADDED_ALIAS_CASES = [
+    (('ISAD',), '06066304', 'ANALYSIS AND DESIGN', 'การวิเคราะห์และออกแบบ'),
+    (('DSA', 'DSAA', 'DSDA'), '06066301', 'DATA STRUCTURES AND ALGORITHMS', 'โครงสร้างข้อมูลและอัลกอริทึม'),
+    (('PSP', 'PSCP'), '06066303', 'PROBLEM SOLVING AND COMPUTER PROGRAMMING', 'การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์'),
+    (('DISCRETE',), '06066000', 'DISCRETE MATHEMATICS', 'คณิตศาสตร์ไม่ต่อเนื่อง'),
+    (('ITF',), '06016402', 'INFORMATION TECHNOLOGY FUNDAMENTALS', 'พื้นฐานทางด้านเทคโนโลยีสารสนเทศ'),
+    (('CNI', 'COMM NET'), '06016419', 'COMMUNICATION NETWORK INFRASTRUCTURE', 'โครงสร้างพื้นฐานเครือข่ายการสื่อสาร'),
+    (('BDS',), '06026213', 'BIG DATA SYSTEMS', 'ระบบข้อมูลมหัต'),
+    (('ERP',), '06036110', 'ENTERPRISE RESOURCE PLANNING', 'การวางแผนทรัพยากรองค์กร'),
+    (('BISAD',), '06036121', 'BUSINESS INFORMATION SYSTEM ANALYSIS AND DESIGN', 'การวิเคราะห์และออกแบบระบบสารสนเทศทางธุรกิจ'),
+    (('AIoT',), '06046413', 'ARTIFICIAL INTELLIGENCE AND INTERNET OF THING', 'ปัญญาประดิษฐ์และอินเทอร์เน็ต'),
+    (('NoSQL DB',), '06016414', 'NOSQL DATABASE SYSTEMS', 'ระบบฐานข้อมูลแบบโนเอสคิวแอล'),
+]
+
+
+def test_added_catoz_aliases_resolve_without_relaxing_existing_rules():
+    for aliases, code, en, th in ADDED_ALIAS_CASES:
+        courses = [{'code': code, 'name_en': en, 'name_th': th}]
+        for alias in aliases:
+            for spelling in (alias, alias.lower(), alias.upper()):
+                assert [c for c, _ in cn.acronym_courses(f'วิชา {spelling} รหัสอะไร', courses)] == [code], spelling
+            assert cn.acronym_courses(f'วิชา {alias} รหัสอะไร', []) == []
+            assert cn.acronym_courses(f'วิชา X{alias} รหัสอะไร', courses) == []
+            assert cn.acronym_courses(f'วิชา {alias}2 รหัสอะไร', courses) == []
+            assert cn.acronym_courses(f'5 {alias.lower()}', courses) == []
+            assert cn.acronym_courses(f'what is {alias.lower()} about', courses) == []
+            ambiguous = courses + [dict(courses[0], code='06099999', name_en=en+' ADVANCED', name_th=th+'ขั้นสูง')]
+            assert cn.acronym_courses(f'วิชา {alias} รหัสอะไร', ambiguous) == []
+
+
+def test_unverified_crm_and_ambiguous_nlp_are_not_added():
+    courses = [{'code': '06046414', 'name_en': 'NATURAL LANGUAGE PROCESSING', 'name_th': 'การประมวลผลภาษาธรรมชาติ'},
+               {'code': '06046410', 'name_en': 'DEEP LEARNING FOR NATURAL LANGUAGE PROCESSING', 'name_th': 'การเรียนรู้เชิงลึกสำหรับการประมวลผลภาษาธรรมชาติ'},
+               {'code': '06099999', 'name_en': 'CUSTOMER RELATIONSHIP MANAGEMENT', 'name_th': 'การบริหารลูกค้าสัมพันธ์'}]
+    assert cn.acronym_courses('วิชา NLP รหัสอะไร', courses) == []
+    assert cn.acronym_courses('วิชา CRM รหัสอะไร', courses) == []
