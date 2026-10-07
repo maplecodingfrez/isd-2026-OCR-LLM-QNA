@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Curriculum Book Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="site-head">
+    <div class="site-identity">
+      <h1>Curriculum Book Assistant</h1>
+      <p class="site-description">ถามเรื่องหลักสูตร ค้นรายวิชา และตรวจวิชาบังคับก่อน</p>
+    </div>
+    <p id="health" class="health" data-health="unknown">กำลังตรวจสถานะระบบ…</p>
+  </header>
+
+  <main>
+    <noscript><p class="muted">หน้านี้ต้องเปิดใช้ JavaScript</p></noscript>
+    <p id="live-status" class="visually-hidden" role="status"></p>
+
+    <section id="ask-panel" class="panel panel-ask" data-state="idle" aria-labelledby="ask-title">
+      <h2 id="ask-title">ถามเรื่องเล่มหลักสูตร</h2>
+      <form id="ask-form" novalidate>
+        <label for="program">หลักสูตรและแผนการเรียน</label>
+        <select id="program"><option value="">กำลังโหลด…</option></select>
+        <label for="question">คำถาม</label>
+        <textarea id="question" rows="4" aria-describedby="question-guide" placeholder="เช่น ปี 1 เทอม 1 เรียนกี่หน่วยกิต"></textarea>
+        <p id="question-guide" class="muted field-guide">พิมพ์คำถามภาษาไทย 2–500 ตัวอักษร</p>
+        <button type="submit" id="ask-button" data-busy-label="กำลังค้น…">ถาม</button>
+      </form>
+
+      <div class="question-examples">
+        <p class="muted">คำตอบมาจากเล่มหลักสูตรพร้อมเลขหน้าอ้างอิง ลองเลือกคำถาม:</p>
+        <ul class="examples">
+          <li><button type="button" class="link-button" data-question="หลักสูตรนี้มีหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต">หน่วยกิตรวมตลอดหลักสูตร</button></li>
+          <li><button type="button" class="link-button" data-question="ในแผนการศึกษา ชั้นปีที่ 2 ภาคการศึกษาที่ 1 มีรายวิชาทั้งหมดกี่วิชา">จำนวนวิชาปี 2 เทอม 1</button></li>
+          <li><button type="button" class="link-button" data-question="ปี 1 เทอม 1 เรียนกี่หน่วยกิต">หน่วยกิตปี 1 เทอม 1</button></li>
+          <li><button type="button" class="link-button" data-question="ปี 2 เทอม 1 เรียนวิชาอะไรบ้าง">รายวิชาปี 2 เทอม 1</button></li>
+          <li><button type="button" class="link-button" data-question="วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง">วิชาเลือกของหลักสูตร</button></li>
+          <li><button type="button" class="link-button" data-question="มีวิชาเกี่ยวกับฐานข้อมูลไหม">ค้นวิชาตามหัวข้อ (เช่น ฐานข้อมูล)</button></li>
+        </ul>
+      </div>
+
+      <div class="state-loading">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>กำลังค้นในเล่มหลักสูตร โดยปกติใช้ 10–60 วินาที</span>
+      </div>
+
+      <div class="state-success">
+        <h3 class="result-heading">คำตอบจากเล่มหลักสูตร</h3>
+        <div id="answer-box" class="answer-box">
+          <ol id="cite-tabs" class="cite-tabs" aria-label="หน้าอ้างอิงในเล่มหลักสูตร"></ol>
+          <div class="answer-body">
+            <div id="answer-text" class="answer-text"></div>
+            <p id="answer-hint" class="muted" hidden>ลองระบุปีหรือเทอมให้ชัดขึ้น</p>
+            <details id="citation-details" hidden>
+              <summary>รายวิชาที่ใช้อ้างอิงในแต่ละหน้า</summary>
+              <ul id="cite-detail" class="cite-detail muted" aria-label="วิชาที่พบในแต่ละหน้าอ้างอิง"></ul>
+            </details>
+            <p id="answer-cite" class="muted"></p>
+            <p id="answer-source" class="muted"></p>
+            <div class="answer-actions">
+              <button type="button" id="copy-button" class="secondary">คัดลอกผล</button>
+            </div>
+            <p id="copy-hint" class="muted" hidden>คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง</p>
+            <textarea id="copy-fallback" rows="6" readonly hidden aria-label="ผลลัพธ์ในรูป JSON สำหรับคัดลอก"></textarea>
+            <details>
+              <summary>ดูข้อมูลที่ใช้ตอบ</summary>
+              <h3>SQL อ้างอิง</h3>
+              <p class="muted">คำค้นประกอบคำตอบ ทางลัดอาจใช้หลายคำค้นและคำนวณเพิ่มเติม</p>
+              <pre id="sql-text"></pre>
+              <h3>ข้อมูลจากฐานข้อมูล</h3>
+              <pre id="rows-text"></pre>
+              <p id="elapsed-text" class="muted"></p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div class="state-error">
+        <p id="ask-error-title" class="error-title"></p>
+        <p id="ask-error-action"></p>
+        <details id="ask-error-more" hidden>
+          <summary>รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <pre id="ask-error-detail"></pre>
+        </details>
+        <button type="button" id="ask-retry">ลองอีกครั้ง</button>
+      </div>
+    </section>
+
+    <section id="prereq-panel" class="panel panel-prereq" data-state="idle" aria-labelledby="prereq-title">
+      <h2 id="prereq-title">ตรวจวิชาบังคับก่อน</h2>
+      <p id="prereq-scope" class="muted" hidden></p>
+      <form id="prereq-form" class="inline-form" novalidate>
+        <label for="course-code">รหัสวิชา 8 หลัก</label>
+        <input id="course-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
+        <datalist id="courses-list"></datalist>
+        <button type="submit" id="prereq-button" data-busy-label="กำลังตรวจ…">ตรวจ</button>
+      </form>
+
+      <div class="state-idle">
+        <p class="muted">ดูว่าวิชาไหนต้องผ่านก่อน และเรียนวิชานี้แล้วปลดล็อกวิชาอะไรต่อ</p>
+        <p id="prereq-samples-wrap" class="muted" hidden>ลองรหัส: <span id="prereq-samples"></span></p>
+      </div>
+
+      <div class="state-loading">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>กำลังตรวจข้อมูลวิชา…</span>
+      </div>
+
+      <div class="state-success">
+        <h3 id="prereq-course"></h3>
+        <p id="prereq-meta" class="muted"></p>
+        <h4>วิชาที่ต้องผ่านก่อน</h4>
+        <ul id="prereq-required" class="course-list"></ul>
+        <h4>รายวิชาที่มีวิชานี้เป็นเงื่อนไข</h4>
+        <p class="muted">การลงทะเบียนยังขึ้นกับเงื่อนไขอื่นของแต่ละรายวิชา</p>
+        <ul id="prereq-unlocks" class="course-list"></ul>
+        <p id="prereq-citations" class="muted"></p>
+      </div>
+
+      <div class="state-error">
+        <p id="prereq-error-title" class="error-title"></p>
+        <p id="prereq-error-action"></p>
+        <details id="prereq-error-more" hidden>
+          <summary>รายละเอียดจากเซิร์ฟเวอร์</summary>
+          <pre id="prereq-error-detail"></pre>
+        </details>
+        <button type="button" id="prereq-retry">ลองอีกครั้ง</button>
+      </div>
+    </section>
+  </main>
+  <section id="withdraw-panel" class="panel panel-prereq withdraw-panel" data-state="idle" aria-labelledby="withdraw-title">
+    <h2 id="withdraw-title">ถ้าถอนวิชานี้ จะกระทบวิชาอะไรต่อ?</h2>
+    <p id="withdraw-scope" class="muted"></p>
+    <form id="withdraw-form" class="inline-form" novalidate>
+      <label for="withdraw-code">รหัสวิชาที่กำลังพิจารณาถอน</label>
+      <input id="withdraw-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" placeholder="ตัวเลข 8 หลัก">
+      <button type="submit" id="withdraw-button" data-busy-label="กำลังตรวจ…">ตรวจผลกระทบ</button>
+    </form>
+    <div class="state-idle"><p class="muted">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
+    <div class="state-loading"><span class="spinner" aria-hidden="true"></span> กำลังตรวจเส้นทางวิชา…</div>
+    <div class="state-success">
+      <h3 id="withdraw-course"></h3><p id="withdraw-note" class="muted"></p>
+      <h4>ตัวต่อโดยตรง</h4><ul id="withdraw-direct" class="course-list"></ul>
+      <h4>ตัวต่อทางอ้อม</h4><ul id="withdraw-indirect" class="course-list"></ul>
+      <p id="withdraw-citations" class="muted"></p>
+    </div>
+    <div class="state-error">
+      <p id="withdraw-error-title" class="error-title"></p><p id="withdraw-error-action"></p>
+      <details id="withdraw-error-more"><summary>รายละเอียดจากเซิร์ฟเวอร์</summary><pre id="withdraw-error-detail"></pre></details>
+      <button type="button" id="withdraw-retry">ลองอีกครั้ง</button>
+    </div>
+  </section>
+</body>
+</html>
