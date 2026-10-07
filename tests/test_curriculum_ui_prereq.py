@@ -54,9 +54,9 @@ def test_or_group_prerequisite_is_labelled_in_thai_and_english(tmp_path):
 
 def test_prerequisite_list_renders_through_prerequisite_display():
     js = APP_JS.read_text(encoding="utf-8")
-    # regression: the label function existed but fillCourseList never called it, so OR groups read as AND
-    assert re.search(r'fillCourseList\(\$\("prereq-required"\),[^;]*prerequisiteDisplay\)', js)
-    assert "format(course)" in js
+    # regression: OR groups read as AND because the label never reached the rendered list; the tag now rides on each course line
+    assert re.search(r'fillCourseList\(\$\("prereq-required"\),[^;]*prereqTag\)', js)
+    assert "buildCourseLine(entryFromCourse(course, { tag:" in js
 
 
 def test_i18n_has_both_languages_for_prerequisite_labels(tmp_path):

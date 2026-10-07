@@ -63,7 +63,7 @@ def test_course_without_english_name_or_hours_still_parses(tmp_path):
     assert entry["name"] == "วิชาก" and entry["nameEn"] == "" and entry["hours"] is None
 
 
-@pytest.mark.parametrize("text", ["06026200 (แคลคูลัส 1)", "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", "", "18 ครั้ง", "06016403 ชื่อ — 3 หน่วยกิตเกิน"])
+@pytest.mark.parametrize("text", ["06026200", "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", "", "18 ครั้ง", "06016403 ชื่อ — 3 หน่วยกิตเกิน"])
 def test_lines_that_are_not_course_lines_fall_back_to_plain_text(tmp_path, text):
     assert parse(tmp_path, text) == [None]
 
@@ -75,3 +75,42 @@ def test_consecutive_course_paragraphs_become_one_block_and_others_stay(tmp_path
       process.stdout.write(JSON.stringify(blocks.map(b => b.type + ":" + (b.entries ? b.entries.length : 1))));
     ''')
     assert out == ["courses:3", "paragraph:1", "list:1"]
+
+
+def test_bare_code_and_name_answer_becomes_a_line_without_credits(tmp_path):
+    (entry,) = parse(tmp_path, "06026200 (แคลคูลัส 1)")
+    assert entry["kind"] == "course" and entry["code"] == "06026200" and entry["name"] == "แคลคูลัส 1"
+    assert entry["credits"] is None and entry["hours"] is None
+
+
+def test_withdrawal_path_suffix_is_kept_as_a_tag(tmp_path):
+    (entry,) = parse(tmp_path, "06026201 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต (เส้นทาง 06026200 → 06026201)")
+    assert entry["code"] == "06026201" and entry["path"] == "06026200 → 06026201"
+    assert entry["credits"] == "3" and entry["hours"] == ["3", "0", "6"]
+
+
+def test_bulleted_course_lists_are_grouped_but_mixed_lists_are_not(tmp_path):
+    out = run_js(tmp_path, '''
+      const line = "06026201 แคลคูลัส 2 / CALCULUS 2 — 3 (3-0-6) หน่วยกิต (เส้นทาง 06026200 → 06026201)";
+      const blocks = m.groupCourseBlocks([{type: "list", items: [line]}, {type: "list", items: [line, "ข้อความอื่น"]}]);
+      process.stdout.write(JSON.stringify(blocks.map(b => b.type)));
+    ''')
+    assert out == ["courses", "list"]
+
+
+@pytest.mark.parametrize("display,expected", [
+    ("3 (2-2-5)", {"credits": "3", "hours": ["2", "2", "5"]}),
+    (3, {"credits": "3", "hours": None}),
+    ("", {"credits": "", "hours": None}),
+])
+def test_split_credits_from_the_api_display_value(tmp_path, display, expected):
+    out = run_js(tmp_path, f"process.stdout.write(JSON.stringify(m.splitCredits({json.dumps(display)})));")
+    assert out == expected
+
+
+def test_prerequisite_tag_marks_co_requisites_and_option_groups_only(tmp_path):
+    out = run_js(tmp_path, '''
+      const tag = c => m.prereqTag(c);
+      process.stdout.write(JSON.stringify([tag({kind: "pre"}), tag({kind: "co"}), tag({kind: "pre", alternative_group: 2})]));
+    ''')
+    assert out[0] == "" and out[1] == "เรียนร่วมกัน" and "กลุ่ม 2" in out[2] and "ผ่านอย่างใดอย่างหนึ่ง" in out[2]
