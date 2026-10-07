@@ -5458,6 +5458,12 @@ def ask(conn: sqlite3.Connection, question: str,
     ถ้ารันไม่ผ่าน จะให้โมเดลลองใหม่หนึ่งครั้งพร้อมข้อความ error
     แล้วถ้ายังไม่ผ่านอีก ให้ยอมแพ้ ไม่เดาคำตอบ
     """
+    from english_questions import english_to_thai
+    thai_form = english_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
+    if thai_form:
+        routed = ask(conn, thai_form, verbose=verbose)
+        routed["question"] = question                       # เก็บข้อความเดิมของผู้ใช้
+        return routed
     result: dict[str, Any] = {
         "question": question, "sql": None, "rows": [], "answer": None,
         "error": None, "sql_model_output": None, "answer_model_output": None,
