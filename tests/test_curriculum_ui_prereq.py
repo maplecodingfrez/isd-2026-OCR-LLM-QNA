@@ -93,3 +93,12 @@ def test_overview_card_does_not_show_the_internal_plan_id_or_the_cryptic_credit_
     js = APP_JS.read_text(encoding="utf-8")
     assert "dash-program-badge" not in html and "dash-program-badge" not in js    # showed the raw id, for example dsba_coop
     assert '"dash.unit": ["{n} หน่วยกิต"' in I18N_JS.read_text(encoding="utf-8")  # was "{n} น."
+
+
+def test_search_results_tag_courses_outside_the_plan_and_the_idle_hint_names_acronyms():
+    js = APP_JS.read_text(encoding="utf-8")
+    i18n = I18N_JS.read_text(encoding="utf-8")
+    assert 'course.source === "elective" || course.source === "catalog"' in js and '"search.tagElective"' in i18n
+    assert 'data.prerequisite_status === "not_in_plan"' in js and '"prereq.notInPlan"' in i18n
+    idle = next(line for line in i18n.splitlines() if line.strip().startswith('"search.idle"'))
+    assert "DB" in idle and "ML" in idle                                         # the hint tells people acronyms work
