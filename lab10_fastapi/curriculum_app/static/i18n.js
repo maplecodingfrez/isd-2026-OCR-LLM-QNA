@@ -80,6 +80,7 @@
     "answer.sourceDefault": ["ตอบจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้", "Answered from the server's default program"],
     "answer.hintGeneric": ["ลองใช้รหัสวิชา 8 หลัก หรือค้นชื่อวิชาในแท็บ “ค้นหารายวิชา”", "Try an 8-digit course code, or look the course up in the “Find courses” tab"],
     "dash.more": ["…และอีก {n} รายวิชา · ค้นได้จากแท็บ “ค้นหารายวิชา”", "…and {n} more · find them in the “Find courses” tab"],
+    "notfound.note": ["ระบบตอบเฉพาะที่มีอยู่ในเล่ม จึงไม่เดาคำตอบให้", "The system only answers from what is in the book, so it does not guess."],
     "answer.hint": ["ลองระบุปีหรือเทอมให้ชัดขึ้น", "Try specifying the year or semester"],
     "answer.none": ["(เซิร์ฟเวอร์ไม่ได้ส่งคำตอบกลับมา)", "(The server returned no answer)"],
     "cite.title": ["แหล่งอ้างอิงในเล่มหลักสูตร", "Sources in the curriculum book"],

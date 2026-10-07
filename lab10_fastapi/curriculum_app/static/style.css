@@ -292,7 +292,7 @@ textarea#question::placeholder { color: var(--muted); }
 }
 .answer-header-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ai-tag { font-family: var(--font-head); font-weight: 700; color: var(--accent); }
-#answer-source { color: var(--muted); font-size: 15px; }
+#answer-source { padding: 0 12px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; }   /* the plan the answer came from: seven plans share one page */
 .elapsed-pill {
   font-size: 15px; font-weight: 600; padding: 3px 12px; border-radius: 999px;
   background: var(--ok-bg); color: var(--ok-fg); white-space: nowrap;
@@ -531,3 +531,20 @@ details[open] > summary::before { transform: rotate(0deg); }
 /* answer footer holds two copy actions; the "/" hint only helps people with a keyboard */
 .hint-extra { white-space: nowrap; }
 @media (pointer: coarse), (max-width: 580px) { .hint-extra { display: none; } }
+
+/* "not found" is a valid answer: calm, plain, with a next step instead of an amber warning */
+.answer-card.is-notfound .answer-text p { font-family: var(--font-head); font-weight: 700; font-size: 18px; }
+.notfound-note { margin-top: 6px; color: var(--muted); font-size: 15px; }
+.answer-card.is-notfound #answer-hint { background: var(--surface-2); color: var(--text); border: 2px dashed var(--line); }
+
+/* print / save as PDF: the answer and its page references only, in black on white whatever the theme */
+@media print {
+  .site-header, .tools, .question-examples, .examples-drawer, .omnibox, .ask-help, .hero-meta-bar, .answer-footer,
+  .examiner-drawer, .minimal-stats-grid, .state-loading, .state-error, #live-status { display: none !important; }
+  * { color: #000 !important; background: #fff !important; border-color: #999 !important; animation: none !important; }
+  ::placeholder { color: #000 !important; }
+  .layout { display: block; }
+  main { max-width: none; padding: 0; }
+  .answer-card, .cite-block { break-inside: avoid; }
+  .answer-card::before { content: attr(data-question); display: block; padding: 8px 16px; font-family: var(--font-head); font-weight: 700; font-size: 18px; border-bottom: 1px solid #999; }
+}

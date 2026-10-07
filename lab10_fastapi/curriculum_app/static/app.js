@@ -848,7 +848,7 @@
 
   // เลขเดี่ยวในคำตอบนับขึ้นจาก 0 ใน 0.7 วินาที; ตัวเลขสุดท้ายตรงกับข้อมูลเสมอ และข้ามเมื่อผู้ใช้ปิดแอนิเมชัน
   function animateCount(node, target) {
-    if (!window.requestAnimationFrame || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    if (!window.requestAnimationFrame || document.hidden || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;   // แท็บซ่อนอยู่ rAF หยุด: โชว์เลขจริงเลย ไม่ค้างที่ 0
     var start = null;
     node.textContent = "0";
     function tick(now) {
@@ -888,6 +888,7 @@
     if (cards) clear(cards);
 
     $("answer-box").classList.toggle("is-empty", isEmptyResult(data));
+    $("answer-box").dataset.question = typeof data.question === "string" ? data.question : "";   // ใช้ตอนพิมพ์: หน้ากระดาษต้องมีคำถามกำกับคำตอบ
     var answer = $("answer-text");
     clear(answer);
     var groupedQuestion = (/วิชาเลือก|กลุ่มวิชา/.test(data.question || "") && /อะไรบ้าง|วิชาอะไร|รายชื่อ|ให้เลือก/.test(data.question || "")) ||
@@ -922,6 +923,8 @@
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
     var noAnswer = noRealAnswer(data);
     $("answer-hint").hidden = !noAnswer;                  // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
+    $("answer-box").classList.toggle("is-notfound", noAnswer);   // "ไม่พบ" เป็นคำตอบที่ถูกต้อง: หน้าตาสงบ ไม่ใช่คำเตือน
+    $("notfound-note").hidden = !noAnswer;
     var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
     $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
     // กล่องแหล่งอ้างอิงด้านล่างเหลือไว้เฉพาะกรณีมีแค่ข้อความอ้างอิง (ไม่มีเลขหน้า); เลขหน้าอยู่ในแถวตราด้านบนแล้ว
