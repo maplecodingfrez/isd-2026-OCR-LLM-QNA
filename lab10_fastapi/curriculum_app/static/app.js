@@ -380,6 +380,38 @@
     return null;
   }
 
+  // โครงสร้างหน่วยกิต: "หมวด: N หน่วยกิต — ประกอบด้วย กลุ่ม n, กลุ่ม n (หมายเหตุ)" -> {title, credits, parts:[{name, credits}], note}
+  // ไม่ตรงรูปแบบ (รวมถึงส่วนย่อยที่ไม่มีตัวเลขท้าย) = null แล้วแสดงเป็นข้อความเดิม
+  var CREDIT_LINE = /^([^:()]+?):\s*(\d+)\s*หน่วยกิต(?:\s*—\s*ประกอบด้วย\s*(.+?))?(?:\s*\(([^)]*)\))?\s*$/;
+
+  function parseCreditLine(text) {
+    var m = CREDIT_LINE.exec(String(text == null ? "" : text).trim());
+    if (!m) return null;
+    var parts = [];
+    if (m[3]) {
+      var pieces = m[3].split(/,\s*/);
+      for (var i = 0; i < pieces.length; i++) {
+        var p = /^(.+?)\s+(\d+)$/.exec(pieces[i].trim());
+        if (!p) return null;
+        parts.push({ name: p[1], credits: parseInt(p[2], 10) });
+      }
+    }
+    return { title: m[1].trim(), credits: parseInt(m[2], 10), parts: parts, note: m[4] ? m[4].trim() : null };
+  }
+
+  // ย่อหน้าโครงสร้างหน่วยกิตที่ติดกันรวมเป็นบล็อก {type:"credits", entries} เดียว
+  function groupCreditBlocks(blocks) {
+    var out = [];
+    blocks.forEach(function (block) {
+      var entry = block.type === "paragraph" ? parseCreditLine(block.text) : null;
+      if (!entry) { out.push(block); return; }
+      var last = out[out.length - 1];
+      if (last && last.type === "credits") last.entries.push(entry);
+      else out.push({ type: "credits", entries: [entry] });
+    });
+    return out;
+  }
+
   // "3 (2-2-5)" จาก API → { credits: "3", hours: ["2","2","5"] | null }
   function splitCredits(display) {
     var m = /^\s*(\d+)(?:\s*\((\d+)-(\d+)-(\d+)\))?\s*$/.exec(String(display == null ? "" : display));
@@ -411,6 +443,8 @@
   }
 
   var api = {
+    parseCreditLine: parseCreditLine,
+    groupCreditBlocks: groupCreditBlocks,
     sampleTopicsFromApi: sampleTopicsFromApi,
     noRealAnswer: noRealAnswer,
     splitCredits: splitCredits,
@@ -664,6 +698,28 @@
     });
   }
 
+  // การ์ดโครงสร้างหน่วยกิต: ชื่อหมวด + หน่วยกิตรวมตัวใหญ่ + แถบเทียบแต่ละกลุ่ม (ตัวเลขอยู่ในข้อความเสมอ แถบเป็นภาพประกอบ)
+  function buildCreditCard(entry) {
+    var children = [el("div", { className: "credit-head" }, [
+      el("span", { className: "credit-title", text: entry.title }),
+      el("span", { className: "credit-total" }, [
+        el("span", { className: "count-big", text: String(entry.credits) }),
+        document.createTextNode(" " + t("credits.unit"))
+      ])
+    ])];
+    if (entry.parts.length) {
+      children.push(el("ul", { className: "credit-parts" }, entry.parts.map(function (part) {
+        return el("li", { className: "credit-part" }, [
+          el("span", { className: "credit-name", text: part.name }),
+          el("progress", { className: "credit-bar", attrs: { max: String(entry.credits), value: String(part.credits), "aria-hidden": "true" } }),
+          el("span", { className: "credit-value", text: String(part.credits) })
+        ]);
+      })));
+    }
+    if (entry.note) children.push(el("p", { className: "credit-note muted", text: entry.note }));
+    return el("section", { className: "credit-card" }, children);
+  }
+
   function renderCourseLines(answer, entries) {
     var lead = entries[0].lead;
     if (lead) answer.appendChild(el("p", { className: "course-lead", text: lead }));
@@ -729,10 +785,12 @@
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
     if (groups.length) renderElectiveGroups(answer, groups, data);
-    else groupCourseBlocks(answerBlocks(data)).forEach(function (block, _i, blocks) {
+    else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
       if (block.type === "courses") {
         renderCourseLines(answer, block.entries);
+      } else if (block.type === "credits") {
+        block.entries.forEach(function (entry) { answer.appendChild(buildCreditCard(entry)); });
       } else if (counted) {
         var number = el("span", { className: "count-big", text: String(counted.n) });
         answer.appendChild(el("p", {}, [document.createTextNode(counted.before), number, document.createTextNode(counted.after)]));

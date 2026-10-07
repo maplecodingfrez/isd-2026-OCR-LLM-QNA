@@ -52,6 +52,7 @@ def _facts(conn) -> dict:
         "with_prereq": first_with_prereq,
         "named": named,
         "has_lab": (_one(conn, "SELECT COUNT(*) FROM course WHERE lab_h > 2") or 0) > 0,
+        "has_structure": _table_exists(conn, "credit_structure") and (_one(conn, "SELECT COUNT(*) FROM credit_structure") or 0) > 0,
         "has_ge": _table_exists(conn, "credit_structure")
                   and (_one(conn, "SELECT COUNT(*) FROM credit_structure WHERE name_th LIKE '%ศึกษาทั่วไป%'") or 0) > 0,
         "has_free": _table_exists(conn, "plan_slot")
@@ -72,9 +73,11 @@ def build_samples(conn, has_sibling: bool) -> list[dict]:
     if f["has_ge"]:
         credits.append(_example("หน่วยกิตหมวดศึกษาทั่วไป", "General education credits",
                                 "หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต", "How many credits does the general education category need?"))
-    else:
+    elif f["has_structure"]:
         credits.append(_example("หน่วยกิตแต่ละหมวดวิชา", "Credits per category",
                                 "หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต", "How many credits are required in each course category?"))
+    else:        # no credit structure in this plan's data (BIT): "per category" would only answer "no data"
+        credits.append(_example("หน่วยกิตรวมปี 4", "Year 4 credits", "ปี 4 เรียนรวมกี่หน่วยกิต", "How many credits in year 4?"))
     topics["credits"] = credits
 
     topics["term"] = [
