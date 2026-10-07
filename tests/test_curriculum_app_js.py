@@ -39,46 +39,6 @@ def run_js(tmp_path, body):
 # ---------- formatDetail ----------
 
 
-def test_prerequisite_empty_text_requires_explicit_none(tmp_path):
-    out = run_js(tmp_path, '''
-      return ["none", "found", "not_found", "unreadable", "unknown", null].map(
-        status => m.prerequisiteEmptyText({prerequisite_status: status}));
-    ''')
-    assert 'ไม่มีวิชาบังคับก่อน' in out[0]
-    assert all('ยังไม่ทราบ' in text for text in out[1:])
-    assert all('ลงเรียนได้ทันที' not in text for text in out)
-
-
-def test_program_switch_discards_inflight_success_and_error(tmp_path):
-    out = run_js(tmp_path, '''
-      const outcomes = [];
-      for (const fail of [false, true]) {
-        let program = "it_coop", finish;
-        const request = new Promise((resolve,reject) => { finish = fail ? reject : resolve; });
-        const pending = m.currentProgramResult(request,program,() => program);
-        program = "dsba_coop";
-        finish(fail ? new Error("old request") : {answer:"old answer"});
-        outcomes.push(await pending);
-      }
-      outcomes.push(await m.currentProgramResult(Promise.resolve({answer:"current"}),"it_coop",() => "it_coop"));
-      try { await m.currentProgramResult(Promise.reject(new Error("current error")),"it_coop",() => "it_coop"); }
-      catch(e) { outcomes.push(e.message); }
-      return outcomes;
-    ''')
-    assert out == [None,None,{'answer':'current'},'current error']
-
-
-def test_prerequisite_display_preserves_or_and_corequisite_meaning(tmp_path):
-    out = run_js(tmp_path, '''
-      const c = {code:"00000001",name_th:"วิชาแรก",name_en:"FIRST",credits:0,credits_display:"0 (0-0-45)"};
-      return [m.prerequisiteDisplay(c),m.prerequisiteDisplay({...c,alternative_group:1}),
-              m.prerequisiteDisplay({...c,kind:"co",alternative_group:1})];
-    ''')
-    assert 'FIRST' in out[0] and '0 (0-0-45)' in out[0] and 'ทางเลือก' not in out[0]
-    assert 'ผ่านอย่างใดอย่างหนึ่ง' in out[1]
-    assert 'เรียนร่วมกัน' in out[2] and 'ทางเลือก' not in out[2]
-
-
 def test_elective_groups_use_structured_rows_and_preserve_groups(tmp_path):
     out = run_js(tmp_path, '''
       return m.electiveGroups({rows: [

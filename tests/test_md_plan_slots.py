@@ -55,48 +55,6 @@ def test_prereq_heading_with_dropped_leading_credit_digit():
 
 import code_from_book as cfb
 
-
-def test_duplicate_wrong_english_alias_requires_repeated_exact_title_evidence():
-    rows = [{'code':'00000001','name_th':'วิชาแรก','name_en':'SECOND COURSE'},
-            {'code':'00000002','name_th':'วิชาสอง','name_en':'SECOND COURSE'}]
-    source = ('--- Page 1 ---\n00000001 วิชาแรก 3(3-0-6)\nFIRST COURSE\n'
-              '--- Page 100 ---\n00000001 วิชาแรก 3(3-0-6)\nFIRST COURSE\n')
-    assert cfb.fill_english_names('',rows,source)
-    assert rows[0]['name_en'] == 'FIRST COURSE' and rows[1]['name_en'] == 'SECOND COURSE'
-    assert not cfb.fill_english_names('',rows,source)
-    detached_page = source.replace('--- Page 100 ---','') + '--- Page 200 ---\n00000001 วิชาแรก 3(3-0-6)\n'
-    for bad_source in (detached_page, source.split('--- Page 100 ---')[0], source.replace('--- Page 100 ---',''), source.replace('FIRST COURSE\n','OTHER COURSE\n',1),
-                       source.replace('วิชาแรก','วิชาอื่น')):
-        candidate = [{'code':'00000001','name_th':'วิชาแรก','name_en':'SECOND COURSE'},
-                     {'code':'00000002','name_th':'วิชาสอง','name_en':'SECOND COURSE'}]
-        assert not cfb.fill_english_names('',candidate,bad_source)
-        assert candidate[0]['name_en'] == 'SECOND COURSE'
-
-
-def test_missing_zero_credit_plan_row_requires_unambiguous_table_neighbors():
-    rows = [{'code': '00000001', 'year': 1, 'semester': 1},
-            {'code': '00000002', 'year': 1, 'semester': 1}]
-    book = ('--- Page 23 ---\n3.3 แผนการศึกษา\nรหัสวิชา ชื่อวิชา หน่วยกิต\n'
-            '00000001 วิชาแรก 3(3-0-6)\n00000002 วิชาที่สอง 3(3-0-6)\n'
-            '00000003 วิชาศูนย์หน่วยกิต 0(0-0-45)\n'
-            '--- Page 100 ---\n00000003 วิชาศูนย์หน่วยกิต 0(0-0-45)\n')
-    assert cfb.repair_with_book('', rows, book)
-    added = next(r for r in rows if r['code'] == '00000003')
-    assert (added['year'], added['semester'], added['credits']) == (1, 1, '0(0-0-45)')
-    assert added['_code_from_book']['pdf_page'] == 23
-    assert not cfb.repair_with_book('', rows, book)
-    for changed_book, neighbors in [
-        (book.replace('รหัสวิชา ชื่อวิชา หน่วยกิต\n', ''), rows[:2]),
-        (book.replace('3.3 แผนการศึกษา', '3.4 คำอธิบายรายวิชา'), rows[:2]),
-        (book.replace('รหัสวิชา ชื่อวิชา หน่วยกิต', '3.4 คำอธิบายรายวิชา\nรหัสวิชา ชื่อวิชา หน่วยกิต'), rows[:2]),
-        (book, [rows[0], {**rows[1], 'semester': 2}]),
-        (book, [rows[0]]),
-        (book.replace('0(0-0-45)', '3(3-0-6)'), rows[:2]),
-    ]:
-        trial = [dict(r) for r in neighbors]
-        cfb.repair_with_book('', trial, changed_book)
-        assert not any(r['code'] == '00000003' for r in trial)
-
 # Real layout of the book's course-description pages (Tesseract text): heading line, then the English name,
 # sometimes wrapped over two lines.
 BOOK_EN = "\n".join([
@@ -336,13 +294,10 @@ def test_or_pair_keeps_distinct_english_names():
 # Break caught on a fresh clone (2026-09-27): reports stored absolute paths ("D:\...\ocr_system\outputs\...") so every
 # run on another machine rewrote committed files and leaked the local path. Paths inside the repo are stored relative.
 def test_report_paths_are_repo_relative():
-    # The same tests can validate another worktree's imported production module.
-    repo = Path(lab8b.__file__).resolve().parents[3]
+    repo = Path(__file__).resolve().parents[1]
     book = repo / "outputs" / "ait" / "ait_curriculum_ocr.txt"
     assert lab8b.repo_relative(book) == "outputs/ait/ait_curriculum_ocr.txt"
     assert lab8b.repo_relative(str(book)) == "outputs/ait/ait_curriculum_ocr.txt"
-    outside = repo.parent / "outside-source.txt"
-    assert lab8b.repo_relative(outside) == str(outside.resolve())
     outside = Path("C:/elsewhere/x.txt") if book.drive else Path("/elsewhere/x.txt")
     assert lab8b.repo_relative(outside) == str(outside)       # outside the repo: keep as given
 

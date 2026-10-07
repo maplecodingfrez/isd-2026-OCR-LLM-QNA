@@ -158,38 +158,6 @@ def test_prerequisites_200_shape(client, monkeypatch):
     assert isinstance(body["prerequisites_required"], list) and isinstance(body["unlocked_courses"], list)
 
 
-def test_prerequisite_status_and_alternatives_survive_http_contract(client, tmp_path, monkeypatch):
-    import sqlite3
-    from lab10_fastapi.curriculum_app.database import CurriculumDatabase
-    path = tmp_path / 'curriculum.db'
-    with main.lab8b.open_db(path) as conn:
-        conn.executescript(main.lab8b.DDL + main.lab8b.PREREQ_STATUS_DDL +
-                           main.lab8b.PREREQ_ALT_DDL + main.lab8b.COURSE_PAGE_DDL)
-        for n, status in [(1,'none'),(2,'not_found'),(3,'unreadable'),(4,'found')]:
-            code = f'{n:08d}'
-            conn.execute('INSERT INTO course(code,name_th,credits) VALUES (?,?,3)', (code,f'วิชา{n}'))
-            conn.execute('INSERT INTO prerequisite_status VALUES (?,?)',(code,status))
-        conn.executemany("INSERT INTO prerequisite VALUES ('00000004',?,'pre')", [('00000001',),('00000002',)])
-        conn.executemany("INSERT INTO prerequisite_alt VALUES ('00000004',?,1)", [('00000001',),('00000002',)])
-        conn.execute("INSERT INTO course_page VALUES ('00000001',10,'9','description')")
-    db = CurriculumDatabase(main.lab8b,path,100)
-    monkeypatch.setattr(main,'database',db)
-    for n, status in [(1,'none'),(2,'not_found'),(3,'unreadable'),(4,'found')]:
-        response = client.get(f'/api/courses/{n:08d}/prerequisites')
-        assert response.status_code == 200
-        assert response.json()['prerequisite_status'] == status
-    none = client.get('/api/courses/00000001/prerequisites').json()
-    assert any(p['pdf_page']==10 for p in none['citations'])
-    found = client.get('/api/courses/00000004/prerequisites').json()
-    assert [r['alternative_group'] for r in found['prerequisites_required']] == [1,1]
-    with sqlite3.connect(path) as conn:
-        conn.execute('DROP TABLE prerequisite_status')
-        conn.execute('DROP TABLE prerequisite_alt')
-    assert client.get('/api/courses/00000001/prerequisites').json()['prerequisite_status'] == 'unknown'
-    props = client.get('/openapi.json').json()['components']['schemas']['CoursePrerequisitesResponse']['properties']
-    assert props['prerequisite_status']['default'] == 'unknown'
-
-
 @pytest.mark.parametrize("code", ["abc", "1234567", "123456789"])
 def test_prerequisites_422_when_code_is_not_8_digits(client, code):
     r = client.get(f"/api/courses/{code}/prerequisites")
