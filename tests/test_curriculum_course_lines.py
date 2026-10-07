@@ -114,3 +114,49 @@ def test_prerequisite_tag_marks_co_requisites_and_option_groups_only(tmp_path):
       process.stdout.write(JSON.stringify([tag({kind: "pre"}), tag({kind: "co"}), tag({kind: "pre", alternative_group: 2})]));
     ''')
     assert out[0] == "" and out[1] == "เรียนร่วมกัน" and "กลุ่ม 2" in out[2] and "ผ่านอย่างใดอย่างหนึ่ง" in out[2]
+
+
+# ---------- credit structure answers: "หมวด: N หน่วยกิต — ประกอบด้วย กลุ่ม n, กลุ่ม n ..." ----------
+
+GE = "หมวดวิชาศึกษาทั่วไป: 30 หน่วยกิต — ประกอบด้วย กลุ่มวิชาพื้นฐาน 6, กลุ่มวิชาด้านภาษาและการสื่อสาร 9, กลุ่มวิชาตามเกณฑ์ของคณะ 9, กลุ่มวิชาเลือกหมวดวิชาการศึกษาทั่วไป 6"
+SPECIFIC_NOTE = "หมวดวิชาเฉพาะ: 93 หน่วยกิต — ประกอบด้วย กลุ่มวิชาแกน 12, กลุ่มวิชาเฉพาะด้าน 57, กลุ่มวิชาบังคับเฉพาะสาขา 15, กลุ่มวิชาเลือกทางเทคโนโลยีสารสนเทศ 9, กลุ่มวิชาการศึกษาทางเลือก 6 (หมายเหตุ: กลุ่มวิชาการศึกษาทางเลือก 6 ไม่นับรวมใน 93)"
+
+
+def credit(tmp_path, *texts):
+    return run_js(tmp_path, f"process.stdout.write(JSON.stringify({json.dumps(list(texts), ensure_ascii=False)}.map(m.parseCreditLine)));")
+
+
+def test_credit_structure_line_is_split_into_total_and_groups(tmp_path):
+    (entry,) = credit(tmp_path, GE)
+    assert entry["title"] == "หมวดวิชาศึกษาทั่วไป" and entry["credits"] == 30
+    assert [(p["name"], p["credits"]) for p in entry["parts"]] == [
+        ("กลุ่มวิชาพื้นฐาน", 6), ("กลุ่มวิชาด้านภาษาและการสื่อสาร", 9), ("กลุ่มวิชาตามเกณฑ์ของคณะ", 9),
+        ("กลุ่มวิชาเลือกหมวดวิชาการศึกษาทั่วไป", 6)]
+    assert entry["note"] is None
+
+
+def test_credit_structure_note_in_parentheses_is_kept_apart(tmp_path):
+    specific, elective, bare = credit(
+        tmp_path, SPECIFIC_NOTE, "กลุ่มวิชาเลือก: 6 หน่วยกิต (อยู่ในกลุ่มวิชาการศึกษาทางเลือก)", "หมวดวิชาศึกษาทั่วไป: 24 หน่วยกิต")
+    assert specific["credits"] == 93 and len(specific["parts"]) == 5
+    assert specific["note"] == "หมายเหตุ: กลุ่มวิชาการศึกษาทางเลือก 6 ไม่นับรวมใน 93"
+    assert elective["title"] == "กลุ่มวิชาเลือก" and elective["credits"] == 6 and elective["parts"] == []
+    assert elective["note"] == "อยู่ในกลุ่มวิชาการศึกษาทางเลือก"
+    assert bare["credits"] == 24 and bare["parts"] == [] and bare["note"] is None
+
+
+@pytest.mark.parametrize("text", [
+    "ปี 2 เทอม 1: 06026206 การวิเคราะห์ / DATA — 3 (2-2-5) หน่วยกิต", "หน่วยกิตรวมตลอดหลักสูตร 132 หน่วยกิต",
+    "ปี 3 เรียนรวม 36 หน่วยกิต", "ไม่มีข้อมูลโครงสร้างหน่วยกิตตามหมวดของหลักสูตรนี้ในระบบ (อ่านจากเล่มได้ไม่น่าเชื่อถือ)",
+    "หมวด: 30 หน่วยกิต — ประกอบด้วย กลุ่มหนึ่ง กลุ่มสอง", "", "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"])
+def test_lines_that_are_not_credit_structure_stay_plain(tmp_path, text):
+    assert credit(tmp_path, text) == [None]
+
+
+def test_consecutive_credit_paragraphs_become_one_credits_block(tmp_path):
+    out = run_js(tmp_path, f'''
+      const p = {json.dumps([SPECIFIC_NOTE, "กลุ่มวิชาเลือก: 6 หน่วยกิต (อยู่ในกลุ่มวิชาการศึกษาทางเลือก)", "ข้อความอื่น"], ensure_ascii=False)}.map(text => ({{type: "paragraph", text}}));
+      const blocks = m.groupCreditBlocks(p);
+      process.stdout.write(JSON.stringify(blocks.map(b => b.type + ":" + (b.entries ? b.entries.length : 1))));
+    ''')
+    assert out == ["credits:2", "paragraph:1"]

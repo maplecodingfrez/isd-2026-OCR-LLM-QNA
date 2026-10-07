@@ -82,7 +82,11 @@ def test_a_sample_is_only_offered_when_the_plan_can_answer_it(plan):
         has_lab = conn.execute("SELECT COUNT(*) FROM course WHERE lab_h > 2").fetchone()[0] > 0
         has_ge = conn.execute("SELECT COUNT(*) FROM credit_structure WHERE name_th LIKE '%ศึกษาทั่วไป%'").fetchone()[0] > 0
         has_free = conn.execute("SELECT COUNT(*) FROM plan_slot WHERE name_th LIKE '%เสรี%'").fetchone()[0] > 0
+        has_structure = conn.execute("SELECT COUNT(*) FROM credit_structure").fetchone()[0] > 0
     thai = " ".join(e["th"] for _, e in examples(plan))
+    # a plan without a credit structure must not be offered a question whose answer is "no structure data"
+    assert ("หมวดวิชาเฉพาะเลือกเก็บกี่หน่วยกิต" in thai) == (has_structure and not has_ge)
+    assert ("ปี 4 เรียนรวมกี่หน่วยกิต" in thai) == (not has_structure)
     assert ("ชั่วโมงปฏิบัติมากกว่า" in thai) == has_lab
     assert ("หมวดวิชาศึกษาทั่วไป" in thai) == has_ge
     assert ("วิชาเลือกเสรีต้องลงตอนปีไหน" in thai) == has_free
@@ -100,6 +104,7 @@ def test_samples_that_need_no_model_answer_from_the_data_in_thai_and_english(pla
                 assert not r["error"], (plan, key, e[language])
                 answer = str(r["answer"])
                 assert answer.strip() and NOT_FOUND not in answer, (plan, key, e[language], answer[:80])
+                assert not answer.startswith("ไม่มีข้อมูล"), (plan, key, e[language], answer[:80])     # "no data" is not a sample answer
                 assert r["answer_type"] != "ai", (plan, key, e[language])
             checked += 1
         assert checked >= 6                                                 # most samples are answered straight from the data
