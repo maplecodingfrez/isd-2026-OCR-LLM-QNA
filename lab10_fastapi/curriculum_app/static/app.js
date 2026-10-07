@@ -461,7 +461,15 @@
     return out;
   }
 
+  // คำถามเปรียบเทียบที่ได้แถววิชาสองแถว (มีรหัสทั้งคู่) -> สองแถวนั้น วาดเป็นการ์ดภาพรวมสองใบเคียงกัน; ไม่ใช่ = null
+  function compareRows(data) {
+    if (!data || !Array.isArray(data.rows) || data.rows.length !== 2) return null;
+    if (!/เปรียบเทียบ|compare/i.test(data.question || "")) return null;
+    return overviewParts(data.rows[0]) && overviewParts(data.rows[1]) ? data.rows : null;
+  }
+
   var api = {
+    compareRows: compareRows,
     overviewParts: overviewParts,
     parseCreditLine: parseCreditLine,
     groupCreditBlocks: groupCreditBlocks,
@@ -836,8 +844,11 @@
     var groupedQuestion = (/วิชาเลือก|กลุ่มวิชา/.test(data.question || "") && /อะไรบ้าง|วิชาอะไร|รายชื่อ|ให้เลือก/.test(data.question || "")) ||
       /\belective/i.test(data.question || "");      // ถามเป็นอังกฤษ ("What are the elective courses...") ก็จัดกลุ่มเหมือนกัน
     var groups = groupedQuestion ? electiveGroups(data) : [];
+    var comparison = compareRows(data);
     if (data.answer_type === "course_overview" && Array.isArray(data.rows) && overviewParts(data.rows[0])) {
       answer.appendChild(buildOverviewCard(data.rows[0]));       // รหัส/ชื่อวิชาเฉยๆ = ภาพรวมวิชาจากฐานข้อมูล
+    } else if (comparison) {
+      answer.appendChild(el("div", { className: "overview-compare" }, comparison.map(buildOverviewCard)));   // เปรียบเทียบสองวิชา = สองการ์ดเคียงกัน
     } else if (groups.length) renderElectiveGroups(answer, groups, data);
     else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
