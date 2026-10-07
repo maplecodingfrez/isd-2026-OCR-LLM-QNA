@@ -107,7 +107,9 @@ def english_to_thai(question: str) -> str | None:
 
     # co-op against non co-op
     if (_search(r"co-?op", t) and _search(r"non[- ]?co-?op|without co-?op|not co-?op|no co-?op", t)
-            and _search(r"differ|difference|compare|comparison|versus|\bvs\b|between", t)):
+            and _search(r"differ|difference|compare|comparison|versus|\bvs\b|between|\badd", t)):
+        if year and sem:
+            return f"แผนสหกิจกับไม่สหกิจ ปี {year} เทอม {sem} ต่างกันยังไง"
         return "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร"
 
     # free electives, then the elective list
@@ -115,6 +117,19 @@ def english_to_thai(question: str) -> str | None:
         return "วิชาเลือกเสรีต้องลงตอนปีไหน"
     if _search(r"\belectives?\b", t) and _wants_list(t) and not year and not credit:
         return "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง"
+
+    # credits of the general education category
+    if credit and _search(r"\bgeneral education\b|\bgen[- ]?ed\b", t):
+        return "หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต"
+
+    # how many prerequisite pairs the data holds
+    if _search(r"prerequisite pairs|\b(?:how many|number of)\b.*\bpairs\b", t):
+        return "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่"
+
+    # courses with more than N lab hours
+    m = _search(r"\b(?:more than|over|above|greater than)\s*(\d+)\s*(?:lab|practical|practice)\s*hours?", t)
+    if m:
+        return f"วิชาที่มีชั่วโมงปฏิบัติมากกว่า {m.group(1)} ชั่วโมงมีอะไรบ้าง"
 
     # credits per category
     if credit and _search(r"\b(?:each|per|by)\b", t) and _search(r"categor|\bgroups?\b|\bsections?\b|\btypes?\b", t):

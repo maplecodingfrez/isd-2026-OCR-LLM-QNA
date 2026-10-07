@@ -4,7 +4,7 @@ from pathlib import Path
 from types import ModuleType
 import sqlite3
 
-from . import course_search
+from . import course_search, sample_questions
 
 
 class CurriculumDatabase:
@@ -38,6 +38,16 @@ class CurriculumDatabase:
             # no query = the plan's own course list (the page's autocomplete and overview card)
             rows = conn.execute("SELECT * FROM course ORDER BY code LIMIT ? OFFSET ?", (limit, offset)).fetchall()
             return [{**dict(row), "source": "plan"} for row in rows]
+        finally:
+            conn.close()
+
+    def sample_questions(self) -> list[dict]:
+        """The sample questions this plan's data can answer (see sample_questions.py)."""
+        self._require_db()
+        conn = self.lab8b.open_db(self.path, readonly=True)
+        try:
+            sibling = (self.lab8b._sibling_plan_db(conn) or (None, None))[1] is not None
+            return sample_questions.build_samples(conn, sibling)
         finally:
             conn.close()
 

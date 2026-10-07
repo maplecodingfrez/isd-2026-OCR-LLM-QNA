@@ -29,7 +29,7 @@ from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
     AskRequest, AskResponse, CourseCreate, CourseResponse, CourseSearchItem, HealthResponse, ProgramInfo,
-    CoursePrerequisitesResponse,
+    CoursePrerequisitesResponse, SampleQuestionsResponse,
 )
 
 
@@ -126,6 +126,15 @@ def list_programs() -> list[dict]:
                 item["years"] = row.get("years")
         items.append(item)                                         
     return items                                                   
+
+@app.get("/api/sample-questions", response_model=SampleQuestionsResponse)
+def get_sample_questions(program: str | None = Query(default=None)) -> dict:
+    """ตัวอย่างคำถามของแผนที่เลือก: สร้างจากข้อมูลของแผนนั้น (วิชาจริง) และมีเฉพาะข้อที่แผนนั้นตอบได้"""
+    try:
+        return {"topics": _database_for(program).sample_questions()}
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
 
 @app.get("/api/courses", response_model=list[CourseSearchItem])
 def get_courses(

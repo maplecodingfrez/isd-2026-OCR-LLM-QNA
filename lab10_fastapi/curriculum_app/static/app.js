@@ -320,6 +320,22 @@
       ["chip.6", "แผนสหกิจกับไม่สหกิจต่างกันอย่างไร", "How do the co-op and non co-op plans differ?"]] }
   ];
 
+  // ตัวอย่างคำถามจาก /api/sample-questions (สร้างจากข้อมูลของแผนที่เลือก) -> รูปแบบเดียวกับ SAMPLE_TOPICS
+  // ตัวอย่างหนึ่งข้อ = { label: { th, en }, q: { th, en } }; ว่าง/ผิดรูป = null (หน้าใช้รายการสำรองในไฟล์)
+  function sampleTopicsFromApi(apiTopics) {
+    if (!Array.isArray(apiTopics)) return null;
+    var out = [];
+    apiTopics.forEach(function (topic) {
+      var meta = SAMPLE_TOPICS.filter(function (item) { return item.key === (topic && topic.key); })[0];
+      if (!meta || !Array.isArray(topic.examples)) return;
+      var examples = topic.examples.filter(function (e) { return e && e.th && e.en && e.label_th && e.label_en; }).map(function (e) {
+        return { label: { th: e.label_th, en: e.label_en }, q: { th: e.th, en: e.en } };
+      });
+      if (examples.length) out.push({ key: meta.key, n: meta.n, emoji: meta.emoji, examples: examples });
+    });
+    return out.length ? out : null;
+  }
+
   // ลูกศร/Home/End บนแถบแท็บหรือแถบหัวข้อ → ตำแหน่งใหม่ (-1 = ไม่ใช่ปุ่มเลื่อน)
   function nextTabIndex(current, count, key) {
     if (!count) return -1;
@@ -395,6 +411,7 @@
   }
 
   var api = {
+    sampleTopicsFromApi: sampleTopicsFromApi,
     noRealAnswer: noRealAnswer,
     splitCredits: splitCredits,
     prereqTag: prereqTag,
@@ -1158,17 +1175,40 @@
 
   // ---------- หัวข้อคำถามตัวอย่าง ----------
   var currentTopic = 0;
+  var sampleTopics = SAMPLE_TOPICS;          // รายการสำรองในไฟล์ จนกว่า /api/sample-questions จะตอบ (หรือถ้าเรียกไม่ได้)
+  var samplesRequest = 0;
+
+  // ข้อมูลของตัวอย่างหนึ่งข้อ: รายการสำรองเป็น [รหัสป้าย i18n, ไทย, อังกฤษ]; จาก API เป็น { label: {th,en}, q: {th,en} }
+  function exampleParts(example) {
+    var english = I18N && I18N.getLang() === "en";
+    if (Array.isArray(example)) return { label: t(example[0]), question: english ? example[2] : example[1] };
+    return { label: english ? example.label.en : example.label.th, question: english ? example.q.en : example.q.th };
+  }
+
+  async function loadSamples() {
+    var mine = ++samplesRequest;             // ใช้เฉพาะผลของคำขอล่าสุด (เปลี่ยนแผนเร็ว ๆ)
+    try {
+      var data = await apiFetch(withProgram("/api/sample-questions", $("program").value), {}, { timeoutMs: 10000 });
+      if (mine !== samplesRequest) return;
+      sampleTopics = sampleTopicsFromApi(data && data.topics) || SAMPLE_TOPICS;
+    } catch (err) {
+      if (mine !== samplesRequest) return;
+      sampleTopics = SAMPLE_TOPICS;          // เรียกไม่ได้ = ใช้รายการสำรอง ไม่ต้องรบกวนผู้ใช้
+    }
+    if (currentTopic >= sampleTopics.length) currentTopic = 0;
+    renderTopics();
+  }
 
   function renderExamples() {
-    var topic = SAMPLE_TOPICS[currentTopic];
+    var topic = sampleTopics[currentTopic] || sampleTopics[0];
     var list = $("examples");
     clear(list);
     list.className = "examples topic-" + topic.n;
-    var english = I18N && I18N.getLang() === "en";
     topic.examples.forEach(function (example) {
-      var button = el("button", { className: "link-button", text: t(example[0]), attrs: { type: "button" } });
+      var parts = exampleParts(example);
+      var button = el("button", { className: "link-button", text: parts.label, attrs: { type: "button" } });
       button.addEventListener("click", function () {
-        $("question").value = english ? example[2] : example[1];    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
+        $("question").value = parts.question;    // อังกฤษ = ส่งคำถามภาษาอังกฤษ (backend แปลงเป็นประโยคไทยที่ตอบได้ แต่ตัวคำตอบยังเป็นไทย)
         runAsk();
       });
       list.appendChild(el("li", {}, [button]));
@@ -1178,7 +1218,7 @@
   function renderTopics() {
     var bar = $("topic-bar");
     clear(bar);
-    SAMPLE_TOPICS.forEach(function (topic, i) {
+    sampleTopics.forEach(function (topic, i) {
       var pill = el("button", { className: "topic-pill topic-" + topic.n, text: topic.emoji + " " + t("topic." + topic.key),
         attrs: { type: "button", "aria-pressed": i === currentTopic ? "true" : "false" } });
       pill.addEventListener("click", function () { currentTopic = i; renderTopics(); $("topic-bar").children[i].focus(); });
@@ -1230,6 +1270,7 @@
   $("program").addEventListener("change", function () {
     updateScope();
     loadCourses();
+    loadSamples();                           // ตัวอย่างคำถามตามแผนที่เลือก
     // ผลที่แสดงอยู่เป็นของหลักสูตรก่อนหน้า: ถามซ้ำกับหลักสูตรใหม่ (ถ้ากำลังถามอยู่ รอให้คำขอเดิมถูกทิ้งก่อนแล้วถามใหม่)
     [
       ["ask", askPanel, askControls, runAsk, lastAsked, $("question")],
@@ -1289,5 +1330,5 @@
   selectTab(savedTab >= 0 && savedTab < toolTabs.length ? savedTab : 0, false);
 
   applyLang(document.documentElement.lang === "en" ? "en" : "th");   // ภาษา/ธีมที่บันทึกไว้ถูกตั้งบน <html> ตั้งแต่ก่อนวาดหน้า
-  loadPrograms().then(function () { updateScope(); loadCourses(); });
+  loadPrograms().then(function () { updateScope(); loadCourses(); loadSamples(); });
 })();

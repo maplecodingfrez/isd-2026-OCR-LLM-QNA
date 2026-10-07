@@ -59,6 +59,23 @@ class CourseSearchItem(BaseModel):
     source: Literal["plan", "elective", "catalog"] = "plan"
 
 
+class SampleExample(BaseModel):
+    label_th: str
+    label_en: str
+    th: str
+    en: str
+    needs_model: bool = False        # True = the answer uses the language model (slower, a little less predictable)
+
+
+class SampleTopic(BaseModel):
+    key: Literal["credits", "term", "course", "prereq", "withdraw", "compare"]
+    examples: list[SampleExample]
+
+
+class SampleQuestionsResponse(BaseModel):
+    topics: list[SampleTopic]
+
+
 class HealthResponse(BaseModel):
     status: str
     database: str
