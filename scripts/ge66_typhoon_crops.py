@@ -20,6 +20,7 @@ import ge66_ocr_audit as audit
 cli = argparse.ArgumentParser(description=__doc__)
 cli.add_argument('--root', type=Path, required=True)
 cli.add_argument('--output', type=Path, required=True)
+cli.add_argument('--request-model', help='Optional explicit local runner:model-digest')
 args = cli.parse_args()
 ROOT = args.root
 OUT = args.output
@@ -27,6 +28,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 PDF = ROOT / 'data/input/GE66_Th_Ed240501.pdf'
 MODULE = ROOT / 'Lab7B_Lab8B_ocr_system/src/ocr_system'
 MODEL = 'scb10x/typhoon-ocr1.5-3b:latest'
+REQUEST_MODEL = args.request_model or MODEL
 os.environ.setdefault('OMP_THREAD_LIMIT', '1')
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -63,7 +65,8 @@ with Image.open(OUT / 'page.png') as image:
         crop.save(OUT / f'chunk-{i:02d}.png')
 
 models = json.load(urllib.request.urlopen('http://127.0.0.1:11434/api/tags', timeout=15))['models']
-digest = next((m['digest'] for m in models if m['name'] == MODEL), None)
+digest = (REQUEST_MODEL.split(':', 1)[1] if REQUEST_MODEL.startswith(('ggml:', 'llamacpp:'))
+          else next((m['digest'] for m in models if m['name'] == MODEL), None))
 available = digest is not None
 prior = json.loads((OUT / 'ocr.json').read_text(encoding='utf-8')) if (OUT / 'ocr.json').exists() else {}
 if prior and prior.get('provenance', {}).get('pdf_sha256') != hashlib.sha256(PDF.read_bytes()).hexdigest():
@@ -73,16 +76,18 @@ chunks = []
 failures = []
 for image_path in sorted(OUT.glob('chunk-*.png')):
     response_path = image_path.with_suffix('.response.json')
+    chunk_digest = digest
     if response_path.exists():
         body = json.loads(response_path.read_text(encoding='utf-8'))
         previous = next((p for p in prior.get('pages', []) if p['chunk'] == image_path.name), None)
         if not previous or previous['input_sha256'] != hashlib.sha256(image_path.read_bytes()).hexdigest():
             raise RuntimeError('Cached image response cannot be verified; use a new output directory')
+        chunk_digest = body.get('audit_model_digest', previous.get('model_digest', prior.get('model_digest')))
     elif not available:
         failures.append({'chunk': image_path.name, 'error': 'Model unavailable in local Ollama tags'})
         continue
     else:
-        payload = {'model': MODEL, 'stream': False,
+        payload = {'model': REQUEST_MODEL, 'stream': False,
                    'messages': [{'role': 'user', 'content': prompt,
                                  'images': [base64.b64encode(image_path.read_bytes()).decode('ascii')]}],
                    'options': {'temperature': 0, 'num_ctx': 8192, 'num_predict': 4096}}
@@ -102,12 +107,14 @@ for image_path in sorted(OUT.glob('chunk-*.png')):
             available = False
             continue
         body['audit_elapsed_seconds'] = time.monotonic() - started
+        body['audit_model_digest'] = digest
         audit.write_json(response_path, body)
     text = body['message']['content']
     image_path.with_suffix('.md').write_text(text, encoding='utf-8')
     truncated = body.get('done_reason') == 'length' or body.get('eval_count', 0) >= 4088
     chunks.append({'page': 18, 'text': text, 'chunk': image_path.name,
                    'input_sha256': hashlib.sha256(image_path.read_bytes()).hexdigest(),
+                   'model_digest': chunk_digest,
                    'possibly_truncated': truncated, 'elapsed_seconds': body.get('audit_elapsed_seconds')})
     audit.write_json(OUT / 'ocr.json', {'engine': MODEL, 'pages': chunks, 'model_digest': digest,
                      'provenance': {'pdf_sha256': hashlib.sha256(PDF.read_bytes()).hexdigest(),

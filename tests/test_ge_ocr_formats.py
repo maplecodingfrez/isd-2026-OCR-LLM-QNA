@@ -101,6 +101,11 @@ class GEFormats(unittest.TestCase):
                           '<tr><td>90642012</td><td>วิชาที่ขาด')
         self.assertEqual([r['code'] for r in rows], ['90642011'])
 
+    def test_literal_typographic_english_is_preserved(self):
+        rows = self.parse('90642209 น้องหมาที่รัก 3 (3-0-6)\nMY DOG’S MY BOSS\n'
+                          '90642210 น้องแมวที่รัก 3 (3-0-6)\nMY CAT’S MY BOSS')
+        self.assertEqual([r['name_en'] for r in rows], ['MY DOG’S MY BOSS', 'MY CAT’S MY BOSS'])
+
 
 if __name__ == '__main__':
     unittest.main()

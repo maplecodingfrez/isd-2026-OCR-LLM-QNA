@@ -1,0 +1,60 @@
+{
+  "scope": "GE66 catalog records, not the whole PDF text; development/reference-reused evaluation",
+  "records": 303,
+  "field_values_traceable_to_raw_ocr": 909,
+  "manually_filled_fields": 0,
+  "reference_used_as_ocr_prompt_or_field_fill": false,
+  "reference_used_for_development_error_selection_and_evaluation": true,
+  "comparison_normalization": "Unicode NFKC and whitespace only; case and punctuation remain significant",
+  "catalog_exact_fields": {
+    "name_th": 303,
+    "name_en": 303,
+    "credits": 303
+  },
+  "all_fields_exact": 303,
+  "missing_codes": [],
+  "extra_codes": [],
+  "page_and_flag_checks": true,
+  "targeted_retry_rows": 84,
+  "literal_retry_rows": 8,
+  "trial_database_plans": [
+    "AIT",
+    "DSBA/coop",
+    "DSBA/no_coop",
+    "IT/coop",
+    "IT/no_coop"
+  ],
+  "backend_qa_passed": 20,
+  "backend_qa_total": 20,
+  "qa_answer_types": [
+    "database"
+  ],
+  "production_protected_unchanged": true,
+  "protected_hashes": {
+    "Lab7B_Lab8B_ocr_system\\runs\\ge66_catalog.json": "e19054e251128f138348e3ad17b992df133d5cfa3b280eba09e25669ccf38e82",
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop_retry\\lab8b_output\\curriculum.db": "f49d1cc331a13e5892590944fc8c3430043920c4e4ef9b8b89d1972bac1e808a",
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output\\curriculum.db": "ac0381844f87db98a448176ffb5604a9bbdd7a352080c6b35bb697abb61106e3",
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\coop_retry\\lab8b_output\\curriculum.db": "c89224b1286b5f48725cd8f3c3c046316cf98961b02b60bf4bbd1efe4b975b3a",
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output\\curriculum.db": "8c37fb5e35079a85db25651ad5821f690748ae5621c5f2b74e40f0a413ba1c3f",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop_retry\\lab8b_output\\curriculum.db": "8d879c2cc65c9f043450378b196ec00b2a1328061f50ced338f0829d34fc9cb5",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output\\curriculum.db": "284965304d8c91ca693246460a7c84a4fbe096ead5f19ed23e3c3cff687f49b2",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop_retry\\lab8b_output\\curriculum.db": "c9d9a769e0b7d91e7f18e6f16c7a9803b2a6cacbda9b9171a2991f2f552f79de",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output\\curriculum.db": "8818bc37c5d9e91ccb60a7a98175770c81a2f213363cca7405f2c32ba72f35d9",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\no_coop_retry\\lab8b_output\\curriculum.db": "f6de30b6dc4c307f7ecc02ed04c1bcb2bb7f1d7e1df0877224e86f39f8753792",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\no_coop\\lab8b_output\\curriculum.db": "7ae9be4ee3b60293e5aabdb34a4250957c20f6825ada3d2d786dfdb9110af269",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\coop_retry\\lab8b_output\\curriculum.db": "6ac78c2d9c795ca7f9b515a113edd3272958f2d5f4521d1609ac1fa74d7171ec",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\coop\\lab8b_output\\curriculum.db": "223e6d3582943b8f013aa9770d3c588b1f8b997344aa8974914c9260d9df9db5",
+    "Lab7B_Lab8B_ocr_system\\runs\\AIT_retry\\lab8b_output\\curriculum.db": "4d0cd0735c15ce29ede29075ee3e4a80740b1af7e86a1030b3b067737217c223",
+    "Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output\\curriculum.db": "35dc7b1640b18878ced37d36ccd6842294076c166a494c9954fcebe4723291a7",
+    "Lab9_evaluation\\gold_questions\\ait_gold_questions.json": "eac1dcb12ce16e09cbfd4d8b956d1d9598875875865b8d5746b62e7484707765",
+    "Lab9_evaluation\\gold_questions\\bit_coop_gold_questions.json": "b3abba0976e331dc1be519ac7d5e4a9fa0186b564a3843ea493cd6fe5c00f390",
+    "Lab9_evaluation\\gold_questions\\bit_no_coop_gold_questions.json": "40e7942001a624007e1d8d8cfe4edb58efa9616b2c55eaa939094a4017106385",
+    "Lab9_evaluation\\gold_questions\\dsba_coop_gold_questions.json": "4616dd3fa19892371ec9da785357d21e14ed99e9d23e807f12bd32e56d7a740d",
+    "Lab9_evaluation\\gold_questions\\dsba_no_coop_gold_questions.json": "b6778aac1278ad1a356b9965af46058e0c5dda430c26cae1809f72d1f19c2852",
+    "Lab9_evaluation\\gold_questions\\it_coop_gold_questions.json": "f89fb687c1023d1885d959ef3a60021c19294d336cc72e4b4874cda9356c92b7",
+    "Lab9_evaluation\\gold_questions\\it_no_coop_gold_questions.json": "4ab4574857bdddd9622238170e9be51afe6aa17c49c3730f1cee462048719ad2"
+  },
+  "ollama_repair": "replaced one unreadable manifest symlink with identical manifest bytes; original link backed up; weights unchanged",
+  "new_typhoon_request_model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+  "production_catalog_promoted": false
+}
