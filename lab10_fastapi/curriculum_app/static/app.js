@@ -6,25 +6,11 @@
   var QUESTION_MIN = 2;
   var QUESTION_MAX = 500;
   var urlParams = (typeof location !== "undefined" && typeof URLSearchParams !== "undefined") ? new URLSearchParams(location.search) : null;   // ลิงก์แชร์: ?plan=…&q=…
-  var INITIAL_PROGRAM = "dsba_coop";   // หลักสูตรที่เลือกไว้ตอนเปิดหน้า (ตรงกับ DB ที่เซิร์ฟเวอร์ใช้อยู่) — ผู้ใช้เปลี่ยนเองได้
-
-  try {
-    if (typeof document !== "undefined" && document.documentElement) {
-      var docEl = document.documentElement;
-      var savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "light" || savedTheme === "dark") docEl.dataset.theme = savedTheme;
-      var savedLang = localStorage.getItem("lang");
-      if (savedLang === "en" || savedLang === "th") docEl.lang = savedLang;
-    }
-  } catch (e) {}
+  // ธีม/ภาษาที่บันทึกไว้ถูกตั้งบน <html> โดยสคริปต์ inline ใน <head> ของ index.html ก่อนวาดหน้า
 
   // ข้อความทุกตัวที่ผู้ใช้เห็นมาจาก i18n.js (ไทย/อังกฤษ) — ในเบราว์เซอร์ใช้ window.I18N, ใน Node (เทสต์) require ตรง ๆ
   var I18N = (typeof window !== "undefined" && window.I18N) || (typeof require === "function" ? require("./i18n.js") : null);
   function t(key, vars) { return I18N ? I18N.t(key, vars) : key; }
-  // backend ส่ง "Ollama ล่มตอนสร้าง SQL" เป็น 422 ที่ detail ขึ้นต้นด้วยชื่อ error ของ requests
-  // (lab8b.ask จับ exception ขั้นสร้าง SQL เอง) — ต้องไม่บอกผู้ใช้ให้ไปถามใหม่
-  var MODEL_DOWN = /^(ConnectionError|ConnectTimeout|ReadTimeout|Timeout|ProxyError|SSLError|ChunkedEncodingError|RequestException)\b/;
-
   // kind: "network" | "timeout" | "http" | "server"
   // status: เลข HTTP (0 = ไม่ได้คำตอบ) · detail: ข้อความอ่านได้ · raw: detail ดิบจากเซิร์ฟเวอร์
   class ApiError extends Error {
@@ -54,11 +40,10 @@
       err.raw === "คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลงแล้วลองใหม่";
   }
 
-  // ระบบฝั่งโมเดล/ฐานข้อมูลยังไม่พร้อม หรือ Ollama ล่มตอนสร้าง SQL
+  // ระบบฝั่งโมเดล/ฐานข้อมูลยังไม่พร้อม หรือ Ollama ล่มตอนสร้าง SQL (backend ตอบ 503 ทั้งสองกรณี)
   function isModelDown(err, where) {
     if (!(err instanceof ApiError) || err.kind !== "http") return false;
-    if (err.status === 503) return !isQueryLimited(err, where);
-    return where === "ask" && err.status === 422 && typeof err.raw === "string" && MODEL_DOWN.test(err.raw);
+    return err.status === 503 && !isQueryLimited(err, where);
   }
 
   // ข้อความที่ผู้ใช้เห็น: title = เกิดอะไรขึ้น, action = ต้องทำอะไรต่อ (ตรงกับตารางใน README §13)
@@ -1182,7 +1167,7 @@
       var usable = Array.from(select.options).filter(function (o) { return !o.disabled; });
       var wantedPlan = urlParams && urlParams.get("plan");
       var initial = usable.find(function (o) { return o.value === wantedPlan; }) ||
-        usable.find(function (o) { return o.value === INITIAL_PROGRAM; }) || usable[0];
+        usable.find(function (o) { return programInfo[o.value] && programInfo[o.value].default; }) || usable[0];   // ค่าเริ่มต้นมาจากเซิร์ฟเวอร์
       if (initial) select.value = initial.value;
     } catch (e) {
       clear(select);
@@ -1625,6 +1610,6 @@
   loadPrograms().then(function () {
     updateScope(); loadCourses(); loadSamples();
     var sharedQuestion = urlParams && urlParams.get("q");
-    if (sharedQuestion) { $("question").value = sharedQuestion.slice(0, 500); syncClearButton(); runAsk(); }   // เปิดจากลิงก์ที่แชร์: ถามให้เลย
+    if (sharedQuestion) { $("question").value = sharedQuestion.slice(0, 500); syncClearButton(); $("question").focus(); }   // ลิงก์ที่แชร์: เติมคำถามให้ ผู้ใช้กดถามเอง (ไม่เรียกโมเดลโดยไม่ได้สั่ง)
   });
 })();

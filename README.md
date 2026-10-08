@@ -1602,7 +1602,7 @@ matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab
 | `GET` | `/api/program` | อ่านข้อมูลภาพรวมหลักสูตร | ไม่มี |
 | `GET` | `/api/programs` | รายชื่อ 7 แผนและสถานะไฟล์ฐานข้อมูล | ไม่มี |
 | `GET` | `/api/courses` | อ่านและค้นหารายวิชา | `search`, `limit`, `offset` |
-| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล | JSON: `CourseCreate` |
+| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล (ปิดเป็นค่าเริ่มต้น: ต้องตั้ง `CURRICULUM_ALLOW_WRITE=1`) | JSON: `CourseCreate` |
 | `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) | JSON: `{"question": "...", "program": "it_no_coop"}` |
 | `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค | Path: `code` (รหัสวิชา 8 หลัก) |
 

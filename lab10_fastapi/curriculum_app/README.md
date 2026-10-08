@@ -50,7 +50,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
 | `GET` | `/api/program` | ดูข้อมูลภาพรวมหลักสูตร |
 | `GET` | `/api/courses` | ดู/ค้นหารายวิชา (มี limit, offset, search); ดูรายละเอียดการค้นหาในหัวข้อ "การค้นหารายวิชา" ด้านล่าง |
 | `GET` | `/api/sample-questions` | ตัวอย่างคำถามของแผนที่เลือก (`?program=<id>`) สร้างจากข้อมูลของแผนนั้น |
-| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้า SQLite |
+| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้า SQLite (ปิดเป็นค่าเริ่มต้น: ตั้ง `CURRICULUM_ALLOW_WRITE=1` จึงเปิด ไม่งั้นตอบ 403) |
 | `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) |
 | `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
 | `GET` | `/api/courses/{code}/withdrawal-impact` | ตรวจตัวต่อโดยตรง/ทางอ้อมที่อาจได้รับผลกระทบเมื่อถอนวิชา |

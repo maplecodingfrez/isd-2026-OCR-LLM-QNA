@@ -15,6 +15,8 @@ Matching rules (all case-insensitive):
 """
 
 import re
+from functools import lru_cache
+from pathlib import Path
 
 SOURCES = ("plan", "elective", "catalog")
 _SOURCE_ORDER = {name: i for i, name in enumerate(SOURCES)}
@@ -42,8 +44,34 @@ def _blank(code: str, source: str) -> dict:
             "self_h": None, "description_th": None, "source": source}
 
 
+_CATALOG_CACHE: dict[tuple, list[dict]] = {}
+
+
+def _db_signature(conn) -> tuple | None:
+    """(path, mtime, size) of the open database file, so a catalogue is rebuilt only when the file changes; None for in-memory."""
+    try:
+        path = next((r[2] for r in conn.execute("PRAGMA database_list").fetchall() if r[1] == "main"), "")
+        stat = Path(path).stat() if path else None
+    except (OSError, ValueError):
+        return None
+    return (path, stat.st_mtime_ns, stat.st_size) if stat else None
+
+
 def load_catalog(conn) -> list[dict]:
-    """Every known course once, merged by code: plan first, then elective groups, then the book catalogue."""
+    """Every known course once, merged by code, cached per database file version. Callers must not mutate the items."""
+    signature = _db_signature(conn)
+    if signature is None:
+        return _build_catalog(conn)
+    cached = _CATALOG_CACHE.get(signature)
+    if cached is None:
+        for stale in [k for k in _CATALOG_CACHE if k[0] == signature[0]]:
+            del _CATALOG_CACHE[stale]
+        cached = _CATALOG_CACHE[signature] = _build_catalog(conn)
+    return cached
+
+
+def _build_catalog(conn) -> list[dict]:
+    """Merge by code: plan first, then elective groups, then the book catalogue."""
     rows: dict[str, dict] = {}
     have = {c[1] for c in conn.execute("PRAGMA table_info(course)").fetchall()}     # a bare course table may lack the hour columns
     wanted = [c for c in _COURSE_COLUMNS.split(", ") if c in have]
@@ -72,13 +100,14 @@ def load_catalog(conn) -> list[dict]:
 
 def known_course(conn, code: str) -> dict | None:
     """The course with this code from any of the three tables (plan beats elective beats catalogue), else None."""
-    for item in load_catalog(conn):
+    for item in load_catalog(conn):                   # cached per database file: a dict scan, not three table reads
         if item["code"] == code:
             return {k: v for k, v in item.items() if not k.startswith("_")}
     return None
 
 
-def _acronym_targets(text: str) -> list[tuple[str, str]]:
+@lru_cache(maxsize=1024)
+def _acronym_targets(text: str) -> tuple[tuple[str, str], ...]:
     """(English fragment, compact Thai fragment) the text stands for, from ACRONYM_MAP and EXTRA_ALIASES."""
     import course_names                       # plain script next to lab8b; on sys.path through main.py / the tests' conftest
     found = []
@@ -88,7 +117,7 @@ def _acronym_targets(text: str) -> list[tuple[str, str]]:
     alias = EXTRA_ALIASES.get(text.upper())
     if alias:
         found.append((alias[0].casefold(), _compact(alias[1])))
-    return found
+    return tuple(found)
 
 
 class _Row:
@@ -107,7 +136,7 @@ class _Row:
         self.description_compact = _compact(description)
 
 
-def _word_hit(token: str, row: _Row, targets: list[tuple[str, str]]) -> int | None:
+def _word_hit(token: str, row: _Row, targets) -> int | None:
     """Tier at which one query word matches the row (0-3 name/code, 4 description) or None."""
     if token.isdigit():
         if len(token) >= 4 and token in row.code:                    # a code fragment: "0602", "06026216"
@@ -133,7 +162,7 @@ def _word_hit(token: str, row: _Row, targets: list[tuple[str, str]]) -> int | No
     return 4 if tc and tc in row.description_compact else None
 
 
-def _tier(query: str, tokens: list[str], whole_targets: list[tuple[str, str]], row: _Row) -> int | None:
+def _tier(query: str, tokens: list[str], whole_targets, row: _Row) -> int | None:
     q_compact = _compact(query)
     q_lower = query.casefold()
     if q_lower == row.code:

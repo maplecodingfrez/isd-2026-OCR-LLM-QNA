@@ -12,6 +12,7 @@ class ProgramInfo(BaseModel):
     total_credits: int | None = None    # จากตาราง program ใน DB
     years: int | None = None            # จากตาราง program ใน DB
     available: bool                     # มีไฟล์ DB หรือไม่
+    default: bool = False               # ตรงกับ DB ที่เซิร์ฟเวอร์ตั้งเป็นค่าเริ่มต้น
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)

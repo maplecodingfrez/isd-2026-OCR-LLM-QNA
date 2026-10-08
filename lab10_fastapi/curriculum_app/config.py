@@ -36,6 +36,7 @@ class Settings:
     ollama_model: str = os.getenv("CURRICULUM_OLLAMA_MODEL", "qwen3:4b")
     request_timeout: int = int(os.getenv("CURRICULUM_REQUEST_TIMEOUT", "180"))
     max_rows: int = int(os.getenv("CURRICULUM_MAX_ROWS", "100"))
+    allow_write: bool = os.getenv("CURRICULUM_ALLOW_WRITE", "").strip().lower() in {"1", "true", "yes"}   # เปิด POST /api/courses (ปิดเป็นค่าเริ่มต้น)
 
 
 settings = Settings()

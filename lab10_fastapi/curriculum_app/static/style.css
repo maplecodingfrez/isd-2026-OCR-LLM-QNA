@@ -88,7 +88,8 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* dark: layered charcoal, used when the system asks for it and nothing was chosen */
+/* dark: layered charcoal, used when the system asks for it and nothing was chosen.
+   Keep the values identical to :root[data-theme="dark"] below (CSS cannot share one rule across a media query). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
@@ -101,19 +102,19 @@
     --surface-hover: #28282d;
     --line: #36363d;
     --field-line: #858585;
-  --ready-bg: #1e1e22;
-  --ready-fg: #bdbdbd;
-  --ready-line: #36363d;
-  --ready-dot-display: inline-block;
-  --ready-dot: #83b896;
-  --elapsed-bg: #28282d;
-  --elapsed-fg: #bdbdbd;
-  --example-line: #858585;
-  --example-hover-bg: #28282d;
-  --example-hover-fg: #f5f5f5;
-  --example-hover-line: #dedede;
-  --answer-panel-bg: #1e1e22;
-  --answer-panel-line: #45454e;
+    --ready-bg: #1e1e22;
+    --ready-fg: #bdbdbd;
+    --ready-line: #36363d;
+    --ready-dot-display: inline-block;
+    --ready-dot: #83b896;
+    --elapsed-bg: #28282d;
+    --elapsed-fg: #bdbdbd;
+    --example-line: #858585;
+    --example-hover-bg: #28282d;
+    --example-hover-fg: #f5f5f5;
+    --example-hover-line: #dedede;
+    --answer-panel-bg: #1e1e22;
+    --answer-panel-line: #45454e;
     --text: #f5f5f5;
     --muted: #bdbdbd;
     --accent: #dedede;
