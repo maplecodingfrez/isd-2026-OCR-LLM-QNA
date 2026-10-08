@@ -168,7 +168,8 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --host 127.0.0.
 | GET | `/api/health` | ตรวจ DB และ Ollama |
 | GET | `/api/program` | อ่านข้อมูลหลักสูตร |
 | GET | `/api/courses` | อ่าน/ค้นหารายวิชา |
-| POST | `/api/courses` | เพิ่มรายวิชาลง SQLite |
+| POST | `/api/courses` | เพิ่มรายวิชาลง SQLite (ปิดเป็นค่าเริ่มต้น ตอบ 403; เปิดด้วย `CURRICULUM_ALLOW_WRITE=1`) |
+| GET | `/api/courses/{code}/withdrawal-impact` | วิชาที่ได้รับผลกระทบถ้าถอนวิชานี้ (โดยตรง/ทางอ้อม) |
 | POST | `/api/ask` | ให้ Qwen สร้าง SQL และตอบคำถาม |
 | GET | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค |
 
@@ -203,7 +204,7 @@ http://127.0.0.1:8000/api/courses?search=06026200
 }
 ```
 
-> POST `/api/courses` เขียนลง DB จริง ควรใช้รหัสทดลองที่ลบออกภายหลัง หรือใช้สำเนา DB สำหรับการสาธิต
+> POST `/api/courses` ปิดเป็นค่าเริ่มต้น (ตอบ 403) ต้องตั้ง `CURRICULUM_ALLOW_WRITE=1` ก่อน และเขียนลง DB จริง ควรใช้รหัสทดลองที่ลบออกภายหลัง หรือใช้สำเนา DB สำหรับการสาธิต
 
 ### 9.1 API เพิ่มเติม: ตรวจสอบวิชาบังคับก่อน (Prerequisite Analyzer)
 
@@ -335,7 +336,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | key ที่ส่ง | type | บังคับ | หมายเหตุ |
 |---|---|---|---|
 | `question` | string | ใช่ | 2–500 ตัวอักษร (นับเป็น code point) |
-| `program` | string หรือ null | ไม่ | id จาก `/api/programs` เช่น `it_no_coop`; ไม่ส่ง/`null` = หลักสูตรที่ตั้งไว้ใน `.env` (หน้าเว็บส่ง id ทุกครั้ง โดยเริ่มที่ `dsba_coop`) |
+| `program` | string หรือ null | ไม่ | id จาก `/api/programs` เช่น `it_no_coop`; ไม่ส่ง/`null` = หลักสูตรที่ตั้งไว้ใน `.env` (หน้าเว็บส่ง id ทุกครั้ง โดยเริ่มที่แผนที่ `/api/programs` ระบุ `default: true`) |
 
 สำเร็จ `200 OK` — ชนิดข้อมูลของ response:
 
@@ -358,8 +359,8 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | 422 | คำถามสั้น/ยาวเกิน (Pydantic) | array | คำถามไม่ผ่านการตรวจ (ต้องยาว 2–500 ตัวอักษร) | แก้คำถามแล้วกดถามอีกครั้ง |
 | 422 | โมเดลสร้าง SQL ที่รันไม่ได้/ไม่ผ่านการตรวจ หลังลองซ้ำแล้ว | detail = ข้อความคำค้นไม่สำเร็จ; error/SQL ดิบเก็บใน server log | ระบบแปลงคำถามเป็นคำค้นไม่ได้ | ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม; ต่างจาก query ที่รันสำเร็จแต่ไม่มีข้อมูล (200) |
 | 404 | `program` ไม่มีในระบบ | string | ไม่พบหลักสูตรที่เลือก | รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่ |
-| 422 | Ollama ล่มตอนสร้าง SQL — `lab8b.ask` จับ error ขั้นนี้เอง จึงตอบ 422 ไม่ใช่ 503; `detail` ขึ้นต้นด้วยชื่อ error ของ requests เช่น `ConnectionError: …` | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
-| 503 | ไม่พบไฟล์ DB หรือ Ollama ล่มตอนสรุปคำตอบ (ขั้นที่สอง) | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
+| 503 | ไม่พบไฟล์ DB, หรือ Ollama/เครือข่ายล่ม (ทั้งขั้นสร้าง SQL และขั้นสรุปคำตอบ) — `detail` เป็นข้อความคงที่ "ติดต่อ Ollama ไม่ได้" ไม่ส่งข้อความ exception (มี host/port) ออกไป; ของจริงเก็บใน server log | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
+| 503 | คำถามใช้ทรัพยากรเกินเพดาน (`QueryBudgetExceeded`/`QueryRowLimitExceeded`) | string | คำถามนี้ใช้ทรัพยากรมากเกินไป | ระบุเงื่อนไขให้แคบลง เช่น ปี เทอม หรือรหัสวิชา แล้วลองใหม่ |
 | 500 | error ที่ไม่ได้ดัก (ตอบเป็นข้อความ) | ไม่ใช่ JSON | เซิร์ฟเวอร์ขัดข้อง | ลองใหม่อีกครั้ง |
 | ไม่มีคำตอบ | server ไม่รัน / เครือข่ายหลุด | - | เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ | รอสักครู่แล้วลองใหม่อีกครั้ง ถ้ายังไม่ได้ให้แจ้งผู้ดูแลระบบ |
 | ไม่มีคำตอบ | เกิน 180 วินาที (เพดานของหน้าเว็บเอง — backend ไม่มีเพดานเท่ากัน Ollama รอได้ถึง 600 วินาทีต่อครั้ง) | - | หมดเวลารอคำตอบ (เกิน 180 วินาที) | โมเดลอาจยังประมวลผลอยู่ รอสักครู่ แล้วกดลองอีกครั้ง (ถ้ายังเป็นอีก เปิดหน้า /api/health) |
@@ -394,15 +395,41 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 ข้อผิดพลาดแบบไม่มีคำตอบ/500 ใช้ข้อความเดียวกับตารางของ `/api/ask`
 
+### 13.3.1 `GET /api/courses/{code}/withdrawal-impact` (แท็บ "ถอนวิชา")
+
+`code` และ `?program=<id>` ใช้กติกาเดียวกับ §13.3 สำเร็จ `200 OK` — ชนิดข้อมูลของ response:
+
+| key ที่ได้ | type | หมายเหตุ |
+|---|---|---|
+| `course` | `{code: string, name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, credits_display: string หรือ null}` | วิชาที่พิจารณาถอน |
+| `direct` | array ของ Impact | วิชาที่ใช้วิชานี้เป็นเงื่อนไขโดยตรง (depth = 1); ว่างได้ |
+| `indirect` | array ของ Impact | วิชาที่ได้ผลกระทบต่อเนื่อง (depth > 1); ว่างได้ |
+| `citations` | array ของ `{pdf_page: integer, printed_page: string หรือ null, courses: array ของรหัสวิชา}` | หน้าในเล่มที่ยืนยันความสัมพันธ์ |
+| `note` | string | ข้อความเตือนว่าเป็นความสัมพันธ์ในหลักสูตร ไม่ใช่ผลอนุมัติลงทะเบียน |
+
+`Impact` = `{code: string, name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, depth: integer, path: array ของ {code, requires, kind, alternative: boolean}}`
+
+| Status | เมื่อไร | `detail` | ข้อความที่ผู้ใช้เห็น (title) | ทำอะไรต่อ (action) |
+|---|---|---|---|---|
+| 422 | `code` ไม่ใช่ตัวเลข ASCII 8 หลัก | string | รหัสวิชาไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หลัก) | แก้รหัสแล้วกดตรวจอีกครั้ง |
+| 404 | ไม่พบวิชานี้ | string | ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น | ตรวจรหัส หรือเลือกจากรายการแนะนำ |
+| 404 | `program` ไม่รู้จัก | string | ไม่พบรายวิชารหัสนี้ในหลักสูตรที่ค้น | ตรวจรหัส หรือเลือกจากรายการแนะนำ |
+| 503 | ไม่พบไฟล์ DB | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
+
+ข้อผิดพลาดแบบไม่มีคำตอบ/500 ใช้ข้อความเดียวกับตารางของ `/api/ask`
+
 ### 13.4 endpoint เสริมตอนโหลดหน้า (ล้มได้ หน้าเว็บยังใช้งานต่อได้)
 
-- `GET /api/health` → `{status: "ok" หรือ "degraded" (string), database: string, database_ready: boolean, model: string, ollama_ready: boolean, lab8b_module: string}` แสดงเป็นแถบสถานะด้านบนหน้า
-- `GET /api/programs` → array ของ `{id: string, label: string, available: boolean, name_th: string หรือ null, total_credits: integer หรือ null, years: integer หรือ null}` เติมตัวเลือกหลักสูตร (`available: false` = เลือกไม่ได้)
-- `GET /api/courses?limit=100&program=<id>` → array ของ `{code: string (8 หลัก), name_th: string, name_en: string หรือ null, credits: integer, lecture_h/lab_h/self_h: integer หรือ null, description_th: string หรือ null}` เติมรายการแนะนำรหัสวิชา
+- `GET /api/health` → `{status: "ok" หรือ "degraded" (string), database: string (path เทียบจากรากโปรเจกต์ ไม่เปิดเผยโฟลเดอร์ในเครื่อง), database_ready: boolean, model: string, ollama_ready: boolean, lab8b_module: string}` แสดงเป็นแถบสถานะด้านบนหน้า
+- `GET /api/programs` → array ของ `{id: string, label: string, available: boolean, default: boolean, name_th: string หรือ null, total_credits: integer หรือ null, years: integer หรือ null}` เติมตัวเลือกหลักสูตร (`available: false` = เลือกไม่ได้; `default: true` = แผนที่เซิร์ฟเวอร์ใช้เป็นค่าเริ่มต้น หน้าเว็บเลือกแผนนี้ตอนเปิด)
+- `GET /api/courses?limit=100&program=<id>` → array ของ `{code: string (8 หลัก), name_th: string หรือ null, name_en: string หรือ null, credits: integer หรือ null, lecture_h/lab_h/self_h: integer หรือ null, description_th: string หรือ null, source: "plan" หรือ "elective" หรือ "catalog"}` เติมรายการแนะนำรหัสวิชา และใช้เป็นผลของแท็บ "ค้นหารายวิชา" (เพิ่ม `&search=<รหัสหรือชื่อ ไทย/อังกฤษ>`; query: `search` ≤ 100 ตัวอักษร, `limit` 1–100, `offset` ≥ 0)
+- `GET /api/sample-questions?program=<id>` → `{topics: array ของ {key: "credits"|"term"|"course"|"prereq"|"withdraw"|"compare", examples: array ของ {label_th, label_en, th, en: string, needs_model: boolean}}}` เติมคำถามตัวอย่างของแผนที่เลือก (ล้ม = ใช้รายการสำรองในหน้าเว็บ)
+- `POST /api/courses` **ปิดเป็นค่าเริ่มต้น** — ตอบ `403` เมื่อไม่ได้ตั้ง `CURRICULUM_ALLOW_WRITE=1` (หน้าเว็บไม่เรียก endpoint นี้)
+- `?q=<คำถาม>` บนหน้า `/` (ไม่ใช่ API): เติมคำถามลงช่องให้ ผู้ใช้กด "ถาม" เอง ไม่เรียกโมเดลโดยไม่ได้สั่ง
 
 ### 13.5 สี่สถานะของ UI
 
-แต่ละแผง (ถามเรื่องหลักสูตร / ตรวจวิชาบังคับก่อน) มีสถานะของตัวเอง:
+แต่ละแผง (ถามเรื่องหลักสูตร / ค้นหารายวิชา / ตรวจวิชาบังคับก่อน / ถอนวิชา) มีสถานะของตัวเอง — JS ตั้ง `data-state` บนแผง (`idle`/`loading`/`success`/`error`) แล้ว CSS เป็นคนแสดง/ซ่อนบล็อก `.state-*`:
 
 | สถานะ | เมื่อไร | สิ่งที่เห็น |
 |---|---|---|
@@ -417,7 +444,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 ### 13.7 Wireframe
 
-`docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/iYxgQdXyZ3l54ANq8uuW9g>
+`docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa> (ฉบับปัจจุบัน; ฉบับเก่าก่อนมีค้นวิชา/ถอนวิชา/ธีม/ภาษา อยู่ใน git history)
 
 ## 14. วัน Challenge: รันคำถามเป็นชุด และอุ่นโมเดล
 
