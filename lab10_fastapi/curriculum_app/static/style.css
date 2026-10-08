@@ -243,7 +243,9 @@ input[type="search"], input[type="text"], select, textarea#question { min-height
 .health[data-health="down"] { color: var(--err-fg); background: var(--err-bg); border-color: transparent; }
 
 /* ---------- layout ---------- */
-main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
+main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 40px; }
+.site-footer { max-width: 1240px; margin: 0 auto; padding: 20px 24px 32px; border-top: 2px solid var(--line); text-align: center; color: var(--muted); font-size: 15px; }
+.site-footer p { margin: 0; }
 .layout { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 @media (min-width: 900px) {
   /* tools are a right rail: slim while folded so the answer gets the width, a full panel once opened */
