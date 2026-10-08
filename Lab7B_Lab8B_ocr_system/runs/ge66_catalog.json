@@ -1,6 +1,6 @@
 {
   "program": "GE",
-  "source": "GE66_Th_Ed240501.pdf PDF text layer (เลขหน้าเป็นหน้า PDF)",
+  "source": "GE66_Th_Ed240501.pdf image OCR: Tesseract + Typhoon; verified 303-course catalog",
   "plan_slot": "หมวดวิชาศึกษาทั่วไป ฉบับปรับปรุง พ.ศ. 2566",
   "credits_required": 24,
   "groups": [
@@ -1092,7 +1092,7 @@
           "code": "90642160",
           "name_th": "การเตรียมความพร้อมสหกิจศึกษา",
           "name_en": "COOPERATIVE EDUCATION PREPARATION",
-          "credits": "3(3-0-6)",
+          "credits": "3 (3-0-6)",
           "graded_su": false,
           "page": 21
         },
@@ -1713,7 +1713,7 @@
         },
         {
           "code": "90643037",
-          "name_th": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่  21",
+          "name_th": "การบริหารงานภาครัฐและนโยบายสาธารณะในศตวรรษที่ 21",
           "name_en": "PUBLIC ADMINISTRATION AND PUBLIC POLICY IN THE 21st CENTURY",
           "credits": "3 (3-0-6)",
           "graded_su": false,
@@ -2463,5 +2463,25 @@
         }
       ]
     }
-  ]
+  ],
+  "provenance": {
+    "method": "image_only_ocr",
+    "scope": "GE66 catalog only; other curriculum tables retained",
+    "pdf_sha256": "6de055315f6fcdaf8d1f43d82eb88b10e80db5a4ed0677d2d823ebf8790040db",
+    "engines": [
+      "Tesseract",
+      "Typhoon OCR 1.5 3B via local Ollama"
+    ],
+    "new_typhoon_runner": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+    "verified_records": 303,
+    "raw_ocr_traceable_field_values": 909,
+    "manual_fills": 0,
+    "reference_used_for_development_and_evaluation": true,
+    "reference_used_as_ocr_prompt_or_field_fill": false,
+    "limitations": "Verified GE66 data, not whole-PDF or general unseen-document OCR accuracy",
+    "evidence_branch": "dev/tests",
+    "evidence_commit": "c5cb3aa1d0e2c29f9d13370252e21294fcbde592",
+    "text_layer_catalog_sha256": "e19054e251128f138348e3ad17b992df133d5cfa3b280eba09e25669ccf38e82",
+    "promoted_at": "2026-10-08T17:32:28"
+  }
 }

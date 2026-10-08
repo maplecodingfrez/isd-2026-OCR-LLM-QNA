@@ -1,0 +1,43 @@
+{
+  "scope": "GE66 catalog only",
+  "source": "image OCR",
+  "catalog_sha256": "90852e40c16d3558f30944ea93437031b27dcc394f3ddff6d0bb4f3b46ad1bf0",
+  "text_layer_backup": "Lab7B_Lab8B_ocr_system\\_local_reference\\ge66-text-layer-backup-20261008-173228",
+  "promoted_at": "2026-10-08T17:32:30",
+  "plans": [
+    {
+      "plan": "AIT",
+      "database_sha256": "5f5f679285692777617f227e6f06c076ca0242d61f44392af84a64d6b7c70478",
+      "previous_text_layer_sha256": "35dc7b1640b18878ced37d36ccd6842294076c166a494c9954fcebe4723291a7"
+    },
+    {
+      "plan": "DSBA/coop",
+      "database_sha256": "9549516474fff5d5988fe0099c737cc70f5c2ab34c7c7dd1ac3c3adbbe7a9cb8",
+      "previous_text_layer_sha256": "8818bc37c5d9e91ccb60a7a98175770c81a2f213363cca7405f2c32ba72f35d9"
+    },
+    {
+      "plan": "DSBA/no_coop",
+      "database_sha256": "d3ccc0798d8a8bddfae2c2c21144ad493d81dc5d4b9cceaeacfbf5b1bf03b91b",
+      "previous_text_layer_sha256": "284965304d8c91ca693246460a7c84a4fbe096ead5f19ed23e3c3cff687f49b2"
+    },
+    {
+      "plan": "IT/coop",
+      "database_sha256": "b2c77658f6a2616671e77d9e21380eed383333e22537eaad224b5133c3a0c6dc",
+      "previous_text_layer_sha256": "8c37fb5e35079a85db25651ad5821f690748ae5621c5f2b74e40f0a413ba1c3f"
+    },
+    {
+      "plan": "IT/no_coop",
+      "database_sha256": "b65ece766d1c30648cbf97c6b84645c700cb454f36c1360b454ab8e6dc9d9246",
+      "previous_text_layer_sha256": "ac0381844f87db98a448176ffb5604a9bbdd7a352080c6b35bb697abb61106e3"
+    }
+  ],
+  "verified_records_per_plan": 303,
+  "qa_passed": 20,
+  "qa_total": 20,
+  "other_curriculum_tables_preserved": true,
+  "text_layer_git_commit": "2a7af2e",
+  "live_api_qa_passed": 20,
+  "live_api_ge_search_passed": 5,
+  "regression_tests_passed": 1014,
+  "rollback_backups_validated": true
+}
