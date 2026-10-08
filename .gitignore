@@ -67,3 +67,7 @@ tests/
 run_all_tests.py
 test.md
 test_master_results.json
+
+# Local design previews and retired UI; restore previous versions from Git history.
+lab10_fastapi/curriculum_app/static/dark-colour-preview.*
+archive/synthesis_ui/
