@@ -24,3 +24,13 @@ tags: OCR, GE64, image-evidence, failed-gate, dev/tests
 - Original ten pages139-146 evidence hashes unchanged. Append-only timeline preserved including2026-10-08 22:29. Scoped delivery stays ondev/tests; no main merge or frontend deployment.
 - Reports: docs/ge64-completion-2026-10-09.md, docs/ge66-db-promotion-2026-10-09.md; complete decisions/costs: docs/ge64-ge66-execution-decisions-2026-10-09.md.
 tags: OCR, GE64, GE66, DB, rollback, review, dev/tests
+
+## 2026-10-09 06:06 - Page79 English and SQL retry repair
+- Page79 separate development3/3, both gates pass; original frozen2/3 retained unchanged.
+- Initial untouched80=3/4 retained; new short-title word-image recovery repairs target1/1, known-page composition4/4. Each composed token is actual Typhoon output, no Tesseract/reference field fills.
+- Final untouched81=3/3, both gates pass, zero errors/failures; recognition before reference extraction; raw completion/snapshot hashes verified. PDF Text Layer evaluation only; no arbitrary-document completeness claim.
+- Exhausted SQL retries now report query failure, not successful not-found; valid-empty/recovery paths pass. Complete backend/OCR1179passed/3skipped/7subtests,zero failures.
+- One fresh whole-change review; author fixes observed80 gap with3RED/GREEN regressions and final suite; no deferred minors.24 protected DB/catalog/Gold/source hashes unchanged; frontend ref untouched; timeline append-only.
+- Scoped14-file delivery only todev/tests; existing commit identity, no Co-Authored-By trailer. Post-push remoteSHA and clean tree verification required; no DB mutation in this repair.
+- Report: docs/ge79-sql-retry-repair-2026-10-09.md and companion JSON; plan records execution and decisions/costs.
+tags: OCR, GE64, SQL-retry, dev/tests

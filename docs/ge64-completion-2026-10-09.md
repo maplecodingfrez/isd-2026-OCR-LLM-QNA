@@ -92,3 +92,7 @@ The no-DB statements above describe the completed OCR phase before the user's la
 After the three review guard fixes, untouched page79 was frozen at6f5037e and recognized before extracting reference text. Result:2/3 exact and selected, zero selected errors/extra codes/transport failures, one English title withheld (90642125). Both full-coverage gates remain FALSE. Six selected fields trace to raw OCR; three completion hashes and ten source snapshots verified. All three reference courses overlap GE66 content: this tests new page images, not unseen course content.
 
 Image-only diagnosis: Tesseract's bounded reading adds a terminal period, while independent Typhoon reads the same literal title without it. The retained image shows why independent confirmation is still necessary. The complete-title conflict guard correctly withholds rather than editing punctuation or borrowing a reference answer. This is a preserved failing coverage gate, not a new passing accuracy claim or a blocker to the separately verified full GE66 catalog. The final policy does not promise automatic certification of every unseen title.
+
+## Later page79 and backend repair
+
+The historical2/3 and pre-existing SQL failure above remain the results of that checkpoint. See [the separate repair report](ge79-sql-retry-repair-2026-10-09.md) for development79=3/3, preserved initial80=3/4, its separate development repair, final untouched81 evidence, and the1179-test passing backend/OCR suite. No DB/catalog bytes change in that code repair.

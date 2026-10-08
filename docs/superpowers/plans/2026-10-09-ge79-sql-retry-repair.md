@@ -25,7 +25,9 @@
 - [x] Rerun79 in a new development directory to3/3, then freeze untouched80 under final source hashes. Preserve old failed scores.
 
 ### Task 3: Review and delivery
-- [ ] Complete untouched80 recognition, then extract reference/score and verify hashes before delivery.
+- [x] Complete untouched80=3/4 and preserve its failed score; repair90642128 in separate development1/1, compose4/4, then freeze/score untouched81 under final policy. Verify all hashes before delivery.
 **Files:** new report/plan, PROGRESS.md, append .claude-mem/timeline.md; link historical completion report.
-- [ ] One fresh final reviewer; handle Important/Critical by RED/GREEN, record decisions/minors.
-- [ ] Verify protected DB/catalog/Gold/source hashes, exact allowlist, tests and diff checks; commit/push dev/tests and verify remoteSHA/clean tree.
+- [x] One fresh final reviewer; author closes declined final checks and fixes observed80 count-mismatch gap in the single RED/GREEN fix pass.134 OCR tests+7subtests; complete1179passed/3skipped/7subtests. Record decisions/minors.
+- [x] Verify protected DB/catalog/Gold/source hashes, exact14-file allowlist, tests and diff checks; commit/push dev/tests. Completion is gated by post-push remoteSHA/clean tree check; final message reports actual delivery.
+
+**Final fix pass:** scripts/ge66_script_evidence.py and tests/test_ge_script_evidence.py add all-image-word recovery for unaligned short titles (max8), without Tesseract text fills. Preserve initial80 failure; final new-image validation uses81.
