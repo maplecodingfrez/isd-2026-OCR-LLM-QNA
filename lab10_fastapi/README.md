@@ -598,3 +598,9 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 #### 3. ขอบเขตและนโยบายความปลอดภัย (Precision-First Safety Guard)
 - คำย่อภาษาไทยหรือชื่อตัดทอนอื่นนอกเหนือจาก 6 กรณีนี้ (เช่น "เว็บแอป", "เน็ตเวิร์ก", "ดาต้าไซน์") ระบบจะยังคงยึดหลัก **ปฏิเสธอย่างปลอดภัย (Safely Reject)** ตอบ "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" แทนการสุ่มเดา เพื่อรักษาความเสถียรและความถูกต้องตามฐานข้อมูลจริง 100%
 
+
+### Readiness and query resource limits
+
+`/api/health` reports `ollama_ready: true` only when Ollama responds and its model inventory contains the configured model (including its explicit tag). An empty inventory or a different model produces `status: degraded`. This is an installation check, not a guarantee that inference will fit available memory.
+
+Model-generated SQL is bounded independently of its SQL text: Lab 8B allows up to 200 returned rows; the adapter uses `CURRICULUM_MAX_ROWS` (default 100). Each generated query has a 2-second or 2,000,000-VM-instruction budget. Excess rows or work return a resource error rather than an incomplete answer; `/api/ask` returns HTTP 503 and a message requesting a narrower question. SQLite progress callbacks cannot preempt a single long native function or a database lock wait.

@@ -1640,3 +1640,7 @@ matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab
 * **หมายเหตุข้อมูล**: ฐานข้อมูลปัจจุบันเป็นหลักสูตร IT (มี 41 รายวิชาตามแผน 4 ปี และมีกฎ Prerequisite ตามเล่ม 4 รายวิชา คือ `06016407`, `06016418`, `06016419`, `06016420`) หากค้นหารหัสวิชาอื่นที่ไม่อยู่ในเล่มจะตอบกลับ `404 Not Found`
 
 รายละเอียดเต็มของ Lab 10 อยู่ที่ [`lab10_fastapi/README.md`](lab10_fastapi/README.md) และรายงานฉบับสมบูรณ์อยู่ที่ [`docs/reports/lab10_fastapi_report.md`](docs/reports/lab10_fastapi_report.md)
+
+### OCR API processing limits
+
+The legacy `/api/v1/ocr/process` route runs OCR in worker threads. `MAX_CONCURRENT_OCR` sets active OCR jobs per server process (default `2`, minimum `1`); excess jobs receive HTTP 503 and can be retried. Cancelling an HTTP request does not forcibly stop an already running OCR worker. Corrupt documents return 422; engine failures without a complete digital-PDF fallback return 503.

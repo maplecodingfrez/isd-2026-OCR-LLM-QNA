@@ -1,6 +1,7 @@
 """RESTful API routes implementing ISD Chapter 10 design principles."""
 
 import datetime
+from threading import BoundedSemaphore
 from typing import Annotated
 
 from fastapi import (
@@ -14,6 +15,8 @@ from fastapi import (
     status,
 )
 
+from starlette.concurrency import run_in_threadpool
+
 from .config import settings
 from .schemas import (
     APIInfoResponse,
@@ -25,6 +28,19 @@ from .schemas import (
     HealthResponse,
 )
 from .service import OCRService, repository
+
+
+_ocr_slots = BoundedSemaphore(settings.max_concurrent_ocr)
+
+
+def _process_document_limited(**kwargs) -> DocumentDetailResponse:
+    if not _ocr_slots.acquire(blocking=False):
+        raise HTTPException(status_code=503, detail='OCR workers are busy; retry later')
+    try:
+        return OCRService.process_document(**kwargs)
+    finally:
+        # The worker owns release even when its awaiting request is cancelled.
+        _ocr_slots.release()
 
 
 router = APIRouter(
@@ -109,7 +125,8 @@ async def process_document(
     filename = file.filename or "upload.bin"
     file_bytes = await file.read()
 
-    detail = OCRService.process_document(
+    detail = await run_in_threadpool(
+        _process_document_limited,
         file_bytes=file_bytes,
         filename=filename,
         engine=engine,

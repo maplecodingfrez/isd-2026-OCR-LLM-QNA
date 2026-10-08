@@ -10,6 +10,7 @@ Implements:
 from __future__ import annotations
 
 import datetime
+import logging
 import os
 import shutil
 import tempfile
@@ -27,6 +28,47 @@ from .schemas import (
     OCRLineSchema,
     OCRPageSchema,
 )
+
+
+logger = logging.getLogger(__name__)
+
+
+def _pdf_page_texts(path: Path) -> list[str]:
+    import pymupdf
+    # Opening bytes avoids leaked OS handles if parser initialization fails.
+    with pymupdf.open(stream=path.read_bytes(), filetype='pdf') as document:
+        if not document.is_pdf or document.needs_pass or not len(document):
+            raise ValueError('Unreadable PDF')
+        return [page.get_text() for page in document]
+
+
+def _validate_document(path: Path) -> None:
+    try:
+        if path.suffix.lower() == '.pdf':
+            _pdf_page_texts(path)
+        else:
+            from PIL import Image
+            with Image.open(path) as image:
+                image.verify()
+            with Image.open(path) as image:
+                image.load()
+    except Exception as exc:
+        logger.exception('Document validation failed')
+        raise HTTPException(status_code=422, detail='Document could not be read') from exc
+
+
+def _extract_complete_pdf_text(path: Path) -> list[str] | None:
+    texts = _pdf_page_texts(path)
+    return texts if texts and all(text.strip() for text in texts) else None
+
+
+def _text_pages(texts: list[str]) -> tuple[str, list[OCRPageSchema]]:
+    full_text = '\n\n'.join(f'--- Page {i+1} ---\n{text}' for i, text in enumerate(texts))
+    pages = [OCRPageSchema(page=i+1, text=text, lines=[
+        OCRLineSchema(text=line.strip(), page=i+1)
+        for line in text.splitlines() if line.strip()])
+        for i, text in enumerate(texts)]
+    return full_text, pages
 
 
 class DocumentRepository:
@@ -160,128 +202,49 @@ class OCRService:
             temp_file.flush()
             temp_file.close()
 
-            # Execute OCR pipeline
+            _validate_document(temp_path)
             pages_schemas: list[OCRPageSchema] = []
-            full_text = ""
+            full_text = ''
             extracted_fields: dict[str, Any] = {}
-
-            try:
-                # Fast path: digital PDF with auto engine
-                if engine == "auto" and temp_path.suffix.lower() == ".pdf":
-                    import pymupdf
-
-                    pdf_doc = pymupdf.open(temp_path)
-                    page_texts = [p.get_text() for p in pdf_doc]
-                    pdf_doc.close()
-                    if any(t.strip() for t in page_texts):
-                        full_text = "\n\n".join(
-                            f"--- Page {i + 1} ---\n{t}" for i, t in enumerate(page_texts)
-                        )
-                        pages_schemas = [
-                            OCRPageSchema(
-                                page=i + 1,
-                                text=t,
-                                lines=[
-                                    OCRLineSchema(text=ln.strip(), page=i + 1)
-                                    for ln in t.splitlines()
-                                    if ln.strip()
-                                ],
-                            )
-                            for i, t in enumerate(page_texts)
-                        ]
-                        from ..field_extraction import extract_common_fields
-                        if extract_fields:
-                            extracted_fields = extract_common_fields(full_text)
-
-                if not full_text:
-                    # Lazy-import OCR pipeline to avoid unneeded startup overhead
+            page_texts = (_extract_complete_pdf_text(temp_path)
+                          if engine == 'auto' and temp_suffix == '.pdf' else None)
+            if page_texts is not None:
+                full_text, pages_schemas = _text_pages(page_texts)
+            else:
+                try:
                     from ..config import OCRConfig
                     from ..pipeline import run_ocr
-                    from ..field_extraction import extract_common_fields
-
-                    ocr_engine = "paddle" if engine == "auto" else engine
-                    out_dir = settings.output_dir / "api_runs" / doc_id
                     cfg = OCRConfig(
                         input_path=temp_path,
-                        output_dir=out_dir,
-                        engine=ocr_engine,  # type: ignore
-                        languages=languages,
-                        paddle_lang=paddle_lang,
-                        dpi=dpi,
-                        preprocess=preprocess,
-                        deskew=deskew,
-                        min_confidence=min_confidence,
-                        workers=1,
+                        output_dir=settings.output_dir / 'api_runs' / doc_id,
+                        engine='paddle' if engine == 'auto' else engine,
+                        languages=languages, paddle_lang=paddle_lang, dpi=dpi,
+                        preprocess=preprocess, deskew=deskew,
+                        min_confidence=min_confidence, workers=1,
                     )
                     doc_result = run_ocr(cfg)
+                except Exception as engine_error:
+                    logger.exception('OCR processing failed')
+                    try:
+                        page_texts = (_extract_complete_pdf_text(temp_path)
+                                      if temp_suffix == '.pdf' else None)
+                    except Exception:
+                        logger.exception('PDF text fallback failed')
+                        page_texts = None
+                    if page_texts is None:
+                        raise HTTPException(status_code=503,
+                            detail='OCR engine could not process this document') from engine_error
+                    full_text, pages_schemas = _text_pages(page_texts)
+                else:
                     full_text = doc_result.text
-
-                    for p in doc_result.pages:
-                        lines_schema = [
-                            OCRLineSchema(
-                                text=ln.text,
-                                confidence=ln.confidence,
-                                box=ln.box,
-                                page=ln.page,
-                            )
-                            for ln in p.lines
-                        ]
-                        pages_schemas.append(
-                            OCRPageSchema(
-                                page=p.page,
-                                text=p.text,
-                                lines=lines_schema,
-                                image_path=p.image_path,
-                            )
-                        )
-
-                    if extract_fields:
-                        extracted_fields = extract_common_fields(full_text)
-
-            except Exception as e:
-                # Fallback extraction in case native OCR dependencies (tesseract/poppler) are not available
-                # Ensures API can be evaluated and run without hard crashes
-                try:
-                    import pymupdf
-
-                    if temp_path.suffix.lower() == ".pdf":
-                        doc = pymupdf.open(temp_path)
-                        page_texts = [page.get_text() for page in doc]
-                        doc.close()
-                        full_text = "\n\n".join(
-                            f"--- Page {i + 1} ---\n{t}" for i, t in enumerate(page_texts)
-                        )
-                        pages_schemas = [
-                            OCRPageSchema(
-                                page=i + 1,
-                                text=t,
-                                lines=[
-                                    OCRLineSchema(text=ln.strip(), page=i + 1)
-                                    for ln in t.splitlines()
-                                    if ln.strip()
-                                ],
-                            )
-                            for i, t in enumerate(page_texts)
-                        ]
-                    else:
-                        full_text = f"Image received: {filename} ({len(file_bytes)} bytes). Engine: {engine}."
-                        pages_schemas = [
-                            OCRPageSchema(
-                                page=1,
-                                text=full_text,
-                                lines=[OCRLineSchema(text=full_text, page=1)],
-                            )
-                        ]
-
-                    from ..field_extraction import extract_common_fields
-                    if extract_fields:
-                        extracted_fields = extract_common_fields(full_text)
-                except Exception as parse_err:
-                    # Unreadable / corrupted document -> HTTP 422 (Chapter 10 slide 27 & 30)
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"OCR or document parser could not read document: {parse_err}",
-                    ) from parse_err
+                    pages_schemas = [OCRPageSchema(
+                        page=page.page, text=page.text, image_path=page.image_path,
+                        lines=[OCRLineSchema(text=line.text, confidence=line.confidence,
+                            box=line.box, page=line.page) for line in page.lines])
+                        for page in doc_result.pages]
+            if extract_fields:
+                from ..field_extraction import extract_common_fields
+                extracted_fields = extract_common_fields(full_text)
 
             detail = DocumentDetailResponse(
                 doc_id=doc_id,
@@ -304,6 +267,7 @@ class OCRService:
             return detail
 
         finally:
+            temp_file.close()
             # Temporary file cleanup (Chapter 10 slide 27)
             if temp_path.exists():
                 try:

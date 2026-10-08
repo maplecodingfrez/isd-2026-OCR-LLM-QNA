@@ -49,10 +49,15 @@
     }).filter(Boolean).join("; ");
   }
 
-  // ระบบฝั่งโมเดล/ฐานข้อมูลยังไม่พร้อม: 503 ทุกแผง หรือ 422 ของแผงถามที่เป็น Ollama ล่มตอนสร้าง SQL
+  function isQueryLimited(err, where) {
+    return err instanceof ApiError && err.kind === "http" && err.status === 503 && where === "ask" &&
+      err.raw === "คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลงแล้วลองใหม่";
+  }
+
+  // ระบบฝั่งโมเดล/ฐานข้อมูลยังไม่พร้อม หรือ Ollama ล่มตอนสร้าง SQL
   function isModelDown(err, where) {
     if (!(err instanceof ApiError) || err.kind !== "http") return false;
-    if (err.status === 503) return true;
+    if (err.status === 503) return !isQueryLimited(err, where);
     return where === "ask" && err.status === 422 && typeof err.raw === "string" && MODEL_DOWN.test(err.raw);
   }
 
@@ -65,6 +70,9 @@
     if (err.kind === "timeout") return { title: t("err.timeout"), action: t("err.timeout.act") };
     if (err.kind === "network") return { title: t("err.network"), action: t("err.network.act") };
     if (err.kind === "server") return { title: t("err.server"), action: t("err.retry") };
+    if (isQueryLimited(err, where)) {
+      return { title: t("err.queryLimit"), action: t("err.queryLimit.act") };
+    }
     if (isModelDown(err, where)) {
       return { title: t("err.notReady"), action: t("err.notReady.act") };
     }

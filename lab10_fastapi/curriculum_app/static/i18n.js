@@ -106,6 +106,8 @@
     "err.network.dev": ["สำหรับผู้ดูแล: ตรวจว่า uvicorn ทำงานอยู่", "For the operator: check that uvicorn is running"],
     "err.server": ["เซิร์ฟเวอร์ขัดข้อง", "Server error"],
     "err.retry": ["ลองใหม่อีกครั้ง", "Please try again"],
+    "err.queryLimit": ["คำถามนี้ใช้ทรัพยากรมากเกินไป", "This question exceeds the query limits"],
+    "err.queryLimit.act": ["ระบุเงื่อนไขให้แคบลง เช่น ปี เทอม หรือรหัสวิชา แล้วลองใหม่", "Narrow the question by year, semester, or course code, then try again"],
     "err.notReady": ["ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล)", "System not ready (database or model)"],
     "err.notReady.act": ["แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน", "Tell an administrator, or open /api/health to see what is down"],
     "err.code": ["รหัสวิชาไม่ถูกต้อง (ต้องเป็นตัวเลข 8 หลัก)", "Invalid course code (must be 8 digits)"],

@@ -44,6 +44,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from query_limits import execute_bounded_rows, QueryBudgetExceeded, QueryRowLimitExceeded
+
 if sys.platform == "win32":
     if hasattr(sys.stdout, "reconfigure"):
         try:
@@ -4883,7 +4885,8 @@ def guard_sql(sql: str) -> str:
     ชั้นที่หนึ่งคือการเปิดฐานข้อมูลแบบอ่านอย่างเดียว
     ทำไมต้องมีสองชั้น: ชั้นแรกกันการ "แก้ข้อมูล" ได้ก็จริง
     แต่กันการดึงข้อมูลจนล้น หรือ query ที่รันไม่จบไม่ได้
-    ชั้นนี้จึงเสริมเรื่องนั้น และทำให้ข้อผิดพลาดอ่านง่ายขึ้นด้วย
+    guard_sql ตรวจชนิดคำสั่ง; execute_bounded_rows บังคับเพดานแถว/เวลา/คำสั่ง VM
+    LIMIT ที่เติมด้านล่างเป็นเพียงค่าเริ่มต้น ไม่ใช่ตัวบังคับทรัพยากร
     """
     s = sql.strip().rstrip(";").strip()
     if not s:
@@ -5636,10 +5639,16 @@ def ask(conn: sqlite3.Connection, question: str,
             # alias ที่ไม่ได้ประกาศ (qwen ลอก "p.code" จากนิยาม v_plan ใน DDL) -> ตัดออกก่อนรัน
             sql = guard_sql(repair_undefined_aliases(sql))
             result["sql"] = sql
-            rows = _hide_internal_columns(_dedupe_rows([dict(r) for r in conn.execute(sql).fetchall()]))
+            rows = _hide_internal_columns(_dedupe_rows(
+                execute_bounded_rows(conn, sql, row_limit=SQL_ROW_LIMIT)))
             result["rows"] = rows
             result["error"] = None
             break
+        except (QueryBudgetExceeded, QueryRowLimitExceeded) as e:
+            result["error"] = f"{type(e).__name__}: {e}"
+            result["rows"] = []
+            result["answer"] = "คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลง"
+            return result
         except Exception as e:
             result["error"] = f"{type(e).__name__}: {e}"
             if verbose:

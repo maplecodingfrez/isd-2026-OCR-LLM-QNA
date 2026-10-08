@@ -215,6 +215,8 @@ def ask(request: AskRequest) -> dict:
     finally:
         conn.close()
     if result["error"]:
+        if str(result["error"]).split(":", 1)[0].strip() in {"QueryBudgetExceeded", "QueryRowLimitExceeded"}:
+            raise HTTPException(status_code=503, detail="คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลงแล้วลองใหม่")
         if str(result["error"]).split(":", 1)[0].strip() in _INFRA_ERRORS:      # Ollama/เครือข่ายมีปัญหา = error จริงให้ UI แสดงสถานะ error
             raise HTTPException(status_code=422, detail=result["error"])
         # โมเดลสร้าง SQL ไม่สำเร็จหลังลองซ้ำ (เช่น คำถามตัวอย่างของอาจารย์เคยทำให้เกิด "ambiguous column name") = ไม่ใช่ความผิดของผู้ใช้/เซิร์ฟเวอร์

@@ -74,8 +74,8 @@ class CurriculumDatabase:
         safe_sql = self.lab8b.guard_sql(sql)
         conn = self.lab8b.open_db(self.path, readonly=True)
         try:
-            rows = [dict(row) for row in conn.execute(safe_sql).fetchall()]
-            return safe_sql, rows[:self.max_rows]
+            rows = self.lab8b.execute_bounded_rows(conn, safe_sql, row_limit=self.max_rows)
+            return safe_sql, rows
         finally:
             conn.close()
 
