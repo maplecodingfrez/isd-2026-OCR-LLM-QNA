@@ -20,11 +20,12 @@
 
 ### Task 2: Pixel-preserving English recognition
 **Files:** scripts/ge66_english_evidence.py, scripts/ge64_image_trial.py, tests/test_ge_english_evidence.py, tests/fixtures/ge79_english_title.png.
-- [ ] Add failing real-image and synthetic punctuation/wrap/blank regressions.
-- [ ] Bound all foreground pixels including tiny punctuation, upscale2x and pad; retain metadata and engine voting. Run whole focused suite and commit.
-- [ ] Rerun79 in a new development directory to3/3, then freeze untouched80 under final source hashes and score after completion. Preserve old failed scores.
+- [x] Add failing real-image and synthetic punctuation/wrap/blank regressions.
+- [x] Bound all foreground pixels including tiny punctuation, upscale2x and pad; retain metadata and engine voting. Run whole focused suite and commit.
+- [x] Rerun79 in a new development directory to3/3, then freeze untouched80 under final source hashes. Preserve old failed scores.
 
 ### Task 3: Review and delivery
+- [ ] Complete untouched80 recognition, then extract reference/score and verify hashes before delivery.
 **Files:** new report/plan, PROGRESS.md, append .claude-mem/timeline.md; link historical completion report.
 - [ ] One fresh final reviewer; handle Important/Critical by RED/GREEN, record decisions/minors.
 - [ ] Verify protected DB/catalog/Gold/source hashes, exact allowlist, tests and diff checks; commit/push dev/tests and verify remoteSHA/clean tree.

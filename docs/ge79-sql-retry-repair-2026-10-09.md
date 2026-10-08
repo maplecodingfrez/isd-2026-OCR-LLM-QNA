@@ -17,3 +17,5 @@ Image tests fail before the new helper and pass afterward. They include the actu
 The original frozen page79 score2/3 and its raw OCR/snapshot hashes remain preserved. A separate page79 development run and final-policy untouched page80 evaluation follow recognition completion before opening the reference. Results and exact hashes are recorded in the companion JSON when complete. References are the PDF Text Layer, not independent human ground truth; small-page outcomes do not certify arbitrary-document accuracy.
 
 Existing DB/catalog/provenance/Gold/source file hashes are captured under ignored `outputs/ge79_sql_test_repair_20261009/protected-hashes.json`. No data promotion is needed for these code fixes: full GE66303-course OCR data already remains in the current dev/tests DBs.
+
+Page79 separate development result:3/3 exact selected, no missing/extra/errors/failures, both gatesTRUE,9raw fields traceable,3completion hashes and10source snapshots verified. Original frozen2/3 remains unchanged. Page80 is currently recognition-only under a frozen plan; reference has not yet been opened.
