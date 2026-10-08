@@ -18,7 +18,7 @@ import pytesseract
 from PIL import Image, ImageOps
 
 import ge66_ocr_audit as audit
-from ge66_crop_quality import safe_row_crop
+from ge66_crop_quality import safe_row_crop, table_row_crop
 from ge66_english_evidence import english_title_image
 from ge66_script_evidence import (thai_title_image, raised_english_text,
                                   recognize_region, thai_region_text, thai_tesseract_readings,
@@ -109,7 +109,11 @@ def main():
                           if i + 1 < len(anchors) else min(int(h * .91), anchor['top'] + int(h * .055)))
                     row_dir = page_dir / target['code']
                     row_dir.mkdir(exist_ok=True)
-                    row_image, crop_quality = safe_row_crop(image, (left, y0, int(w * .91), y1))
+                    row_box = (left, y0, int(w * .91), y1)
+                    row_image, crop_quality = table_row_crop(
+                        image, anchor['top'] + anchor['height'] / 2, left, int(w * .91))
+                    if row_image is None:
+                        row_image, crop_quality = safe_row_crop(image, row_box)
                     previous_input = row_dir / 'input.json'
                     if previous_input.exists() and json.loads(previous_input.read_text(
                             encoding='utf-8')).get('crop_quality') != crop_quality:
@@ -174,7 +178,15 @@ def main():
                             'image_sha256': hashlib.sha256(native_path.read_bytes()).hexdigest()}:
                         raise RuntimeError('Native image provenance mismatch; use a fresh output directory')
                     with Image.open(native_path) as native_image:
-                        native_row, native_quality = safe_row_crop(native_image, [v*2 for v in crop_quality['box']])
+                        if crop_quality.get('crop_method') == 'adjacent_horizontal_rules':
+                            native_box = [v * 2 for v in crop_quality['box']]
+                            native_row = native_image.crop(native_box)
+                            native_quality = {**crop_quality, 'box': native_box,
+                                              'original_box': [v * 2 for v in crop_quality['original_box']],
+                                              'crop_method': 'adjacent_horizontal_rules_600dpi'}
+                        else:
+                            native_row, native_quality = safe_row_crop(
+                                native_image, [v*2 for v in crop_quality['box']])
                         thai_image, thai_meta = thai_title_image(native_row)
                     thai_meta.update(dpi=600, crop_quality=native_quality)
                     previous_thai = row_dir / 'thai-region.json'

@@ -20,7 +20,7 @@ def catalog_table_delimiters(text):
     Keep every title character, including pipes elsewhere. This converts an
     image-recognized table boundary into plain-row formatting, not spelling.
     """
-    return re.sub(r'(?m)^(\s*\*{0,2}9064\d{4})[ \t]+\|[ \t]+', r'\1 ', text)
+    return re.sub(r'(?m)^(\s*\*{0,2}9064\d{4})[ \t]*\|[ \t]*', r'\1 ', text)
 
 
 def recognize_region(path, prompt, model):
@@ -66,14 +66,31 @@ def thai_title_image(image):
     names = image
     data = audit.ocr(names, 'tha+eng', 6, data=True)
     indices = [i for i, text in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]', text)]
+    thai_word_indices = list(indices)
     if not indices:
         return None, {'reason': 'no_image_recognized_thai_region'}
     if any(audit.CODE.search(data['text'][i]) for i in indices):
         return None, {'reason': 'inseparable_code_and_thai_word'}
+    original = data
+    thai_left = min(original['left'][i] for i in thai_word_indices)
+    thai_right = max(original['left'][i] + original['width'][i] for i in thai_word_indices)
+    thai_top = min(original['top'][i] for i in thai_word_indices)
+    thai_bottom = max(original['top'][i] + original['height'][i] for i in thai_word_indices)
+    # Preserve OCR observations in their original coordinates so same-line
+    # title acronyms remain available while unrelated rows stay excluded.
+    indices = [i for i, text in enumerate(original['text']) if text.strip()
+               and original['left'][i] < thai_right + 4
+               and original['left'][i] + original['width'][i] > thai_left - 4
+               and original['top'][i] < thai_bottom + 4
+               and original['top'][i] + original['height'][i] > thai_top - 4
+               and not audit.CODE.fullmatch(text.strip())]
+    data = original
     line_keys = ('block_num', 'par_num', 'line_num')
     if all(key in data for key in line_keys):
         line = lambda i: tuple(data[key][i] for key in line_keys)
-        thai_lines = {line(i) for i in indices}
+        thai_lines = {tuple(original[key][i] for key in line_keys)
+                      for i, text in enumerate(original['text'])
+                      if re.search(r'[\u0e00-\u0e7f]', text)}
         code_right = max((data['left'][i]+data['width'][i] for i, text in enumerate(data['text'])
                           if audit.CODE.fullmatch(text.strip())), default=0)
         credit_left = names.width
@@ -89,10 +106,30 @@ def thai_title_image(image):
         # their lines between the code and credits, regardless of script.
         indices = [i for i, text in enumerate(data['text']) if text.strip() and
                    line(i) in thai_lines and code_right <= data['left'][i] < credit_left]
-    box = [max(0, min(data['left'][i] for i in indices)-8),
-           max(0, min(data['top'][i] for i in indices)-8),
-           min(names.width, max(data['left'][i]+data['width'][i] for i in indices)+8),
-           min(names.height, max(data['top'][i]+data['height'][i] for i in indices)+8)]
+    box = [max(0, min(data['left'][i] for i in indices)-12),
+           max(0, min(data['top'][i] for i in indices)-12),
+           min(names.width, max(data['left'][i]+data['width'][i] for i in indices)+12),
+           min(names.height, max(data['top'][i]+data['height'][i] for i in indices)+12)]
+    # Table cell verticals are image structure, not Thai title strokes. When
+    # strong separators enclose the OCR-observed Thai, use the cell interior
+    # so code/credits and the full-width English line cannot enter the region.
+    gray = names.convert('L')
+    column_ink = [sum(gray.getpixel((x, y)) < 180 for y in range(names.height))
+                  for x in range(names.width)]
+    separators = []
+    for x, count in enumerate(column_ink):
+        if count < names.height * .4:
+            continue
+        if not separators or x > separators[-1][-1] + 2:
+            separators.append([])
+        separators[-1].append(x)
+    rules = [(group[0], group[-1]+1) for group in separators if len(group) > 3]
+    left_rules = [right for left, right in rules if right <= min(data['left'][i] for i in thai_word_indices)]
+    right_rules = [left for left, right in rules if left >= max(
+        data['left'][i]+data['width'][i] for i in thai_word_indices)]
+    if left_rules and right_rules:
+        box[0] = max(box[0], max(left_rules))
+        box[2] = min(box[2], min(right_rules))
     return ImageOps.expand(names.crop(box), border=20, fill='white'), {
         'thai_box': box, 'coordinate_space': 'row_image', 'reference_used': False}
 

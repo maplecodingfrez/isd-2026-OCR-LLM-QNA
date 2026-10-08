@@ -49,3 +49,10 @@ Local ignored evidence: `.superpowers/ge66-word-evidence-diagnostics/`, `ge66-wo
 All 15 currently existing protected catalog/SQLite/Gold hashes remain unchanged. Seven old retry databases were archived independently before this task's snapshot. The verified five-plan GE66 databases and text-layer backups are retained. Source cleanup HEAD is 0014f27; this delivery only changes dev/tests tools/tests/report. No main merge.
 
 Next, in order: preserve complete table-cell/row coverage for wrapped Thai titles and tight separators; obtain independent Thai-character and Latin/raised-word evidence for the flagged cases (including 90643017); then freeze untouched pages 139–146 or another genuinely new image source before any further data promotion.
+
+## Follow-up table-row crop fix (2026-10-08)
+
+- Use adjacent image-detected horizontal rules to crop full table cells, retaining wrapped Thai lines. Missing boundaries fall back to the existing bounded crop and quality guard.
+- Remove a table pipe immediately after a valid GE code even when OCR leaves no spaces. Thai title extraction uses the row's Thai word boxes and strong vertical cell rules to exclude code and credit columns.
+- Replayed image-derived development crops for 90642058, 90642091 and 90642159 without changing frozen candidates or references. New Typhoon row-crop reads for 90642091 and 90642159 match the evaluation-only PDF text layer; Tesseract variants also read those spellings. 90642058 now retains both lines, but its Thai word reading differs from the PDF text layer, so it remains flagged.
+- 64 focused parser, crop, selection and script-evidence regressions pass. No fresh 139-146 scored run was performed; no SQLite/Gold/catalog promotion. Next: investigate remaining Thai disagreements, then freeze and score an untouched page set before any promotion.

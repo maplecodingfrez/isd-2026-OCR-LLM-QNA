@@ -4,7 +4,7 @@ import unittest
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-from ge66_crop_quality import safe_row_crop
+from ge66_crop_quality import safe_row_crop, table_row_crop
 
 class CropTests(unittest.TestCase):
     def image(self):
@@ -44,6 +44,29 @@ class CropTests(unittest.TestCase):
         _, quality = safe_row_crop(image, (0, 90, 100, 150), max_expand=60)
         self.assertFalse(quality['clipped'])
         _, quality = safe_row_crop(image, (0, 90, 100, 150), max_expand=10)
+        self.assertTrue(quality['clipped'])
+
+    def test_adjacent_rules_keep_wrapped_title_lines_in_the_same_row(self):
+        image = Image.new('L', (300, 320), 255)
+        for y in (30, 180, 290):
+            for x in range(15, 286):
+                image.putpixel((x, y), 0)
+        for x in (30, 100, 270):
+            for y in range(30, 291):
+                image.putpixel((x, y), 0)
+        for y in (60, 95, 130):
+            for x in range(120, 220):
+                image.putpixel((x, y), 0)
+        crop, quality = table_row_crop(image, 70, 28, 280)
+        self.assertFalse(quality['clipped'])
+        self.assertEqual(quality['crop_method'], 'adjacent_horizontal_rules')
+        self.assertGreaterEqual(quality['box'][1], 30)
+        self.assertLessEqual(quality['box'][3], 180)
+        self.assertEqual(crop.getpixel((120-28, 130-quality['box'][1])), 0)
+        self.assertEqual(crop.getpixel((120-28, 95-quality['box'][1])), 0)
+
+    def test_missing_row_rule_uses_flagged_fallback(self):
+        _, quality = table_row_crop(self.image(), 70, 10, 90)
         self.assertTrue(quality['clipped'])
 
 if __name__ == '__main__':

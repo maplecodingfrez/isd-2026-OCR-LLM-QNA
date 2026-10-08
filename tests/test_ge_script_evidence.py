@@ -20,7 +20,8 @@ class ScriptEvidenceTests(unittest.TestCase):
 
     def test_table_conversion_does_not_touch_names_or_malformed_codes(self):
         raw = '9064202X | NAME\n90642022 |NAME\nNAME | OTHER\n<table>90642022 | NAME</table>'
-        self.assertEqual(catalog_table_delimiters(raw), raw)
+        self.assertEqual(catalog_table_delimiters(raw),
+                         '9064202X | NAME\n90642022 NAME\nNAME | OTHER\n<table>90642022 | NAME</table>')
 
     def mixed_read(self, raw, words, readings):
         data = dict(text=words, left=[20+50*i for i in range(len(words))],
@@ -111,6 +112,21 @@ class ScriptEvidenceTests(unittest.TestCase):
         self.assertLess(meta['thai_box'][1], 10)
         self.assertGreater(meta['thai_box'][3], 50)
         self.assertLess(meta['thai_box'][3], 70)
+
+    def test_thai_crop_excludes_adjacent_code_and_credit_columns(self):
+        data = dict(text=['90642058', '\u0e04\u0e27\u0e32\u0e21', '3', '(3-0-6)'],
+                    left=[10, 40, 180, 195], top=[15, 10, 15, 15],
+                    width=[25, 70, 8, 35], height=[20, 30, 20, 20],
+                    block_num=[1]*4, par_num=[1]*4, line_num=[1]*4)
+        image = Image.new('L', (240, 90), 'white')
+        draw = ImageDraw.Draw(image)
+        draw.line((30, 0, 30, 89), fill='black', width=4)
+        draw.line((170, 0, 170, 89), fill='black', width=4)
+        with patch('ge66_script_evidence.audit.ocr', return_value=data):
+            crop, meta = thai_title_image(image)
+        self.assertIsNotNone(crop)
+        self.assertGreaterEqual(meta['thai_box'][0], 32)
+        self.assertLessEqual(meta['thai_box'][2], 170)
 
     def test_thai_crop_requires_image_recognized_thai(self):
         with patch('ge66_script_evidence.audit.ocr', return_value={'text': ['TITLE']}):
