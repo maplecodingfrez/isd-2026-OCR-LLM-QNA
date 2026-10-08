@@ -95,3 +95,32 @@ class EnglishEvidenceTests(unittest.TestCase):
             crop,meta=english_title_image(image)
         self.assertGreaterEqual(meta['english_box'][3],105)
         self.assertLess(meta['english_box'][3],130)
+
+
+class EnglishResolutionTests(unittest.TestCase):
+    def test_actual_small_font_title_reads_literal_without_invented_period(self):
+        import ge66_english_evidence as m
+        import pytesseract
+        import shutil
+        executable=shutil.which("tesseract") or r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        if not Path(executable).exists():self.skipTest("Tesseract is not installed")
+        with patch.object(pytesseract.pytesseract,"tesseract_cmd",executable),Image.open(Path(__file__).parent/'fixtures/ge79_english_title.png') as image:
+            scaled,meta=m.enlarge_english_ink(image)
+            self.assertEqual(m.audit.ocr(scaled,'eng',6).strip(),'LIVING IN FUTURE DISASTER AND CRISIS')
+            self.assertEqual(m.audit.ocr(scaled,'eng',7).strip(),'LIVING IN FUTURE DISASTER AND CRISIS')
+        self.assertEqual(meta['scale'],2)
+
+    def test_punctuation_pixel_and_wrapped_lines_are_kept_not_removed(self):
+        import ge66_english_evidence as m
+        image=Image.new('L',(150,100),'white')
+        for x,y in [(20,20),(30,21),(60,55),(120,58)]:image.putpixel((x,y),0)
+        scaled,meta=m.enlarge_english_ink(image)
+        self.assertEqual(meta['ink_box'],[20,20,121,59])
+        for x,y in [(20,20),(30,21),(60,55),(120,58)]:
+            self.assertLess(scaled.getpixel((20+2*(x-20),20+2*(y-20))),180)
+        self.assertFalse(meta['reference_used'])
+
+    def test_blank_crop_is_never_scaled_into_text_evidence(self):
+        import ge66_english_evidence as m
+        scaled,meta=m.enlarge_english_ink(Image.new('L',(100,100),'white'))
+        self.assertIsNone(scaled)

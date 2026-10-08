@@ -5,6 +5,19 @@ import ge66_ocr_audit as audit
 from ge66_crop_quality import table_title_cell
 from ge66_script_evidence import title_thai_indices
 
+
+def enlarge_english_ink(image):
+    """Scale every foreground pixel, including punctuation, without text edits."""
+    mask=image.convert('L').point(lambda value:255 if value<255 else 0)
+    box=mask.getbbox()
+    if box is None:
+        return None, {'reason':'empty_english_region','reference_used':False}
+    bounded=image.crop(box)
+    scaled=bounded.resize((bounded.width*2,bounded.height*2))
+    return ImageOps.expand(scaled,border=20,fill='white'), {
+        'ink_box':list(box),'scale':2,'padding':20,'reference_used':False}
+
+
 def english_title_image(image):
     names, cell_meta = table_title_cell(image)
     if names is None:
@@ -40,6 +53,8 @@ def english_title_image(image):
         return None, {'reason': 'empty_english_region'}
     # Keep every line below Thai, not only the last line of a wrapped title.
     start, stop = max(0,active[0]-8), min(tail.height,active[-1]+9)
-    return ImageOps.expand(tail.crop((0,start,tail.width,stop)),border=20,fill='white'), {
+    enlarged, resolution = enlarge_english_ink(tail.crop((0,start,tail.width,stop)))
+    return enlarged, {
+        'resolution':resolution,
         **cell_meta, 'thai_bottom':top-2,'english_box':[0,top+start,names.width,top+stop],
         'reference_used':False}
