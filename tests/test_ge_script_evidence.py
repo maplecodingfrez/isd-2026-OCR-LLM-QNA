@@ -36,6 +36,21 @@ class ScriptEvidenceTests(unittest.TestCase):
         self.assertIsNotNone(crop)
         self.assertLess(meta['thai_box'][3],65)
 
+    def test_missing_upper_thai_title_never_promotes_footer_after_english(self):
+        data=dict(text=['ENGLISH','คณะ'],left=[20,20],top=[20,90],width=[90,90],height=[20,20])
+        with patch('ge66_script_evidence.audit.ocr',return_value=data):
+            crop,meta=thai_title_image(Image.new('L',(200,150),'white'))
+        self.assertIsNone(crop)
+        self.assertEqual(meta['reason'],'no_image_recognized_thai_region')
+
+    def test_empty_region_response_refuses_completion_and_retains_raw_response(self):
+        with tempfile.TemporaryDirectory() as folder:
+            p=Path(folder)/'region.png';p.write_bytes(b'image')
+            identity={'image_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'prompt_sha256':hashlib.sha256(b'prompt').hexdigest(),'model':'model','options':{'temperature':0,'num_ctx':8192,'num_predict':1024}}
+            p.with_suffix('.response.json').write_text(json.dumps({'region_request':identity,'message':{'content':''},'done':True}),encoding='utf-8')
+            with self.assertRaises(RuntimeError):recognize_region(p,'prompt','model')
+            self.assertTrue(p.with_suffix('.response.json').exists())
+
     def test_multiple_code_row_cannot_supply_thai_field_evidence(self):
         data=dict(text=['90642113','\u0e0a\u0e37\u0e48\u0e2d','90643021','\u0e2d\u0e37\u0e48\u0e19'],
                   left=[0,70,0,70],top=[20,20,90,90],width=[50]*4,height=[20]*4)

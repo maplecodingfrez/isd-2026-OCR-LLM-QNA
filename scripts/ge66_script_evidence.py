@@ -43,8 +43,11 @@ def recognize_region(path, prompt, model):
             body = json.load(response)
         body['region_request'] = identity
         audit.write_json(cache, body)
-    text = body.get('message', {}).get('content', '')
-    path.with_suffix('.md').write_text(text, encoding='utf-8')
+    message = body.get('message')
+    text = message.get('content') if isinstance(message, dict) else None
+    path.with_suffix('.md').write_text(text if isinstance(text, str) else '', encoding='utf-8')
+    if not isinstance(text, str) or not text.strip() or body.get('done') is False:
+        raise RuntimeError('Region OCR response was empty, malformed or incomplete')
     if body.get('done_reason') == 'length' or body.get('eval_count', 0) >= 1016:
         raise RuntimeError('Region OCR response was truncated')
     return text
@@ -64,6 +67,13 @@ def title_thai_indices(data):
     """Initial Thai title block, before a separate English title line."""
     indices = [i for i,t in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]',t)]
     if not indices:
+        return []
+    first_top = min(data['top'][i] for i in indices)
+    # A recognized separate English line above Thai means the Thai may be
+    # a footer after an unread title; it cannot establish the title region.
+    if any(re.search(r'[A-Za-z]', t) and not re.search(r'[\u0e00-\u0e7f]', t)
+           and data['top'][i]+data['height'][i] <= first_top
+           for i,t in enumerate(data['text'])):
         return []
     first_bottom = min(data['top'][i]+data['height'][i] for i in indices)
     english_top = min((data['top'][i] for i,t in enumerate(data['text'])

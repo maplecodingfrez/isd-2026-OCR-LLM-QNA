@@ -105,8 +105,12 @@ def recognize(path, max_tokens):
         body.update(input_sha256=digest, prompt_sha256=plan['prompt_sha256'],
                     model_digest=MODEL, request_options=payload['options'], elapsed_seconds=time.monotonic()-started)
         audit.write_json(cached, body)
-    text = body.get('message', {}).get('content', '')
-    path.with_suffix('.md').write_text(text, encoding='utf-8')
+    message = body.get('message')
+    text = message.get('content') if isinstance(message, dict) else None
+    path.with_suffix('.md').write_text(text if isinstance(text, str) else '', encoding='utf-8')
+    if not isinstance(text, str) or not text.strip() or body.get('done') is False:
+        failures.append({'image': str(path.relative_to(OUT)), 'reason': 'empty_malformed_or_incomplete_response'})
+        return ''
     if body.get('done_reason') == 'length' or body.get('eval_count', 0) >= max_tokens-8:
         failures.append({'image': str(path.relative_to(OUT)), 'reason': 'truncated'})
         return ''
@@ -115,6 +119,10 @@ def recognize(path, max_tokens):
 def add(engine, variant, page, text, required_code=None, quality=None):
     parse_text = catalog_table_delimiters(text) if engine == 'tesseract' else text
     rows = eec.parse_ge_ocr([{'page': page, 'text': parse_text}])
+    if required_code is not None and (len(rows) > 1 or len(audit.CODE.findall(parse_text)) > 1):
+        failures.append({'page': page, 'code': required_code, 'engine': engine,
+                         'variant': variant, 'reason': 'multiple_course_rows_in_required_response'})
+        return []
     for row in rows:
         if required_code is None or row['code'] == required_code:
             observations[row['code']].append({**audit.canonical(row), 'engine': engine, 'variant': variant, 'crop_quality': quality or {'clipped': False}})
