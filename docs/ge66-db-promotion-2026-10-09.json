@@ -1,0 +1,332 @@
+{
+  "root": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit",
+  "state": "prepared_not_installed",
+  "created": "2026-10-09T05:17:39.768638",
+  "source_evidence_hashes": {
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\ge66_catalog.json": "90852e40c16d3558f30944ea93437031b27dcc394f3ddff6d0bb4f3b46ad1bf0",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\candidate.json": "ff0b1cf8ebda6daab78b2e72847b8e159550b912373b56436a4e4d71376f7d02",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\verified-summary.json": "ad1ca2db719e0a349155171503ead707f310ea670725056791c9aacf2b54a1bc",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\targeted\\observations.json": "26619f6ef2358fd72ca0e1302eb08caa27008e203fa96882a801d3f91f31a5ff",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\literal\\observations.json": "4660a819e18d86bf353c9de1a17e8b395134a0a07f7d63aa1b1da8336966ad2c",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\90642209-english.txt": "c656af4faa6006ab6a379564aa445a5a4dbc7b5b813b5e6fc09ed9676cfccd5b",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\90642209-english.png": "22c23f2ac9e60cc5366a0252488d4852a855a53eb4433f5ae942f303c528cbf4",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\90642210-english.txt": "412e20abd2e6e0e151b380865dbcee4d8d86768ef3938e039567cd446991aa02",
+    "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\.superpowers\\ge66-ocr-audit\\results\\final\\90642210-english.png": "5eef910f879c12e9824e2e7d5092f2019433c5af2f9f19e5defc7fd4a5da9ae7"
+  },
+  "verified_records": 303,
+  "raw_traceable_fields": 909,
+  "protected_files_before": {
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output\\curriculum.db": "ac0381844f87db98a448176ffb5604a9bbdd7a352080c6b35bb697abb61106e3",
+    "Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output\\curriculum.db": "8c37fb5e35079a85db25651ad5821f690748ae5621c5f2b74e40f0a413ba1c3f",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output\\curriculum.db": "284965304d8c91ca693246460a7c84a4fbe096ead5f19ed23e3c3cff687f49b2",
+    "Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output\\curriculum.db": "8818bc37c5d9e91ccb60a7a98175770c81a2f213363cca7405f2c32ba72f35d9",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\no_coop\\lab8b_output\\curriculum.db": "7ae9be4ee3b60293e5aabdb34a4250957c20f6825ada3d2d786dfdb9110af269",
+    "Lab7B_Lab8B_ocr_system\\runs\\BIT\\coop\\lab8b_output\\curriculum.db": "223e6d3582943b8f013aa9770d3c588b1f8b997344aa8974914c9260d9df9db5",
+    "Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output\\curriculum.db": "35dc7b1640b18878ced37d36ccd6842294076c166a494c9954fcebe4723291a7",
+    "Lab9_evaluation\\gold_questions\\ait_gold_questions.json": "eac1dcb12ce16e09cbfd4d8b956d1d9598875875865b8d5746b62e7484707765",
+    "Lab9_evaluation\\gold_questions\\bit_coop_gold_questions.json": "b3abba0976e331dc1be519ac7d5e4a9fa0186b564a3843ea493cd6fe5c00f390",
+    "Lab9_evaluation\\gold_questions\\bit_no_coop_gold_questions.json": "40e7942001a624007e1d8d8cfe4edb58efa9616b2c55eaa939094a4017106385",
+    "Lab9_evaluation\\gold_questions\\dsba_coop_gold_questions.json": "4616dd3fa19892371ec9da785357d21e14ed99e9d23e807f12bd32e56d7a740d",
+    "Lab9_evaluation\\gold_questions\\dsba_no_coop_gold_questions.json": "b6778aac1278ad1a356b9965af46058e0c5dda430c26cae1809f72d1f19c2852",
+    "Lab9_evaluation\\gold_questions\\it_coop_gold_questions.json": "f89fb687c1023d1885d959ef3a60021c19294d336cc72e4b4874cda9356c92b7",
+    "Lab9_evaluation\\gold_questions\\it_no_coop_gold_questions.json": "4ab4574857bdddd9622238170e9be51afe6aa17c49c3730f1cee462048719ad2"
+  },
+  "files": [
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+      "before": "35dc7b1640b18878ced37d36ccd6842294076c166a494c9954fcebe4723291a7",
+      "after": "94d32138babddc41df84bfe98663cf2b6691c5f7205990982043949f14d46adf",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output\\curriculum.db",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output\\curriculum.db"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+      "before": "8818bc37c5d9e91ccb60a7a98175770c81a2f213363cca7405f2c32ba72f35d9",
+      "after": "5228ba9106837be472b5a2fc9030d1559f0a83c19f3cb76c80a020d620130dac",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output\\curriculum.db",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output\\curriculum.db"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+      "before": "284965304d8c91ca693246460a7c84a4fbe096ead5f19ed23e3c3cff687f49b2",
+      "after": "bf981ba05e368db2bac230746808f41586fd162d622c1717e6c07c9ddadc43f4",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output\\curriculum.db",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output\\curriculum.db"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+      "before": "8c37fb5e35079a85db25651ad5821f690748ae5621c5f2b74e40f0a413ba1c3f",
+      "after": "f88be1157a2f40b97e198eed969c692fc7d0fcb4912b090146fcd7c6681ba41f",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output\\curriculum.db",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output\\curriculum.db"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+      "before": "ac0381844f87db98a448176ffb5604a9bbdd7a352080c6b35bb697abb61106e3",
+      "after": "e60d6a18fb9a97fd4d3c4226b197a221398f250b4eaf6711a352cdec9541e0f0",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output\\curriculum.db",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output\\curriculum.db"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/ge66_catalog.json",
+      "before": "e19054e251128f138348e3ad17b992df133d5cfa3b280eba09e25669ccf38e82",
+      "after": "90852e40c16d3558f30944ea93437031b27dcc394f3ddff6d0bb4f3b46ad1bf0",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\ge66_catalog.json",
+      "backup": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\backup\\Lab7B_Lab8B_ocr_system\\runs\\ge66_catalog.json"
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/ge66_ocr_provenance.json",
+      "before": null,
+      "after": "e26f7ffb9b9499abcb3f0a70952e5551b6e685036dd5701728a9d68fcbb20d55",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\ge66_ocr_provenance.json",
+      "backup": null
+    }
+  ],
+  "databases": [
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\AIT\\lab8b_output\\curriculum.db",
+      "protected": {
+        "schema": "ce68ac4b3f05adab66110acd2423d9efd89e09d3a510666e54a0d6a5557b1271",
+        "book_section": "6ad03697b2a09ce43d595ff0732e67c9a2659c40480b3d5e9d7d2a9c25efa787",
+        "course": "4151fccde956ccc5cd4b7b33af8d8cb9f9767bf542ba560802d625872ac98f46",
+        "course_description": "1730658bcd40c33d977040dd25755c61fecfe14f8245590cf44d10033ddc5f18",
+        "course_page": "4440be99f17968bce86b270c28a20b67160f9308126f3af2f0cd28d2a9c8ad5c",
+        "credit_structure": "6dd93e6f964f3ba5734a19919ece1cb5c88a02f2b3fe1d41b54be1629f49fbb4",
+        "elective_group": "4d63c1cbf5c3c7e4845f2f26bc7ab43ee73d1e6618cfcf98eb5e0c2b9b03c0bd",
+        "plan_item": "ba12e142b5cdd54b7172bf8256785992fb0411790bcb476e1a5f55c02c5c35fe",
+        "plan_slot": "6a488c8c00fd2d7b18a8d0b7ad199b348ed1ccd8b7f2726ea19aa2ed2137b3c0",
+        "plan_slot_member": "97ccff5af6970553e740faf34ffec82ab90c549b207a9b5e5d892dce4c9320d1",
+        "prerequisite": "7d6c938af7c1137709dc515008df297f0f6afb7dd1006264e508bbd44cd6f452",
+        "prerequisite_alt": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite_status": "f556f5134047cc8ed074e4be1fa0d1136075ead32139ab281458b7a771d91b0d",
+        "program": "b38af3980997387ba8e154889b5aa19eec74123b73939ff47ac681d57e98c388",
+        "sqlite_sequence": "bfbb0aef84a61bd0270173b3cd66a48e375df252e264ba4134a19e2737f92c4d",
+        "term_page": "a6f1306381ca74b445e6920ddefb3c3179b137c06ebfa9a32b3c4c3b029b11c4",
+        "other_elective_courses": "36560f388eeadd0da937f82b73228fe717fd0bf0f13146ff5e2d01320e36efb9"
+      },
+      "ge_courses": 303
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\coop\\lab8b_output\\curriculum.db",
+      "protected": {
+        "schema": "ce68ac4b3f05adab66110acd2423d9efd89e09d3a510666e54a0d6a5557b1271",
+        "book_section": "5057d03674806732760e24f08ffadcc7261cd222f59901771927e829ad747685",
+        "course": "79ec09ad11b4191781ef088bf30c708622d9632d988c7457f07eb1818165b0ae",
+        "course_description": "4963ebdee10d65cdde0794ff16b2f68ad3ac3d585131a6c05c496a879b855b4d",
+        "course_page": "16779aa2bb94f2e696cb53f4a7a21144ddf568b0a97b48c05449e25bd9b58003",
+        "credit_structure": "faf1f03b5c6fa3b532bb4dc52769a603a3aa39598c28d2d6727d83efcc6ae7fe",
+        "elective_group": "ee5d591977e12867c065412d29356f35b63a5b50f9feb2d735af8ec94327f3c8",
+        "plan_item": "b2f0dff5f8ed23f83ea12517f8677d2b02f79928bafa47a77c530a5f1b1819bd",
+        "plan_slot": "e1b33755fbe6437c73b47fab705db52d4a2bf268db0c80ec6829c6246fc930f5",
+        "plan_slot_member": "f959e8fc8bc4c70e926c5901f20e5ed8650a6d7ec13ecea72877e1ae7e7321f4",
+        "prerequisite": "a54d2cc7f34ab8e6e1297561a3a40d2337c2f5cfd2414b0d481650a3d5ca108e",
+        "prerequisite_alt": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite_status": "559867d756028c529db8f6faac1ee8baee37ae9b04918e994a8e8255f1e9d316",
+        "program": "8506b0160f380091e32db04b0a35eb57458052a59f9d02c576c1a0d991c7a75b",
+        "sqlite_sequence": "ace82318bbebed58f6c306a3d8800af15b439f1942e0e297a12d2b261ed5d569",
+        "term_page": "cae4593e866401aa888cd9d6769a7a14bb764cd8b7ab21d97866f0d9a5b53de4",
+        "other_elective_courses": "51ed2da08a15dc3543cf3c67203b21a7eb226ad69b40bb106ee80bfe38b45470"
+      },
+      "ge_courses": 303
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\DSBA\\no_coop\\lab8b_output\\curriculum.db",
+      "protected": {
+        "schema": "ce68ac4b3f05adab66110acd2423d9efd89e09d3a510666e54a0d6a5557b1271",
+        "book_section": "5057d03674806732760e24f08ffadcc7261cd222f59901771927e829ad747685",
+        "course": "45eaf5b66d3d2c805c2b3455a31779cd06be52b2a9054ebe144fe9dab1d5b43f",
+        "course_description": "4963ebdee10d65cdde0794ff16b2f68ad3ac3d585131a6c05c496a879b855b4d",
+        "course_page": "126c685e84260febbb32bbba9e21ce04ef86446381f4fe24c391f7568e66de25",
+        "credit_structure": "faf1f03b5c6fa3b532bb4dc52769a603a3aa39598c28d2d6727d83efcc6ae7fe",
+        "elective_group": "0e20e94a39683573e3c40bed46fb94cf33d8dbc401a5f84b3c42d0abb48aa94b",
+        "plan_item": "ceef6a20c6ac0e13f98c2db7721c44dd9d27c32b291f0d065e9502951f994bd6",
+        "plan_slot": "3554f4f89edddc63aed57e4422a1df6181cc937b62e49bfe08bfc5357a3e7911",
+        "plan_slot_member": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite": "a54d2cc7f34ab8e6e1297561a3a40d2337c2f5cfd2414b0d481650a3d5ca108e",
+        "prerequisite_alt": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite_status": "80e2ee448df90e60987625845b8a6662ec8557621512001b81f760f099fd6f75",
+        "program": "b1e50538061f35299921a41143db01aedb35225870167a97e71e97db31f2281d",
+        "sqlite_sequence": "0dd9155f3e9390e0432617fa14f94753e1adc3a45b5075508fce2d8652b5b8e6",
+        "term_page": "b6edc1ca13bedd02f5fefb8c7bfaddbe9aa636557bc11010203269a9cd9f9c6c",
+        "other_elective_courses": "51ed2da08a15dc3543cf3c67203b21a7eb226ad69b40bb106ee80bfe38b45470"
+      },
+      "ge_courses": 303
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\IT\\coop\\lab8b_output\\curriculum.db",
+      "protected": {
+        "schema": "ce68ac4b3f05adab66110acd2423d9efd89e09d3a510666e54a0d6a5557b1271",
+        "book_section": "96af3d61b88e0b9824c438c2e1afd3a32d865151c713622ad705e20e3aad5a7d",
+        "course": "6c31bccf79886f2741470740078bffcdd2fd253ac7419c68f6d9535476b1ed92",
+        "course_description": "f1e0e059bd05caa6665dedfb168ec73190d20cade596b41e182e72eb3b25cd53",
+        "course_page": "fef6174da63fbee01a06de1362e277982714fbe88ac3eb9cfa01fa29c88d9ccb",
+        "credit_structure": "42347c72062158f33b4fc4727a4a847a2e5bdb8c87731101a6b693bc6c5a1ee7",
+        "elective_group": "65b1fc1302af7f91c7da134d1a482eb23ec36f80f798372c7bc6d661d0c6d59a",
+        "plan_item": "cbdab883673bfbab18b416a032cea03d2408055b8696c1f9c4f8cfce100118f8",
+        "plan_slot": "8996196d31196a279f32b917be6d8f4b96fcf3966ad7a0f5e257a1f9f2381fa2",
+        "plan_slot_member": "dce66b325f908a1d751a28f3d88c21d157dd84aa0b7f77f2f72f260f5a5b788b",
+        "prerequisite": "add46368f3efffb63082eee5e7ac68501df9db7622d3c014b21ac56bdc5432e2",
+        "prerequisite_alt": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite_status": "0056848be9583c25f81072bab6adea07b889f43b656f4d1678720ca5cae5d3a2",
+        "program": "8d1551a9a0d620cc825070272c735106c2b020455a2a59c1101f21fce07b37ef",
+        "sqlite_sequence": "b11a1ad94e2f473b30a853e35c05cd47cd807332568392cd205d226ac6d0ab38",
+        "term_page": "b4e72b33580fd77a2c1f776d90d9baf050284e4ea4733a9a028ed1beecdf5f53",
+        "other_elective_courses": "0bcd83746bc16b8076a488555bdea454b54fa19820107a63abc4cb44a3edf6d6"
+      },
+      "ge_courses": 303
+    },
+    {
+      "relative": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+      "staged": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit\\outputs\\ge66_db_test_migration_20261009\\staged\\Lab7B_Lab8B_ocr_system\\runs\\IT\\no_coop\\lab8b_output\\curriculum.db",
+      "protected": {
+        "schema": "ce68ac4b3f05adab66110acd2423d9efd89e09d3a510666e54a0d6a5557b1271",
+        "book_section": "96af3d61b88e0b9824c438c2e1afd3a32d865151c713622ad705e20e3aad5a7d",
+        "course": "01a41cb138c043b98a0b7f62c1c7a07e727fea5dcbede1dbe1ac1e7adba18bf4",
+        "course_description": "f1e0e059bd05caa6665dedfb168ec73190d20cade596b41e182e72eb3b25cd53",
+        "course_page": "3a8d06ef014a0186a0a56ead5ec9188a039d636597c960fdb145547bcda88179",
+        "credit_structure": "42347c72062158f33b4fc4727a4a847a2e5bdb8c87731101a6b693bc6c5a1ee7",
+        "elective_group": "65b1fc1302af7f91c7da134d1a482eb23ec36f80f798372c7bc6d661d0c6d59a",
+        "plan_item": "0cbeea6724376449d46b8254577796bce9b42a375015e32c0aea283950082cad",
+        "plan_slot": "7b89a832a892f35802426d8a0657588250476d5fb31e6557ecfcc4f88e82566e",
+        "plan_slot_member": "7219310e60a036eb8f8cc72e4e2611533ae385e7e40d14c208d16daae28637ee",
+        "prerequisite": "add46368f3efffb63082eee5e7ac68501df9db7622d3c014b21ac56bdc5432e2",
+        "prerequisite_alt": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "prerequisite_status": "bff6a3e2ce93e1986468b5ca05fac79efcdb33fabf017184977ae18dbb995389",
+        "program": "8d1551a9a0d620cc825070272c735106c2b020455a2a59c1101f21fce07b37ef",
+        "sqlite_sequence": "d8b16c936c1d03aefd11d6a7f0f369e5ff4acac0798523a7192d70b73a250f13",
+        "term_page": "3a9379fe1714fe372f16e0d7495a035b1dce2738f33c0ef9ceefbdc30700235d",
+        "other_elective_courses": "0bcd83746bc16b8076a488555bdea454b54fa19820107a63abc4cb44a3edf6d6"
+      },
+      "ge_courses": 303
+    }
+  ],
+  "comparisons": [
+    {
+      "plan": "AIT",
+      "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 8
+    },
+    {
+      "plan": "AIT",
+      "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 62
+    },
+    {
+      "plan": "AIT",
+      "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 271
+    },
+    {
+      "plan": "AIT",
+      "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 16
+    },
+    {
+      "plan": "DSBA/coop",
+      "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 8
+    },
+    {
+      "plan": "DSBA/coop",
+      "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 61
+    },
+    {
+      "plan": "DSBA/coop",
+      "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 269
+    },
+    {
+      "plan": "DSBA/coop",
+      "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 34
+    },
+    {
+      "plan": "DSBA/no_coop",
+      "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 8
+    },
+    {
+      "plan": "DSBA/no_coop",
+      "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 61
+    },
+    {
+      "plan": "DSBA/no_coop",
+      "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 269
+    },
+    {
+      "plan": "DSBA/no_coop",
+      "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 43
+    },
+    {
+      "plan": "IT/coop",
+      "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 8
+    },
+    {
+      "plan": "IT/coop",
+      "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 61
+    },
+    {
+      "plan": "IT/coop",
+      "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 269
+    },
+    {
+      "plan": "IT/coop",
+      "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 53
+    },
+    {
+      "plan": "IT/no_coop",
+      "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 8
+    },
+    {
+      "plan": "IT/no_coop",
+      "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 61
+    },
+    {
+      "plan": "IT/no_coop",
+      "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 269
+    },
+    {
+      "plan": "IT/no_coop",
+      "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+      "same_rows_and_answer": true,
+      "rows": 53
+    }
+  ],
+  "backend_passed": 20,
+  "backend_total": 20,
+  "regression_tests": 124
+}

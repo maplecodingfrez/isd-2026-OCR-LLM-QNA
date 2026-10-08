@@ -25,17 +25,17 @@
 ### Task 1: Reversible migration tooling
 **Files:** scripts/ge66_promote_db.py, tests/test_ge66_db_promotion.py.
 **Interfaces:** verify_catalog(catalog,candidate,observations,summary,expected=303) rejects partial/untraceable data; stage_database(source,destination,catalog) updates only existing GE66 elective course fields in a copy; install/restore consume hash-checked manifests.
-- [ ] Add and observe failing raw-provenance, scope preservation, transactional refusal and drift/rollback regressions.
-- [ ] Implement minimal standard-library helpers; run full related OCR and migration tests. Expected: green and no live writes.
-- [ ] Commit the tested tooling checkpoint.
+- [x] Add and observe failing raw-provenance, scope preservation, transactional refusal and drift/rollback regressions.
+- [x] Implement minimal standard-library helpers; run full related OCR and migration tests. Expected: green and no live writes.
+- [x] Commit the tested tooling checkpoint.
 
 ### Task 2: Full-catalog preparation and comparison
 **Files:** ignored outputs/ge66_db_test_migration_20261009, docs/ge66-db-promotion-2026-10-09.md/json; staged runs/ge66_catalog.json and ge66_ocr_provenance.json.
 **Interfaces:** prepare CLI consumes the unchanged existing source OCR catalog/candidate/raw evidence, creates five backups and staged copies plus a manifest.
-- [ ] Verify303 unique records,909 raw fields, page/SU metadata and historical source evidence hashes. Expected: full coverage; reference is comparison only.
-- [ ] Back up original Text-layer files and prepare five copies; verify integrity/FKs/non-GE snapshots/schema. Expected:303 GE66 rows each, BIT and source hashes unchanged.
-- [ ] Compare four deterministic backend catalog questions per target. Expected:20/20 answers/rows match previous data after NFKC/whitespace-only normalization.
-- [ ] Write reviewable metrics, rollback instructions and actual scope limitations.
+- [x] Verify303 unique records,909 raw fields, page/SU metadata and historical source evidence hashes. Expected: full coverage; reference is comparison only.
+- [x] Back up original Text-layer files and prepare five copies; verify integrity/FKs/non-GE snapshots/schema. Expected:303 GE66 rows each, BIT and source hashes unchanged.
+- [x] Compare four deterministic backend catalog questions per target. Expected:20/20 answers/rows match previous data after NFKC/whitespace-only normalization.
+- [x] Write reviewable metrics, rollback instructions and actual scope limitations.
 
 ### Task 3: Final review, apply and deliver
 **Files:** five curriculum.db targets, runs/ge66_catalog.json/provenance, Lab7B_Lab8B_ocr_system/GE66_OCR_DATA.md, both plans/reports, PROGRESS.md and append-only timeline.
