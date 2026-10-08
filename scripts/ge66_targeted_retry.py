@@ -20,6 +20,8 @@ from PIL import Image, ImageOps
 import ge66_ocr_audit as audit
 from ge66_crop_quality import safe_row_crop
 from ge66_english_evidence import english_title_image
+from ge66_script_evidence import (thai_title_image, raised_english_text,
+                                  recognize_region, thai_region_text)
 
 
 def main():
@@ -137,6 +139,40 @@ def main():
                             observations[target['code']].append({'code': target['code'], 'page': page_number,
                                 'engine': 'tesseract', 'variant': 'english_line', 'name_en': english_text,
                                 'crop_quality': crop_quality})
+                        raised_text, raised_meta = raised_english_text(english_image)
+                        previous_raised = row_dir / 'english-raised-readings.json'
+                        if previous_raised.exists() and json.loads(previous_raised.read_text(
+                                encoding='utf-8')) != raised_meta:
+                            raise RuntimeError('Raised glyph policy changed; use a new output directory')
+                        audit.write_json(row_dir / 'english-raised-readings.json', raised_meta)
+                        if raised_text:
+                            observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                'engine': 'tesseract', 'variant': 'english_raised_parts', 'name_en': raised_text,
+                                'crop_quality': crop_quality})
+                    thai_image, thai_meta = thai_title_image(crop)
+                    previous_thai = row_dir / 'thai-region.json'
+                    if previous_thai.exists() and json.loads(previous_thai.read_text(
+                            encoding='utf-8')) != thai_meta:
+                        raise RuntimeError('Thai region changed; use a new output directory to preserve OCR evidence')
+                    audit.write_json(row_dir / 'thai-region.json', thai_meta)
+                    if thai_image is not None:
+                        thai_path = row_dir / 'thai-line.png'
+                        thai_image.save(thai_path)
+                        thai_text = audit.ocr(thai_image, 'tha', 6).strip()
+                        (row_dir / 'thai-tesseract.txt').write_text(thai_text, encoding='utf-8')
+                        if thai_text:
+                            observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                'engine': 'tesseract', 'variant': 'thai_line', 'name_th': thai_text,
+                                'crop_quality': crop_quality})
+                        try:
+                            thai_text = thai_region_text(recognize_region(thai_path, prompt, args.request_model))
+                        except (OSError, ValueError, RuntimeError) as exc:
+                            failures.append({**target, 'reason': 'thai_region_' + type(exc).__name__})
+                        else:
+                            if thai_text:
+                                observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                    'engine': 'typhoon', 'variant': 'thai_line', 'name_th': thai_text,
+                                    'crop_quality': crop_quality})
                     response_path = row_dir / 'typhoon.response.json'
                     if response_path.exists():
                         body = json.loads(response_path.read_text(encoding='utf-8'))

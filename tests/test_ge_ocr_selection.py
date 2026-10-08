@@ -23,11 +23,20 @@ class SelectionTests(unittest.TestCase):
                 dict(code='90642102', page=19, engine='typhoon', variant='row_crop',
                      name_th='นักสื่อสารผ่านยูทูป', name_en='YOUTUBER', credits='3 (3-0-6)')]
         result, review = select({'90642102': rows})
-        self.assertEqual(len(result), 1)
+        self.assertEqual(result, [])
         self.assertEqual(len(review), 1)
-        for key in ('name_th', 'name_en', 'credits'):
-            self.assertIn(result[0][key], [r[key] for r in rows])
-        self.assertEqual(review[0]['evidence']['name_th']['different_values'], 2)
+        self.assertEqual(review[0]['unresolved_fields'], ['name_th'])
+
+    def test_thai_region_agreement_beats_engine_preference(self):
+        row = dict(code='90642102', page=19, engine='tesseract', variant='whole_page',
+                   name_th='observed Thai title', name_en='TITLE', credits='3 (3-0-6)')
+        wrong = {**row, 'engine': 'typhoon', 'variant': 'row_crop', 'name_th': 'conflicting title'}
+        partial = dict(code=row['code'], page=19, engine='typhoon', variant='thai_line',
+                       name_th=row['name_th'])
+        result, review = select({row['code']: [row, wrong, partial]})
+        self.assertEqual(result[0]['name_th'], row['name_th'])
+        self.assertEqual(review[0]['evidence']['name_th']['engines'], ['tesseract', 'typhoon'])
+        self.assertEqual(review[0]['evidence']['credits']['total'], 2)
 
     def test_single_engine_stays_reviewable(self):
         rows = [dict(code='90642102', page=19, engine='typhoon', variant='row_crop',

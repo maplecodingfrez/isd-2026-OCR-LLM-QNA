@@ -27,7 +27,7 @@ def select(observations):
                 continue
             agreement = [support for support in values.values()
                          if len({r['engine'] for r in support}) >= 2]
-            if field == 'name_en' and len(values) > 1 and len(agreement) != 1:
+            if field in ('name_th', 'name_en') and len(values) > 1 and len(agreement) != 1:
                 unresolved.append(field)
                 continue
             # Engine families win, not repeated reads. Ties: Tesseract for English/credits,
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     args = cli.parse_args()
     observations = json.loads(args.observations.read_text(encoding='utf-8'))
     records, review = select(observations)
-    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; engine-family support; conflicting English needs unique cross-engine agreement',
+    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; engine-family support; conflicting Thai/English needs unique cross-engine agreement',
         'source': 'image-only OCR observations; not approved for production', 'records': records})
     audit.write_json(args.output / 'review-queue.json', review)
     reference = audit.flat_catalog(json.loads((args.root / 'Lab7B_Lab8B_ocr_system/runs/ge66_catalog.json').read_text(encoding='utf-8')))
