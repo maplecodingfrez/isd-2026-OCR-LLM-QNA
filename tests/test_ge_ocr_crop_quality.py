@@ -4,7 +4,8 @@ import unittest
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-from ge66_crop_quality import safe_row_crop, table_row_crop
+from ge66_crop_quality import safe_row_crop, table_row_crop, table_title_cell
+import ge66_crop_quality as quality
 
 class CropTests(unittest.TestCase):
     def image(self):
@@ -68,6 +69,35 @@ class CropTests(unittest.TestCase):
     def test_missing_row_rule_uses_flagged_fallback(self):
         _, quality = table_row_crop(self.image(), 70, 10, 90)
         self.assertTrue(quality['clipped'])
+
+    def test_title_cell_ignores_blank_margins_and_keeps_all_glyph_pixels(self):
+        image = Image.new('L', (400, 140), 255)
+        for x in (60, 340):
+            for y in range(20, 120): image.putpixel((x, y), 0)
+        image.putpixel((333, 90), 0)
+        cell, meta = table_title_cell(image)
+        self.assertEqual(meta['table_cell_box'], [61, 0, 340, 140])
+        self.assertEqual(cell.getpixel((333-61, 90)), 0)
+
+    def test_no_table_rules_does_not_invent_cell(self):
+        cell, meta = table_title_cell(self.image())
+        self.assertIsNone(cell)
+        self.assertEqual(meta['reason'], 'no_unique_wide_title_cell')
+
+    def test_two_wide_cells_remain_ambiguous(self):
+        image = Image.new('L', (500, 140), 255)
+        for x in (10, 250, 490):
+            for y in range(140): image.putpixel((x, y), 0)
+        cell, _ = table_title_cell(image)
+        self.assertIsNone(cell)
+
+    def test_image_code_positions_set_left_bound_on_wide_layouts(self):
+        anchors = [{'left': 180, 'height': 20}, {'left': 160, 'height': 20}]
+        self.assertEqual(quality.code_anchor_left(anchors), 144)
+        self.assertLess(quality.code_anchor_left(anchors), min(a['left'] for a in anchors))
+
+    def test_code_left_bound_clamps_to_image_edge(self):
+        self.assertEqual(quality.code_anchor_left([{'left': 5, 'height': 20}]), 0)
 
 if __name__ == '__main__':
     unittest.main()

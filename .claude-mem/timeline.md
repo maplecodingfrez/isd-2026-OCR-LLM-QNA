@@ -5,3 +5,11 @@
 - Tests: 50 local tooling passed; 67 combined passed with read-only source parser. dev/tests parser lacks eight existing format fixes: direct combined run 59 passed / 8 failed after the two added regressions. Source/parser/database/catalog/Gold/main unchanged; no database access or fresh production hash verification.
 - Evidence report: `docs/ge64-pages139-146-replay-2026-10-08.json`; method and limits: `docs/ge66-word-evidence-2026-10-08.md`. Next: independent evidence for withheld rows, then a genuinely untouched sample. Delivery commit/push will be verified after scoped staging.
 tags: OCR, GE64, GE66, regression, review, dev/tests
+
+## 2026-10-09 02:49 - Image OCR follow-up
+- Previous replay delivery c2cfac2 was pushed and verified. Integrated only the existing parse_ge_ocr fixes; eight old format failures resolved. Added pixel table-cell bounds, image code-anchor left bounds, full-width English fallback and complete-title agreement regression.
+- Known pages 139-146: shipped-helper development diagnostics 101/104 exact, all 101 selected correct; 90643017, 90643027, 90643037 withheld. Local unshipped one-peer experiment 102/104; do not present it as shipped/fresh accuracy. Original saved evidence unchanged.
+- Initial 147-154 layout attempt interrupted during 149 and retained with frozen sources/40 cached responses, no full score/reference. Fresh frozen 150-154 completed: 42 occurrences/34 codes; 90643006 has conflicting PDF titles, excluded from aggregate. 30/33 unambiguous exact, 31 selected, error 90642113 English association, two unambiguous withheld, no extra codes/transport failures. Page 154 contains no course rows. Gate fails; no reference-driven recognition changes.
+- 75 focused standalone tests passed; no database/API suite. No frontend, database, catalog/Gold promotion or main merge. Reports: docs/ge64-table-cell-followup-2026-10-09.md and docs/ge64-followup-summary-2026-10-09.json.
+- Next: image-only diagnosis of selected association error and independent evidence for withheld titles before another frozen sample. Commit/push follows scoped staging and remote verification.
+tags: OCR, GE64, image-evidence, failed-gate, dev/tests

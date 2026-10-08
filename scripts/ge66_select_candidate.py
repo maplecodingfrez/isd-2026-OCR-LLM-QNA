@@ -25,15 +25,15 @@ def select(observations):
             if not values:
                 unresolved.append(field)
                 continue
-            if field in ('name_th', 'name_en') and any(
-                    short and short != long and short in long
-                    for short in values for long in values):
-                # A substring may be a clipped title, even if two engines
-                # agree on it. Conflicting longer image reads make it unsafe.
-                unresolved.append(field)
-                continue
             agreement = [support for support in values.values()
                          if len({r['engine'] for r in support}) >= 2]
+            if field in ('name_th', 'name_en') and len(agreement) == 1:
+                agreed = audit.norm(agreement[0][0][field])
+                if agreed and any(agreed != other and agreed in other for other in values):
+                    # Independent agreement on a shorter title cannot establish
+                    # completeness when another image read contains more text.
+                    unresolved.append(field)
+                    continue
             if field in ('name_th', 'name_en') and len(values) > 1 and len(agreement) != 1:
                 unresolved.append(field)
                 continue
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     args = cli.parse_args()
     observations = json.loads(args.observations.read_text(encoding='utf-8'))
     records, review = select(observations)
-    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; engine-family support; conflicting Thai/English needs unique cross-engine agreement; substring title conflicts remain unresolved',
+    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; engine-family support; conflicting Thai/English needs unique cross-engine agreement; agreed shorter titles with longer conflicting reads remain unresolved',
         'source': 'image-only OCR observations; not approved for production', 'records': records})
     audit.write_json(args.output / 'review-queue.json', review)
     reference = audit.flat_catalog(json.loads((args.root / 'Lab7B_Lab8B_ocr_system/runs/ge66_catalog.json').read_text(encoding='utf-8')))

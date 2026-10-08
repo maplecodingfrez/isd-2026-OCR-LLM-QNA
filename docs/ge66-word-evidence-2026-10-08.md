@@ -61,7 +61,7 @@ Next, in order: preserve complete table-cell/row coverage for wrapped Thai title
 
 The pending selector diff refuses a Thai or English title when one eligible normalized reading is a strict substring of another, even when the shorter reading has cross-engine support. It withholds the record rather than choosing either spelling. Flagged clipped observations remain excluded. This is deliberately conservative: complete-title agreement also stays withheld if an eligible shorter reading conflicts. Tests cover Thai/English truncation and clipped-observation exclusion.
 
-Re-evaluated official GE64 pages **139?146** from the existing `ge66-word-evidence-pages139-146` observations and evaluation-only reference. No new OCR, model calls, reference-driven retries or expected-value fills. Original observations, candidate, references, report and frozen scripts were preserved; ten input hashes are recorded in `ge64-pages139-146-replay-2026-10-08.json`.
+Re-evaluated official GE64 pages **139-146** from the existing `ge66-word-evidence-pages139-146` observations and evaluation-only reference. No new OCR, model calls, reference-driven retries or expected-value fills. Original observations, candidate, references, report and frozen scripts were preserved; ten input hashes are recorded in `ge64-pages139-146-replay-2026-10-08.json`.
 
 | Selection | Selected / expected | All fields exact | Withheld | Review entries |
 |---|---:|---:|---:|---:|
@@ -70,7 +70,7 @@ Re-evaluated official GE64 pages **139?146** from the existing `ge66-word-eviden
 
 All 279 selected fields trace to saved OCR observations. No extra codes or selected field errors. Newly withheld: **90643011, 90643016, 90643024, 90643030**. This reduces coverage by four records; it does not improve exactness on this already-correct selected baseline. The zero-error gate fails because eleven courses remain withheld. The original report records zero recognition failures; replay makes no recognition requests.
 
-The frozen selector reproduces the original score and normalized content, but not identical raw strings: Thai 90644061 differs between precomposed `?` and combining `??`. Both are equivalent under the existing NFKC comparison. The original candidate bytes were retained; this replay does not claim byte-identical candidate reproduction.
+The frozen selector reproduces the original score and normalized content, but not identical raw strings: Thai 90644061 differs between precomposed `ำ` and combining `ํา`. Both are equivalent under the existing NFKC comparison. The original candidate bytes were retained; this replay does not claim byte-identical candidate reproduction.
 
 Per-page current exact/expected: 139: 13/14; 140: 8/14; 141: 7/10; 142: 12/12; 143: 14/14; 144: 14/14; 145: 13/14; 146: 12/12.
 
@@ -86,3 +86,7 @@ $env:PYTHONDONTWRITEBYTECODE = '1'
 For combined integration add `tests/test_ge_ocr_formats.py` and set `GE66_SOURCE_ROOT` to the existing source checkout. This reads its parser only. Replay scoring loads saved `observations.json`, calls `select`, then loads `reference-evaluation-only.json` and calls `ge66_ocr_audit.metrics(reference, records, [{'text': ' '.join(observations)}])`; per-page scoring uses saved occurrence references and observations filtered by page. Do not rerun the old scorer in place: it writes the original evidence report.
 
 No source-branch edits, database access, catalog/Gold changes, data promotion or main merge. Prior production-hash claims were not rechecked in this database-free replay. `PROGRESS.md` and `.claude-mem/timeline.md` were absent in this worktree; scoped continuation entries were created here without modifying or copying the source branch's historical logs. Next: obtain independent image evidence for the eleven withheld records, evaluate the coverage tradeoff, then freeze a genuinely untouched sample before promotion.
+
+## Follow-up on 2026-10-09
+
+[Image follow-up report](ge64-table-cell-followup-2026-10-09.md): standalone parser fixes and known-page image diagnostics reach 101/104 exact with shipped helpers. Frozen new pages 150-154 reach 30/33 unambiguous exact, including one selected English association error; a conflicting PDF code is excluded explicitly. Both gates remain closed. Original evidence is preserved.

@@ -115,6 +115,15 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(result[0]['name_en'], 'TITLE')
         self.assertEqual(review[0]['rejected_clipped_observations'], 1)
 
+    def test_complete_cross_engine_title_can_beat_single_engine_fragment(self):
+        full = dict(code='90643025', page=140, engine='tesseract', variant='title_cell',
+                    name_th='Thai title with acronym', name_en='COMPLETE TITLE', credits='3 (3-0-6)')
+        peer = {**full, 'engine': 'typhoon'}
+        fragment = {**peer, 'variant': 'chunk_crop', 'name_th': 'Thai title'}
+        result, review = select({full['code']: [full, peer, fragment]})
+        self.assertEqual(result[0]['name_th'], full['name_th'])
+        self.assertEqual(review[0]['evidence']['name_th']['engines'], ['tesseract', 'typhoon'])
+
     def test_english_only_evidence_does_not_vote_other_fields(self):
         full=dict(code='90642102',page=19,engine='typhoon',variant='chunk_crop',
                   name_th='Thai title',name_en='TITLE',credits='3 (3-0-6)')

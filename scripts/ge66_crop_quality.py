@@ -76,3 +76,36 @@ def safe_row_crop(image, box, max_expand=80):
     adjusted = [left, top, right, bottom]
     return image.crop(adjusted), {'clipped': bool(clipped), 'original_box': original,
                                  'box': adjusted, 'boundary_adjusted': adjusted != original}
+
+
+def table_title_cell(image):
+    """Use strong vertical rules to bound a wide central title cell, or refuse.
+
+    This document-specific geometry excludes code/credit cells without editing
+    glyph pixels or recognized text. Narrow/tall letter strokes and ambiguous
+    multiple wide cells do not supply a table-cell boundary.
+    """
+    gray = image.convert('L')
+    width, height = gray.size
+    pixels = gray.tobytes()
+    groups = []
+    for x in range(width):
+        if sum(pixels[y*width+x] < 180 for y in range(height)) < height*.7:
+            continue
+        if not groups or x != groups[-1][-1]+1:
+            groups.append([])
+        groups[-1].append(x)
+    rules = [(g[0], g[-1]+1) for g in groups if len(g) <= max(3, width*.02)]
+    boxes = [[left[1], 0, right[0], height] for left, right in zip(rules, rules[1:])
+             if right[0]-left[1] >= width*.4
+             and width*.3 <= (left[1]+right[0])/2 <= width*.7]
+    if len(boxes) != 1:
+        return None, {'reason': 'no_unique_wide_title_cell', 'reference_used': False}
+    box = boxes[0]
+    return image.crop(box), {'table_cell_box': box, 'coordinate_space': 'row_image',
+                             'cell_method': 'vertical_pixel_rules', 'reference_used': False}
+
+
+def code_anchor_left(anchors):
+    """Include observed code glyphs and a height-derived blank left margin."""
+    return max(0, min(int(a['left'])-max(12, round(a['height']*.8)) for a in anchors))
