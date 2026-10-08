@@ -6,7 +6,23 @@ def safe_row_crop(image, box, max_expand=80):
     strip = image.crop((max(left, int(image.width*.235)), lo, right, hi)).convert('L')
     data = strip.tobytes()
     width = strip.width
-    ink = [sum(v < 180 for v in data[y*width:(y+1)*width]) >= 4 for y in range(strip.height)]
+    # Narrow rules spanning the entire inspection band are table borders,
+    # not cut glyphs. Ignore them for boundary detection only; retain every
+    # pixel in the returned image. Short strokes never qualify as rules.
+    rules = set()
+    if strip.height >= 160:
+        columns = [x for x in range(width) if sum(data[y*width+x] < 180
+                   for y in range(strip.height)) >= strip.height*.98]
+        groups = []
+        for x in columns:
+            if not groups or x != groups[-1][-1]+1:
+                groups.append([])
+            groups[-1].append(x)
+        for group in groups:
+            if len(group) <= 6:
+                rules.update(group)
+    ink = [sum(data[y*width+x] < 180 for x in range(width) if x not in rules) >= 4
+           for y in range(strip.height)]
     original = [left, top, right, bottom]
     while top > lo and ink[top-lo]:
         top -= 1

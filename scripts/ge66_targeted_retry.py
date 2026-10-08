@@ -22,7 +22,8 @@ from ge66_crop_quality import safe_row_crop
 from ge66_english_evidence import english_title_image
 from ge66_script_evidence import (thai_title_image, raised_english_text,
                                   recognize_region, thai_region_text, thai_tesseract_readings,
-                                  typhoon_raised_text, LITERAL_PROMPT)
+                                  typhoon_raised_text, mixed_script_tesseract_reading,
+                                  catalog_table_delimiters, LITERAL_PROMPT)
 
 
 def main():
@@ -58,7 +59,8 @@ def main():
             if newer.get('state') != 'complete' or newer['provenance']['pdf_sha256'] != pdf_hash:
                 raise RuntimeError('Page 18 retry must be complete and use this PDF')
             pages = [p for p in pages if p['page'] != 18] + newer['pages']
-        for row in eec.parse_ge_ocr(pages):
+        parse_pages = [{**p, 'text': catalog_table_delimiters(p['text'])} for p in pages] if engine == 'tesseract' else pages
+        for row in eec.parse_ge_ocr(parse_pages):
             observations[row['code']].append({**audit.canonical(row), 'engine': engine,
                                               'variant': 'original_plus_page18' if engine == 'typhoon' else 'original'})
     # Plan depends on disagreement/absence, never correct reference names.
@@ -122,7 +124,7 @@ def main():
                     tess_path = row_dir / 'tesseract.txt'
                     if not tess_path.exists():
                         tess_path.write_text(audit.ocr(crop, 'tha+eng', 6), encoding='utf-8')
-                    tess_rows = eec.parse_ge_ocr([{'page': page_number, 'text': tess_path.read_text(encoding='utf-8')}])
+                    tess_rows = eec.parse_ge_ocr([{'page': page_number, 'text': catalog_table_delimiters(tess_path.read_text(encoding='utf-8'))}])
                     for row in tess_rows:
                         if row['code'] == target['code']:
                             observations[row['code']].append({**audit.canonical(row), 'engine': 'tesseract', 'variant': 'row_crop', 'crop_quality': crop_quality})
@@ -183,6 +185,11 @@ def main():
                     if thai_image is not None:
                         thai_path = row_dir / 'thai-line.png'
                         thai_image.save(thai_path)
+                        mixed_text, _ = mixed_script_tesseract_reading(thai_image, row_dir / 'thai-mixed-script')
+                        if mixed_text:
+                            observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                'engine': 'tesseract', 'variant': 'thai_isolated_latin', 'name_th': mixed_text,
+                                'crop_quality': native_quality})
                         for reading in thai_tesseract_readings(thai_image, row_dir / 'thai-native'):
                             if reading['text']:
                                 observations[target['code']].append({'code': target['code'], 'page': page_number,

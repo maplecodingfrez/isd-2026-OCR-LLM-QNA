@@ -10,9 +10,19 @@ ROOT = Path(os.environ['GE66_SOURCE_ROOT']) if 'GE66_SOURCE_ROOT' in os.environ 
 MODULE_DIR = ROOT / "Lab7B_Lab8B_ocr_system/src/ocr_system"
 sys.path.insert(0, str(MODULE_DIR))
 import extract_elective_catalog as eec
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from ge66_script_evidence import catalog_table_delimiters
 
 
 class GEFormats(unittest.TestCase):
+    def test_image_table_separator_does_not_become_a_course_name(self):
+        raw = '90642022 | \u0e0a\u0e37\u0e48\u0e2d 3 (3-0-6)\nTITLE'
+        rows = self.parse(catalog_table_delimiters(raw))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['name_th'], '\u0e0a\u0e37\u0e48\u0e2d')
+        self.assertEqual(rows[0]['name_en'], 'TITLE')
+        self.assertEqual(rows[0]['credit_text'], '3 (3-0-6)')
+
     def parse(self, text):
         return eec.parse_ge_ocr([{"page": 15, "text": text}])
 

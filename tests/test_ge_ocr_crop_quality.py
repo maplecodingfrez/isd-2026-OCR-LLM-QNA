@@ -27,5 +27,24 @@ class CropTests(unittest.TestCase):
         _, quality = safe_row_crop(self.image(), (0, 10, 100, 85), max_expand=2)
         self.assertTrue(quality['clipped'])
 
+    def test_table_rules_do_not_force_expansion_or_remove_pixels(self):
+        image = Image.frombytes('L', (100, 300), bytes(
+            0 if 90 <= x < 93 or (30 <= x < 65 and 100 <= y < 130) else 255
+            for y in range(300) for x in range(100)))
+        crop, quality = safe_row_crop(image, (0, 90, 100, 140))
+        self.assertFalse(quality['clipped'])
+        self.assertGreaterEqual(quality['box'][1], 80)
+        self.assertLessEqual(quality['box'][3], 150)
+        self.assertEqual(crop.getpixel((91, 0)), 0)
+
+    def test_glyph_cut_remains_flagged_beside_a_table_rule(self):
+        image = Image.frombytes('L', (100, 300), bytes(
+            0 if 90 <= x < 93 or (30 <= x < 65 and 100 <= y < 190) else 255
+            for y in range(300) for x in range(100)))
+        _, quality = safe_row_crop(image, (0, 90, 100, 150), max_expand=60)
+        self.assertFalse(quality['clipped'])
+        _, quality = safe_row_crop(image, (0, 90, 100, 150), max_expand=10)
+        self.assertTrue(quality['clipped'])
+
 if __name__ == '__main__':
     unittest.main()

@@ -8,10 +8,53 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from ge66_script_evidence import (raised_english_text, thai_title_image, thai_region_text,
-                                 recognize_region, typhoon_raised_text, thai_tesseract_readings)
+                                 recognize_region, typhoon_raised_text, thai_tesseract_readings,
+                                 mixed_script_tesseract_reading, catalog_table_delimiters)
 
 
 class ScriptEvidenceTests(unittest.TestCase):
+    def test_table_delimiter_conversion_preserves_all_title_characters(self):
+        raw = '90642022 | \u0e0a\u0e37\u0e48\u0e2d | XYZ 3 (3-0-6)\nTITLE'
+        self.assertEqual(catalog_table_delimiters(raw),
+                         '90642022 \u0e0a\u0e37\u0e48\u0e2d | XYZ 3 (3-0-6)\nTITLE')
+
+    def test_table_conversion_does_not_touch_names_or_malformed_codes(self):
+        raw = '9064202X | NAME\n90642022 |NAME\nNAME | OTHER\n<table>90642022 | NAME</table>'
+        self.assertEqual(catalog_table_delimiters(raw), raw)
+
+    def mixed_read(self, raw, words, readings):
+        data = dict(text=words, left=[20+50*i for i in range(len(words))],
+                    top=[20]*len(words), width=[30]*len(words), height=[20]*len(words))
+        with tempfile.TemporaryDirectory() as folder, patch(
+                'ge66_script_evidence.audit.ocr', side_effect=[raw, data]+readings):
+            return mixed_script_tesseract_reading(Image.new('L', (300, 80), 'white'), Path(folder))
+
+    def test_isolated_latin_read_preserves_raw_case_and_thai(self):
+        text, meta = self.mixed_read('\u0e0a\u0e37\u0e48\u0e2d !00', ['\u0e0a\u0e37\u0e48\u0e2d', '!00'], ['AbC', 'AbC'])
+        self.assertEqual(text, '\u0e0a\u0e37\u0e48\u0e2d AbC')
+        self.assertEqual(meta['engine_family'], 'tesseract')
+        self.assertFalse(meta['reference_used'])
+
+    def test_conflicting_latin_reads_cannot_replace_token(self):
+        text, _ = self.mixed_read('\u0e0a\u0e37\u0e48\u0e2d !00', ['!00'], ['ABC', 'AbC'])
+        self.assertIsNone(text)
+
+    def test_repeated_or_substring_anchors_are_refused(self):
+        for raw, words in [('\u0e0a\u0e37\u0e48\u0e2d 100 100', ['100','100']),
+                           ('\u0e0a\u0e37\u0e48\u0e2d X100Y', ['100'])]:
+            text, meta = self.mixed_read(raw, words, [])
+            self.assertIsNone(text)
+            self.assertEqual(meta['readings'], [])
+
+    def test_word_read_cannot_inject_multiple_words(self):
+        text, _ = self.mixed_read('\u0e0a\u0e37\u0e48\u0e2d !00', ['!00'], ['A B','A B'])
+        self.assertIsNone(text)
+
+    def test_overlapping_word_anchors_cannot_corrupt_a_title(self):
+        text, meta = self.mixed_read('\u0e0a\u0e37\u0e48\u0e2d !00', ['!00','00'], ['ABC','ABC','XYZ','XYZ'])
+        self.assertIsNone(text)
+        self.assertEqual(meta['reason'], 'overlapping_text_anchors')
+
     def raised_image(self):
         image = Image.new('L', (200, 60), 'white')
         draw = ImageDraw.Draw(image)

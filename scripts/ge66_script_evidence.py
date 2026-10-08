@@ -14,6 +14,15 @@ LITERAL_PROMPT = ('Transcribe only the visible text exactly. Preserve uppercase 
                   'Return plain text only, without explanations or formatting.')
 
 
+def catalog_table_delimiters(text):
+    """Remove a column separator immediately after an observed GE code only.
+
+    Keep every title character, including pipes elsewhere. This converts an
+    image-recognized table boundary into plain-row formatting, not spelling.
+    """
+    return re.sub(r'(?m)^(\s*\*{0,2}9064\d{4})[ \t]+\|[ \t]+', r'\1 ', text)
+
+
 def recognize_region(path, prompt, model):
     """Retain raw Typhoon response and validate every cached request parameter."""
     identity = {'image_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
@@ -203,6 +212,54 @@ def thai_tesseract_readings(image, directory):
                             'image_sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
     audit.write_json(directory / 'tesseract-readings.json', results)
     return results
+
+
+def mixed_script_tesseract_reading(image, directory):
+    """Re-read isolated non-Thai tokens in a Thai title, with exact anchors.
+
+    Only unanimous PSM6/7 English image reads may replace a uniquely anchored
+    token. The resulting title is still one Tesseract-family observation.
+    """
+    directory.mkdir(parents=True, exist_ok=True)
+    raw = audit.ocr(image, 'tha+eng', 6).strip()
+    data = audit.ocr(image, 'tha+eng', 6, data=True)
+    meta = {'raw_whole_text': raw, 'readings': [], 'reference_used': False,
+            'case_normalized': False, 'engine_family': 'tesseract'}
+    if not thai_region_text(raw):
+        return None, {**meta, 'reason': 'invalid_thai_title'}
+    changes = []
+    for i, token in enumerate(data['text']):
+        if not re.fullmatch(r'[A-Za-z0-9!?.%+-]+', token) or not re.search(r'[A-Za-z0-9]', token):
+            continue
+        # Refuse repeated tokens and substring matches inside another Latin word.
+        matches = list(re.finditer(r'(?<![A-Za-z0-9])'+re.escape(token)+r'(?![A-Za-z0-9])', raw))
+        if len(matches) != 1 or data['text'].count(token) != 1:
+            continue
+        margin = max(10, round(data['height'][i]*.2))
+        box = [max(0, data['left'][i]-margin), max(0, data['top'][i]-margin),
+               min(image.width, data['left'][i]+data['width'][i]+margin),
+               min(image.height, data['top'][i]+data['height'][i]+margin)]
+        path = directory / f'latin-{i:03d}.png'
+        crop = ImageOps.expand(image.crop(box), border=30, fill='white')
+        crop.save(path)
+        reads = {str(psm): audit.ocr(crop, 'eng', psm).strip() for psm in (6, 7)}
+        reading = {'original_text': token, 'box': box, 'raw_readings': reads,
+                   'image_sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
+        meta['readings'].append(reading)
+        value = reads['6']
+        if value != token and value == reads['7'] and re.fullmatch(r'[A-Za-z0-9]+', value):
+            changes.append((matches[0].start(), matches[0].end(), value))
+    ordered = sorted(changes)
+    if any(left[1] > right[0] for left, right in zip(ordered, ordered[1:])):
+        meta['reason'] = 'overlapping_text_anchors'
+        audit.write_json(directory / 'mixed-script-readings.json', meta)
+        return None, meta
+    text = raw
+    for start, end, value in sorted(changes, reverse=True):
+        text = text[:start]+value+text[end:]
+    meta['text'] = text
+    audit.write_json(directory / 'mixed-script-readings.json', meta)
+    return (text if changes else None), meta
 
 
 def typhoon_raised_text(image, directory, model, meta):
