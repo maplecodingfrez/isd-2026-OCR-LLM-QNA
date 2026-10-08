@@ -3223,9 +3223,15 @@ def test_plan_difference_refuses_anything_that_is_not_the_whole_two_plan_compari
 # Failed SQL must stay distinct from a successfully executed empty result.
 def test_exhausted_sql_retries_report_query_failure(monkeypatch):
     with closing(_real("DSBA/coop")) as c:
-        monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT nope FROM nowhere"}')
+        calls = []
+        def failed_query(*args, **kwargs):
+            calls.append(args[0])
+            return '{"sql": "SELECT nope FROM nowhere"}'
+        monkeypatch.setattr(m, "ollama_generate", failed_query)
         r = m.ask(c, "คำถามประหลาดที่ต้องไปทางโมเดลแน่นอน xyzzy", verbose=False)
         assert "แปลงคำถาม" in r["answer"] and r["answer"] != m._NOT_FOUND_TEXT and r["error"]
+        assert len(calls) == 2 and r["rows"] == []
+        assert r["answer_model_output"] is None and r["citations"] == []
 
 
 # เทียบแผน: วิชาที่มีเฉพาะอีกแผนต้องมีหน้าอ้างอิงด้วย (หาจากฐานข้อมูลของแผนที่วิชานั้นอยู่) — เดิมเลือกแผนไม่สหกิจแล้วไม่มีหน้าอ้างอิงเลย
