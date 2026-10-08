@@ -56,3 +56,33 @@ Next, in order: preserve complete table-cell/row coverage for wrapped Thai title
 - Remove a table pipe immediately after a valid GE code even when OCR leaves no spaces. Thai title extraction uses the row's Thai word boxes and strong vertical cell rules to exclude code and credit columns.
 - Replayed image-derived development crops for 90642058, 90642091 and 90642159 without changing frozen candidates or references. New Typhoon row-crop reads for 90642091 and 90642159 match the evaluation-only PDF text layer; Tesseract variants also read those spellings. 90642058 now retains both lines, but its Thai word reading differs from the PDF text layer, so it remains flagged.
 - 64 focused parser, crop, selection and script-evidence regressions pass. No fresh 139-146 scored run was performed; no SQLite/Gold/catalog promotion. Next: investigate remaining Thai disagreements, then freeze and score an untouched page set before any promotion.
+
+## Saved-evidence replay (2026-10-08 22:29)
+
+The pending selector diff refuses a Thai or English title when one eligible normalized reading is a strict substring of another, even when the shorter reading has cross-engine support. It withholds the record rather than choosing either spelling. Flagged clipped observations remain excluded. This is deliberately conservative: complete-title agreement also stays withheld if an eligible shorter reading conflicts. Tests cover Thai/English truncation and clipped-observation exclusion.
+
+Re-evaluated official GE64 pages **139?146** from the existing `ge66-word-evidence-pages139-146` observations and evaluation-only reference. No new OCR, model calls, reference-driven retries or expected-value fills. Original observations, candidate, references, report and frozen scripts were preserved; ten input hashes are recorded in `ge64-pages139-146-replay-2026-10-08.json`.
+
+| Selection | Selected / expected | All fields exact | Withheld | Review entries |
+|---|---:|---:|---:|---:|
+| Frozen policy | 97/104 | 97/104 (97/97 selected) | 7 | 23 |
+| Current substring guard | 93/104 | 93/104 (93/93 selected) | 11 | 23 |
+
+All 279 selected fields trace to saved OCR observations. No extra codes or selected field errors. Newly withheld: **90643011, 90643016, 90643024, 90643030**. This reduces coverage by four records; it does not improve exactness on this already-correct selected baseline. The zero-error gate fails because eleven courses remain withheld. The original report records zero recognition failures; replay makes no recognition requests.
+
+The frozen selector reproduces the original score and normalized content, but not identical raw strings: Thai 90644061 differs between precomposed `?` and combining `??`. Both are equivalent under the existing NFKC comparison. The original candidate bytes were retained; this replay does not claim byte-identical candidate reproduction.
+
+Per-page current exact/expected: 139: 13/14; 140: 8/14; 141: 7/10; 142: 12/12; 143: 14/14; 144: 14/14; 145: 13/14; 146: 12/12.
+
+The original baselines remain historical: same-format Tesseract 95/104, chunk Typhoon 99/104. Reference content overlaps GE66 in 93/104 courses. The reference is the PDF text layer, not independent human ground truth. Recognition was originally frozen, but this selection policy changed after evidence was available; the current result is a development replay, not a fresh held-out score or full-document certification.
+
+Validation: **50 local tooling tests passed**, and **67 combined tests passed** with `GE66_SOURCE_ROOT` pointing read-only at the existing source checkout. Direct combined testing against the parser shipped on dev/tests gives 59 passed / 8 existing parser-format failures (initial run before two added regressions: 57/8). Those parser fixes reside on the source branch; no parser code was copied or changed here. Reproduce tooling checks with:
+
+```powershell
+$env:PYTHONDONTWRITEBYTECODE = '1'
+& 'D:\DSBA 3rd Year\Works\ocr_system (all)\ocr_system\.venv\Scripts\python.exe' -m pytest -q tests/test_ge_ocr_crop_quality.py tests/test_ge_ocr_selection.py tests/test_ge_english_evidence.py tests/test_ge_script_evidence.py -p no:cacheprovider
+```
+
+For combined integration add `tests/test_ge_ocr_formats.py` and set `GE66_SOURCE_ROOT` to the existing source checkout. This reads its parser only. Replay scoring loads saved `observations.json`, calls `select`, then loads `reference-evaluation-only.json` and calls `ge66_ocr_audit.metrics(reference, records, [{'text': ' '.join(observations)}])`; per-page scoring uses saved occurrence references and observations filtered by page. Do not rerun the old scorer in place: it writes the original evidence report.
+
+No source-branch edits, database access, catalog/Gold changes, data promotion or main merge. Prior production-hash claims were not rechecked in this database-free replay. `PROGRESS.md` and `.claude-mem/timeline.md` were absent in this worktree; scoped continuation entries were created here without modifying or copying the source branch's historical logs. Next: obtain independent image evidence for the eleven withheld records, evaluate the coverage tradeoff, then freeze a genuinely untouched sample before promotion.

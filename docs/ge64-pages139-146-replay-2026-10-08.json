@@ -1,0 +1,418 @@
+{
+  "scope": "Saved-evidence selection replay; not a new held-out recognition run",
+  "date": "2026-10-08 22:29",
+  "pages": [
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146
+  ],
+  "source_pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+  "input_sha256": {
+    "observations.json": "3c36b38779df08bd6bf81b1a9d29d534005f911b6e88895083e5548b6f35d6cc",
+    "candidate.json": "d0cfc1948a87d347e6ab858c1714cd37397f7f76afbdd1c6d7d5ab2d5680c711",
+    "reference-evaluation-only.json": "eda698e2372d158ae04b16911c02590f28a31ccd9a474ce07724524123fa8c3c",
+    "reference-occurrences-evaluation-only.json": "eda698e2372d158ae04b16911c02590f28a31ccd9a474ce07724524123fa8c3c",
+    "raw-pages.json": "be54a800fc662208ff85b827146a6130e47b86750b55eafa2a442d3af7b2d306",
+    "report.json": "b003f87da73fdaade060cd475e310dc85ddc3ca7bb2b73db2b1b59c197f60fe7",
+    "plan.json": "41082f03238023616299452c1af092883206b07c83822c3d41d4469bd1d0a3cd",
+    "preflight-manifest.json": "fc195a84aa072d20fd8bef848e0a950c4e390cef6acc511c38d6e4dbce7d28b7",
+    "checkpoint-recovery.json": "f15be85d17934b4cf4b21bd5fb23662cc60a45e3a60a18ff85f83633f96aced2",
+    "ge66_select_candidate.py": "7a94461829050aa7e3ff14313ccda15b00c03bb438fcca5c06ba8d3cb231c38a"
+  },
+  "selector_sha256": "37a8c6336ee23a467ee3f812f8ad5c66dfc874b26e1948a90e4ce49333f76a7c",
+  "frozen_candidate_normalized_content_reproduced": true,
+  "frozen_candidate_raw_field_differences": [
+    {
+      "code": "90644061",
+      "fields": [
+        "name_th"
+      ]
+    }
+  ],
+  "original_evidence_unchanged": true,
+  "frozen_baseline": {
+    "expected": 104,
+    "raw_expected_codes": 104,
+    "parsed_expected_codes": 97,
+    "missing_codes": [
+      "90643017",
+      "90643023",
+      "90643025",
+      "90643027",
+      "90643031",
+      "90643037",
+      "90644044"
+    ],
+    "missing_in_raw": [],
+    "present_raw_but_not_parsed": [
+      "90643017",
+      "90643023",
+      "90643025",
+      "90643027",
+      "90643031",
+      "90643037",
+      "90644044"
+    ],
+    "extra_codes": [],
+    "exact_fields": {
+      "name_th": 97,
+      "name_en": 97,
+      "credits": 97
+    },
+    "all_fields_exact": 97,
+    "cer_on_matched": {
+      "name_th": 0.0,
+      "name_en": 0.0
+    },
+    "differences": []
+  },
+  "replay": {
+    "expected": 104,
+    "raw_expected_codes": 104,
+    "parsed_expected_codes": 93,
+    "missing_codes": [
+      "90643011",
+      "90643016",
+      "90643017",
+      "90643023",
+      "90643024",
+      "90643025",
+      "90643027",
+      "90643030",
+      "90643031",
+      "90643037",
+      "90644044"
+    ],
+    "missing_in_raw": [],
+    "present_raw_but_not_parsed": [
+      "90643011",
+      "90643016",
+      "90643017",
+      "90643023",
+      "90643024",
+      "90643025",
+      "90643027",
+      "90643030",
+      "90643031",
+      "90643037",
+      "90644044"
+    ],
+    "extra_codes": [],
+    "exact_fields": {
+      "name_th": 93,
+      "name_en": 93,
+      "credits": 93
+    },
+    "all_fields_exact": 93,
+    "cer_on_matched": {
+      "name_th": 0.0,
+      "name_en": 0.0
+    },
+    "differences": []
+  },
+  "per_page": {
+    "139": {
+      "expected": 14,
+      "raw_expected_codes": 14,
+      "parsed_expected_codes": 13,
+      "missing_codes": [
+        "90643011"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90643011"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 13,
+        "name_en": 13,
+        "credits": 13
+      },
+      "all_fields_exact": 13,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "140": {
+      "expected": 14,
+      "raw_expected_codes": 14,
+      "parsed_expected_codes": 8,
+      "missing_codes": [
+        "90643016",
+        "90643017",
+        "90643023",
+        "90643024",
+        "90643025",
+        "90643027"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90643016",
+        "90643017",
+        "90643023",
+        "90643024",
+        "90643025",
+        "90643027"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 8,
+        "name_en": 8,
+        "credits": 8
+      },
+      "all_fields_exact": 8,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "141": {
+      "expected": 10,
+      "raw_expected_codes": 10,
+      "parsed_expected_codes": 7,
+      "missing_codes": [
+        "90643030",
+        "90643031",
+        "90643037"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90643030",
+        "90643031",
+        "90643037"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 7,
+        "name_en": 7,
+        "credits": 7
+      },
+      "all_fields_exact": 7,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "142": {
+      "expected": 12,
+      "raw_expected_codes": 12,
+      "parsed_expected_codes": 12,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 12,
+        "name_en": 12,
+        "credits": 12
+      },
+      "all_fields_exact": 12,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "143": {
+      "expected": 14,
+      "raw_expected_codes": 14,
+      "parsed_expected_codes": 14,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 14,
+        "name_en": 14,
+        "credits": 14
+      },
+      "all_fields_exact": 14,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "144": {
+      "expected": 14,
+      "raw_expected_codes": 14,
+      "parsed_expected_codes": 14,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 14,
+        "name_en": 14,
+        "credits": 14
+      },
+      "all_fields_exact": 14,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "145": {
+      "expected": 14,
+      "raw_expected_codes": 14,
+      "parsed_expected_codes": 13,
+      "missing_codes": [
+        "90644044"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90644044"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 13,
+        "name_en": 13,
+        "credits": 13
+      },
+      "all_fields_exact": 13,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "146": {
+      "expected": 12,
+      "raw_expected_codes": 12,
+      "parsed_expected_codes": 12,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 12,
+        "name_en": 12,
+        "credits": 12
+      },
+      "all_fields_exact": 12,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    }
+  },
+  "review_count": 23,
+  "withheld": [
+    {
+      "code": "90643011",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643016",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643017",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_th",
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643023",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643024",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643025",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_th",
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643027",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643030",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_th"
+      ]
+    },
+    {
+      "code": "90643031",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90643037",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_en"
+      ]
+    },
+    {
+      "code": "90644044",
+      "reason": "unresolved_field_agreement",
+      "unresolved_fields": [
+        "name_th",
+        "name_en"
+      ]
+    }
+  ],
+  "newly_withheld": [
+    "90643011",
+    "90643016",
+    "90643024",
+    "90643030"
+  ],
+  "candidate_values_traceable_to_raw_ocr": 279,
+  "ocr_failure_count_from_original_report": 0,
+  "reference_content_overlap_with_GE66": 93,
+  "passed_zero_error_gate": false,
+  "production_mutation": false,
+  "production_hashes_rechecked": false,
+  "reference": "Official PDF text layer; not independent human ground truth",
+  "tests": {
+    "tooling_local": {
+      "passed": 50
+    },
+    "combined_local_parser": {
+      "passed": 59,
+      "failed": 8
+    },
+    "integration_read_only_source_parser": {
+      "passed": 67
+    }
+  }
+}

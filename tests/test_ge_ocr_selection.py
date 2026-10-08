@@ -87,6 +87,34 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(result,[])
         self.assertEqual(review[0]['unresolved_fields'],['name_en'])
 
+    def test_agreed_truncated_title_does_not_beat_a_longer_observed_title(self):
+        short = dict(code='90642058', page=131, engine='tesseract', variant='whole_page',
+                     name_th='ประชาชน', name_en='TITLE', credits='3 (3-0-6)')
+        short_peer = {**short, 'engine':'typhoon', 'variant':'chunk_crop'}
+        full = {**short, 'engine':'typhoon', 'variant':'thai_line',
+                'name_th':'ความเข้าใจเกี่ยวกับนโยบายสุขภาพและสวัสดิภาพของประชาชน'}
+        result, review = select({'90642058':[short, short_peer, full]})
+        self.assertEqual(result, [])
+        self.assertEqual(review[0]['unresolved_fields'], ['name_th'])
+
+    def test_english_substring_conflict_remains_unresolved(self):
+        short = dict(code='90643011', page=139, engine='tesseract', variant='whole_page',
+                     name_th='Thai title', name_en='TITLE', credits='3 (3-0-6)')
+        peer = {**short, 'engine': 'typhoon'}
+        full = {**peer, 'variant': 'english_line', 'name_en': 'COMPLETE TITLE'}
+        result, review = select({short['code']: [short, peer, full]})
+        self.assertEqual(result, [])
+        self.assertEqual(review[0]['unresolved_fields'], ['name_en'])
+
+    def test_clipped_long_title_does_not_block_eligible_agreement(self):
+        short = dict(code='90643011', page=139, engine='tesseract', variant='whole_page',
+                     name_th='Thai title', name_en='TITLE', credits='3 (3-0-6)')
+        peer = {**short, 'engine': 'typhoon'}
+        clipped = {**peer, 'name_en': 'COMPLETE TITLE', 'crop_quality': {'clipped': True}}
+        result, review = select({short['code']: [short, peer, clipped]})
+        self.assertEqual(result[0]['name_en'], 'TITLE')
+        self.assertEqual(review[0]['rejected_clipped_observations'], 1)
+
     def test_english_only_evidence_does_not_vote_other_fields(self):
         full=dict(code='90642102',page=19,engine='typhoon',variant='chunk_crop',
                   name_th='Thai title',name_en='TITLE',credits='3 (3-0-6)')
