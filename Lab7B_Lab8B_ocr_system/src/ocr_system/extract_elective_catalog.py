@@ -216,52 +216,116 @@ def parse_ge_ocr(pages: list[dict]) -> list[dict]:
     Require an exact eight-digit code, Thai title, English title and complete
     credit structure. Conflicting duplicate records are excluded for review.
     """
-    header = re.compile(r"^\s*(\*{0,2})(9064\d{4})\s+(.+)$")
-    credit = re.compile(r"(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)\s*$")
-    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'(),./:+-]*$")
+    from html import unescape
+
+    header = re.compile(r"^\s*(\*{0,2})(9064\d{4})(?:\s+(.+))?$")
+    # A malformed next code must still terminate this row; do not borrow its credit.
+    boundary = re.compile(r"^\*{0,2}9[0-9A-Za-z)]{6,10}(?:\s|$)")
+    credit = re.compile(r"(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)")
+    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'(),./:+@%!?=\[\]#-]*$")
+
+    def components(parts):
+        """Reorder observed fields only; never repair names, codes or digits."""
+        names_th, names_en, hours_found = [], [], []
+        separate_english = any(english.fullmatch(credit.sub("", p).strip()) for p in parts)
+        for part in parts:
+            hours_found.extend(credit.findall(part))
+            name = credit.sub("", part).strip()
+            if not name:
+                continue
+            thai = list(re.finditer(r"[ก-๙]", name))
+            if thai:
+                if names_en:             # Footer/description, not a title continuation.
+                    # A credit in this line belongs to another field/row: refuse.
+                    if credit.search(part):
+                        return None
+                    break
+                # Typhoon sometimes puts Thai and English on the same line/cell.
+                # Split after the final Thai character; preserve embedded DNA etc.
+                start_en = re.search(r"(?<!\S)[A-Za-z]", name[thai[-1].end():])
+                if start_en and not separate_english:
+                    split = thai[-1].end() + start_en.start()
+                    # Multiple bilingual titles or English preceding Thai indicate
+                    # shifted/merged rows. Do not assign a previous row's title.
+                    prefix = name[:split]
+                    if re.search(r"[A-Za-z]", prefix[:thai[0].start()]) or re.search(
+                            r"[A-Za-z]+\s+[A-Za-z]+", prefix):
+                        return None
+                    names_th.append(name[:split].strip())
+                    candidate_en = name[split:].strip()
+                    if not english.fullmatch(candidate_en):
+                        return None
+                    names_en.append(candidate_en)
+                else:
+                    names_th.append(name)
+            elif english.fullmatch(name):
+                names_en.append(name)
+            else:
+                break
+        if not names_th or not names_en or len(hours_found) != 1:
+            return None
+        return " ".join(names_th), " ".join(names_en), tuple(map(int, hours_found[0]))
+
     courses, conflicts = {}, set()
     for page in sorted(pages, key=lambda p: int(p["page"])):
-        text = page.get("text", "")
+        text = unescape(page.get("text", ""))
+        # These tags can incorrectly wrap credits, not just printed page numbers.
+        text = re.sub(r"</?page_number\b[^>]*>", "", text, flags=re.I)
         if re.search(r"<table\b", text, flags=re.I):
             # Reuse the existing Markdown table reader; this is format conversion,
             # not name/credit repair. Incomplete rows never become course records.
             from code_from_book import _cells
-            from html import unescape
             converted = []
-            for row_html in re.findall(r"<tr\b[^>]*>(.*?)</tr>", text, flags=re.S | re.I):
-                cells = [unescape(value).strip() for _, value in _cells(row_html)]
-                if len(cells) < 3 or not _GE_CODE.fullmatch(cells[0]):
-                    continue
-                if not credit.fullmatch(cells[-1]):
-                    continue
-                parts = [part.strip() for cell in cells[1:-1] for part in cell.splitlines() if part.strip()]
-                th = [part for part in parts if re.search(r"[ก-๙]", part)]
-                en = [part for part in parts if english.fullmatch(part)]
-                if th and en:
-                    converted.extend([f"{cells[0]} {' '.join(th)} {cells[-1]}", " ".join(en)])
+            for table_html in re.findall(r"<table\b[^>]*>(.*?)(?:</table>|(?=<table\b)|$)", text, flags=re.S | re.I):
+                pending = None
+                for row_html in re.findall(r"<tr\b[^>]*>(.*?)</tr>", table_html, flags=re.S | re.I):
+                    tagged_cells = _cells(row_html)
+                    cells = [unescape(value).strip() for _, value in tagged_cells]
+                    if not cells:
+                        pending = None
+                        continue
+                    own_code = _GE_CODE.fullmatch(cells[0])
+                    parts = [part.strip() for cell in cells[1:] for part in cell.splitlines() if part.strip()]
+                    if own_code:
+                        code = cells[0]
+                        fields = components(parts)
+                        pending = (code, parts, bool(re.search(
+                            r"rowspan\s*=\s*['\"]?2\b", tagged_cells[0][0], re.I))) if not fields else None
+                    elif pending:
+                        code, previous, explicit_span = pending
+                        pending = None
+                        # A continuation must be marked by rowspan/colspan and
+                        # contain only English/credit, not the next Thai title.
+                        colspan = any(re.search(r"colspan\s*=\s*['\"]?[23]\b", attrs, re.I)
+                                      for attrs, _ in tagged_cells)
+                        continuation = [part.strip() for cell in cells for part in cell.splitlines() if part.strip()]
+                        if not (explicit_span or colspan) or any(re.search(r"[ก-๙]", p) for p in continuation):
+                            continue
+                        fields = components([*previous, *continuation])
+                    else:
+                        continue
+                    if fields:
+                        th, en, hours = fields
+                        total, lecture, practice, study = hours
+                        converted.extend([f"{code} {th} {total} ({lecture}-{practice}-{study})", en])
             text = "\n".join(converted)
         lines = [line.strip() for line in text.splitlines() if line.strip()]
         for i, line in enumerate(lines):
             match = header.match(line)
             if not match or int(match[2][4]) not in GE_GROUP_NAMES:
                 continue
-            tail, names_en = match[3], []
-            hours = credit.search(tail)
-            if not hours:
-                continue
-            name_th = tail[:hours.start()].strip()
-            if not re.search(r"[ก-๙]", name_th):
-                continue
+            block = [match[3] or ""]
             for following in lines[i + 1:i + 8]:
-                if not english.fullmatch(following):
+                if boundary.match(following):
                     break
-                names_en.append(following)
-            if not names_en:
+                block.append(following)
+            fields = components(block)
+            if fields is None:
                 continue
-            total, lecture, practice, study = map(int, hours.groups())
+            name_th, name_en, (total, lecture, practice, study) = fields
             if total > 12 or any(h > 99 for h in (lecture, practice, study)):
                 continue
-            row = {"code": match[2], "name_th": name_th, "name_en": " ".join(names_en),
+            row = {"code": match[2], "name_th": name_th, "name_en": name_en,
                    "credits": total, "credit_text": f"{total} ({lecture}-{practice}-{study})",
                    "group": int(match[2][4]), "graded_su": bool(match[1]), "page": int(page["page"])}
             previous = courses.get(row["code"])
