@@ -45,7 +45,7 @@
 **Files:** Modify scripts/ge64_image_trial.py and scripts/ge64_score_trial.py only as needed for occurrence outputs and strict scoring; tests tests/test_ge_ocr_selection.py; reports docs/ge64-completion-2026-10-09.md and docs/ge64-completion-summary-2026-10-09.json.
 **Interfaces:** runner completion marker precedes text-layer extraction; scorer checks frozen sources and immutable candidate/observation hashes and reports occurrence and unique-catalog gates separately.
 - [x] Add tests that selection cannot mix titles from different pages and a conflicted unique catalog cannot pass a gate.
-- [x] Freeze PDF/model/prompt/source/geometry before opening untouched pages 32-35, then 72-75, 76-77 and page 78 in separately preserved attempts (see ledger rulings). Exclude all previously used pages including 147-154; retain known-page development as a different scope.
+- [x] Freeze PDF/model/prompt/source/geometry before opening untouched pages 32-35, then 72-75, 76-77 and pages 78/79 in separately preserved attempts (see ledger rulings). Exclude all previously used pages including 147-154; retain known-page development as a different scope.
 - [x] Run full frozen recognition to completion, then extract reference text for scoring. Expected: immutable OCR hashes and complete per-page accounting, with actual correctness/gate recorded honestly.
 - [x] If recognition or scoring reveals failures, retain the failed frozen run; diagnose with regression tests and use another untouched frozen sample after fixes. Never rewrite an old run into a passing claim.
 - [x] Write exact metrics, reviewed conflicts, unresolved glyphs if any, zero-error gates and local evidence hashes to the portable reports.
@@ -53,7 +53,7 @@
 ### Task 4: Review and deliver
 **Files:** Update PROGRESS.md, append .claude-mem/timeline.md, link final report from docs/ge64-table-cell-followup-2026-10-09.md; retain this plan and execution ledger summary.
 **Interfaces:** final review consumes complete change range, plan/spec, raw verification evidence and ledger rulings.
-- [ ] Dispatch one fresh whole-change reviewer as required by executing-plans; implementer remains inline. Review association, engine independence, reference leakage, occurrence conflicts, gates and scoped paths.
-- [ ] Fix critical/important findings with failing regressions followed by green tests; record rulings and deferred minor findings.
-- [ ] Run six related OCR modules including new completion tests without DB/API suite, git diff --check, frozen/original hash checks and staged file allowlist. Expected: all checks pass and only related files staged.
-- [ ] Commit, push HEAD:dev/tests, compare remote SHA via git ls-remote and verify clean worktree and unchanged frontend branch. Report actual gates and any remaining evidence limitations without claiming arbitrary-document perfection.
+- [x] Dispatch one fresh whole-change reviewer as required by executing-plans; implementer remains inline. Review association, engine independence, reference leakage, occurrence conflicts, gates and scoped paths.
+- [x] Fix critical/important findings with failing regressions followed by green tests; record rulings and deferred minor findings.
+- [x] Run six related OCR modules including new completion tests without DB/API suite, git diff --check, frozen/original hash checks and staged file allowlist. Expected: all checks pass and only related files staged.
+- [x] Commit, push HEAD:dev/tests, compare remote SHA via git ls-remote and verify clean worktree and unchanged frontend branch. Report actual gates and any remaining evidence limitations without claiming arbitrary-document perfection.

@@ -61,3 +61,7 @@ Remove-Item Env:GE66_SOURCE_ROOT -ErrorAction SilentlyContinue
 Set `$pdf` to the existing official GE64 PDF and `$run` to a new ignored output directory. Current development diagnostics can be scored with `--reference <saved-evaluation-only.json>` after their completion marker. Never run a new policy over an old cache: plan/cache identity guards refuse it. The scorer opens the text layer only after recognition completes and preserves candidate/observation bytes. Tests/scripts/reports are included in delivery; raw PDFs/images/responses remain local.
 
 Production database hashes were deliberately not reopened/rechecked in this database-free task. Prior production verification is historical and does not certify this new OCR sample.
+
+## Later completion
+
+The later [OCR completion report](ge64-completion-2026-10-09.md) records the image-only repairs and separate development/frozen evaluations. The failures above remain historical evidence. The subsequent user-authorized [GE66 DB promotion](ge66-db-promotion-2026-10-09.md) is a separate phase using the complete303-course GE66 catalog, not the partial GE64 sample.

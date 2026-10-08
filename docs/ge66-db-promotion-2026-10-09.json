@@ -1,6 +1,6 @@
 {
   "root": "D:\\DSBA 3rd Year\\Works\\_codex_worktrees\\dev-tests-commit",
-  "state": "prepared_not_installed",
+  "state": "promoted_and_live_verified",
   "created": "2026-10-09T05:17:39.768638",
   "source_evidence_hashes": {
     "D:\\DSBA 3rd Year\\Works\\ocr_system (all)\\ocr_system\\Lab7B_Lab8B_ocr_system\\runs\\ge66_catalog.json": "90852e40c16d3558f30944ea93437031b27dcc394f3ddff6d0bb4f3b46ad1bf0",
@@ -328,5 +328,173 @@
   ],
   "backend_passed": 20,
   "backend_total": 20,
-  "regression_tests": 124
+  "regression_tests": 128,
+  "final_review": {
+    "critical": 0,
+    "important_migration": 0,
+    "important_ocr_fixed": 3,
+    "deferred_minors": []
+  },
+  "regression_subtests": 7,
+  "full_restore_rehearsal": {
+    "five_full_databases_installed_and_restored": true,
+    "catalog_restored_byte_exact": true,
+    "new_provenance_removed": true,
+    "original_worktree_files_unchanged": true,
+    "checked_backups": 7
+  },
+  "broader_backend_checks": {
+    "passed": 1042,
+    "skipped": 3,
+    "failed": 1,
+    "failure": "test_exhausted_sql_retries_report_query_failure",
+    "baseline_reproduced_from": "ac01dd3:Lab7B_Lab8B_ocr_system/src/ocr_system/lab8b_curriculum_db.py",
+    "backend_code_changed": false
+  },
+  "live_verification": {
+    "state": "promoted",
+    "live_databases": 5,
+    "ge_courses_each": 303,
+    "live_catalog_courses": 303,
+    "backend_passed": 20,
+    "backend_total": 20,
+    "comparisons": [
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+        "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 8
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 62
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 271
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 16
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+        "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 8
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 61
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 269
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 34
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+        "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 8
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 61
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 269
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 43
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+        "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 8
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 61
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 269
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 53
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+        "question": "หมวดวิชาศึกษาทั่วไปมีวิชาอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 8
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกด้านภาษาและการสื่อสารมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 61
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกหมวดวิชาศึกษาทั่วไปมีวิชาอะไรให้เลือกบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 269
+      },
+      {
+        "plan": "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db",
+        "question": "วิชาเลือกของหลักสูตรนี้มีอะไรบ้าง",
+        "same_rows_and_answer": true,
+        "rows": 53
+      }
+    ],
+    "restore_verified": {
+      "verified_backups": 7,
+      "apply": false
+    },
+    "bit_gold_frontend_source_unchanged": true,
+    "schema_ids_other_tables_preserved": true,
+    "target_hashes": {
+      "Lab7B_Lab8B_ocr_system/runs/AIT/lab8b_output/curriculum.db": "94d32138babddc41df84bfe98663cf2b6691c5f7205990982043949f14d46adf",
+      "Lab7B_Lab8B_ocr_system/runs/DSBA/coop/lab8b_output/curriculum.db": "5228ba9106837be472b5a2fc9030d1559f0a83c19f3cb76c80a020d620130dac",
+      "Lab7B_Lab8B_ocr_system/runs/DSBA/no_coop/lab8b_output/curriculum.db": "bf981ba05e368db2bac230746808f41586fd162d622c1717e6c07c9ddadc43f4",
+      "Lab7B_Lab8B_ocr_system/runs/IT/coop/lab8b_output/curriculum.db": "f88be1157a2f40b97e198eed969c692fc7d0fcb4912b090146fcd7c6681ba41f",
+      "Lab7B_Lab8B_ocr_system/runs/IT/no_coop/lab8b_output/curriculum.db": "e60d6a18fb9a97fd4d3c4226b197a221398f250b4eaf6711a352cdec9541e0f0",
+      "Lab7B_Lab8B_ocr_system/runs/ge66_catalog.json": "90852e40c16d3558f30944ea93437031b27dcc394f3ddff6d0bb4f3b46ad1bf0",
+      "Lab7B_Lab8B_ocr_system/runs/ge66_ocr_provenance.json": "e26f7ffb9b9499abcb3f0a70952e5551b6e685036dd5701728a9d68fcbb20d55"
+    }
+  },
+  "final_ocr_sample": "docs/ge64-completion-summary-2026-10-09.json#post_review_frozen_page79"
 }

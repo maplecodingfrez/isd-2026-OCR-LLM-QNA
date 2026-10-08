@@ -6,6 +6,8 @@ from collections import defaultdict
 from pathlib import Path
 import tempfile
 import unittest
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from types import SimpleNamespace
 import ge66_ocr_audit as audit
 from ge66_script_evidence import catalog_table_delimiters
@@ -41,8 +43,7 @@ class RunnerSafetyTests(unittest.TestCase):
                 body={'input_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'prompt_sha256':'prompt','model_digest':'model','request_options':{'temperature':0,'num_ctx':8192,'num_predict':1024},'message':{'content':content},'done':True}
                 p.with_suffix('.response.json').write_text(json.dumps(body),encoding='utf-8')
                 recognize=function('recognize',dict(hashlib=hashlib,json=json,plan={'prompt_sha256':'prompt'},MODEL='model',OUT=root,failures=failures))
-                try:recognize(p,1024)
-                except TypeError:pass
+                self.assertEqual(recognize(p,1024), "")
                 row=dict(code='90642113',page=1,name_th='ชื่อ',name_en='TITLE',credits='3 (3-0-6)',engine='tesseract',variant='row',occurrence_id='row-1')
                 selected,_=select_occurrences({row['code']:[row]})
                 self.assertFalse(occurrence_gate(occurrence_metrics([row],selected),failures=failures))

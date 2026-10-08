@@ -76,3 +76,19 @@ $env:PYTHONDONTWRITEBYTECODE = '1'
 ```
 
 The commands show the original frozen page-78 procedure; page 78 is now known and requires `--development` for a new reproduction plan. A new fresh trial must choose other unused pages. Use new ignored output directories. Known-page reruns require `--development` and stay development even when reference extraction follows recognition. Broad chunks are optional through `--chunk-rows`; default recognition is individual rows. Full PDFs/images/responses remain local under `outputs/ge64_test_completion_20261009/`.
+
+## Final whole-change review
+
+The fresh reviewer found three Important guard gaps: an unread upper Thai title could promote a footer after English; a multi-course response could supply required-row votes; empty/malformed successful OCR responses could leave the gate open. Each has a failing regression followed by a passing fix. Required multi-row responses are now refused and recorded as failures; empty runner responses close scoring gates; empty region responses abort completion. The complete related suite passes128 tests plus7 subtests. No Critical findings or deferred minors were raised.
+
+Page78 remains the historical four-record frozen result under its original source snapshots. Guard changes receive a new untouched page79 trial rather than rewriting earlier artifacts. The `report_sha256` metadata in the historical summary hashes `score.json`, not the runner completion `report.json`.
+
+## Subsequent DB authorization
+
+The no-DB statements above describe the completed OCR phase before the user's later authorization. See [the separate GE66 promotion report](ge66-db-promotion-2026-10-09.md) for the full303-course evidence, five targets, backups and rollback verification. Partial GE64 samples never replace the current GE66 catalog.
+
+## Final-policy untouched page79
+
+After the three review guard fixes, untouched page79 was frozen at6f5037e and recognized before extracting reference text. Result:2/3 exact and selected, zero selected errors/extra codes/transport failures, one English title withheld (90642125). Both full-coverage gates remain FALSE. Six selected fields trace to raw OCR; three completion hashes and ten source snapshots verified. All three reference courses overlap GE66 content: this tests new page images, not unseen course content.
+
+Image-only diagnosis: Tesseract's bounded reading adds a terminal period, while independent Typhoon reads the same literal title without it. The retained image shows why independent confirmation is still necessary. The complete-title conflict guard correctly withholds rather than editing punctuation or borrowing a reference answer. This is a preserved failing coverage gate, not a new passing accuracy claim or a blocker to the separately verified full GE66 catalog. The final policy does not promise automatic certification of every unseen title.

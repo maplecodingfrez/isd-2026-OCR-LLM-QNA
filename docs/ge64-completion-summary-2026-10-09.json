@@ -1733,5 +1733,405 @@
     "Earlier untouched gates13/15 and6/7 remain failed and preserved",
     "Official PDF text layer is not independent human ground truth",
     "No production promotion or arbitrary-document accuracy claim"
-  ]
+  ],
+  "subsequent_user_authorized_db_phase": "docs/ge66-db-promotion-2026-10-09.json",
+  "final_review": {
+    "important_findings": 3,
+    "critical_findings": 0,
+    "fixed_red_green": 3,
+    "deferred_minors": [],
+    "regressions": 128,
+    "subtests": 7,
+    "checkpoint": "6f5037e",
+    "historical_report_hash_filename": "score.json"
+  },
+  "post_review_frozen_page79": {
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        79
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole/raised/word and literal split-word images; adjacent-word margins bounded; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "32fd096ac6c8e294fcd0bd6f72cd34e5754646d7cbebbcb33d81e399889e622b",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "49f754880b2cec9d8c9933b6943acc58d3ea5f2ae297e210409a67b1ca9212e0",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+        "ge64_trial_history.py": "ada06fbd8edbaae25faa5694a63d2b1a4e956fe3664393bfca9fb3407646b3a1"
+      }
+    },
+    "scope": "frozen_new_page_images",
+    "reference_courses": 3,
+    "reference_occurrences": 3,
+    "reference_unique_codes_including_conflicts": 3,
+    "reference_conflicts": {},
+    "selected_total": 2,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 3,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "variants": {
+      "candidate": {
+        "expected": 3,
+        "raw_expected_codes": 3,
+        "parsed_expected_codes": 2,
+        "missing_codes": [
+          "90642125"
+        ],
+        "missing_in_raw": [],
+        "present_raw_but_not_parsed": [
+          "90642125"
+        ],
+        "extra_codes": [],
+        "exact_fields": {
+          "name_th": 2,
+          "name_en": 2,
+          "credits": 2
+        },
+        "all_fields_exact": 2,
+        "cer_on_matched": {
+          "name_th": 0.0,
+          "name_en": 0.0
+        },
+        "differences": []
+      },
+      "tesseract": {
+        "expected": 3,
+        "raw_expected_codes": 3,
+        "parsed_expected_codes": 3,
+        "missing_codes": [],
+        "missing_in_raw": [],
+        "present_raw_but_not_parsed": [],
+        "extra_codes": [],
+        "exact_fields": {
+          "name_th": 1,
+          "name_en": 3,
+          "credits": 3
+        },
+        "all_fields_exact": 1,
+        "cer_on_matched": {
+          "name_th": 0.046153846153846156,
+          "name_en": 0.0
+        },
+        "differences": [
+          {
+            "code": "90642126",
+            "page": 79,
+            "fields": [
+              "name_th"
+            ],
+            "reference": {
+              "code": "90642126",
+              "page": 79,
+              "name_th": "วิชาเอาตัวรอด",
+              "name_en": "SURVIVORS",
+              "credits": "3 (3-0-6)"
+            },
+            "observed": {
+              "code": "90642126",
+              "name_th": "ว วิชาเอาตัวรอด",
+              "name_en": "SURVIVORS",
+              "credits": "3 (3-0-6)",
+              "page": 79
+            }
+          },
+          {
+            "code": "90642127",
+            "page": 79,
+            "fields": [
+              "name_th"
+            ],
+            "reference": {
+              "code": "90642127",
+              "page": 79,
+              "name_th": "รักษ์โลก",
+              "name_en": "THINK EARTH",
+              "credits": "3 (3-0-6)"
+            },
+            "observed": {
+              "code": "90642127",
+              "name_th": "รจรักษ์โลก",
+              "name_en": "THINK EARTH",
+              "credits": "3 (3-0-6)",
+              "page": 79
+            }
+          }
+        ]
+      },
+      "tesseract_same_format": {
+        "expected": 3,
+        "raw_expected_codes": 3,
+        "parsed_expected_codes": 3,
+        "missing_codes": [],
+        "missing_in_raw": [],
+        "present_raw_but_not_parsed": [],
+        "extra_codes": [],
+        "exact_fields": {
+          "name_th": 1,
+          "name_en": 3,
+          "credits": 3
+        },
+        "all_fields_exact": 1,
+        "cer_on_matched": {
+          "name_th": 0.046153846153846156,
+          "name_en": 0.0
+        },
+        "differences": [
+          {
+            "code": "90642126",
+            "page": 79,
+            "fields": [
+              "name_th"
+            ],
+            "reference": {
+              "code": "90642126",
+              "page": 79,
+              "name_th": "วิชาเอาตัวรอด",
+              "name_en": "SURVIVORS",
+              "credits": "3 (3-0-6)"
+            },
+            "observed": {
+              "code": "90642126",
+              "name_th": "ว วิชาเอาตัวรอด",
+              "name_en": "SURVIVORS",
+              "credits": "3 (3-0-6)",
+              "page": 79
+            }
+          },
+          {
+            "code": "90642127",
+            "page": 79,
+            "fields": [
+              "name_th"
+            ],
+            "reference": {
+              "code": "90642127",
+              "page": 79,
+              "name_th": "รักษ์โลก",
+              "name_en": "THINK EARTH",
+              "credits": "3 (3-0-6)"
+            },
+            "observed": {
+              "code": "90642127",
+              "name_th": "รจรักษ์โลก",
+              "name_en": "THINK EARTH",
+              "credits": "3 (3-0-6)",
+              "page": 79
+            }
+          }
+        ]
+      },
+      "typhoon": {
+        "expected": 3,
+        "raw_expected_codes": 3,
+        "parsed_expected_codes": 2,
+        "missing_codes": [
+          "90642127"
+        ],
+        "missing_in_raw": [],
+        "present_raw_but_not_parsed": [
+          "90642127"
+        ],
+        "extra_codes": [],
+        "exact_fields": {
+          "name_th": 2,
+          "name_en": 2,
+          "credits": 2
+        },
+        "all_fields_exact": 2,
+        "cer_on_matched": {
+          "name_th": 0.0,
+          "name_en": 0.0
+        },
+        "differences": []
+      }
+    },
+    "per_page": {
+      "79": {
+        "expected": 3,
+        "raw_expected_codes": 3,
+        "parsed_expected_codes": 2,
+        "missing_codes": [
+          "90642125"
+        ],
+        "missing_in_raw": [],
+        "present_raw_but_not_parsed": [
+          "90642125"
+        ],
+        "extra_codes": [],
+        "exact_fields": {
+          "name_th": 2,
+          "name_en": 2,
+          "credits": 2
+        },
+        "all_fields_exact": 2,
+        "cer_on_matched": {
+          "name_th": 0.0,
+          "name_en": 0.0
+        },
+        "differences": []
+      }
+    },
+    "occurrences": {
+      "expected": 3,
+      "selected": 2,
+      "all_fields_exact": 2,
+      "differences": [],
+      "missing_occurrences": [
+        {
+          "page": 79,
+          "code": "90642125",
+          "count": 1
+        }
+      ],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "79": {
+        "expected": 3,
+        "selected": 2,
+        "all_fields_exact": 2,
+        "differences": [],
+        "missing_occurrences": [
+          {
+            "page": 79,
+            "code": "90642125",
+            "count": 1
+          }
+        ],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": false,
+    "review_count": 3,
+    "withheld": [
+      {
+        "code": "90642125",
+        "reason": "unresolved_field_agreement",
+        "unresolved_fields": [
+          "name_en"
+        ]
+      }
+    ],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 6,
+    "occurrence_values_traceable_to_raw_ocr": 6,
+    "immutable_ocr_sha256": {
+      "candidate.json": "86c14a2ebd463b059550cad1877dcedb1ccc2938a6586569b6161d84748fcb40",
+      "observations.json": "d68eda0f85f559bb6897ab9d03fdb475633d4622b66f17bc38ffb67fd9a36ddd",
+      "occurrence-candidate.json": "6b581fcb8b2202a6538f347f65c46e799e6c0349e0c564c5e5a428a4e9172071"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": false,
+    "database_access": false,
+    "production_promoted": false,
+    "local_evidence_directory": "outputs\\ge64_test_completion_20261009\\fresh-page79",
+    "report_sha256": "e1cb874fe0e1b1075125b5feafc13880bbc9e10acfd9861825dacaac4141cff5",
+    "historical_report_hash_filename": "score.json",
+    "frozen_source_snapshots": {
+      "ge64_image_trial.py": "32fd096ac6c8e294fcd0bd6f72cd34e5754646d7cbebbcb33d81e399889e622b",
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_script_evidence.py": "49f754880b2cec9d8c9933b6943acc58d3ea5f2ae297e210409a67b1ca9212e0",
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge64_trial_history.py": "ada06fbd8edbaae25faa5694a63d2b1a4e956fe3664393bfca9fb3407646b3a1"
+    },
+    "recognition_checkpoint": "6f5037e",
+    "diagnosis": "90642125: bounded Tesseract adds a period while independent Typhoon does not; preserve literal disagreement and withhold; no selected errors."
+  },
+  "final_policy_transfer_gate": false,
+  "current_db_promoted_in_separate_ge66_phase": true
 }

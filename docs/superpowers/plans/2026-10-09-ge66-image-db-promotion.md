@@ -40,6 +40,6 @@
 ### Task 3: Final review, apply and deliver
 **Files:** five curriculum.db targets, runs/ge66_catalog.json/provenance, Lab7B_Lab8B_ocr_system/GE66_OCR_DATA.md, both plans/reports, PROGRESS.md and append-only timeline.
 **Interfaces:** original fresh reviewer resumes after the usage reset and reviews the complete OCR+DB range once; checked manifest installs the reviewed staging only.
-- [ ] Resume the original required whole-change reviewer (initial attempt hit quota before a verdict); handle Critical/Important in one RED-GREEN pass and ledger minors/rulings.
-- [ ] Apply the manifest after review and recheck live data/schema/other tables, all seven program DBs and backup restore validation. Expected: five use303 OCR rows; BIT/source unchanged.
-- [ ] Run relevant regression checks, exact file allowlist and diff --check; commit/push HEAD:dev/tests and verify remote SHA/clean tree/frontend ref.
+- [x] Resume the original required whole-change reviewer (initial attempt hit quota before a verdict); handle Critical/Important in one RED-GREEN pass and ledger minors/rulings.
+- [x] Apply the manifest after review and recheck live data/schema/other tables, all seven program DBs and backup restore validation. Expected: five use303 OCR rows; BIT/source unchanged.
+- [x] Run relevant regression checks, exact file allowlist and diff --check; commit/push HEAD:dev/tests and verify remote SHA/clean tree/frontend ref.

@@ -15,3 +15,13 @@ Continuation in this worktree; prior source-branch logs were read only and remai
 - Initial 147-154 layout attempt interrupted during 149 and retained with frozen sources/40 cached responses, no full score/reference. Fresh frozen 150-154 completed: 42 occurrences/34 codes; 90643006 has conflicting PDF titles, excluded from aggregate. 30/33 unambiguous exact, 31 selected, error 90642113 English association, two unambiguous withheld, no extra codes/transport failures. Page 154 contains no course rows. Gate fails; no reference-driven recognition changes.
 - 75 focused standalone tests passed; no database/API suite. No frontend, database, catalog/Gold promotion or main merge. Reports: docs/ge64-table-cell-followup-2026-10-09.md and docs/ge64-followup-summary-2026-10-09.json.
 - Next: image-only diagnosis of selected association error and independent evidence for withheld titles before another frozen sample. Commit/push follows scoped staging and remote verification.
+
+## 2026-10-09 05:33 - OCR final review and GE66 DB promotion
+- Completed image-only known pages139-146 development104/104;42/42 printed occurrences150-153, genuine90643006 canonical Thai conflict retained. No spelling/reference field fills.
+- Preserved earlier fresh failures13/15 and6/7; separate development repairs15/15 and7/7; historical frozen page78=4/4.
+- Final fresh whole-change review:3Important OCR findings fixed with observed RED/GREEN tests (footer after missed Thai, multi-course row votes, empty/malformed responses). No Critical/Important DB findings or deferred minors. Final related suite128tests+7subtests passes.
+- Final-policy frozen page79=2/3 exact, one English punctuation disagreement withheld, zero selected errors/failures; both coverage gatesFALSE. Raw OCR and ten snapshots preserved. No arbitrary-document/human-GT accuracy claim.
+- Later explicit DB authorization applied full historical GE66/2566 imageOCR303courses/909rawfields to five dev/tests DBs and catalog/provenance. Live backend20/20; IDs/schema/other data unchanged. Seven checked restore entries; full five-DB byte-exact restore rehearsal passes. BIT/Gold/source/frontend untouched.
+- Broader backend1042passed/3skipped/1pre-existing failure: exhausted SQL retries returns not-found. Reproduced on ac01dd3 backend Git blob; unrelated backend behavior unchanged.
+- Original ten pages139-146 evidence hashes unchanged. Append-only timeline preserved including2026-10-08 22:29. Scoped delivery stays ondev/tests; no main merge or frontend deployment.
+- Reports: docs/ge64-completion-2026-10-09.md, docs/ge66-db-promotion-2026-10-09.md; complete decisions/costs: docs/ge64-ge66-execution-decisions-2026-10-09.md.
