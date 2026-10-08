@@ -53,3 +53,11 @@ class EnglishEvidenceTests(unittest.TestCase):
             crop, meta = english_title_image(image)
         self.assertEqual(meta['english_box'][2], 400)
         self.assertEqual(crop.getpixel((400, 28)), 0)
+
+    def test_multiple_course_codes_refuse_english_field_crop(self):
+        data={'text':['90642113','\u0e0a\u0e37\u0e48\u0e2d','90643021','\u0e2d\u0e37\u0e48\u0e19'],
+              'top':[20,20,90,90],'height':[20]*4}
+        with patch('ge66_english_evidence.audit.ocr',return_value=data):
+            crop,meta=english_title_image(Image.new('L',(300,140),'white'))
+        self.assertIsNone(crop)
+        self.assertEqual(meta['reason'],'multiple_course_rows')

@@ -65,7 +65,16 @@ def thai_title_image(image):
     # leading vowels when native-resolution crops have different padding.
     names = image
     data = audit.ocr(names, 'tha+eng', 6, data=True)
+    if sum(bool(audit.CODE.fullmatch(t.strip().lstrip('*'))) for t in data['text']) > 1:
+        return None, {'reason': 'multiple_course_rows', 'reference_used': False}
     indices = [i for i, text in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]', text)]
+    if indices:
+        first_top = min(data['top'][i] for i in indices)
+        first_bottom = min(data['top'][i]+data['height'][i] for i in indices)
+        english_top = min((data['top'][i] for i,t in enumerate(data['text'])
+                           if re.search(r'[A-Za-z]',t) and not re.search(r'[\u0e00-\u0e7f]',t)
+                           and data['top'][i] >= first_bottom), default=names.height)
+        indices = [i for i in indices if data['top'][i] < english_top]
     thai_word_indices = list(indices)
     if not indices:
         return None, {'reason': 'no_image_recognized_thai_region'}
@@ -89,8 +98,7 @@ def thai_title_image(image):
     if all(key in data for key in line_keys):
         line = lambda i: tuple(data[key][i] for key in line_keys)
         thai_lines = {tuple(original[key][i] for key in line_keys)
-                      for i, text in enumerate(original['text'])
-                      if re.search(r'[\u0e00-\u0e7f]', text)}
+                      for i in thai_word_indices}
         code_right = max((data['left'][i]+data['width'][i] for i, text in enumerate(data['text'])
                           if audit.CODE.fullmatch(text.strip())), default=0)
         credit_left = names.width

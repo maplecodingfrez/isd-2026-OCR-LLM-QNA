@@ -96,6 +96,19 @@ class CropTests(unittest.TestCase):
         self.assertEqual(quality.code_anchor_left(anchors), 144)
         self.assertLess(quality.code_anchor_left(anchors), min(a['left'] for a in anchors))
 
+    def test_repeated_codes_at_distinct_positions_remain_row_boundaries(self):
+        raw = [dict(code='90643021', top=100, height=20, left=40),
+               dict(code='90643021', top=102, height=18, left=41),
+               dict(code='90643021', top=300, height=20, left=40)]
+        anchors = quality.code_anchor_occurrences(raw)
+        self.assertEqual([a['top'] for a in anchors], [100, 300])
+        self.assertEqual(anchors[0]['height'], 20)
+
+    def test_different_codes_at_same_height_are_not_merged(self):
+        raw = [dict(code='90643021', top=100, height=20, left=40),
+               dict(code='90642113', top=100, height=20, left=400)]
+        self.assertEqual(len(quality.code_anchor_occurrences(raw)), 2)
+
     def test_code_left_bound_clamps_to_image_edge(self):
         self.assertEqual(quality.code_anchor_left([{'left': 5, 'height': 20}]), 0)
 

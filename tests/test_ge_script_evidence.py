@@ -23,6 +23,26 @@ class ScriptEvidenceTests(unittest.TestCase):
         self.assertEqual(catalog_table_delimiters(raw),
                          '9064202X | NAME\n90642022 NAME\nNAME | OTHER\n<table>90642022 | NAME</table>')
 
+    def test_thai_title_region_stops_before_english_and_faculty_footer(self):
+        image = Image.new('L', (400, 180), 'white')
+        image.putpixel((70, 130), 0)
+        data = dict(text=['90643030', '\u0e0a\u0e37\u0e48\u0e2d', 'ENGLISH', '\u0e04\u0e13\u0e30'],
+                    left=[0, 70, 70, 70], top=[20, 20, 65, 125],
+                    width=[50, 100, 200, 100], height=[20,20,20,20],
+                    block_num=[1]*4, par_num=[1]*4, line_num=[1,1,2,3])
+        with patch('ge66_script_evidence.audit.ocr',return_value=data):
+            crop,meta=thai_title_image(image)
+        self.assertIsNotNone(crop)
+        self.assertLess(meta['thai_box'][3],65)
+
+    def test_multiple_code_row_cannot_supply_thai_field_evidence(self):
+        data=dict(text=['90642113','\u0e0a\u0e37\u0e48\u0e2d','90643021','\u0e2d\u0e37\u0e48\u0e19'],
+                  left=[0,70,0,70],top=[20,20,90,90],width=[50]*4,height=[20]*4)
+        with patch('ge66_script_evidence.audit.ocr',return_value=data):
+            crop,meta=thai_title_image(Image.new('L',(300,140),'white'))
+        self.assertIsNone(crop)
+        self.assertEqual(meta['reason'],'multiple_course_rows')
+
     def mixed_read(self, raw, words, readings):
         data = dict(text=words, left=[20+50*i for i in range(len(words))],
                     top=[20]*len(words), width=[30]*len(words), height=[20]*len(words))

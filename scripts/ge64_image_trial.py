@@ -28,7 +28,7 @@ OUT = args.output
 OUT.mkdir(parents=True, exist_ok=True)
 import ge66_ocr_audit as audit
 from ge66_select_candidate import select
-from ge66_crop_quality import safe_row_crop, table_row_crop, code_anchor_left
+from ge66_crop_quality import safe_row_crop, table_row_crop, code_anchor_left, code_anchor_occurrences
 from ge66_english_evidence import english_title_image
 from ge66_script_evidence import (thai_title_image, raised_english_text, recognize_region, thai_region_text,
                                   thai_tesseract_readings, typhoon_raised_text, mixed_script_tesseract_reading, catalog_table_delimiters, LITERAL_PROMPT)
@@ -131,13 +131,11 @@ with pymupdf.open(PDF) as doc:
                                     'height': data['height'][i], 'left': left+data['left'][i]})
             full_data = audit.ocr(image,'tha+eng',6,data=True)
             audit.write_json(folder/'whole-page-words.json',full_data)
-            known={a['code'] for a in anchors}
             for j, word in enumerate(full_data['text']):
                 match=re.fullmatch(r'\*{0,2}(9064\d{4})',word.strip())
-                if match and match[1] not in known:
+                if match:
                     anchors.append({'code':match[1],'top':full_data['top'][j],'height':full_data['height'][j], 'left':full_data['left'][j]})
-                    known.add(match[1])
-            anchors.sort(key=lambda a: a['top'])
+            anchors = code_anchor_occurrences(anchors)
             if anchors:
                 left = code_anchor_left(anchors)
             audit.write_json(folder/'anchors.json', anchors)

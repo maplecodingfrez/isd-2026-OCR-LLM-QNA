@@ -109,3 +109,20 @@ def table_title_cell(image):
 def code_anchor_left(anchors):
     """Include observed code glyphs and a height-derived blank left margin."""
     return max(0, min(int(a['left'])-max(12, round(a['height']*.8)) for a in anchors))
+
+
+def code_anchor_occurrences(readings):
+    """Merge duplicate detections at one position, preserving printed repeats."""
+    anchors = []
+    for row in sorted(readings, key=lambda a: (a['top'], a['left'], a['code'])):
+        duplicate = next((a for a in anchors if a['code'] == row['code']
+                          and max(a['top'], row['top']) < min(a['top']+a['height'], row['top']+row['height'])
+                          and abs(a['left']-row['left']) <= max(a['height'], row['height'])), None)
+        if duplicate is None:
+            anchors.append(dict(row))
+        else:
+            bottom = max(duplicate['top']+duplicate['height'], row['top']+row['height'])
+            duplicate['top'] = min(duplicate['top'],row['top'])
+            duplicate['height'] = bottom-duplicate['top']
+            duplicate['left'] = min(duplicate['left'],row['left'])
+    return anchors

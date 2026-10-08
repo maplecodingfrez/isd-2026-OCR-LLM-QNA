@@ -9,6 +9,8 @@ def english_title_image(image):
     if names is None:
         names = image
     data = audit.ocr(names, 'tha+eng', 6, data=True)
+    if sum(bool(audit.CODE.fullmatch(t.strip().lstrip('*'))) for t in data['text']) > 1:
+        return None, {'reason': 'multiple_course_rows', 'reference_used': False}
     thai_bottoms = [data['top'][i]+data['height'][i] for i,t in enumerate(data['text'])
                     if re.search(r'[\u0e00-\u0e7f]', t)]
     if not thai_bottoms:
