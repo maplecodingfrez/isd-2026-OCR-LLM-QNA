@@ -106,15 +106,15 @@ def test_ask_422_lab8b_infrastructure_error_detail_is_a_string(client, fake_db, 
     assert r.json()["detail"] == "ConnectionError: Ollama ไม่ตอบ"
 
 
-# คำถามที่โมเดลสร้าง SQL ไม่สำเร็จ (คำถามตัวอย่างของอาจารย์เองเคยทำให้เกิด "OperationalError: ambiguous column name") ต้องไม่เป็น HTTP error —
-# ตอบ 200 พร้อมข้อความ "ไม่พบ" (ซื่อตรงกว่าตอบเดา; กติกา Challenge: error ระหว่างทดสอบ = 0)
+# Failed SQL is distinct from an executed query with no matching rows.
 @pytest.mark.parametrize("error", ["OperationalError: ambiguous column name: name_th", "SQL ไม่ผ่านการตรวจ", "ValueError: only SELECT"])
-def test_ask_degrades_a_failed_sql_generation_to_a_not_found_answer(client, fake_db, monkeypatch, error):
+def test_ask_reports_failed_sql_generation_as_safe_query_error(client, fake_db, monkeypatch, error):
     monkeypatch.setattr(main.lab8b, "ask", lambda conn, q, verbose=False: _result(error=error, rows=[], answer="ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง"))
-    r = client.post("/api/ask", json={"question": "คำถามที่ทำให้ SQL พัง"})
-    assert r.status_code == 200
-    body = r.json()
-    assert body["answer"] == "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" and not body.get("error") and body["rows"] == []
+    response = client.post("/api/ask", json={"question": "คำถามที่ทำให้ SQL พัง"})
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert isinstance(detail, str) and "แปลงคำถาม" in detail
+    assert error not in detail and "ไม่พบข้อมูล" not in detail
 
 
 def test_ask_404_unknown_program(client, fake_db):

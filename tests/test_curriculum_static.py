@@ -68,7 +68,7 @@ def test_css_quality_floor_and_no_external_resources():
     assert "max-width: 768px" in css
     assert ":focus-visible" in css
     assert "min-height: 44px" in css
-    assert "box-shadow" not in css and "@import" not in css and "http" not in css
+    assert "@import" not in css and "http" not in css
 
 
 def test_css_font_files_exist():

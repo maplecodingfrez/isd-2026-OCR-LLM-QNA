@@ -3220,12 +3220,12 @@ def test_plan_difference_refuses_anything_that_is_not_the_whole_two_plan_compari
         assert m._other_plan_diff_answer(c, question) is None, question
 
 
-# SQL สร้าง/รันไม่สำเร็จหลังลองซ้ำ: คำตอบต้องเป็นข้อความ "ไม่พบ" มาตรฐาน (เดิม "ไม่สามารถตอบคำถามนี้ได้ กรุณาตรวจสอบเอง" ซึ่ง judge อ่านแล้วเหมือนระบบพัง)
-def test_exhausted_sql_retries_answer_with_the_standard_not_found_text(monkeypatch):
+# Failed SQL must stay distinct from a successfully executed empty result.
+def test_exhausted_sql_retries_report_query_failure(monkeypatch):
     with closing(_real("DSBA/coop")) as c:
         monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: '{"sql": "SELECT nope FROM nowhere"}')
         r = m.ask(c, "คำถามประหลาดที่ต้องไปทางโมเดลแน่นอน xyzzy", verbose=False)
-        assert r["answer"] == m._NOT_FOUND_TEXT and r["error"]
+        assert "แปลงคำถาม" in r["answer"] and r["answer"] != m._NOT_FOUND_TEXT and r["error"]
 
 
 # เทียบแผน: วิชาที่มีเฉพาะอีกแผนต้องมีหน้าอ้างอิงด้วย (หาจากฐานข้อมูลของแผนที่วิชานั้นอยู่) — เดิมเลือกแผนไม่สหกิจแล้วไม่มีหน้าอ้างอิงเลย
