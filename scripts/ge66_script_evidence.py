@@ -60,6 +60,18 @@ def thai_region_text(raw):
     return clean
 
 
+def title_thai_indices(data):
+    """Initial Thai title block, before a separate English title line."""
+    indices = [i for i,t in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]',t)]
+    if not indices:
+        return []
+    first_bottom = min(data['top'][i]+data['height'][i] for i in indices)
+    english_top = min((data['top'][i] for i,t in enumerate(data['text'])
+                       if re.search(r'[A-Za-z]',t) and not re.search(r'[\u0e00-\u0e7f]',t)
+                       and data['top'][i] >= first_bottom), default=float('inf'))
+    return [i for i in indices if data['top'][i] < english_top]
+
+
 def thai_title_image(image):
     # Word boxes locate Thai across the full row; fixed column ratios can cut
     # leading vowels when native-resolution crops have different padding.
@@ -67,14 +79,7 @@ def thai_title_image(image):
     data = audit.ocr(names, 'tha+eng', 6, data=True)
     if sum(bool(audit.CODE.fullmatch(t.strip().lstrip('*'))) for t in data['text']) > 1:
         return None, {'reason': 'multiple_course_rows', 'reference_used': False}
-    indices = [i for i, text in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]', text)]
-    if indices:
-        first_top = min(data['top'][i] for i in indices)
-        first_bottom = min(data['top'][i]+data['height'][i] for i in indices)
-        english_top = min((data['top'][i] for i,t in enumerate(data['text'])
-                           if re.search(r'[A-Za-z]',t) and not re.search(r'[\u0e00-\u0e7f]',t)
-                           and data['top'][i] >= first_bottom), default=names.height)
-        indices = [i for i in indices if data['top'][i] < english_top]
+    indices = title_thai_indices(data)
     thai_word_indices = list(indices)
     if not indices:
         return None, {'reason': 'no_image_recognized_thai_region'}
@@ -184,8 +189,17 @@ def raised_english_text(image):
         peers = [j for j in indices if j != i and
                  tuple(data[key][j] for key in ('block_num', 'par_num', 'line_num')) == line
                  and float(data['conf'][j]) >= 80]
-        if len(peers) < 2:
+        if not peers:
             continue
+        if len(peers) == 1:
+            # A wrapped line may have one baseline word. Require other title
+            # words to independently establish a consistent regular height.
+            others = [j for j in indices if j not in (i, peers[0]) and float(data['conf'][j]) >= 80]
+            if len(others) < 2:
+                continue
+            typical = median(data['height'][j] for j in others)
+            if any(abs(data['height'][j]-typical) > typical*.15 for j in others+[peers[0]]):
+                continue
         regular_height = median(data['height'][j] for j in peers)
         baseline = median(data['top'][j]+data['height'][j] for j in peers)
         left, top = data['left'][i], data['top'][i]
@@ -340,3 +354,86 @@ def typhoon_raised_text(image, directory, model, meta):
     return ' '.join(tokens), {'raw_whole_text': whole, 'word_readings': word_reads,
                             'reference_used': False, 'tesseract_text_used_as_fill': False,
                             'case_normalized': False}
+
+
+def thai_initial_cluster_reading(image, directory):
+    """Read an isolated initial Thai base+mark cluster, with literal agreement.
+
+    The base consonant must remain identical. Only unanimous PSM8/13 image
+    readings can replace its combining marks; no expected word is supplied.
+    This remains one Tesseract-family observation, with raw segment provenance.
+    """
+    directory.mkdir(parents=True,exist_ok=True)
+    raw = audit.ocr(image,'tha+eng',6).strip()
+    prefix = re.match(r'^([\u0e01-\u0e2e])([\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]+)',raw)
+    meta = {'raw_whole_text':raw,'reference_used':False,'engine_family':'tesseract'}
+    if not prefix:
+        return None,{**meta,'reason':'no_initial_marked_consonant'}
+    components = sorted(ink_components(image),key=lambda b:b[0])
+    if not components:
+        return None,{**meta,'reason':'no_initial_ink_cluster'}
+    cluster = [components[0]]
+    edge = components[0][2]
+    for box in components[1:]:
+        if box[0] >= edge:
+            break
+        cluster.append(box)
+        edge=max(edge,box[2])
+    if len(cluster) < 2:
+        return None,{**meta,'reason':'inseparable_initial_mark'}
+    base_height=max(b[3]-b[1] for b in cluster)
+    margin=max(4,round(base_height*.13))
+    vertical_margin=max(4,round(base_height/3))
+    box=[max(0,min(b[0] for b in cluster)-margin),max(0,min(b[1] for b in cluster)-vertical_margin),
+         min(image.width,max(b[2] for b in cluster)+margin),min(image.height,max(b[3] for b in cluster)+vertical_margin)]
+    path=directory/'initial-cluster.png'
+    crop=ImageOps.expand(image.crop(box),border=35,fill='white');crop.save(path)
+    reads={str(psm):audit.ocr(crop,'tha',psm).strip() for psm in (8,13)}
+    meta.update(cluster_box=box,raw_cluster_readings=reads,image_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    value=reads['8']
+    if value != reads['13'] or not re.fullmatch(r'[\u0e01-\u0e2e][\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]+',value) or value[0] != prefix[1]:
+        meta['reason']='inconclusive_initial_cluster'
+        audit.write_json(directory/'initial-cluster-readings.json',meta)
+        return None,meta
+    text=value+raw[prefix.end():]
+    meta['text']=text
+    audit.write_json(directory/'initial-cluster-readings.json',meta)
+    return (text if value != prefix[0] else None),meta
+
+
+def typhoon_word_text(image, directory, model):
+    """Align whole Typhoon text, then re-read disagreeing word pixels literally.
+
+    Tesseract supplies boxes and retry locations only. Untouched words and
+    replacement characters all come from Typhoon image responses. A response
+    containing another alphabetic word is refused, including title injection.
+    """
+    directory.mkdir(parents=True,exist_ok=True)
+    data=audit.ocr(image,'eng',6,data=True)
+    indices=[i for i,t in enumerate(data['text']) if t.strip()]
+    path=directory/'whole.png';image.save(path)
+    whole=english_region_text(recognize_region(path,LITERAL_PROMPT,model))
+    meta={'raw_whole_text':whole,'reference_used':False,'tesseract_text_used_as_fill':False,'word_readings':[]}
+    if whole is None or len(whole.split()) != len(indices):
+        return None,{**meta,'reason':'unaligned_whole_reading'}
+    tokens=whole.split()
+    changed=[j for j,i in enumerate(indices) if audit.norm(tokens[j]) != audit.norm(data['text'][i])]
+    if not changed or len(changed)>3:
+        return None,{**meta,'reason':'no_bounded_word_disagreement'}
+    for j in changed:
+        i=indices[j]
+        box=[max(0,data['left'][i]-15),max(0,data['top'][i]-15),
+             min(image.width,data['left'][i]+data['width'][i]+15),
+             min(image.height,data['top'][i]+data['height'][i]+15)]
+        path=directory/f'word-{j:03d}.png'
+        ImageOps.expand(image.crop(box),border=40,fill='white').save(path)
+        raw=recognize_region(path,LITERAL_PROMPT,model)
+        text=english_region_text(raw)
+        if text is None or not re.fullmatch(r'[A-Za-z0-9]+(?:\s*[.,;:!?])*',text):
+            return None,{**meta,'reason':'invalid_single_word_reading','rejected_raw':raw}
+        tokens[j]=text
+        meta['word_readings'].append({'token_index':j,'box':box,'raw_text':raw,
+                                     'image_sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+    text=' '.join(tokens);meta['text']=text
+    audit.write_json(directory/'word-readings.json',meta)
+    return text,meta

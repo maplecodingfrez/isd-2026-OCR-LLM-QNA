@@ -61,3 +61,37 @@ class EnglishEvidenceTests(unittest.TestCase):
             crop,meta=english_title_image(Image.new('L',(300,140),'white'))
         self.assertIsNone(crop)
         self.assertEqual(meta['reason'],'multiple_course_rows')
+
+    def test_faculty_footer_does_not_hide_initial_english_title(self):
+        image=Image.new('L',(300,180),'white')
+        for y in range(60,75):
+            for x in range(60,250):image.putpixel((x,y),0)
+        data={'text':['\u0e0a\u0e37\u0e48\u0e2d','ENGLISH','\u0e04\u0e13\u0e30'],
+              'top':[20,60,125],'height':[20,15,20]}
+        with patch('ge66_english_evidence.audit.ocr',return_value=data):
+            crop,meta=english_title_image(image)
+        self.assertIsNotNone(crop)
+        self.assertLess(meta['english_box'][3],125)
+
+    def test_footer_upper_marks_above_ocr_box_do_not_enter_english_crop(self):
+        image=Image.new('L',(300,180),'white')
+        for lo,hi in [(60,75),(119,124)]:
+            for y in range(lo,hi):
+                for x in range(60,250):image.putpixel((x,y),0)
+        data={'text':['\u0e0a\u0e37\u0e48\u0e2d','ENGLISH','\u0e04\u0e13\u0e30'],
+              'top':[20,60,125],'height':[20,15,20]}
+        with patch('ge66_english_evidence.audit.ocr',return_value=data):
+            crop,meta=english_title_image(image)
+        self.assertLess(meta['english_box'][3],100)
+
+    def test_wrapped_english_word_lines_remain_in_bounded_region(self):
+        image=Image.new('L',(300,200),'white')
+        for lo,hi in [(60,75),(90,105),(155,175)]:
+            for y in range(lo,hi):
+                for x in range(60,250):image.putpixel((x,y),0)
+        data={'text':['\u0e0a\u0e37\u0e48\u0e2d','FIRST','SECOND','footerArtifact','\u0e04\u0e13\u0e30'],
+              'top':[20,60,90,155,155],'height':[20,15,15,20,20]}
+        with patch('ge66_english_evidence.audit.ocr',return_value=data):
+            crop,meta=english_title_image(image)
+        self.assertGreaterEqual(meta['english_box'][3],105)
+        self.assertLess(meta['english_box'][3],130)

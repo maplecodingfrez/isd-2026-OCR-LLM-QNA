@@ -18,8 +18,13 @@ def select(observations):
         evidence = {}
         unresolved = []
         for field in audit.FIELDS:
+            field_rows=[r for r in eligible if field in r]
+            bounded=[r for r in field_rows if r.get('field_scope')=='bounded_title'] if field in ('name_th','name_en') else []
+            if bounded and len({r['engine'] for r in bounded}) < 2:
+                unresolved.append(field)
+                continue
             values = defaultdict(list)
-            for row in eligible:
+            for row in bounded or field_rows:
                 if field in row:
                     values[audit.norm(row[field])].append(row)
             if not values:
@@ -46,16 +51,61 @@ def select(observations):
                 any('crop' not in r['variant'] for r in support)))
             proposed[field] = best[-1][field]
             evidence[field] = {'support_count': len(best), 'total': sum(field in r for r in eligible),
-                'engines': sorted({r['engine'] for r in best}), 'different_values': len(values)}
+                'engines': sorted({r['engine'] for r in best}), 'different_values': len(values),
+                'discarded_unbounded_observations':len(field_rows)-len(bounded) if bounded else 0}
         if unresolved:
             review.append({'code': code, 'reason': 'unresolved_field_agreement',
                            'unresolved_fields': unresolved, 'observations': rows})
             continue
         records.append(proposed)
-        if rejected or any(v['different_values'] > 1 or len(v['engines']) < 2 for v in evidence.values()):
+        if rejected or any(v['different_values'] > 1 or len(v['engines']) < 2 or v.get('discarded_unbounded_observations',0) for v in evidence.values()):
             review.append({'code': code, 'evidence': evidence, 'observations': rows,
                            'rejected_clipped_observations': len(rejected)})
     return records, review
+
+
+def select_occurrences(observations, *, require_scoped=False):
+    """Vote only within a printed page/row occurrence, retaining its identity.
+
+    Scoped row observations supersede unbounded baseline observations for
+    that page. They never borrow field support from another printed position.
+    Baselines remain in raw observations for audit, rather than being erased.
+    """
+    records, reviews = [], []
+    for code, rows in sorted(observations.items()):
+        by_page = defaultdict(list)
+        for row in rows:
+            by_page[row['page']].append(row)
+        for page, page_rows in sorted(by_page.items()):
+            scoped = [r for r in page_rows if r.get('occurrence_id')]
+            if require_scoped and not scoped:
+                reviews.append({'code':code,'page':page,'reason':'no_bounded_code_occurrence','observations':page_rows})
+                continue
+            groups = defaultdict(list)
+            for row in scoped or page_rows:
+                groups[row.get('occurrence_id', str(page))].append(row)
+            for identity, group in sorted(groups.items()):
+                chosen, review = select({code: group})
+                for item in chosen+review:
+                    item.update(page=page, occurrence_id=identity)
+                records.extend(chosen)
+                reviews.extend(review)
+    return records, reviews
+
+
+def catalog_from_occurrences(records):
+    """Return only a unique catalog supported by consistent printed titles."""
+    grouped = defaultdict(list)
+    for row in records:
+        grouped[row['code']].append(row)
+    catalog, conflicts = [], []
+    for code, rows in sorted(grouped.items()):
+        signatures = {tuple(audit.norm(r[f]) for f in audit.FIELDS) for r in rows}
+        if len(signatures) != 1:
+            conflicts.append({'code':code,'reason':'printed_title_conflict','occurrences':rows})
+        else:
+            catalog.append({k:v for k,v in rows[0].items() if k != 'occurrence_id'})
+    return catalog, conflicts
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from ge66_select_candidate import select
+import ge66_select_candidate as selection
 from ge66_typographic_consensus import content_key
 
 
@@ -114,6 +115,61 @@ class SelectionTests(unittest.TestCase):
         result, review = select({short['code']: [short, peer, clipped]})
         self.assertEqual(result[0]['name_en'], 'TITLE')
         self.assertEqual(review[0]['rejected_clipped_observations'], 1)
+
+    def test_bounded_title_fields_do_not_vote_with_footer_contaminated_row(self):
+        whole=dict(code='90643006',page=153,engine='tesseract',variant='row',name_th='Thai',
+                   name_en='COMPLETE TITLE footer',credits='3 (3-0-6)')
+        th={**whole,'engine':'typhoon','name_en':'COMPLETE TITLE'}
+        narrow=[dict(code=whole['code'],page=153,engine=e,variant='english_line',
+                     name_en='COMPLETE TITLE',field_scope='bounded_title') for e in ('tesseract','typhoon')]
+        records,review=select({whole['code']:[whole,th]+narrow})
+        self.assertEqual(records[0]['name_en'],'COMPLETE TITLE')
+        self.assertEqual(review[0]['evidence']['name_en']['discarded_unbounded_observations'],2)
+
+    def test_single_family_bounded_title_cannot_fall_back_to_broad_agreement(self):
+        whole=dict(code='90643006',page=153,engine='tesseract',variant='row',name_th='Thai',
+                   name_en='OTHER ROW',credits='3 (3-0-6)')
+        narrow=dict(code=whole['code'],page=153,engine='tesseract',variant='english_line',
+                    name_en='ACTUAL TITLE',field_scope='bounded_title')
+        records,review=select({whole['code']:[whole,{**whole,'engine':'typhoon'},narrow]})
+        self.assertEqual(records,[])
+        self.assertIn('name_en',review[0]['unresolved_fields'])
+
+    def test_fresh_occurrence_selection_requires_a_bounded_code_position(self):
+        row=dict(code='90642113',page=151,engine='tesseract',variant='whole',name_th='Thai',
+                 name_en='TITLE',credits='3 (3-0-6)')
+        records,review=selection.select_occurrences({'90642113':[row,{**row,'engine':'typhoon'}]},require_scoped=True)
+        self.assertEqual(records,[])
+        self.assertEqual(review[0]['reason'],'no_bounded_code_occurrence')
+
+    def test_page_occurrences_keep_conflicting_printed_titles_separate(self):
+        rows=[]
+        for page,name in [(150,'First printed title'),(153,'Other printed title')]:
+            for engine in ('tesseract','typhoon'):
+                rows.append(dict(code='90643006',page=page,engine=engine,variant='row',
+                                 name_th=name,name_en='TITLE',credits='3 (3-0-6)'))
+        records,review=selection.select_occurrences({'90643006':rows})
+        self.assertEqual([(r['page'],r['name_th']) for r in records],[(150,'First printed title'),(153,'Other printed title')])
+        catalog,conflicts=selection.catalog_from_occurrences(records)
+        self.assertEqual(catalog,[])
+        self.assertEqual(conflicts[0]['reason'],'printed_title_conflict')
+
+    def test_occurrence_field_cannot_vote_from_another_row_on_same_page(self):
+        rows=[]
+        for ident,name in [('150:100','First'),('150:300','Other')]:
+            for engine in ('tesseract','typhoon'):
+                rows.append(dict(code='90643006',page=150,occurrence_id=ident,engine=engine,
+                                 variant='row',name_th=name,name_en='TITLE',credits='3 (3-0-6)'))
+        records,_=selection.select_occurrences({'90643006':rows})
+        self.assertEqual(len(records),2)
+        self.assertEqual({r['name_th'] for r in records},{'First','Other'})
+
+    def test_verified_occurrence_does_not_mix_unbounded_baseline_title(self):
+        row=dict(code='90642113',page=151,occurrence_id='151:100',engine='tesseract',variant='row',
+                 name_th='Thai',name_en='ROW TITLE',credits='3 (3-0-6)')
+        broad={**row,'engine':'typhoon','name_en':'OTHER ROW'};broad.pop('occurrence_id')
+        records,_=selection.select_occurrences({'90642113':[row,{**row,'engine':'typhoon'},broad]})
+        self.assertEqual(records[0]['name_en'],'ROW TITLE')
 
     def test_complete_cross_engine_title_can_beat_single_engine_fragment(self):
         full = dict(code='90643025', page=140, engine='tesseract', variant='title_cell',

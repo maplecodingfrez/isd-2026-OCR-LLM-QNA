@@ -1,6 +1,6 @@
 """Finish glyphs at crop boundaries using pixels only; retain unsafe-crop evidence."""
 def table_row_crop(image, anchor_y, left, right, *, horizontal_start=0.05,
-                   horizontal_end=0.95, rule_coverage=0.72):
+                   horizontal_end=0.95, rule_coverage=0.72, other_anchor_ys=()):
     """Crop the complete table row containing an image-recognized code anchor.
 
     Long horizontal rules define row cells; use them when both adjacent rules
@@ -26,6 +26,8 @@ def table_row_crop(image, anchor_y, left, right, *, horizontal_start=0.05,
     if not upper or not lower:
         return None, {'clipped': True, 'reason': 'missing_adjacent_table_rules'}
     top, bottom = upper[-1][-1]+1, lower[0][0]
+    if any(top <= y < bottom for y in other_anchor_ys):
+        return None, {'clipped': True, 'reason': 'multiple_code_anchors_in_table_span'}
     if bottom-top < 12:
         return None, {'clipped': True, 'reason': 'invalid_table_row_bounds'}
     box = [int(left), top, int(right), bottom]

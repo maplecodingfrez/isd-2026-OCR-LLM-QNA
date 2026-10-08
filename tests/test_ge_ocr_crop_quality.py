@@ -96,6 +96,14 @@ class CropTests(unittest.TestCase):
         self.assertEqual(quality.code_anchor_left(anchors), 144)
         self.assertLess(quality.code_anchor_left(anchors), min(a['left'] for a in anchors))
 
+    def test_table_rules_enclosing_multiple_code_anchors_are_not_one_row(self):
+        image=Image.new('L',(200,160),255)
+        for y in (10,140):
+            for x in range(200):image.putpixel((x,y),0)
+        crop,meta=table_row_crop(image,40,10,190,other_anchor_ys=[100])
+        self.assertIsNone(crop)
+        self.assertEqual(meta['reason'],'multiple_code_anchors_in_table_span')
+
     def test_repeated_codes_at_distinct_positions_remain_row_boundaries(self):
         raw = [dict(code='90643021', top=100, height=20, left=40),
                dict(code='90643021', top=102, height=18, left=41),

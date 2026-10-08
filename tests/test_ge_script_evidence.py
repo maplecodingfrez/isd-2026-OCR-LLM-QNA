@@ -7,6 +7,7 @@ import tempfile
 from unittest.mock import patch
 from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+import ge66_script_evidence as se
 from ge66_script_evidence import (raised_english_text, thai_title_image, thai_region_text,
                                  recognize_region, typhoon_raised_text, thai_tesseract_readings,
                                  mixed_script_tesseract_reading, catalog_table_delimiters)
@@ -42,6 +43,40 @@ class ScriptEvidenceTests(unittest.TestCase):
             crop,meta=thai_title_image(Image.new('L',(300,140),'white'))
         self.assertIsNone(crop)
         self.assertEqual(meta['reason'],'multiple_course_rows')
+
+    def test_isolated_thai_initial_mark_uses_two_literal_image_readings(self):
+        image=Image.new('L',(200,100),'white');draw=ImageDraw.Draw(image)
+        draw.rectangle((20,35,50,75),fill=0);draw.rectangle((22,20,45,25),fill=0)
+        draw.rectangle((70,35,100,75),fill=0)
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',
+                side_effect=['\u0e25\u0e37\u0e19 text','\u0e25\u0e35','\u0e25\u0e35']):
+            text,meta=se.thai_initial_cluster_reading(image,Path(folder))
+        self.assertEqual(text,'\u0e25\u0e35\u0e19 text')
+        self.assertEqual(meta['raw_cluster_readings'],{'8':'\u0e25\u0e35','13':'\u0e25\u0e35'})
+
+    def test_initial_cluster_cannot_change_a_different_base_letter(self):
+        image=Image.new('L',(150,100),'white');draw=ImageDraw.Draw(image)
+        draw.rectangle((20,35,50,75),fill=0);draw.rectangle((22,20,45,25),fill=0)
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',
+                side_effect=['\u0e25\u0e37\u0e19','\u0e2a\u0e35','\u0e2a\u0e35']):
+            text,meta=se.thai_initial_cluster_reading(image,Path(folder))
+        self.assertIsNone(text)
+
+    def test_isolated_punctuation_word_uses_typhoon_pixels_without_tesseract_fill(self):
+        data=dict(text=['ONE,','WORD'],left=[10,100],top=[20,20],width=[60,70],height=[25,25])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data), patch(
+                'ge66_script_evidence.recognize_region',side_effect=['ONE WORD','ONE ,']):
+            text,meta=se.typhoon_word_text(Image.new('L',(200,80),'white'),Path(folder),'model')
+        self.assertEqual(text,'ONE , WORD')
+        self.assertFalse(meta['tesseract_text_used_as_fill'])
+        self.assertEqual(meta['word_readings'][0]['raw_text'],'ONE ,')
+
+    def test_isolated_word_cannot_inject_another_title(self):
+        data=dict(text=['ONE,','WORD'],left=[10,100],top=[20,20],width=[60,70],height=[25,25])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data), patch(
+                'ge66_script_evidence.recognize_region',side_effect=['ONE WORD','OTHER TITLE']):
+            text,meta=se.typhoon_word_text(Image.new('L',(200,80),'white'),Path(folder),'model')
+        self.assertIsNone(text)
 
     def mixed_read(self, raw, words, readings):
         data = dict(text=words, left=[20+50*i for i in range(len(words))],
@@ -98,6 +133,19 @@ class ScriptEvidenceTests(unittest.TestCase):
         self.assertEqual([p['text'] for p in meta['readings'][0]['parts']], ['42', 'nd'])
         self.assertFalse(meta['case_normalized'])
         self.assertFalse(meta['reference_used'])
+
+    def test_wrapped_raised_word_uses_one_peer_with_consistent_title_height(self):
+        data=self.data();data['line_num']=[1,1,2,2]
+        with patch('ge66_script_evidence.audit.ocr',side_effect=[data,'42','nd']):
+            text,meta=raised_english_text(self.raised_image())
+        self.assertEqual(text,'A B 42nd C')
+        self.assertEqual(meta['readings'][0]['parts'][1]['text'],'nd')
+
+    def test_one_peer_with_conflicting_other_line_height_is_refused(self):
+        data=self.data();data['line_num']=[1,1,2,2];data['height'][-1]=9
+        with patch('ge66_script_evidence.audit.ocr',return_value=data):
+            text,_=raised_english_text(self.raised_image())
+        self.assertIsNone(text)
 
     def test_raw_capitalization_is_preserved(self):
         with patch('ge66_script_evidence.audit.ocr', side_effect=[self.data(), '42', 'ND']):

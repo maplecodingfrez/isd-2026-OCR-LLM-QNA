@@ -8,6 +8,7 @@ import re
 import pymupdf
 import ge66_ocr_audit as audit
 from ge66_select_candidate import select
+from ge64_occurrence_score import occurrence_metrics, occurrence_gate, verify_completion_hashes
 from ge66_script_evidence import catalog_table_delimiters
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'Lab7B_Lab8B_ocr_system/src/ocr_system'))
@@ -19,9 +20,12 @@ cli.add_argument('--reference', type=Path, help='Existing evaluation-only JSON f
 args = cli.parse_args()
 OUT = args.output
 marker = json.loads((OUT/'ocr-complete.json').read_text(encoding='utf-8'))
+completion_hashes_verified=verify_completion_hashes(OUT,marker)
 candidate_path = OUT/'candidate.json'
-original_hashes = {name: hashlib.sha256((OUT/name).read_bytes()).hexdigest() for name in ('candidate.json','observations.json')}
+occurrence_path = OUT/'occurrence-candidate.json'
+original_hashes = {name: hashlib.sha256((OUT/name).read_bytes()).hexdigest() for name in ('candidate.json','observations.json') + (('occurrence-candidate.json',) if occurrence_path.exists() else ())}
 records = json.loads(candidate_path.read_text(encoding='utf-8'))['records']
+occurrences = json.loads(occurrence_path.read_text(encoding='utf-8'))['records'] if occurrence_path.exists() else []
 observations = json.loads((OUT/'observations.json').read_text(encoding='utf-8'))
 if args.reference:
     reference = json.loads(args.reference.read_text(encoding='utf-8'))
@@ -92,7 +96,6 @@ else:
         assert {r['code'] for r in page_rows} | {r['code'] for r in page_exclusions} == raw_codes
         assert len(page_rows)+len(page_exclusions) == len(starts)  # Repeated printed courses remain occurrences.
         reference.extend(page_rows)
-    assert reference
 reference_occurrences = list(reference)
 unique = {}
 reference_conflicts = {}
@@ -117,14 +120,17 @@ overlap=sum(any(all(audit.norm(r[f])==audit.norm(audit.canonical(old)[f]) for f 
 review=json.loads((OUT/'review-queue.json').read_text(encoding='utf-8'))
 failures=json.loads((OUT/'failures.json').read_text(encoding='utf-8')) if (OUT/'failures.json').exists() else []
 assert all(any(f in o and r[f]==o[f] for o in observations[r['code']]) for r in records for f in audit.FIELDS)
+assert all(any(f in o and r[f]==o[f] and r['page']==o['page'] and (r.get('occurrence_id')==o.get('occurrence_id') or (r.get('occurrence_id')==str(r['page']) and not o.get('occurrence_id'))) for o in observations[r['code']]) for r in occurrences for f in audit.FIELDS)
 per_page={}
 for page in plan['pages']:
     page_obs={c:[r for r in rows if r['page']==page] for c,rows in observations.items()}
     page_obs={c:rows for c,rows in page_obs.items() if rows}
-    page_records,_=select(page_obs)
+    page_records=[r for r in occurrences if r['page']==page] if occurrence_path.exists() else select(page_obs)[0]
     per_page[str(page)]=audit.metrics([r for r in reference_occurrences if r['page']==page],page_records,[{'text':' '.join(page_obs)}])
 assert all(hashlib.sha256((OUT/n).read_bytes()).hexdigest()==v for n,v in original_hashes.items())
 candidate=variants['candidate']
-report={'plan':plan,'scope':'development' if args.reference else 'frozen_new_page_images','reference_courses':len(reference),'reference_occurrences':len(reference_occurrences),'reference_unique_codes_including_conflicts':len(unique),'reference_conflicts':reference_conflicts,'selected_total':len(records),'selected_excluded_reference_conflicts':[r['code'] for r in records if r['code'] in reference_conflicts],'reference_content_overlap_with_GE66':overlap,'reference':'Official PDF text layer, not independent human ground truth','variants':variants,'per_page':per_page,'review_count':len(review),'withheld':[ {k:r[k] for k in ('code','reason','unresolved_fields') if k in r} for r in review if 'reason' in r],'failures':failures,'out_of_schema':out_of_schema,'cross_reference_lines':cross_reference_lines,'candidate_values_traceable_to_raw_ocr':3*len(records),'immutable_ocr_sha256':original_hashes,'passed_zero_error_gate':candidate['all_fields_exact']==len(reference) and not candidate['extra_codes'] and not failures and not reference_conflicts,'database_access':False,'production_promoted':False}
+occurrence_score=occurrence_metrics(reference_occurrences,occurrences) if occurrence_path.exists() else None
+occurrence_per_page={str(p):occurrence_metrics([r for r in reference_occurrences if r['page']==p],[r for r in occurrences if r['page']==p]) for p in plan['pages']} if occurrence_score is not None else {}
+report={'plan':plan,'scope':'development' if args.reference or plan.get('scope')=='known-page development images' else 'frozen_new_page_images','reference_courses':len(reference),'reference_occurrences':len(reference_occurrences),'reference_unique_codes_including_conflicts':len(unique),'reference_conflicts':reference_conflicts,'selected_total':len(records),'selected_excluded_reference_conflicts':[r['code'] for r in records if r['code'] in reference_conflicts],'reference_content_overlap_with_GE66':overlap,'reference':'Official PDF text layer, not independent human ground truth','variants':variants,'per_page':per_page,'occurrences':occurrence_score,'occurrence_per_page':occurrence_per_page,'passed_occurrence_zero_error_gate':occurrence_gate(occurrence_score,failures=failures) if occurrence_score is not None else None,'review_count':len(review),'withheld':[ {k:r[k] for k in ('code','reason','unresolved_fields') if k in r} for r in review if 'reason' in r],'failures':failures,'out_of_schema':out_of_schema,'cross_reference_lines':cross_reference_lines,'candidate_values_traceable_to_raw_ocr':3*len(records),'occurrence_values_traceable_to_raw_ocr':3*len(occurrences),'immutable_ocr_sha256':original_hashes,'completion_hashes_verified':completion_hashes_verified,'passed_zero_error_gate':candidate['all_fields_exact']==len(reference) and not candidate['extra_codes'] and not failures and not reference_conflicts and bool(reference),'database_access':False,'production_promoted':False}
 audit.write_json(OUT/'score.json',report)
 print(json.dumps({'scope':report['scope'],'expected':len(reference),'selected':len(records),'exact':candidate['all_fields_exact'],'missing':candidate['missing_codes'],'errors':candidate['differences'],'gate':report['passed_zero_error_gate']},ensure_ascii=False),flush=True)
