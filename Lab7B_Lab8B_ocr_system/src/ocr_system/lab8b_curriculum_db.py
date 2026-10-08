@@ -5489,7 +5489,7 @@ def ask(conn: sqlite3.Connection, question: str,
             if verbose:
                 print(f"    รอบที่ {attempt + 1} รันไม่ผ่าน: {e}")
             if attempt == 1:
-                result["answer"] = _NOT_FOUND_TEXT                   # SQL สร้าง/รันไม่สำเร็จหลังลองซ้ำ = ตอบแบบเดียวกับ "ไม่พบ" (judge/ผู้ใช้เห็นข้อความเดียว; error ยังเก็บไว้ในฟิลด์ error สำหรับตรวจ)
+                result["answer"] = "ไม่สามารถแปลงคำถามเพื่อค้นข้อมูลได้ กรุณาลองเรียบเรียงคำถามใหม่"
                 return result
             prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")

@@ -3974,3 +3974,19 @@ def test_multirow_answer_fallback_labels_hours_without_inventing_missing_values(
     assert result["error"] is None
     assert all(result["answer"].count(label) == 2 for label in expected)
     assert not any(label in result["answer"] for label in absent)
+
+
+@pytest.mark.parametrize("responses,expected_calls", [
+    (["SELECT code FROM course WHERE 0"], 1),
+    (["SELECT nope FROM nowhere", "SELECT code FROM course WHERE 0"], 2),
+])
+def test_valid_empty_query_and_retry_recovery_are_not_query_failures(monkeypatch, responses, expected_calls):
+    calls=[]
+    def generate(*args,**kwargs):
+        calls.append(args[0]);return json.dumps({"sql":responses[len(calls)-1]})
+    monkeypatch.setattr(m,"ollama_generate",generate)
+    with closing(_real("DSBA/coop")) as conn:
+        result=m.ask(conn,"คำถามประหลาดที่ต้องไปทางโมเดลแน่นอน xyzzy",verbose=False)
+    assert len(calls)==expected_calls
+    assert result["answer"]==m._NOT_FOUND_TEXT and result["rows"]==[]
+    assert result["error"] is None and result["answer_model_output"] is None
