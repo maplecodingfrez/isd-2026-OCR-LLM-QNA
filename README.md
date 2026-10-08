@@ -1308,6 +1308,8 @@ docstring ของ `Lab7B_Lab8B_ocr_system/src/ocr_system/lab7b_curriculum.py` 
 **ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
 `outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
 `*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
+
+> หมายเหตุ: โฟลเดอร์ `*_retry` ใน `Lab7B_Lab8B_ocr_system/runs/` (7 โฟลเดอร์ รันเมื่อ 26 ก.ย. 2026) ถูกบีบเก็บเป็น `runs/_archive/retry_2026-09-26.zip` แล้วลบโฟลเดอร์เดิมออก (zip อยู่เฉพาะเครื่อง ไม่อยู่ใน git) path `runs/.../*_retry` ที่อ้างในเอกสารนี้ให้แตก zip ก่อนดู
 Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
 
 **ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
