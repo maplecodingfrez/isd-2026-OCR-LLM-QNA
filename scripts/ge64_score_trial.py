@@ -8,7 +8,7 @@ import re
 import pymupdf
 import ge66_ocr_audit as audit
 from ge66_select_candidate import select
-from ge64_occurrence_score import occurrence_metrics, occurrence_gate, verify_completion_hashes
+from ge64_occurrence_score import occurrence_metrics, occurrence_gate, verify_completion_hashes, catalog_gate
 from ge66_script_evidence import catalog_table_delimiters
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'Lab7B_Lab8B_ocr_system/src/ocr_system'))
@@ -39,6 +39,8 @@ else:
         raise RuntimeError('PDF changed after frozen recognition')
     paths = [ROOT/'scripts'/name for name in ('ge64_image_trial.py','ge66_ocr_audit.py','ge66_select_candidate.py','ge66_crop_quality.py','ge66_english_evidence.py','ge66_script_evidence.py')]
     paths += [ROOT/'Lab7B_Lab8B_ocr_system/src/ocr_system'/name for name in ('extract_elective_catalog.py','lab7b_curriculum.py')]
+    if 'ge64_trial_artifacts.py' in plan['frozen_source_hashes']:
+        paths.append(ROOT/'scripts/ge64_trial_artifacts.py')
     assert all(hashlib.sha256(p.read_bytes()).hexdigest()==plan['frozen_source_hashes'][p.name] for p in paths)
     with pymupdf.open(args.pdf) as doc:
         for page in plan['pages']:
@@ -131,6 +133,6 @@ assert all(hashlib.sha256((OUT/n).read_bytes()).hexdigest()==v for n,v in origin
 candidate=variants['candidate']
 occurrence_score=occurrence_metrics(reference_occurrences,occurrences) if occurrence_path.exists() else None
 occurrence_per_page={str(p):occurrence_metrics([r for r in reference_occurrences if r['page']==p],[r for r in occurrences if r['page']==p]) for p in plan['pages']} if occurrence_score is not None else {}
-report={'plan':plan,'scope':'development' if args.reference or plan.get('scope')=='known-page development images' else 'frozen_new_page_images','reference_courses':len(reference),'reference_occurrences':len(reference_occurrences),'reference_unique_codes_including_conflicts':len(unique),'reference_conflicts':reference_conflicts,'selected_total':len(records),'selected_excluded_reference_conflicts':[r['code'] for r in records if r['code'] in reference_conflicts],'reference_content_overlap_with_GE66':overlap,'reference':'Official PDF text layer, not independent human ground truth','variants':variants,'per_page':per_page,'occurrences':occurrence_score,'occurrence_per_page':occurrence_per_page,'passed_occurrence_zero_error_gate':occurrence_gate(occurrence_score,failures=failures) if occurrence_score is not None else None,'review_count':len(review),'withheld':[ {k:r[k] for k in ('code','reason','unresolved_fields') if k in r} for r in review if 'reason' in r],'failures':failures,'out_of_schema':out_of_schema,'cross_reference_lines':cross_reference_lines,'candidate_values_traceable_to_raw_ocr':3*len(records),'occurrence_values_traceable_to_raw_ocr':3*len(occurrences),'immutable_ocr_sha256':original_hashes,'completion_hashes_verified':completion_hashes_verified,'passed_zero_error_gate':candidate['all_fields_exact']==len(reference) and not candidate['extra_codes'] and not failures and not reference_conflicts and bool(reference),'database_access':False,'production_promoted':False}
+report={'plan':plan,'scope':'development' if args.reference or plan.get('scope')=='known-page development images' else 'frozen_new_page_images','reference_courses':len(reference),'reference_occurrences':len(reference_occurrences),'reference_unique_codes_including_conflicts':len(unique),'reference_conflicts':reference_conflicts,'selected_total':len(records),'selected_excluded_reference_conflicts':[r['code'] for r in records if r['code'] in reference_conflicts],'reference_content_overlap_with_GE66':overlap,'reference':'Official PDF text layer, not independent human ground truth','variants':variants,'per_page':per_page,'occurrences':occurrence_score,'occurrence_per_page':occurrence_per_page,'passed_occurrence_zero_error_gate':occurrence_gate(occurrence_score,failures=failures) if occurrence_score is not None else None,'review_count':len(review),'withheld':[ {k:r[k] for k in ('code','reason','unresolved_fields') if k in r} for r in review if 'reason' in r],'failures':failures,'out_of_schema':out_of_schema,'cross_reference_lines':cross_reference_lines,'candidate_values_traceable_to_raw_ocr':3*len(records),'occurrence_values_traceable_to_raw_ocr':3*len(occurrences),'immutable_ocr_sha256':original_hashes,'completion_hashes_verified':completion_hashes_verified,'passed_zero_error_gate':catalog_gate(candidate,failures=failures,reference_conflicts=reference_conflicts),'database_access':False,'production_promoted':False}
 audit.write_json(OUT/'score.json',report)
 print(json.dumps({'scope':report['scope'],'expected':len(reference),'selected':len(records),'exact':candidate['all_fields_exact'],'missing':candidate['missing_codes'],'errors':candidate['differences'],'gate':report['passed_zero_error_gate']},ensure_ascii=False),flush=True)

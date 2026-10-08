@@ -5,6 +5,8 @@ import tempfile
 import hashlib
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 import ge64_occurrence_score as audit
+import ge64_trial_artifacts as artifacts
+import json
 
 class OccurrenceScoreTests(unittest.TestCase):
     def row(self,page,title='TITLE',code='90643006'):
@@ -47,3 +49,18 @@ class OccurrenceScoreTests(unittest.TestCase):
             self.assertEqual(audit.verify_completion_hashes(root,marker),1)
             (root/'candidate.json').write_bytes(b'changed')
             with self.assertRaises(RuntimeError):audit.verify_completion_hashes(root,marker)
+
+    def test_exact_unambiguous_catalog_does_not_hide_a_printed_source_conflict(self):
+        score={'expected':33,'all_fields_exact':33,'extra_codes':[], 'missing_codes':[], 'differences':[]}
+        self.assertTrue(audit.catalog_gate(score,failures=[],reference_conflicts={}))
+        self.assertFalse(audit.catalog_gate(score,failures=[],reference_conflicts={'90643006':['two printed titles']}))
+
+    def test_no_anchor_run_writes_empty_observations_before_completion_hashes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            artifacts.write_trial_artifacts(root,observations={},records=[],occurrences=[],review=[],
+                                            raw_pages={'tesseract':[],'typhoon':[]},failures=[])
+            self.assertEqual(json.loads((root/'observations.json').read_text(encoding='utf-8')), {})
+            marker=json.loads((root/'ocr-complete.json').read_text(encoding='utf-8'))
+            self.assertTrue(marker['completed_before_reference_extraction'])
+            self.assertEqual(audit.verify_completion_hashes(root,marker),3)

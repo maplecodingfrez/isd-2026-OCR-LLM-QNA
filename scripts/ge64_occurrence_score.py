@@ -46,3 +46,9 @@ def verify_completion_hashes(directory,marker):
         if hashlib.sha256((directory/name).read_bytes()).hexdigest()!=expected:
             raise RuntimeError('Recognition artifact changed after completion: '+name)
     return len(hashes)
+
+
+def catalog_gate(score,*,failures,reference_conflicts):
+    return bool(score['expected'] and score['all_fields_exact']==score['expected']
+                and not score['extra_codes'] and not score['missing_codes']
+                and not score['differences'] and not failures and not reference_conflicts)
