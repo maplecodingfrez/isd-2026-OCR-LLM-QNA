@@ -405,3 +405,29 @@ class EnglishSplitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.recognize_region') as read:
             text,meta=se.typhoon_split_word(image,Path(folder),'model')
             self.assertIsNone(text);read.assert_not_called()
+
+
+class MissingWholeWordTests(unittest.TestCase):
+    def data(self):
+        return dict(text=['TESSA,','TESSB','TESSC','TESSD'],left=[20,90,160,230],top=[20]*4,width=[50]*4,height=[20]*4)
+
+    def test_missing_whole_word_re_reads_every_box_from_typhoon_no_tesseract_fill(self):
+        with tempfile.TemporaryDirectory() as folder,patch('ge66_script_evidence.audit.ocr',return_value=self.data()),patch('ge66_script_evidence.recognize_region',side_effect=['OWN FIRST LAST','OWN,','FIRST','MIDDLE','LAST']):
+            text,meta=se.typhoon_word_text(Image.new('L',(320,70),'white'),Path(folder),'model')
+        self.assertEqual(text,'OWN, FIRST MIDDLE LAST')
+        self.assertEqual(len(meta['word_readings']),4)
+        self.assertFalse(meta['tesseract_text_used_as_fill'])
+        self.assertEqual(meta['alignment_policy'],'all_image_words')
+
+    def test_unaligned_word_retry_still_refuses_multiword_injection(self):
+        with tempfile.TemporaryDirectory() as folder,patch('ge66_script_evidence.audit.ocr',return_value=self.data()),patch('ge66_script_evidence.recognize_region',side_effect=['OWN FIRST LAST','OTHER TITLE']):
+            text,meta=se.typhoon_word_text(Image.new('L',(320,70),'white'),Path(folder),'model')
+        self.assertIsNone(text)
+        self.assertEqual(meta['reason'],'invalid_single_word_reading')
+
+    def test_unaligned_whole_title_with_too_many_boxes_is_not_unbounded_retry(self):
+        data=self.data();data={k:(v*3) for k,v in data.items()}
+        with tempfile.TemporaryDirectory() as folder,patch('ge66_script_evidence.audit.ocr',return_value=data),patch('ge66_script_evidence.recognize_region',return_value='OWN FIRST LAST') as read:
+            text,meta=se.typhoon_word_text(Image.new('L',(320,70),'white'),Path(folder),'model')
+        self.assertIsNone(text);self.assertEqual(read.call_count,1)
+        self.assertEqual(meta['reason'],'too_many_unaligned_image_words')

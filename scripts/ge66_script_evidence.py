@@ -412,7 +412,7 @@ def thai_initial_cluster_reading(image, directory):
 
 
 def typhoon_word_text(image, directory, model):
-    """Align whole Typhoon text, then re-read disagreeing word pixels literally.
+    """Align whole Typhoon text, or re-read all words when a short title is unaligned.
 
     Tesseract supplies boxes and retry locations only. Untouched words and
     replacement characters all come from Typhoon image responses. A response
@@ -424,12 +424,22 @@ def typhoon_word_text(image, directory, model):
     path=directory/'whole.png';image.save(path)
     whole=english_region_text(recognize_region(path,LITERAL_PROMPT,model))
     meta={'raw_whole_text':whole,'reference_used':False,'tesseract_text_used_as_fill':False,'word_readings':[]}
-    if whole is None or len(whole.split()) != len(indices):
+    if whole is None or not indices:
         return None,{**meta,'reason':'unaligned_whole_reading'}
-    tokens=whole.split()
-    changed=[j for j,i in enumerate(indices) if audit.norm(tokens[j]) != audit.norm(data['text'][i])]
-    if not changed or len(changed)>3:
-        return None,{**meta,'reason':'no_bounded_word_disagreement'}
+    if len(whole.split()) != len(indices):
+        # No token positions can be borrowed from an unaligned whole read.
+        # Read every bounded image word; Tesseract supplies geometry only.
+        if len(indices)>8:
+            return None,{**meta,'reason':'too_many_unaligned_image_words'}
+        tokens=['']*len(indices)
+        changed=list(range(len(indices)))
+        meta['alignment_policy']='all_image_words'
+    else:
+        tokens=whole.split()
+        changed=[j for j,i in enumerate(indices) if audit.norm(tokens[j]) != audit.norm(data['text'][i])]
+        meta['alignment_policy']='whole_word_alignment'
+        if not changed or len(changed)>3:
+            return None,{**meta,'reason':'no_bounded_word_disagreement'}
     for j in changed:
         i=indices[j]
         box=[max(0,data['left'][i]-15),max(0,data['top'][i]-15),
