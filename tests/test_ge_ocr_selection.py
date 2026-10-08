@@ -41,7 +41,8 @@ class SelectionTests(unittest.TestCase):
                         name_th='Thai title', name_en='COMPLETE ENGLISH TITLE', credits='3 (3-0-6)')
         cropped = {**original, 'variant': 'row_crop', 'name_en': 'CLIPPED GARBLED TITLE'}
         result, review = select({'90644054': [original, cropped]})
-        self.assertEqual(result[0]['name_en'], original['name_en'])
+        self.assertEqual(result, [])
+        self.assertEqual(review[0]['unresolved_fields'], ['name_en'])
         self.assertEqual(len(review), 1)
 
     def test_clipped_majority_is_rejected(self):
@@ -58,6 +59,34 @@ class SelectionTests(unittest.TestCase):
         result, review = select({'90644054': [row]})
         self.assertEqual(result, [])
         self.assertEqual(review[0]['reason'], 'all_observations_clipped')
+
+    def test_repeated_engine_cannot_outvote_cross_engine_agreement(self):
+        good = dict(code='90642102', page=19, engine='typhoon', variant='chunk_crop',
+                    name_th='Thai title', name_en='TITLE', credits='3 (3-0-6)')
+        partner = {**good, 'engine': 'tesseract', 'variant': 'english_line'}
+        bad = {**partner, 'variant': 'whole_page', 'name_en': 'T1TLE'}
+        result, review = select({'90642102': [good, partner]+[bad]*20})
+        self.assertEqual(result[0]['name_en'], 'TITLE')
+        self.assertEqual(len(review), 1)
+
+    def test_two_competing_cross_engine_values_remain_unresolved(self):
+        row = dict(code='90642102', page=19, engine='typhoon', variant='chunk_crop',
+                   name_th='Thai title', name_en='TITLE', credits='3 (3-0-6)')
+        rows=[row,{**row,'engine':'tesseract'},{**row,'name_en':'T1TLE'},
+              {**row,'engine':'tesseract','name_en':'T1TLE'}]
+        result, review=select({'90642102':rows})
+        self.assertEqual(result,[])
+        self.assertEqual(review[0]['unresolved_fields'],['name_en'])
+
+    def test_english_only_evidence_does_not_vote_other_fields(self):
+        full=dict(code='90642102',page=19,engine='typhoon',variant='chunk_crop',
+                  name_th='Thai title',name_en='TITLE',credits='3 (3-0-6)')
+        partial=dict(code='90642102',page=19,engine='tesseract',variant='english_line',name_en='TITLE')
+        result,review=select({'90642102':[full,partial]})
+        self.assertEqual(result[0]['name_th'],'Thai title')
+        self.assertEqual(review[0]['evidence']['name_th']['support_count'],1)
+        self.assertEqual(review[0]['evidence']['name_th']['total'],1)
+        self.assertEqual(review[0]['evidence']['name_en']['engines'],['tesseract','typhoon'])
 
 
 if __name__ == '__main__':

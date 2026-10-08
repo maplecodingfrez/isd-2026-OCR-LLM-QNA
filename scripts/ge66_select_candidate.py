@@ -16,19 +16,34 @@ def select(observations):
             continue
         proposed = {'code': code, 'page': next((r['page'] for r in reversed(rows) if r['engine'] == 'typhoon'), rows[0]['page'])}
         evidence = {}
+        unresolved = []
         for field in audit.FIELDS:
             values = defaultdict(list)
             for row in eligible:
-                values[audit.norm(row[field])].append(row)
-            # Most observations win. Ties: Tesseract for English/credits,
+                if field in row:
+                    values[audit.norm(row[field])].append(row)
+            if not values:
+                unresolved.append(field)
+                continue
+            agreement = [support for support in values.values()
+                         if len({r['engine'] for r in support}) >= 2]
+            if field == 'name_en' and len(values) > 1 and len(agreement) != 1:
+                unresolved.append(field)
+                continue
+            # Engine families win, not repeated reads. Ties: Tesseract for English/credits,
             # Typhoon for Thai, then the original view over an unsupported crop.
             preferred_engine = 'typhoon' if field == 'name_th' else 'tesseract'
             best = max(values.values(), key=lambda support: (
-                len(support), sum(r['engine'] == preferred_engine for r in support),
-                sum('crop' not in r['variant'] for r in support)))
+                len({r['engine'] for r in support}),
+                any(r['engine'] == preferred_engine for r in support),
+                any('crop' not in r['variant'] for r in support)))
             proposed[field] = best[-1][field]
-            evidence[field] = {'support_count': len(best), 'total': len(rows),
+            evidence[field] = {'support_count': len(best), 'total': sum(field in r for r in eligible),
                 'engines': sorted({r['engine'] for r in best}), 'different_values': len(values)}
+        if unresolved:
+            review.append({'code': code, 'reason': 'unresolved_field_agreement',
+                           'unresolved_fields': unresolved, 'observations': rows})
+            continue
         records.append(proposed)
         if rejected or any(v['different_values'] > 1 or len(v['engines']) < 2 for v in evidence.values()):
             review.append({'code': code, 'evidence': evidence, 'observations': rows,
@@ -44,7 +59,7 @@ if __name__ == '__main__':
     args = cli.parse_args()
     observations = json.loads(args.observations.read_text(encoding='utf-8'))
     records, review = select(observations)
-    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; frequency; ties prefer Typhoon Thai / Tesseract English+credits; then original view',
+    audit.write_json(args.output / 'candidate.json', {'policy': 'exclude clipped crops; engine-family support; conflicting English needs unique cross-engine agreement',
         'source': 'image-only OCR observations; not approved for production', 'records': records})
     audit.write_json(args.output / 'review-queue.json', review)
     reference = audit.flat_catalog(json.loads((args.root / 'Lab7B_Lab8B_ocr_system/runs/ge66_catalog.json').read_text(encoding='utf-8')))

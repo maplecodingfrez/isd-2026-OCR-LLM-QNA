@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 import ge66_ocr_audit as audit
 from ge66_crop_quality import safe_row_crop
+from ge66_english_evidence import english_title_image
 
 
 def main():
@@ -122,6 +123,20 @@ def main():
                     for row in tess_rows:
                         if row['code'] == target['code']:
                             observations[row['code']].append({**audit.canonical(row), 'engine': 'tesseract', 'variant': 'row_crop', 'crop_quality': crop_quality})
+                    english_image, english_meta = english_title_image(crop)
+                    previous_english = row_dir / 'english-region.json'
+                    if previous_english.exists() and json.loads(previous_english.read_text(
+                            encoding='utf-8')) != english_meta:
+                        raise RuntimeError('English region changed; use a new output directory to preserve OCR evidence')
+                    audit.write_json(row_dir / 'english-region.json', english_meta)
+                    if english_image is not None:
+                        english_image.save(row_dir / 'english-line.png')
+                        english_text = audit.ocr(english_image, 'eng', 6).strip()
+                        (row_dir / 'english-tesseract.txt').write_text(english_text, encoding='utf-8')
+                        if english_text:
+                            observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                'engine': 'tesseract', 'variant': 'english_line', 'name_en': english_text,
+                                'crop_quality': crop_quality})
                     response_path = row_dir / 'typhoon.response.json'
                     if response_path.exists():
                         body = json.loads(response_path.read_text(encoding='utf-8'))
@@ -167,7 +182,7 @@ def main():
         for field in audit.FIELDS:
             by_value = defaultdict(list)
             for row in rows:
-                if row.get('crop_quality', {}).get('clipped', False):
+                if field not in row or row.get('crop_quality', {}).get('clipped', False):
                     continue
                 by_value[audit.norm(row[field])].append(row)
             eligible = [(key, support) for key, support in by_value.items()
