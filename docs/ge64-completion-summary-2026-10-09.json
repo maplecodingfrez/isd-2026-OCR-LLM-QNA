@@ -1,0 +1,1737 @@
+{
+  "date": "2026-10-09",
+  "scope": "dev/tests OCR completion only",
+  "recognition_reference_inputs": false,
+  "database_access": false,
+  "production_promoted": false,
+  "reference": "Official PDF text layer, not independent human ground truth",
+  "known_139_146": {
+    "scope": "development",
+    "reference_courses": 104,
+    "reference_occurrences": 104,
+    "reference_conflicts": {},
+    "selected_total": 104,
+    "reference_content_overlap_with_GE66": 93,
+    "occurrences": null,
+    "occurrence_per_page": null,
+    "passed_zero_error_gate": true,
+    "passed_occurrence_zero_error_gate": null,
+    "withheld": [],
+    "failures": [],
+    "candidate_values_traceable_to_raw_ocr": 312,
+    "occurrence_values_traceable_to_raw_ocr": null,
+    "immutable_ocr_sha256": {
+      "candidate.json": "c04c846f9b9425f4736c3e9c68107f0ed0bb4b933cb19304655a840cb86eec93",
+      "observations.json": "8e3c3e6c499851fe84da56bfe1620f77d62950ff8add71065346ab86970f6c63"
+    },
+    "completion_hashes_verified": null,
+    "candidate_metrics": {
+      "expected": 104,
+      "raw_expected_codes": 104,
+      "parsed_expected_codes": 104,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 104,
+        "name_en": 104,
+        "credits": 104
+      },
+      "all_fields_exact": 104,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-glyphs",
+    "report_sha256": "20fefe4deb1fa652240f67cd65008a98087ffea83ec88e12e14b50064772e932",
+    "plan": {
+      "scope": "known-page development glyph evidence",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "reference_used_as_input": false,
+      "database_access": false,
+      "targets": {
+        "90643017": [
+          "name_th"
+        ],
+        "90643027": [
+          "name_en"
+        ],
+        "90643037": [
+          "name_en"
+        ]
+      },
+      "input_sha256": "e271750318a01164c64267b366b096f4eaafe8eda70d361bfdc44ac8fb24e59d",
+      "region_sha256": {
+        "90643017/name_th.png": "b14557844f8af7478bff1c3be21904a856df22df6f057594fb63410dacccbeff",
+        "90643027/name_en.png": "81e246417874698ed6b659f600d9f8d277aeb1a936ead3dc179ea814cd82de24",
+        "90643037/name_en.png": "0727a0ffc3e77179dfe256d643591459b39154d6c34f7e987edd99553056753d"
+      },
+      "frozen_sources": {
+        "ge64_completion_evidence.py": "995fdb5f6a1098f2b0c7b183c70429444d6a0483f89dbd577455f1ab7c17a44f",
+        "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+        "ge66_select_candidate.py": "ced6b3a52bcdd8a401068294f4f7bb02cd377053db207bf6c95229a929817d5f"
+      }
+    },
+    "frozen_source_snapshots": {
+      "ge64_completion_evidence.py": "995fdb5f6a1098f2b0c7b183c70429444d6a0483f89dbd577455f1ab7c17a44f",
+      "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+      "ge66_select_candidate.py": "ced6b3a52bcdd8a401068294f4f7bb02cd377053db207bf6c95229a929817d5f"
+    }
+  },
+  "known_151_153": {
+    "scope": "development",
+    "reference_courses": 17,
+    "reference_occurrences": 19,
+    "reference_conflicts": {},
+    "selected_total": 17,
+    "reference_content_overlap_with_GE66": 17,
+    "occurrences": {
+      "expected": 19,
+      "selected": 19,
+      "all_fields_exact": 19,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "151": {
+        "expected": 12,
+        "selected": 12,
+        "all_fields_exact": 12,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "153": {
+        "expected": 7,
+        "selected": 7,
+        "all_fields_exact": 7,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_zero_error_gate": true,
+    "passed_occurrence_zero_error_gate": true,
+    "withheld": [],
+    "failures": [],
+    "candidate_values_traceable_to_raw_ocr": 51,
+    "occurrence_values_traceable_to_raw_ocr": 57,
+    "immutable_ocr_sha256": {
+      "candidate.json": "5d62e86bedf03cd9b836c8d6d04b8e1bef10e3cd6f5fa119d0f90b5b0ead739b",
+      "observations.json": "73707d1d5779ccddb3673a35c072f20b4da5eb19887934e6069af74303fe4672",
+      "occurrence-candidate.json": "552d2575650136a625abf7ce4f9da0dd0a7313ce6b6367866eff7d5a93f43247"
+    },
+    "completion_hashes_verified": 3,
+    "candidate_metrics": {
+      "expected": 17,
+      "raw_expected_codes": 17,
+      "parsed_expected_codes": 17,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 17,
+        "name_en": 17,
+        "credits": 17
+      },
+      "all_fields_exact": 17,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-individual151153-v3",
+    "report_sha256": "617d0f35781f486e01b7805168e5f70dbaaea9930fd1afe8435f3f441d347ad1",
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        151,
+        153
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half; PSM6; PSM7 only for single Thai line",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "known-page development images",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "0561a058b854070f5f91a61f1003214c3657b293f8f4ee7453649db8731500ce",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391"
+      }
+    },
+    "frozen_source_snapshots": {
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge64_image_trial.py": "0561a058b854070f5f91a61f1003214c3657b293f8f4ee7453649db8731500ce",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9"
+    }
+  },
+  "known_152_repeat": {
+    "scope": "development",
+    "reference_courses": 1,
+    "reference_occurrences": 2,
+    "reference_conflicts": {},
+    "selected_total": 1,
+    "reference_content_overlap_with_GE66": 1,
+    "occurrences": {
+      "expected": 2,
+      "selected": 2,
+      "all_fields_exact": 2,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "152": {
+        "expected": 2,
+        "selected": 2,
+        "all_fields_exact": 2,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_zero_error_gate": true,
+    "passed_occurrence_zero_error_gate": true,
+    "withheld": [
+      {
+        "code": "90642107",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90642131",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90643016",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90643035",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90644023",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90644039",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90644042",
+        "reason": "no_bounded_code_occurrence"
+      },
+      {
+        "code": "90644050",
+        "reason": "no_bounded_code_occurrence"
+      }
+    ],
+    "failures": [],
+    "candidate_values_traceable_to_raw_ocr": 3,
+    "occurrence_values_traceable_to_raw_ocr": 6,
+    "immutable_ocr_sha256": {
+      "candidate.json": "d22a20ff5c2f22be97a8e7099fdfe882a714b126f126f3bb312a22805d4f3402",
+      "observations.json": "ef12f0f89bdaf26f4f01e08b91d31cd49e1ec1f3c26fd3fc1c8b021c9744369e",
+      "occurrence-candidate.json": "82124201f05d7ada5e69fd38f9341404e227b75253a0db8d8a4290aabbe6af44"
+    },
+    "completion_hashes_verified": 3,
+    "candidate_metrics": {
+      "expected": 1,
+      "raw_expected_codes": 1,
+      "parsed_expected_codes": 1,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 1,
+        "name_en": 1,
+        "credits": 1
+      },
+      "all_fields_exact": 1,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-repeat152",
+    "report_sha256": "4ef676ca55ef5aee0462e1c23a0100d901a8806ceb10271c279905ea00117aec",
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        152
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half; PSM6; PSM7 only for single Thai line",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "code_filter": [
+        "90642012"
+      ],
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "known-page development images",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "3c71b86ba5d444e3247b6726870121d141e94277469bee0153b8aef9ac43ed9f",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391"
+      }
+    },
+    "frozen_source_snapshots": {
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge64_image_trial.py": "3c71b86ba5d444e3247b6726870121d141e94277469bee0153b8aef9ac43ed9f",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9"
+    }
+  },
+  "known_150_153_combined": {
+    "scope": "development",
+    "reference_courses": 33,
+    "reference_occurrences": 42,
+    "reference_conflicts": {
+      "90643006": [
+        {
+          "code": "90643006",
+          "page": 150,
+          "name_th": "การบริหารจัดการยุคใหม่และภาวะผู้นำ",
+          "name_en": "MODERN MANAGEMENT AND LEADERSHIP",
+          "credits": "3 (3-0-6)"
+        },
+        {
+          "code": "90643006",
+          "page": 153,
+          "name_th": "การจัดการและผู้นำสมัยใหม่",
+          "name_en": "MODERN MANAGEMENT AND LEADERSHIP",
+          "credits": "3 (3-0-6)"
+        }
+      ]
+    },
+    "selected_total": 33,
+    "reference_content_overlap_with_GE66": 29,
+    "occurrences": {
+      "expected": 42,
+      "selected": 42,
+      "all_fields_exact": 42,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "150": {
+        "expected": 13,
+        "selected": 13,
+        "all_fields_exact": 13,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "151": {
+        "expected": 12,
+        "selected": 12,
+        "all_fields_exact": 12,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "152": {
+        "expected": 10,
+        "selected": 10,
+        "all_fields_exact": 10,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "153": {
+        "expected": 7,
+        "selected": 7,
+        "all_fields_exact": 7,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_zero_error_gate": false,
+    "passed_occurrence_zero_error_gate": true,
+    "withheld": [
+      {
+        "code": "90643006",
+        "reason": "printed_title_conflict"
+      }
+    ],
+    "failures": [],
+    "candidate_values_traceable_to_raw_ocr": 99,
+    "occurrence_values_traceable_to_raw_ocr": 126,
+    "immutable_ocr_sha256": {
+      "candidate.json": "8018d66b39b9064741fa758641e4d67b45a0b86c1db6207fa6d5969a889ef1df",
+      "observations.json": "b9ddba29bba6508c60a5450943fb69c92b573fd90a77454b66712220886d72b8",
+      "occurrence-candidate.json": "f480d35501f507bc9e34b3b9267e20a377a2a6c4a6292e446c8b96e6143702e9"
+    },
+    "completion_hashes_verified": 3,
+    "candidate_metrics": {
+      "expected": 33,
+      "raw_expected_codes": 33,
+      "parsed_expected_codes": 33,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 33,
+        "name_en": 33,
+        "credits": 33
+      },
+      "all_fields_exact": 33,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-150-153-combined",
+    "report_sha256": "d9a3f76f4f2953676207abe8324d51d72ed5909dc90c59c1bc1865e52507be91",
+    "plan": null,
+    "frozen_source_snapshots": {}
+  },
+  "combined_composition": {
+    "legacy_page_scoped_occurrences": 21,
+    "new_bounded_occurrences": 21,
+    "total": 42
+  },
+  "frozen_untouched": {
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        78
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole/raised/word and literal split-word images; adjacent-word margins bounded; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "481100f8c5f2f34530cd5e31cdf5c1929bc603990e122fa75a73c803450eb861",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "a3f719ec68b48f2eb37e9f67ddaf811cfb9a5df50436d9816535ce644f4d436a",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+        "ge64_trial_history.py": "ada06fbd8edbaae25faa5694a63d2b1a4e956fe3664393bfca9fb3407646b3a1"
+      }
+    },
+    "scope": "frozen_new_page_images",
+    "reference_courses": 4,
+    "reference_occurrences": 4,
+    "reference_unique_codes_including_conflicts": 4,
+    "reference_conflicts": {},
+    "selected_total": 4,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 3,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "occurrences": {
+      "expected": 4,
+      "selected": 4,
+      "all_fields_exact": 4,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "78": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": true,
+    "review_count": 4,
+    "withheld": [],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 12,
+    "occurrence_values_traceable_to_raw_ocr": 12,
+    "immutable_ocr_sha256": {
+      "candidate.json": "daa67cd1de3386ee65078a6c66612d1c72d4ae82e6fa00809053481fa1faf9ef",
+      "observations.json": "cc0092befba1486ddd5de1e4af71bd0b1acfdd1f08d961d7e272d1f5431d06c5",
+      "occurrence-candidate.json": "246d956903e259e61cd72547680fadff4cb0abe8eaf28a48063eff669ed03834"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": true,
+    "database_access": false,
+    "production_promoted": false,
+    "candidate_metrics": {
+      "expected": 4,
+      "raw_expected_codes": 4,
+      "parsed_expected_codes": 4,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 4,
+        "name_en": 4,
+        "credits": 4
+      },
+      "all_fields_exact": 4,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/fresh-page78",
+    "report_sha256": "cdca140640e4387e303eaa6d308151001863f19c34875f762271aea01c4e8985",
+    "recognition_plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        78
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole/raised/word and literal split-word images; adjacent-word margins bounded; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "481100f8c5f2f34530cd5e31cdf5c1929bc603990e122fa75a73c803450eb861",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "a3f719ec68b48f2eb37e9f67ddaf811cfb9a5df50436d9816535ce644f4d436a",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+        "ge64_trial_history.py": "ada06fbd8edbaae25faa5694a63d2b1a4e956fe3664393bfca9fb3407646b3a1"
+      }
+    },
+    "frozen_source_snapshots": {
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge64_image_trial.py": "481100f8c5f2f34530cd5e31cdf5c1929bc603990e122fa75a73c803450eb861",
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge64_trial_history.py": "ada06fbd8edbaae25faa5694a63d2b1a4e956fe3664393bfca9fb3407646b3a1",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "ge66_script_evidence.py": "a3f719ec68b48f2eb37e9f67ddaf811cfb9a5df50436d9816535ce644f4d436a",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9"
+    }
+  },
+  "preserved_failed_runs": [
+    "known-rows151153",
+    "known-individual151153",
+    "fresh-pages32-35"
+  ],
+  "original_ten_evidence_hashes_verified": true,
+  "frozen_72_75_first_attempt": {
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        72,
+        73,
+        74,
+        75
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half; PSM6; PSM7 only for single Thai line",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "161ca23573daaf56befc533153f6d98db77e5a72abc2f85b2593d6286807c160",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "scope": "frozen_new_page_images",
+    "reference_courses": 15,
+    "reference_occurrences": 15,
+    "reference_unique_codes_including_conflicts": 15,
+    "reference_conflicts": {},
+    "selected_total": 13,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 15,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "occurrences": {
+      "expected": 15,
+      "selected": 13,
+      "all_fields_exact": 13,
+      "differences": [],
+      "missing_occurrences": [
+        {
+          "page": 72,
+          "code": "90642102",
+          "count": 1
+        },
+        {
+          "page": 73,
+          "code": "90642105",
+          "count": 1
+        }
+      ],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "72": {
+        "expected": 4,
+        "selected": 3,
+        "all_fields_exact": 3,
+        "differences": [],
+        "missing_occurrences": [
+          {
+            "page": 72,
+            "code": "90642102",
+            "count": 1
+          }
+        ],
+        "extra_occurrences": []
+      },
+      "73": {
+        "expected": 3,
+        "selected": 2,
+        "all_fields_exact": 2,
+        "differences": [],
+        "missing_occurrences": [
+          {
+            "page": 73,
+            "code": "90642105",
+            "count": 1
+          }
+        ],
+        "extra_occurrences": []
+      },
+      "74": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "75": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": false,
+    "review_count": 15,
+    "withheld": [
+      {
+        "code": "90642102",
+        "reason": "unresolved_field_agreement",
+        "unresolved_fields": [
+          "name_th"
+        ]
+      },
+      {
+        "code": "90642105",
+        "reason": "unresolved_field_agreement",
+        "unresolved_fields": [
+          "name_th"
+        ]
+      }
+    ],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 39,
+    "occurrence_values_traceable_to_raw_ocr": 39,
+    "immutable_ocr_sha256": {
+      "candidate.json": "178fd0d3387d208bfa266b0082541023ddb359ed27d1f82fcfc18c06d326deae",
+      "observations.json": "6e7cdd3be7975a2aa27a2f9b289335482bda25359ab86779ee0535ce10eee447",
+      "occurrence-candidate.json": "9686fa1b2619e072676a14894091ba1f69ea4d2fc9227574ae9849b3ceca83dd"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": false,
+    "database_access": false,
+    "production_promoted": false,
+    "candidate_metrics": {
+      "expected": 15,
+      "raw_expected_codes": 15,
+      "parsed_expected_codes": 13,
+      "missing_codes": [
+        "90642102",
+        "90642105"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90642102",
+        "90642105"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 13,
+        "name_en": 13,
+        "credits": 13
+      },
+      "all_fields_exact": 13,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/fresh-pages72-75",
+    "report_sha256": "ffe6174d6bcb9f11cafd608783604910cfc5338e7b8e1f4e14d33c49d18e6b5a",
+    "recognition_plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        72,
+        73,
+        74,
+        75
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half; PSM6; PSM7 only for single Thai line",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "161ca23573daaf56befc533153f6d98db77e5a72abc2f85b2593d6286807c160",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "frozen_source_snapshots": {
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge64_image_trial.py": "161ca23573daaf56befc533153f6d98db77e5a72abc2f85b2593d6286807c160",
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "ge66_script_evidence.py": "401581bf4037486ba9106882d9ded7243d6072b27b0947d6a592210785b55391",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9"
+    }
+  },
+  "known_72_75_after_image_probes": {
+    "plan": {
+      "pages": [
+        72,
+        73,
+        74,
+        75
+      ],
+      "scope": "Known-page development diagnostics",
+      "reference_source_sha256": "2132d0068a231a84402778433913a74099fcf8d9c8352b4220f654abc843925c"
+    },
+    "scope": "development",
+    "reference_courses": 15,
+    "reference_occurrences": 15,
+    "reference_unique_codes_including_conflicts": 15,
+    "reference_conflicts": {},
+    "selected_total": 15,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 15,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "occurrences": {
+      "expected": 15,
+      "selected": 15,
+      "all_fields_exact": 15,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "72": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "73": {
+        "expected": 3,
+        "selected": 3,
+        "all_fields_exact": 3,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "74": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "75": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": true,
+    "review_count": 15,
+    "withheld": [],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 45,
+    "occurrence_values_traceable_to_raw_ocr": 45,
+    "immutable_ocr_sha256": {
+      "candidate.json": "6c83a4e2157488a4103edb4d9ebd1e8d3b28d04ef910ce831da66179d0100515",
+      "observations.json": "f7977641310cb07dbdfaefeb9cede3bc2446b3c72dfd4069a478f8aceea86bbb",
+      "occurrence-candidate.json": "cd344f2879ad77996283275aa46f452df896e44d0c514b61ddc7431ca3ea2c20"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": true,
+    "database_access": false,
+    "production_promoted": false,
+    "candidate_metrics": {
+      "expected": 15,
+      "raw_expected_codes": 15,
+      "parsed_expected_codes": 15,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 15,
+        "name_en": 15,
+        "credits": 15
+      },
+      "all_fields_exact": 15,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-72-75-complete",
+    "report_sha256": "de7b4a1b3eac376d6ef888e4e92d6529ade8bf13445e5f0c8a411dc4fe410096",
+    "recognition_plan": {
+      "scope": "known-page development terminal glyph evidence",
+      "pages": [
+        72,
+        73,
+        74,
+        75
+      ],
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "reference_used_as_input": false,
+      "source_observations_sha256": "7dd59a99ba5d46dd73f80f89eb664e423c520cf13ed3731e55296cb0564c718b",
+      "frozen_sources": {
+        "ge66_script_evidence.py": "1ff9d0eea41a1e324676bbfb9ddbbe9763a5b5309b2fe9c4ac5c1a4871c4b330",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "frozen_source_snapshots": {
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge66_script_evidence.py": "1ff9d0eea41a1e324676bbfb9ddbbe9763a5b5309b2fe9c4ac5c1a4871c4b330",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f"
+    }
+  },
+  "tests": {
+    "modules": 6,
+    "passed": 118,
+    "database_api_suite_run": false
+  },
+  "frozen_76_77_first_attempt": {
+    "plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        76,
+        77
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        72,
+        73,
+        74,
+        75,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "3675dab7e0c594c4ebdda98254514302603170004eaef5fa18696bfb6352d5ae",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "1ff9d0eea41a1e324676bbfb9ddbbe9763a5b5309b2fe9c4ac5c1a4871c4b330",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "scope": "frozen_new_page_images",
+    "reference_courses": 7,
+    "reference_occurrences": 7,
+    "reference_unique_codes_including_conflicts": 7,
+    "reference_conflicts": {},
+    "selected_total": 6,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 7,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "occurrences": {
+      "expected": 7,
+      "selected": 6,
+      "all_fields_exact": 6,
+      "differences": [],
+      "missing_occurrences": [
+        {
+          "page": 77,
+          "code": "90642118",
+          "count": 1
+        }
+      ],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "76": {
+        "expected": 3,
+        "selected": 3,
+        "all_fields_exact": 3,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "77": {
+        "expected": 4,
+        "selected": 3,
+        "all_fields_exact": 3,
+        "differences": [],
+        "missing_occurrences": [
+          {
+            "page": 77,
+            "code": "90642118",
+            "count": 1
+          }
+        ],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": false,
+    "review_count": 7,
+    "withheld": [
+      {
+        "code": "90642118",
+        "reason": "unresolved_field_agreement",
+        "unresolved_fields": [
+          "name_en"
+        ]
+      }
+    ],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 18,
+    "occurrence_values_traceable_to_raw_ocr": 18,
+    "immutable_ocr_sha256": {
+      "candidate.json": "80124615eea2cdd28f5d041bf4ba4feb6d8b134ff68d0e275ea49e537f105e9f",
+      "observations.json": "24fe0523228ca087e03bd028f3a6a2a36c7aab8bd9d6a935861e4f196ebfac4f",
+      "occurrence-candidate.json": "ee9cb7ae8fa20e0f94454c9436f20ba330453ee3dd23ccbf3296dea4606b5c17"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": false,
+    "database_access": false,
+    "production_promoted": false,
+    "candidate_metrics": {
+      "expected": 7,
+      "raw_expected_codes": 7,
+      "parsed_expected_codes": 6,
+      "missing_codes": [
+        "90642118"
+      ],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [
+        "90642118"
+      ],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 6,
+        "name_en": 6,
+        "credits": 6
+      },
+      "all_fields_exact": 6,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/fresh-pages76-77",
+    "report_sha256": "d2b1f354400fc104906a07794eafd350654782ef9ecb772cc777dcfb9b2ddaae",
+    "recognition_plan": {
+      "pdf_sha256": "3fafa1d07512815bed1d0a7635201934c75d6afce91ff33fca9f4bd656619931",
+      "pages": [
+        76,
+        77
+      ],
+      "source_url": "https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf",
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "dpi": 300,
+      "thai_native_dpi": 600,
+      "literal_prompt_sha256": "4c713e82421bcbeeeaa263b802b34cea29833f3eba07577bdec2a9e633413a44",
+      "thai_psm_policy": "native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps",
+      "english_alternate_charset": "uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family",
+      "english_word_policy": "Typhoon whole and raised-word images; token alignment required; no Tesseract text fills",
+      "code_filter": null,
+      "chunk_rows": 0,
+      "row_max_tokens": 1024,
+      "http_timeout_seconds": 600,
+      "max_image_dimension": 1536,
+      "crop_geometry": "full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell",
+      "scope": "frozen untouched page images; content overlap evaluated later",
+      "previously_used_pages": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        72,
+        73,
+        74,
+        75,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155
+      ],
+      "whole_catalog_psm": 4,
+      "format_policy": "strip only the separator immediately following a valid observed GE code; preserve all title characters",
+      "prompt_sha256": "0e6c57af282f83f3dfdfa30e33bb8e74e0e1addd974f6ee111c1c22b3d47594d",
+      "retry_policy": "every code occurrence receives bounded row OCR; field retries remain image-only",
+      "selection_policy": "engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review",
+      "reference_used_as_input": false,
+      "reference_used_for_retry_selection": false,
+      "reference_evaluation": "after OCR completion only; PDF text layer, not independent human GT",
+      "production_mutation": false,
+      "database_access": false,
+      "frozen_source_hashes": {
+        "ge64_image_trial.py": "3675dab7e0c594c4ebdda98254514302603170004eaef5fa18696bfb6352d5ae",
+        "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+        "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+        "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+        "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+        "ge66_script_evidence.py": "1ff9d0eea41a1e324676bbfb9ddbbe9763a5b5309b2fe9c4ac5c1a4871c4b330",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "frozen_source_snapshots": {
+      "extract_elective_catalog.py": "063d09125d344b535995139e0a46130c09f4395a5636557b88a4e2b3dceda6fe",
+      "ge64_image_trial.py": "3675dab7e0c594c4ebdda98254514302603170004eaef5fa18696bfb6352d5ae",
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge66_crop_quality.py": "899a5cc03c1c6fd419fe0078ad5cd081d1eefd8f0719973a6aee6e16fa9e3ed8",
+      "ge66_english_evidence.py": "7fdb3c1e3620bda3e28da54f189502928c1519553cf22b8cd2ceeeffabd0f49a",
+      "ge66_ocr_audit.py": "1818f5b31499c2d8849cc04be3f15582f89110cf0288f620e3aef527fea9ef86",
+      "ge66_script_evidence.py": "1ff9d0eea41a1e324676bbfb9ddbbe9763a5b5309b2fe9c4ac5c1a4871c4b330",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+      "lab7b_curriculum.py": "ded5d3c0a622813f575d996d9103d05af313a5a866a0d71f4601eaba8738b0b9"
+    }
+  },
+  "known_76_77_after_image_probes": {
+    "plan": {
+      "pages": [
+        76,
+        77
+      ],
+      "scope": "Known-page development diagnostics",
+      "reference_source_sha256": "2aa07ab9996723577eda5a97ec408b98839d0814c18d3189193439955566d8df"
+    },
+    "scope": "development",
+    "reference_courses": 7,
+    "reference_occurrences": 7,
+    "reference_unique_codes_including_conflicts": 7,
+    "reference_conflicts": {},
+    "selected_total": 7,
+    "selected_excluded_reference_conflicts": [],
+    "reference_content_overlap_with_GE66": 7,
+    "reference": "Official PDF text layer, not independent human ground truth",
+    "occurrences": {
+      "expected": 7,
+      "selected": 7,
+      "all_fields_exact": 7,
+      "differences": [],
+      "missing_occurrences": [],
+      "extra_occurrences": []
+    },
+    "occurrence_per_page": {
+      "76": {
+        "expected": 3,
+        "selected": 3,
+        "all_fields_exact": 3,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      },
+      "77": {
+        "expected": 4,
+        "selected": 4,
+        "all_fields_exact": 4,
+        "differences": [],
+        "missing_occurrences": [],
+        "extra_occurrences": []
+      }
+    },
+    "passed_occurrence_zero_error_gate": true,
+    "review_count": 7,
+    "withheld": [],
+    "failures": [],
+    "out_of_schema": [],
+    "cross_reference_lines": [],
+    "candidate_values_traceable_to_raw_ocr": 21,
+    "occurrence_values_traceable_to_raw_ocr": 21,
+    "immutable_ocr_sha256": {
+      "candidate.json": "0e92b22367186cdd7345ff8e7b50c153d4b740de2ab27b3d2ee2f119dc7cb20c",
+      "observations.json": "f1cea9dbf3dfc63b3ba96270810960e9a6b1a595b0a56743276816cd18cf7bd1",
+      "occurrence-candidate.json": "1fea56c4bb1571a9c7ac926e1e8b0dd76677c1f1e39e09303039cc8237f835dc"
+    },
+    "completion_hashes_verified": 3,
+    "passed_zero_error_gate": true,
+    "database_access": false,
+    "production_promoted": false,
+    "candidate_metrics": {
+      "expected": 7,
+      "raw_expected_codes": 7,
+      "parsed_expected_codes": 7,
+      "missing_codes": [],
+      "missing_in_raw": [],
+      "present_raw_but_not_parsed": [],
+      "extra_codes": [],
+      "exact_fields": {
+        "name_th": 7,
+        "name_en": 7,
+        "credits": 7
+      },
+      "all_fields_exact": 7,
+      "cer_on_matched": {
+        "name_th": 0.0,
+        "name_en": 0.0
+      },
+      "differences": []
+    },
+    "local_evidence_directory": "outputs/ge64_test_completion_20261009/known-76-77-complete",
+    "report_sha256": "95982aca1e205ccf5d69b67a4a84a4aa4cd6217438ccfd65c8fba6b28b4b6bd4",
+    "recognition_plan": {
+      "scope": "known-page development split-word image evidence",
+      "pages": [
+        76,
+        77
+      ],
+      "model": "ggml:8ad769cbef404d27260763e014d082877bbd4d4c4361cd47a141a3d0acff5c47",
+      "reference_used_as_input": false,
+      "source_observations_sha256": "24fe0523228ca087e03bd028f3a6a2a36c7aab8bd9d6a935861e4f196ebfac4f",
+      "frozen_sources": {
+        "ge66_script_evidence.py": "a3f719ec68b48f2eb37e9f67ddaf811cfb9a5df50436d9816535ce644f4d436a",
+        "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f",
+        "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b"
+      }
+    },
+    "frozen_source_snapshots": {
+      "ge64_trial_artifacts.py": "c537760530e586c9a0614516b391022b88e9662e319aaa72042df74321e2643b",
+      "ge66_script_evidence.py": "a3f719ec68b48f2eb37e9f67ddaf811cfb9a5df50436d9816535ce644f4d436a",
+      "ge66_select_candidate.py": "84c0e52e4a57715e1b530ce8f9646d71c6515df38706d52430198ec3674fdb4f"
+    }
+  },
+  "recognition_checkpoint": "9c35919a0ece0e3afba630451d9c784555d61b56",
+  "freshness_limitations": [
+    "Final positive sample is one page and four occurrences",
+    "Three of four titles overlap GE66 content",
+    "Earlier untouched gates13/15 and6/7 remain failed and preserved",
+    "Official PDF text layer is not independent human ground truth",
+    "No production promotion or arbitrary-document accuracy claim"
+  ]
+}
