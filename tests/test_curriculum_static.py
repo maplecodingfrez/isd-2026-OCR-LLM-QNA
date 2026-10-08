@@ -217,7 +217,8 @@ def test_page_never_shows_a_server_default_program_wording():
 
 def test_program_select_starts_on_a_named_program_not_a_default_option():
     js = read("app.js")
-    assert 'var INITIAL_PROGRAM = "dsba_coop";' in js
+    assert "INITIAL_PROGRAM" not in js                                    # ค่าเริ่มต้นมาจากเซิร์ฟเวอร์ (flag default ของ /api/programs)
+    assert ".default" in js
     assert "select.value = " in js             # เลือกค่าเริ่มต้นเป็นหลักสูตรจริง ไม่ใช่ตัวเลือกพิเศษ
 
 

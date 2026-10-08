@@ -10,7 +10,7 @@ from starlette.testclient import TestClient
 
 from lab10_fastapi.curriculum_app import main
 
-LINK = re.compile(r'/static/(style\.css|i18n\.js|app\.js)\?v=([0-9a-f]{8,})"')
+LINK = re.compile(r'/static/(style\.css|theme-init\.js|i18n\.js|app\.js)\?v=([0-9a-f]{8,})"')
 
 
 @pytest.fixture()
@@ -18,11 +18,11 @@ def client():
     return TestClient(main.app)
 
 
-def test_the_page_links_the_three_assets_with_one_version(client):
+def test_the_page_links_the_four_assets_with_one_version(client):
     response = client.get("/")
     assert response.status_code == 200 and "text/html" in response.headers["content-type"]
     found = LINK.findall(response.text)
-    assert sorted(name for name, _ in found) == ["app.js", "i18n.js", "style.css"]
+    assert sorted(name for name, _ in found) == ["app.js", "i18n.js", "style.css", "theme-init.js"]
     assert len({version for _, version in found}) == 1
 
 
@@ -32,7 +32,7 @@ def test_the_html_itself_is_always_rechecked(client):
 
 def test_a_versioned_asset_url_is_still_served(client):
     version = LINK.search(client.get("/").text).group(2)
-    for name in ("app.js", "style.css", "i18n.js"):
+    for name in ("app.js", "style.css", "i18n.js", "theme-init.js"):
         assert client.get(f"/static/{name}?v={version}").status_code == 200
 
 
