@@ -222,7 +222,7 @@ def parse_ge_ocr(pages: list[dict]) -> list[dict]:
     # A malformed next code must still terminate this row; do not borrow its credit.
     boundary = re.compile(r"^\*{0,2}9[0-9A-Za-z)]{6,10}(?:\s|$)")
     credit = re.compile(r"(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)")
-    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'(),./:+@%!?=\[\]#-]*$")
+    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'’‘“”\"(),./:+@%!?=\[\]#–—-]*$")
 
     def components(parts):
         """Reorder observed fields only; never repair names, codes or digits."""
