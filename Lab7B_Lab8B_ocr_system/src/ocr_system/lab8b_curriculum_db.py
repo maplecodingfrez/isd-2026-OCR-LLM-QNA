@@ -1578,6 +1578,11 @@ def _term_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
             'SELECT m.group_no, m.group_name, m.code, c.name_th, c.name_en, c.credits FROM plan_slot_member m '
             f'LEFT JOIN course c ON c.code = m.code WHERE m.slot_id = {int(slot_id)} ORDER BY m.group_no, m.code')
         members = [dict(r) for r in conn.execute(member_sql)]
+        from source_term_groups import verified_groups
+        verified = verified_groups(y, s, slot, members)
+        if verified:
+            members, source = verified
+            slot.update(pdf_page=source['pdf_page'], printed_page=source['printed_page'])
         queries.append(member_sql)
         if slot['kind'] in ('choose_one', 'choose_group'):
             slot['alternatives'] = members
@@ -1587,7 +1592,8 @@ def _term_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
                 groups.setdefault(member['group_no'], []).append(
                     f"{member['code']} {member['name_th'] or ''}" + (f" / {member['name_en']}" if member.get('name_en') else '')
                     + f" — {member.get('credits_display', member['credits'])} หน่วยกิต")
-            choices = ' หรือ '.join(' + '.join(v) for v in groups.values())
+            choices = ' หรือ '.join((next(m['group_name'] for m in members if m['group_no'] == number) + ': ' if verified else '')
+                                   + ' + '.join(v) for number, v in groups.items())
             suffix = ' (เลือก 1 กลุ่ม): ' if slot['kind'] == 'choose_group' else ' (เลือก 1 วิชา): '
             parts.append(f"ช่องเลือก {slot['slot']} {slot['credits_display']} หน่วยกิต" + suffix + choices)
         else:

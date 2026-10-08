@@ -208,7 +208,8 @@ def prerequisite_lookup(conn, question: str, status_fn):
         return {"code": c, "name_th": n[0], "name_en": n[1], "credits": n[2]}
 
     def label(c: str) -> str:
-        return f"{c} ({names[c][0]})" if names.get(c, (None,))[0] else c
+        course_names = [name for name in names.get(c, (None, None))[:2] if name]
+        return f"{c} ({' / '.join(course_names)})" if course_names else c
 
     if asks_pre:
         required = [r[0] for r in conn.execute("SELECT requires FROM prerequisite WHERE code = ? ORDER BY requires", (code,)).fetchall()]
@@ -228,4 +229,4 @@ def prerequisite_lookup(conn, question: str, status_fn):
     sql = f"SELECT code FROM prerequisite WHERE requires = '{code}'"
     if not follow:
         return head + "\nวิชาต่อ: ไม่พบวิชาต่อในข้อมูลที่มี", [], sql
-    return head + "\nวิชาต่อ: " + "; ".join(label(c) + (" (วิชานี้เป็นทางเลือกหนึ่ง)" if (c, code) in alt else "") for c in follow), [item(c) for c in follow], sql
+    return f"วิชาต่อที่ต้องผ่าน {code} ก่อน:\n" + "; ".join(label(c) + (" (วิชานี้เป็นทางเลือกหนึ่ง)" if (c, code) in alt else "") for c in follow), [item(c) for c in follow], sql
