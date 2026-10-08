@@ -36,6 +36,29 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(result[0]['name_th'], 'นักสื่อสารผ่านยูทูป')
         self.assertEqual(review[0]['evidence']['name_th']['engines'], ['typhoon'])
 
+    def test_unsupported_crop_does_not_win_a_tie(self):
+        original = dict(code='90644054', page=29, engine='tesseract', variant='whole_page',
+                        name_th='Thai title', name_en='COMPLETE ENGLISH TITLE', credits='3 (3-0-6)')
+        cropped = {**original, 'variant': 'row_crop', 'name_en': 'CLIPPED GARBLED TITLE'}
+        result, review = select({'90644054': [original, cropped]})
+        self.assertEqual(result[0]['name_en'], original['name_en'])
+        self.assertEqual(len(review), 1)
+
+    def test_clipped_majority_is_rejected(self):
+        original = dict(code='90644054', page=29, engine='tesseract', variant='whole_page',
+                        name_th='Thai title', name_en='COMPLETE TITLE', credits='3 (3-0-6)')
+        bad = {**original, 'variant': 'row_crop', 'name_en': 'BROKEN', 'crop_quality': {'clipped': True}}
+        result, review = select({'90644054': [original, bad, {**bad, 'engine': 'typhoon'}]})
+        self.assertEqual(result[0]['name_en'], original['name_en'])
+        self.assertEqual(review[0]['rejected_clipped_observations'], 2)
+
+    def test_all_clipped_observations_need_review_without_a_candidate(self):
+        row = dict(code='90644054', page=29, engine='typhoon', variant='row_crop',
+                   name_th='Thai title', name_en='BROKEN', credits='3 (3-0-6)', crop_quality={'clipped': True})
+        result, review = select({'90644054': [row]})
+        self.assertEqual(result, [])
+        self.assertEqual(review[0]['reason'], 'all_observations_clipped')
+
 
 if __name__ == '__main__':
     unittest.main()

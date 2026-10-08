@@ -18,6 +18,7 @@ import pytesseract
 from PIL import Image, ImageOps
 
 import ge66_ocr_audit as audit
+from ge66_crop_quality import safe_row_crop
 
 
 def main():
@@ -102,20 +103,25 @@ def main():
                           if i + 1 < len(anchors) else min(int(h * .91), anchor['top'] + int(h * .055)))
                     row_dir = page_dir / target['code']
                     row_dir.mkdir(exist_ok=True)
-                    crop = ImageOps.expand(image.crop((left, y0, int(w * .91), y1)), border=20, fill='white')
+                    row_image, crop_quality = safe_row_crop(image, (left, y0, int(w * .91), y1))
+                    previous_input = row_dir / 'input.json'
+                    if previous_input.exists() and json.loads(previous_input.read_text(
+                            encoding='utf-8')).get('crop_quality') != crop_quality:
+                        raise RuntimeError('Crop policy changed; use a new output directory to preserve existing OCR evidence')
+                    crop = ImageOps.expand(row_image, border=20, fill='white')
                     crop.thumbnail((1536, 1536), Image.Resampling.LANCZOS)
                     crop.save(row_dir / 'row.png')
                     image_hash = hashlib.sha256((row_dir / 'row.png').read_bytes()).hexdigest()
                     audit.write_json(row_dir / 'input.json', {'pdf_sha256': pdf_hash, 'page': page_number,
                         'anchor': anchor, 'box': [left, y0, int(w * .91), y1], 'image_sha256': image_hash,
-                        'text_layer_used_as_input': False, 'reference_used_as_input': False})
+                        'text_layer_used_as_input': False, 'reference_used_as_input': False, 'crop_quality': crop_quality})
                     tess_path = row_dir / 'tesseract.txt'
                     if not tess_path.exists():
                         tess_path.write_text(audit.ocr(crop, 'tha+eng', 6), encoding='utf-8')
                     tess_rows = eec.parse_ge_ocr([{'page': page_number, 'text': tess_path.read_text(encoding='utf-8')}])
                     for row in tess_rows:
                         if row['code'] == target['code']:
-                            observations[row['code']].append({**audit.canonical(row), 'engine': 'tesseract', 'variant': 'row_crop'})
+                            observations[row['code']].append({**audit.canonical(row), 'engine': 'tesseract', 'variant': 'row_crop', 'crop_quality': crop_quality})
                     response_path = row_dir / 'typhoon.response.json'
                     if response_path.exists():
                         body = json.loads(response_path.read_text(encoding='utf-8'))
@@ -150,7 +156,7 @@ def main():
                         if len(valid) != 1:
                             failures.append({**target, 'reason': 'incomplete_or_wrong_code', 'parsed_codes': [r['code'] for r in fresh_rows]})
                         else:
-                            observations[target['code']].append({**audit.canonical(valid[0]), 'engine': 'typhoon', 'variant': 'row_crop'})
+                            observations[target['code']].append({**audit.canonical(valid[0]), 'engine': 'typhoon', 'variant': 'row_crop', 'crop_quality': crop_quality})
                     audit.write_json(out / 'observations.json', dict(observations))
                     print('Retried', target['code'], 'page', page_number, 'seconds', round(body.get('audit_elapsed_seconds', 0), 1), flush=True)
     # Pick only fields supported by both engine families. Never consult reference to vote.
@@ -161,6 +167,8 @@ def main():
         for field in audit.FIELDS:
             by_value = defaultdict(list)
             for row in rows:
+                if row.get('crop_quality', {}).get('clipped', False):
+                    continue
                 by_value[audit.norm(row[field])].append(row)
             eligible = [(key, support) for key, support in by_value.items()
                         if {r['engine'] for r in support} == {'tesseract', 'typhoon'}]
