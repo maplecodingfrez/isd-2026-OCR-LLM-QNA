@@ -156,7 +156,7 @@ def test_timeout_is_not_claimed_to_equal_a_backend_setting():
     readme = (STATIC.parents[1] / "README.md").read_text(encoding="utf-8")
     assert "CURRICULUM_REQUEST_TIMEOUT" not in read("app.js")
     assert "= `CURRICULUM_REQUEST_TIMEOUT`" not in readme
-    assert "Ollama ล่มตอนสร้าง SQL" in readme        # แถว 422 ที่ backend ส่งจริงเมื่อ Ollama ไม่ทำงาน
+    assert "ติดต่อ Ollama ไม่ได้" in readme          # แถว 503 ที่ backend ส่งจริงเมื่อ Ollama ไม่ทำงาน (ข้อความคงที่ ไม่รั่ว host/port)
 
 
 # ---------- Minor ข้อ 3 และ 4 จากรีวิว ----------
