@@ -21,7 +21,8 @@ import ge66_ocr_audit as audit
 from ge66_crop_quality import safe_row_crop
 from ge66_english_evidence import english_title_image
 from ge66_script_evidence import (thai_title_image, raised_english_text,
-                                  recognize_region, thai_region_text)
+                                  recognize_region, thai_region_text, thai_tesseract_readings,
+                                  typhoon_raised_text, LITERAL_PROMPT)
 
 
 def main():
@@ -149,7 +150,31 @@ def main():
                             observations[target['code']].append({'code': target['code'], 'page': page_number,
                                 'engine': 'tesseract', 'variant': 'english_raised_parts', 'name_en': raised_text,
                                 'crop_quality': crop_quality})
-                    thai_image, thai_meta = thai_title_image(crop)
+                            try:
+                                independent, independent_meta = typhoon_raised_text(
+                                    english_image, row_dir / 'english-independent', args.request_model, raised_meta)
+                            except (OSError, ValueError, RuntimeError) as exc:
+                                failures.append({**target, 'reason': 'english_word_' + type(exc).__name__})
+                            else:
+                                audit.write_json(row_dir / 'english-independent.json', independent_meta)
+                                if independent:
+                                    observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                        'engine': 'typhoon', 'variant': 'english_raised_word', 'name_en': independent,
+                                        'crop_quality': crop_quality})
+                    native_path = page_dir / 'page-600.png'
+                    native_input = page_dir / 'page-600-input.json'
+                    if not native_path.exists():
+                        doc[page_number-1].get_pixmap(dpi=600, alpha=False).save(native_path)
+                        audit.write_json(native_input, {'pdf_sha256': pdf_hash, 'page': page_number, 'dpi': 600,
+                            'image_sha256': hashlib.sha256(native_path.read_bytes()).hexdigest()})
+                    if not native_input.exists() or json.loads(native_input.read_text(encoding='utf-8')) != {
+                            'pdf_sha256': pdf_hash, 'page': page_number, 'dpi': 600,
+                            'image_sha256': hashlib.sha256(native_path.read_bytes()).hexdigest()}:
+                        raise RuntimeError('Native image provenance mismatch; use a fresh output directory')
+                    with Image.open(native_path) as native_image:
+                        native_row, native_quality = safe_row_crop(native_image, [v*2 for v in crop_quality['box']])
+                        thai_image, thai_meta = thai_title_image(native_row)
+                    thai_meta.update(dpi=600, crop_quality=native_quality)
                     previous_thai = row_dir / 'thai-region.json'
                     if previous_thai.exists() and json.loads(previous_thai.read_text(
                             encoding='utf-8')) != thai_meta:
@@ -158,21 +183,20 @@ def main():
                     if thai_image is not None:
                         thai_path = row_dir / 'thai-line.png'
                         thai_image.save(thai_path)
-                        thai_text = audit.ocr(thai_image, 'tha', 6).strip()
-                        (row_dir / 'thai-tesseract.txt').write_text(thai_text, encoding='utf-8')
-                        if thai_text:
-                            observations[target['code']].append({'code': target['code'], 'page': page_number,
-                                'engine': 'tesseract', 'variant': 'thai_line', 'name_th': thai_text,
-                                'crop_quality': crop_quality})
+                        for reading in thai_tesseract_readings(thai_image, row_dir / 'thai-native'):
+                            if reading['text']:
+                                observations[target['code']].append({'code': target['code'], 'page': page_number,
+                                    'engine': 'tesseract', 'variant': reading['variant'], 'name_th': reading['text'],
+                                    'crop_quality': native_quality})
                         try:
-                            thai_text = thai_region_text(recognize_region(thai_path, prompt, args.request_model))
+                            thai_text = thai_region_text(recognize_region(thai_path, LITERAL_PROMPT, args.request_model))
                         except (OSError, ValueError, RuntimeError) as exc:
                             failures.append({**target, 'reason': 'thai_region_' + type(exc).__name__})
                         else:
                             if thai_text:
                                 observations[target['code']].append({'code': target['code'], 'page': page_number,
                                     'engine': 'typhoon', 'variant': 'thai_line', 'name_th': thai_text,
-                                    'crop_quality': crop_quality})
+                                    'crop_quality': native_quality})
                     response_path = row_dir / 'typhoon.response.json'
                     if response_path.exists():
                         body = json.loads(response_path.read_text(encoding='utf-8'))
