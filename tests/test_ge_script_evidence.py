@@ -298,3 +298,63 @@ class ScriptEvidenceTests(unittest.TestCase):
         self.assertGreaterEqual(meta['thai_box'][2], 105)
         self.assertLess(meta['thai_box'][2], 140)
         self.assertLess(meta['thai_box'][3], 70)
+
+
+class ThaiSupplementTests(unittest.TestCase):
+    def test_half_raw_line_requires_literal_segmentation_agreement(self):
+        data=dict(text=['ชื่อ'],block_num=[1],par_num=[1],line_num=[1])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',side_effect=[data,'ชื่อจริง','ชื่อจริง']):
+            text,meta=se.thai_raw_line_probe(Image.new('L',(200,80),'white'),Path(folder))
+            self.assertEqual(text,'ชื่อจริง')
+            self.assertEqual(meta['raw_readings'],{'8':'ชื่อจริง','13':'ชื่อจริง'})
+            self.assertEqual(Image.open(Path(folder)/'thai-half.png').size,(100,40))
+
+    def test_wrapped_title_refuses_single_word_or_raw_line_probe(self):
+        data=dict(text=['ชื่อ','ชื่อ'],block_num=[1,1],par_num=[1,1],line_num=[1,2])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data) as read:
+            text,meta=se.thai_raw_line_probe(Image.new('L',(200,80),'white'),Path(folder))
+            self.assertIsNone(text)
+            self.assertEqual(read.call_count,1)
+
+    def test_probe_keeps_unsupported_leading_punctuation_raw_without_voting(self):
+        data=dict(text=['ชื่อ'],block_num=[1],par_num=[1],line_num=[1])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',side_effect=[data,'. ชื่อ','. ชื่อ']):
+            text,meta=se.thai_raw_line_probe(Image.new('L',(200,80),'white'),Path(folder))
+            self.assertIsNone(text)
+            self.assertEqual(meta['raw_readings']['8'],'. ชื่อ')
+
+    def test_half_typhoon_reading_remains_literal_not_tesseract_fill(self):
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.recognize_region',return_value='ชื่อ XYZ') as read:
+            text,meta=se.thai_half_literal_probe(Image.new('L',(200,80),'white'),Path(folder),'model')
+            self.assertEqual(text,'ชื่อ XYZ')
+            self.assertEqual(Image.open(read.call_args.args[0]).size,(100,40))
+            self.assertFalse(meta['reference_used'])
+
+
+class ThaiTerminalTests(unittest.TestCase):
+    def fixture(self):
+        image=Image.new('L',(140,70),'white');ImageDraw.Draw(image).rectangle((90,20,110,45),fill='black')
+        return image
+
+    def data(self):
+        return dict(text=['ชื่อต่าง'],left=[50],top=[20],width=[60],height=[25],block_num=[1],par_num=[1],line_num=[1])
+
+    def test_terminal_glyph_uses_typhoon_own_prefix_and_raw_character(self):
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=self.data()), patch('ge66_script_evidence.recognize_region',side_effect=['ชื่อป','บ']):
+            text,meta=se.thai_terminal_literal_probe(self.fixture(),Path(folder),'model')
+            self.assertEqual(text,'ชื่อบ')
+            self.assertEqual(meta['raw_whole_text'],'ชื่อป')
+            self.assertEqual(meta['raw_cluster_text'],'บ')
+            self.assertFalse(meta['tesseract_text_used_as_fill'])
+
+    def test_terminal_probe_refuses_a_whole_word_response(self):
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=self.data()), patch('ge66_script_evidence.recognize_region',side_effect=['ชื่อป','หลายตัว']):
+            text,meta=se.thai_terminal_literal_probe(self.fixture(),Path(folder),'model')
+            self.assertIsNone(text)
+            self.assertEqual(meta['raw_cluster_text'],'หลายตัว')
+
+    def test_wrapped_or_latin_terminal_does_not_supply_a_thai_glyph(self):
+        data=self.data();data['text']=['TITLE']
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data), patch('ge66_script_evidence.recognize_region') as read:
+            text,meta=se.thai_terminal_literal_probe(self.fixture(),Path(folder),'model')
+            self.assertIsNone(text);read.assert_not_called()

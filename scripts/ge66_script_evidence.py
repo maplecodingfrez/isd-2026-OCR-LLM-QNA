@@ -437,3 +437,85 @@ def typhoon_word_text(image, directory, model):
     text=' '.join(tokens);meta['text']=text
     audit.write_json(directory/'word-readings.json',meta)
     return text,meta
+
+
+def thai_raw_line_probe(image, directory):
+    """Supplement a single-line title with unanimous half-size PSM8/13 pixels.
+
+    Preserve every raw reading. A loose segmentation hypothesis with leading
+    punctuation is not qualified to vote; no characters are stripped from it.
+    Wrapped titles are refused because neither segmentation mode fits them.
+    """
+    directory.mkdir(parents=True,exist_ok=True)
+    data=audit.ocr(image,'tha+eng',6,data=True)
+    lines={tuple(data[k][i] for k in ('block_num','par_num','line_num'))
+           for i,t in enumerate(data['text']) if re.search(r'[\u0e00-\u0e7f]',t)}
+    meta={'reference_used':False,'engine_family':'tesseract'}
+    if len(lines)!=1:
+        return None,{**meta,'reason':'not_one_thai_line'}
+    crop=image.resize((max(1,image.width//2),max(1,image.height//2)),Image.Resampling.LANCZOS)
+    path=directory/'thai-half.png';crop.save(path)
+    reads={str(psm):audit.ocr(crop,'tha+eng',psm).strip() for psm in (8,13)}
+    meta.update(raw_readings=reads,image_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    text=thai_region_text(reads['8'])
+    if reads['8']!=reads['13'] or text is None or not re.match(r'[\u0e01-\u0e2e\u0e40-\u0e44A-Za-z0-9]',text):
+        meta['reason']='unqualified_raw_line_hypothesis';text=None
+    meta['text']=text
+    audit.write_json(directory/'raw-line-readings.json',meta)
+    return text,meta
+
+
+def thai_half_literal_probe(image,directory,model):
+    """Independent literal half-size image reading; remains Typhoon family."""
+    directory.mkdir(parents=True,exist_ok=True)
+    path=directory/'thai-half.png'
+    image.resize((max(1,image.width//2),max(1,image.height//2)),Image.Resampling.LANCZOS).save(path)
+    raw=recognize_region(path,LITERAL_PROMPT,model)
+    text=thai_region_text(raw)
+    meta={'raw_text':raw,'text':text,'reference_used':False,'engine_family':'typhoon',
+          'image_sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+    audit.write_json(directory/'literal-readings.json',meta)
+    return text,meta
+
+
+def thai_terminal_literal_probe(image,directory,model):
+    """Re-read a terminal consonant cluster; all text comes from Typhoon images.
+
+    This conservative probe fits only a single Thai line ending in Thai.
+    Tesseract determines line/language geometry only; its spelling is never
+    copied. The replacement must be exactly one base consonant with marks.
+    """
+    directory.mkdir(parents=True,exist_ok=True)
+    data=audit.ocr(image,'tha+eng',6,data=True)
+    indices=[i for i,t in enumerate(data['text']) if t.strip()]
+    lines={tuple(data[k][i] for k in ('block_num','par_num','line_num')) for i in indices}
+    meta={'reference_used':False,'tesseract_text_used_as_fill':False,'engine_family':'typhoon'}
+    if not indices or len(lines)!=1 or not re.search(r'[\u0e00-\u0e7f]',data['text'][max(indices,key=lambda i:data['left'][i])]):
+        return None,{**meta,'reason':'not_one_terminal_thai_line'}
+    path=directory/'whole.png';image.save(path)
+    raw=recognize_region(path,LITERAL_PROMPT,model)
+    whole=thai_region_text(raw);meta['raw_whole_text']=raw
+    terminal=re.search(r'[\u0e01-\u0e2e][\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]*$',whole or '')
+    if terminal is None:
+        return None,{**meta,'reason':'no_terminal_consonant'}
+    boxes=sorted(ink_components(image),key=lambda b:b[2],reverse=True)
+    if not boxes:
+        return None,{**meta,'reason':'no_terminal_ink'}
+    cluster=[boxes[0]];left=boxes[0][0]
+    for box in boxes[1:]:
+        if box[2]<=left:
+            break
+        cluster.append(box);left=min(left,box[0])
+    height=max(b[3]-b[1] for b in cluster);margin=max(4,round(height*.13))
+    box=[max(0,left-margin),max(0,min(b[1] for b in cluster)-margin),
+         min(image.width,max(b[2] for b in cluster)+margin),min(image.height,max(b[3] for b in cluster)+margin)]
+    path=directory/'terminal.png';ImageOps.expand(image.crop(box),border=40,fill='white').save(path)
+    raw_cluster=recognize_region(path,LITERAL_PROMPT,model)
+    meta.update(cluster_box=box,raw_cluster_text=raw_cluster,image_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    value=raw_cluster.strip()
+    if not re.fullmatch(r'[\u0e01-\u0e2e][\u0e31\u0e34-\u0e3a\u0e47-\u0e4e]*',value):
+        text=None;meta['reason']='not_one_consonant_cluster'
+    else:
+        text=whole[:terminal.start()]+value
+    meta['text']=text;audit.write_json(directory/'terminal-readings.json',meta)
+    return text,meta

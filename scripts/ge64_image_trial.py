@@ -37,7 +37,7 @@ from ge66_select_candidate import select, select_occurrences, catalog_from_occur
 from ge66_crop_quality import safe_row_crop, table_row_crop, code_anchor_left, code_anchor_occurrences
 from ge66_english_evidence import english_title_image
 from ge66_script_evidence import (thai_title_image, raised_english_text, recognize_region, thai_region_text,
-                                  thai_tesseract_readings, typhoon_raised_text, mixed_script_tesseract_reading, catalog_table_delimiters, LITERAL_PROMPT, thai_initial_cluster_reading, typhoon_word_text)
+                                  thai_tesseract_readings, typhoon_raised_text, mixed_script_tesseract_reading, catalog_table_delimiters, LITERAL_PROMPT, thai_initial_cluster_reading, typhoon_word_text, thai_raw_line_probe, thai_half_literal_probe, thai_terminal_literal_probe)
 
 MODULE = ROOT / 'Lab7B_Lab8B_ocr_system/src/ocr_system'
 sys.path.insert(0, str(MODULE))
@@ -56,10 +56,10 @@ plan = {'pdf_sha256': hashlib.sha256(PDF.read_bytes()).hexdigest(), 'pages': PAG
         'source_url': 'https://gened.kmitl.ac.th/wp-content/uploads/2021/08/GE64_KMITL_Thai_program.pdf',
         'model': MODEL, 'dpi': 300, 'thai_native_dpi': 600,
         'literal_prompt_sha256': hashlib.sha256(LITERAL_PROMPT.encode()).hexdigest(),
-        'thai_psm_policy': 'native+half; PSM6; PSM7 only for single Thai line',
+        'thai_psm_policy': 'native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps',
         'english_alternate_charset':'uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family',
         'english_word_policy': 'Typhoon whole and raised-word images; token alignment required; no Tesseract text fills', 'code_filter':args.codes,'chunk_rows': args.chunk_rows, 'row_max_tokens':1024, 'http_timeout_seconds':600, 'max_image_dimension': 1536,
-        'crop_geometry': 'full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell', 'scope': 'known-page development images' if args.development else 'frozen untouched page images; content overlap evaluated later', 'previously_used_pages': [14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155], 'whole_catalog_psm': 4, 'format_policy': 'strip only the separator immediately following a valid observed GE code; preserve all title characters', 'prompt_sha256': hashlib.sha256(PROMPT.encode()).hexdigest(),
+        'crop_geometry': 'full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell', 'scope': 'known-page development images' if args.development else 'frozen untouched page images; content overlap evaluated later', 'previously_used_pages': [14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,72,73,74,75,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155], 'whole_catalog_psm': 4, 'format_policy': 'strip only the separator immediately following a valid observed GE code; preserve all title characters', 'prompt_sha256': hashlib.sha256(PROMPT.encode()).hexdigest(),
         'retry_policy': 'every code occurrence receives bounded row OCR; field retries remain image-only',
         'selection_policy': 'engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review',
         'reference_used_as_input': False, 'reference_used_for_retry_selection': False,
@@ -225,6 +225,23 @@ with pymupdf.open(PDF) as doc:
                         thai_text = thai_region_text(raw_thai)
                         if thai_text:
                             observations[code].append({'code':code,'page':page,'engine':'typhoon','variant':'thai_native_literal','name_th':thai_text,'crop_quality':native_quality})
+                        field_reads=[r for r in observations[code][prior_count:] if 'name_th' in r and sum(f in r for f in audit.FIELDS)==1]
+                        tess_values={audit.norm(r['name_th']) for r in field_reads if r['engine']=='tesseract'}
+                        typhoon_values={audit.norm(r['name_th']) for r in field_reads if r['engine']=='typhoon'}
+                        if not tess_values & typhoon_values:
+                            probe,probe_meta=thai_raw_line_probe(thai_image,row_folder/f'thai-{code}-raw-line')
+                            if probe:
+                                observations[code].append({'code':code,'page':page,'engine':'tesseract','variant':'thai_half_rawline_agreement','name_th':probe,'crop_quality':native_quality})
+                            probe,probe_meta=thai_half_literal_probe(thai_image,row_folder/f'thai-{code}-half-literal',MODEL)
+                            if probe:
+                                observations[code].append({'code':code,'page':page,'engine':'typhoon','variant':'thai_half_literal','name_th':probe,'crop_quality':native_quality})
+                            field_reads=[r for r in observations[code][prior_count:] if 'name_th' in r and sum(f in r for f in audit.FIELDS)==1]
+                            tess_values={audit.norm(r['name_th']) for r in field_reads if r['engine']=='tesseract'}
+                            typhoon_values={audit.norm(r['name_th']) for r in field_reads if r['engine']=='typhoon'}
+                            if not tess_values & typhoon_values:
+                                probe,probe_meta=thai_terminal_literal_probe(thai_image,row_folder/f'thai-{code}-terminal',MODEL)
+                                if probe:
+                                    observations[code].append({'code':code,'page':page,'engine':'typhoon','variant':'thai_terminal_literal','name_th':probe,'crop_quality':native_quality})
                 english_image, english_meta=english_title_image(crop)
                 audit.write_json(row_folder/f'english-{code}-region.json',english_meta)
                 if english_image is not None:
