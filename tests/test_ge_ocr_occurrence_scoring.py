@@ -64,3 +64,30 @@ class OccurrenceScoreTests(unittest.TestCase):
             marker=json.loads((root/'ocr-complete.json').read_text(encoding='utf-8'))
             self.assertTrue(marker['completed_before_reference_extraction'])
             self.assertEqual(audit.verify_completion_hashes(root,marker),3)
+
+
+class FrozenHistoryTests(unittest.TestCase):
+    def test_prior_pages_follow_pdf_identity_across_output_directories(self):
+        import ge64_trial_history as history
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            for name,pdf,pages in [('first','same',[78]),('different','other',[79]),('current','same',[80])]:
+                d=root/'outputs'/name;d.mkdir(parents=True)
+                (d/'plan.json').write_text(json.dumps({'pdf_sha256':pdf,'pages':pages}),encoding='utf-8')
+            used=history.prior_image_pages(root,root/'outputs/current','same',baseline=[72])
+            self.assertEqual(used,[72,78])
+
+    def test_completed_or_reference_opened_output_cannot_resume_as_fresh(self):
+        import ge64_trial_history as history
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'ocr-complete.json').write_text('{}',encoding='utf-8')
+            with self.assertRaises(ValueError):history.require_fresh_sample(root,[78],[],development=False)
+            history.require_fresh_sample(root,[78],[],development=True)
+            (root/'ocr-complete.json').unlink()
+            (root/'reference-evaluation-only.json').write_text('[]',encoding='utf-8')
+            with self.assertRaises(ValueError):history.require_fresh_sample(root,[78],[],development=False)
+
+    def test_previously_recognized_page_requires_development_scope(self):
+        import ge64_trial_history as history
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaises(ValueError):history.require_fresh_sample(Path(folder),[78],[78],development=False)

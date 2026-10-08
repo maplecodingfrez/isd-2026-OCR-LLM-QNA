@@ -33,6 +33,7 @@ OUT = args.output
 OUT.mkdir(parents=True, exist_ok=True)
 import ge66_ocr_audit as audit
 from ge64_trial_artifacts import write_trial_artifacts
+from ge64_trial_history import prior_image_pages, require_fresh_sample
 from ge66_select_candidate import select, select_occurrences, catalog_from_occurrences
 from ge66_crop_quality import safe_row_crop, table_row_crop, code_anchor_left, code_anchor_occurrences
 from ge66_english_evidence import english_title_image
@@ -58,8 +59,8 @@ plan = {'pdf_sha256': hashlib.sha256(PDF.read_bytes()).hexdigest(), 'pages': PAG
         'literal_prompt_sha256': hashlib.sha256(LITERAL_PROMPT.encode()).hexdigest(),
         'thai_psm_policy': 'native+half PSM6/7; unmatched bounded Thai gets unanimous half PSM8/13 and half/terminal Typhoon literal probes; single-line modes refuse wraps',
         'english_alternate_charset':'uppercase Latin+digits+punctuation OCR hypothesis; no string case conversion; same Tesseract family',
-        'english_word_policy': 'Typhoon whole and raised-word images; token alignment required; no Tesseract text fills', 'code_filter':args.codes,'chunk_rows': args.chunk_rows, 'row_max_tokens':1024, 'http_timeout_seconds':600, 'max_image_dimension': 1536,
-        'crop_geometry': 'full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell', 'scope': 'known-page development images' if args.development else 'frozen untouched page images; content overlap evaluated later', 'previously_used_pages': [14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,72,73,74,75,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155], 'whole_catalog_psm': 4, 'format_policy': 'strip only the separator immediately following a valid observed GE code; preserve all title characters', 'prompt_sha256': hashlib.sha256(PROMPT.encode()).hexdigest(),
+        'english_word_policy': 'Typhoon whole/raised/word and literal split-word images; adjacent-word margins bounded; token alignment required; no Tesseract text fills', 'code_filter':args.codes,'chunk_rows': args.chunk_rows, 'row_max_tokens':1024, 'http_timeout_seconds':600, 'max_image_dimension': 1536,
+        'crop_geometry': 'full-page baseline; left from image code boxes with height margin; bounded row/chunk y; full English width unless clear title cell', 'scope': 'known-page development images' if args.development else 'frozen untouched page images; content overlap evaluated later', 'previously_used_pages': [14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,72,73,74,75,76,77,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155], 'whole_catalog_psm': 4, 'format_policy': 'strip only the separator immediately following a valid observed GE code; preserve all title characters', 'prompt_sha256': hashlib.sha256(PROMPT.encode()).hexdigest(),
         'retry_policy': 'every code occurrence receives bounded row OCR; field retries remain image-only',
         'selection_policy': 'engine families; unique agreement for conflicting titles; agreed shorter titles with longer conflicts stay review',
         'reference_used_as_input': False, 'reference_used_for_retry_selection': False,
@@ -68,9 +69,9 @@ plan = {'pdf_sha256': hashlib.sha256(PDF.read_bytes()).hexdigest(), 'pages': PAG
         'frozen_source_hashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in [
             Path(__file__), MODULE / 'extract_elective_catalog.py',
             ROOT / 'scripts/ge66_ocr_audit.py', MODULE / 'lab7b_curriculum.py',
-            ROOT / 'scripts/ge66_select_candidate.py', ROOT / 'scripts/ge66_crop_quality.py', ROOT / 'scripts/ge66_english_evidence.py', ROOT / 'scripts/ge66_script_evidence.py', ROOT / 'scripts/ge64_trial_artifacts.py']}}
-if not args.development and set(PAGES) & set(plan['previously_used_pages']):
-    raise ValueError('Choose pages outside the prior recognition and preflight samples')
+            ROOT / 'scripts/ge66_select_candidate.py', ROOT / 'scripts/ge66_crop_quality.py', ROOT / 'scripts/ge66_english_evidence.py', ROOT / 'scripts/ge66_script_evidence.py', ROOT / 'scripts/ge64_trial_artifacts.py', ROOT / 'scripts/ge64_trial_history.py']}}
+plan['previously_used_pages']=prior_image_pages(ROOT,OUT,plan['pdf_sha256'],baseline=plan['previously_used_pages'])
+require_fresh_sample(OUT,PAGES,plan['previously_used_pages'],development=args.development)
 if (OUT / 'plan.json').exists():
     assert json.loads((OUT / 'plan.json').read_text(encoding='utf-8')) == plan
 else:

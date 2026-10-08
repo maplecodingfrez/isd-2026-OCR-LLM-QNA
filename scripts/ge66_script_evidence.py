@@ -425,14 +425,32 @@ def typhoon_word_text(image, directory, model):
         box=[max(0,data['left'][i]-15),max(0,data['top'][i]-15),
              min(image.width,data['left'][i]+data['width'][i]+15),
              min(image.height,data['top'][i]+data['height'][i]+15)]
+        # Blank margins must not borrow glyphs from adjacent words or lines.
+        x0,y0=data['left'][i],data['top'][i]
+        x1,y1=x0+data['width'][i],y0+data['height'][i]
+        for k in indices:
+            if k==i:continue
+            ox0,oy0=data['left'][k],data['top'][k]
+            ox1,oy1=ox0+data['width'][k],oy0+data['height'][k]
+            if max(y0,oy0)<min(y1,oy1):
+                if ox1<=x0:box[0]=max(box[0],(ox1+x0)//2)
+                elif x1<=ox0:box[2]=min(box[2],(x1+ox0)//2)
+                else:return None,{**meta,'reason':'overlapping_word_boxes'}
+            if max(x0,ox0)<min(x1,ox1):
+                if oy1<=y0:box[1]=max(box[1],(oy1+y0)//2)
+                elif y1<=oy0:box[3]=min(box[3],(y1+oy0)//2)
         path=directory/f'word-{j:03d}.png'
         ImageOps.expand(image.crop(box),border=40,fill='white').save(path)
         raw=recognize_region(path,LITERAL_PROMPT,model)
         text=english_region_text(raw)
         if text is None or not re.fullmatch(r'[A-Za-z0-9]+(?:\s*[.,;:!?])*',text):
             return None,{**meta,'reason':'invalid_single_word_reading','rejected_raw':raw}
+        split_meta=None
+        if audit.norm(text)!=audit.norm(data['text'][i]) and re.fullmatch(r'[A-Za-z0-9]+',text) and re.fullmatch(r'[A-Za-z0-9]+',data['text'][i]):
+            split_text,split_meta=typhoon_split_word(image.crop(box),directory/f'split-{j:03d}',model)
+            if split_text:text=split_text
         tokens[j]=text
-        meta['word_readings'].append({'token_index':j,'box':box,'raw_text':raw,
+        meta['word_readings'].append({'token_index':j,'box':box,'raw_text':raw,'split_evidence':split_meta,
                                      'image_sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
     text=' '.join(tokens);meta['text']=text
     audit.write_json(directory/'word-readings.json',meta)
@@ -518,4 +536,32 @@ def thai_terminal_literal_probe(image,directory,model):
     else:
         text=whole[:terminal.start()]+value
     meta['text']=text;audit.write_json(directory/'terminal-readings.json',meta)
+    return text,meta
+
+
+def typhoon_split_word(image,directory,model):
+    """Read two literal pixel parts across a central blank column, no lexicon.
+
+    Both parts must be a single alphanumeric token. Refuse inseparable ink,
+    punctuation or multiword responses; never strip or copy suggested letters.
+    """
+    directory.mkdir(parents=True,exist_ok=True)
+    pixels=image.convert('L').tobytes();w,h=image.size
+    active={x for x in range(w) if any(pixels[y*w+x]<180 for y in range(h))}
+    meta={'reference_used':False,'tesseract_text_used_as_fill':False,'raw_parts':[],'image_sha256':[]}
+    if not active:return None,{**meta,'reason':'no_word_ink'}
+    lo,hi=min(active),max(active)+1
+    inset=max(2,(hi-lo)//5)
+    gaps=[x for x in range(lo+inset,hi-inset) if x not in active]
+    if not gaps:return None,{**meta,'reason':'no_central_blank_column'}
+    cut=min(gaps,key=lambda x:abs(x-(lo+hi)/2));meta['split_x']=cut
+    for name,box in [('left',(0,0,cut,h)),('right',(cut,0,w,h))]:
+        path=directory/f'{name}.png';ImageOps.expand(image.crop(box),border=40,fill='white').save(path)
+        raw=recognize_region(path,LITERAL_PROMPT,model)
+        meta['raw_parts'].append(raw);meta['image_sha256'].append(hashlib.sha256(path.read_bytes()).hexdigest())
+        if not re.fullmatch(r'[A-Za-z0-9]+',raw.strip()):
+            meta['reason']='not_one_alphanumeric_part';audit.write_json(directory/'split-readings.json',meta)
+            return None,meta
+    text=''.join(raw.strip() for raw in meta['raw_parts']);meta['text']=text
+    audit.write_json(directory/'split-readings.json',meta)
     return text,meta

@@ -41,6 +41,8 @@ else:
     paths += [ROOT/'Lab7B_Lab8B_ocr_system/src/ocr_system'/name for name in ('extract_elective_catalog.py','lab7b_curriculum.py')]
     if 'ge64_trial_artifacts.py' in plan['frozen_source_hashes']:
         paths.append(ROOT/'scripts/ge64_trial_artifacts.py')
+    if 'ge64_trial_history.py' in plan['frozen_source_hashes']:
+        paths.append(ROOT/'scripts/ge64_trial_history.py')
     assert all(hashlib.sha256(p.read_bytes()).hexdigest()==plan['frozen_source_hashes'][p.name] for p in paths)
     with pymupdf.open(args.pdf) as doc:
         for page in plan['pages']:

@@ -358,3 +358,35 @@ class ThaiTerminalTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data), patch('ge66_script_evidence.recognize_region') as read:
             text,meta=se.thai_terminal_literal_probe(self.fixture(),Path(folder),'model')
             self.assertIsNone(text);read.assert_not_called()
+
+
+class EnglishSplitTests(unittest.TestCase):
+    def fixture(self):
+        image=Image.new('L',(160,60),'white');draw=ImageDraw.Draw(image)
+        for x in (20,40,60,90,110,130):draw.rectangle((x,20,x+8,40),fill='black')
+        return image
+
+    def test_word_margin_cannot_include_previous_word_pixels(self):
+        data=dict(text=['FOR','RIGHT'],left=[5,48],top=[20,20],width=[40,50],height=[20,20])
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.audit.ocr',return_value=data), patch('ge66_script_evidence.recognize_region',side_effect=['FOR WRONG','RIGHT']):
+            text,meta=se.typhoon_word_text(Image.new('L',(120,70),'white'),Path(folder),'model')
+            self.assertEqual(text,'FOR RIGHT')
+            self.assertGreaterEqual(meta['word_readings'][0]['box'][0],45)
+
+    def test_split_word_preserves_both_literal_parts_without_dictionary_fill(self):
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.recognize_region',side_effect=['ABc','Def']):
+            text,meta=se.typhoon_split_word(self.fixture(),Path(folder),'model')
+            self.assertEqual(text,'ABcDef')
+            self.assertEqual(meta['raw_parts'],['ABc','Def'])
+            self.assertFalse(meta['tesseract_text_used_as_fill'])
+
+    def test_split_word_refuses_multiword_response(self):
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.recognize_region',return_value='OTHER TITLE'):
+            text,meta=se.typhoon_split_word(self.fixture(),Path(folder),'model')
+            self.assertIsNone(text)
+
+    def test_split_word_refuses_a_solid_unseparated_glyph(self):
+        image=Image.new('L',(160,60),'white');ImageDraw.Draw(image).rectangle((20,20,140,40),fill='black')
+        with tempfile.TemporaryDirectory() as folder, patch('ge66_script_evidence.recognize_region') as read:
+            text,meta=se.typhoon_split_word(image,Path(folder),'model')
+            self.assertIsNone(text);read.assert_not_called()
