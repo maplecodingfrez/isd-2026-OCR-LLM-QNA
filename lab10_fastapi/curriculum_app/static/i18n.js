@@ -139,17 +139,17 @@
     "search.scope": ["ค้นจากหลักสูตร: {name}", "Searching in: {name}"],
     "search.none": ["ไม่พบรายวิชาที่ตรงกับ “{q}”", "No courses match “{q}”"],
     "search.many": ["แสดง {n} รายการแรก พิมพ์เพิ่มเพื่อให้แคบลง", "Showing the first {n}. Type more to narrow down."],
-    "search.count": ["พบ {n} รายวิชา", "{n} courses found"],
+    "search.count": ["พบ {n} รายวิชา", "{n} {n|course|courses} found"],
     "search.live": ["ค้นหารายวิชา: {msg}", "Course search: {msg}"],
     "hours.fmt": ["บรรยาย {l} · ปฏิบัติ {p} · ศึกษาเอง {s}", "Lecture {l} · Lab {p} · Self-study {s}"],
     "slot.tag": ["เลือกเอง", "Your choice"],
-    "term.summary": ["ปี {y} เทอม {s} — รวม {n} หน่วยกิต", "Year {y} semester {s} — {n} credits in total"],
+    "term.summary": ["ปี {y} เทอม {s} — รวม {n} หน่วยกิต", "Year {y} semester {s} — {n} {n|credit|credits} in total"],
     "term.chooseGroup": ["เลือกเพียง 1 กลุ่ม เรียนครบทุกวิชาในกลุ่มนั้น ไม่รวมหน่วยกิตทุกกลุ่มเข้าด้วยกัน", "Choose one group and take all its courses. Do not add credits from every group."],
     "term.chooseCourse": ["เลือกเพียง 1 วิชาจากตัวเลือกต่อไปนี้", "Choose one course from the following alternatives."],
     "term.group": ["กลุ่ม {n}", "Group {n}"],
     "prereq.tagCo": ["เรียนร่วมกัน", "co-requisite"],
     "prereq.tagAlt": ["ทางเลือกกลุ่ม {n}: ผ่านอย่างใดอย่างหนึ่ง", "option group {n}: pass any one"],
-    "withdraw.summary": ["กระทบโดยตรง {d} วิชา · ทางอ้อม {i} วิชา", "Directly affects {d} courses · indirectly {i}"],
+    "withdraw.summary": ["กระทบโดยตรง {d} วิชา · ทางอ้อม {i} วิชา", "Directly affects {d} {d|course|courses} · indirectly {i}"],
     "search.tagElective": ["วิชาเลือก", "Elective"],
     "search.tagCatalog": ["อยู่ในเล่ม ไม่อยู่ในแผน", "In the book, not in the plan"],
     "prereq.notInPlan": ["วิชานี้ไม่อยู่ในแผนการเรียนของหลักสูตรนี้ (วิชาเลือกหรือวิชาที่มีในเล่ม) จึงยังไม่มีข้อมูลวิชาบังคับก่อนในระบบ", "This course is not in this program's plan (an elective or a course the book describes), so the system has no prerequisite data for it"],
@@ -205,14 +205,14 @@
     "dash.duration": ["ระยะเวลา", "Duration"],
     "dash.samples": ["รายวิชาในหลักสูตรนี้", "Courses in this program"],
     "dash.loading": ["กำลังโหลดข้อมูล...", "Loading…"],
-    "dash.creditsVal": ["{n} หน่วยกิต", "{n} credits"],
-    "dash.yearsVal": ["{n} ปีการศึกษา", "{n} academic years"],
-    "dash.count": ["{n} รายวิชา", "{n} courses"],
-    "dash.unit": ["{n} หน่วยกิต", "{n} credits"],
+    "dash.creditsVal": ["{n} หน่วยกิต", "{n} {n|credit|credits}"],
+    "dash.yearsVal": ["{n} ปีการศึกษา", "{n} academic {n|year|years}"],
+    "dash.count": ["{n} รายวิชา", "{n} {n|course|courses}"],
+    "dash.unit": ["{n} หน่วยกิต", "{n} {n|credit|credits}"],
 
-    "elective.overview": ["{g} กลุ่ม รวม {n} รายการ — กดชื่อกลุ่มเพื่อดูรายวิชา", "{g} groups, {n} items in total — click a group to see its courses"],
+    "elective.overview": ["{g} กลุ่ม รวม {n} รายการ — กดชื่อกลุ่มเพื่อดูรายวิชา", "{g} {g|group|groups}, {n} {n|item|items} in total — click a group to see its courses"],
     "elective.hours": ["หน่วยกิต (ชั่วโมงบรรยาย–ปฏิบัติ–ศึกษาด้วยตนเองต่อสัปดาห์)", "Credits (lecture–lab–self-study hours per week)"],
-    "elective.count": ["{n} รายการ", "{n} items"],
+    "elective.count": ["{n} รายการ", "{n} {n|item|items}"],
     "drawer.original": ["ข้อความคำตอบต้นฉบับ", "Original answer text"]
   };
 
@@ -222,6 +222,10 @@
     var entry = S[key];
     var text = entry ? (entry[lang] || entry[0]) : key;
     if (vars) {
+      // English plural: {n|course|courses} -> "course" when vars.n === 1, else "courses" (the number itself is printed by a plain {n})
+      text = text.replace(/\{(\w+)\|([^|}]*)\|([^|}]*)\}/g, function (all, name, one, many) {
+        return Number(vars[name]) === 1 ? one : many;
+      });
       Object.keys(vars).forEach(function (name) { text = text.split("{" + name + "}").join(String(vars[name])); });
     }
     return text;
