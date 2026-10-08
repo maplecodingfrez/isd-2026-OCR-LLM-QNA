@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Curriculum QnA: warm cream (light) and violet-navy (dark) themes.
+   Curriculum QnA: warm cream (light) and pure charcoal (dark) themes.
    One token set; the theme follows the system setting unless the visitor
    picked one (data-theme on the root element).
    ========================================================================== */
@@ -61,6 +61,21 @@
   --t4-bg: #fce7f3; --t4-fg: #831843;
   --t5-bg: #ede9fe; --t5-fg: #4c1d95;
   --t6-bg: #ffedd5; --t6-fg: #7c2d12;
+  --choice-bg: #ffedd5;
+  --choice-fg: #7c2d12;
+  --example-line: var(--pill-bg);
+  --example-hover-bg: var(--pill-bg);
+  --example-hover-fg: var(--pill-fg);
+  --example-hover-line: var(--pill-bg);
+  --answer-panel-bg: var(--surface-2);
+  --answer-panel-line: var(--line);
+  --ready-bg: var(--ok-bg);
+  --ready-fg: var(--ok-fg);
+  --ready-line: transparent;
+  --ready-dot-display: none;
+  --ready-dot: var(--ok-fg);
+  --elapsed-bg: var(--ok-bg);
+  --elapsed-fg: var(--ok-fg);
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
@@ -70,60 +85,90 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* dark: violet-navy, used when the system asks for it and nothing was chosen */
+/* dark: pure charcoal, used when the system asks for it and nothing was chosen */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --bg: #12142b;
-    --surface: #1c1f45;
-    --surface-2: #171a3a;
-    --surface-hover: #262a5c;
-    --line: #3a3f78;
-    --field-line: #7a80c4;
-    --text: #eef0ff;
-    --muted: #b9bdea;
-    --accent: #a78bfa;
-    --accent-hover: #c4b5fd;
-    --on-accent: #12142b;
+    --bg: #000000;
+    --surface: #101010;
+    --surface-2: #171717;
+    --surface-hover: #272727;
+    --line: #393939;
+    --field-line: #858585;
+  --ready-bg: #171717;
+  --ready-fg: #bdbdbd;
+  --ready-line: #393939;
+  --ready-dot-display: inline-block;
+  --ready-dot: #83b896;
+  --elapsed-bg: #272727;
+  --elapsed-fg: #bdbdbd;
+  --example-line: #858585;
+  --example-hover-bg: #272727;
+  --example-hover-fg: #f5f5f5;
+  --example-hover-line: #dedede;
+  --answer-panel-bg: #272727;
+  --answer-panel-line: #656565;
+    --text: #f5f5f5;
+    --muted: #bdbdbd;
+    --accent: #dedede;
+    --accent-hover: #ffffff;
+    --on-accent: #101010;
+    --choice-bg: #272727;
+    --choice-fg: #dedede;
     --ok-bg: #12372b;
     --ok-fg: #7ee2b0;
     --warn-bg: #4a3512;
     --warn-fg: #fde68a;
     --err-bg: #3b1020;
     --err-fg: #ffb4c0;
-    --t1-bg: #1e3a8a; --t1-fg: #dbeafe;
-    --t2-bg: #713f12; --t2-fg: #fde68a;
-    --t3-bg: #14532d; --t3-fg: #dcfce7;
-    --t4-bg: #831843; --t4-fg: #fce7f3;
-    --t5-bg: #4c1d95; --t5-fg: #ede9fe;
-    --t6-bg: #7c2d12; --t6-fg: #ffedd5;
+    --t1-bg: #171717; --t1-fg: #f5f5f5;
+    --t2-bg: #171717; --t2-fg: #f5f5f5;
+    --t3-bg: #171717; --t3-fg: #f5f5f5;
+    --t4-bg: #171717; --t4-fg: #f5f5f5;
+    --t5-bg: #171717; --t5-fg: #f5f5f5;
+    --t6-bg: #171717; --t6-fg: #f5f5f5;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #12142b;
-  --surface: #1c1f45;
-  --surface-2: #171a3a;
-  --surface-hover: #262a5c;
-  --line: #3a3f78;
-  --field-line: #7a80c4;
-  --text: #eef0ff;
-  --muted: #b9bdea;
-  --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --on-accent: #12142b;
+  --bg: #000000;
+  --surface: #101010;
+  --surface-2: #171717;
+  --surface-hover: #272727;
+  --line: #393939;
+  --field-line: #858585;
+  --ready-bg: #171717;
+  --ready-fg: #bdbdbd;
+  --ready-line: #393939;
+  --ready-dot-display: inline-block;
+  --ready-dot: #83b896;
+  --elapsed-bg: #272727;
+  --elapsed-fg: #bdbdbd;
+  --example-line: #858585;
+  --example-hover-bg: #272727;
+  --example-hover-fg: #f5f5f5;
+  --example-hover-line: #dedede;
+  --answer-panel-bg: #272727;
+  --answer-panel-line: #656565;
+  --text: #f5f5f5;
+  --muted: #bdbdbd;
+  --accent: #dedede;
+  --accent-hover: #ffffff;
+  --on-accent: #101010;
+  --choice-bg: #272727;
+  --choice-fg: #dedede;
   --ok-bg: #12372b;
   --ok-fg: #7ee2b0;
   --warn-bg: #4a3512;
   --warn-fg: #fde68a;
   --err-bg: #3b1020;
   --err-fg: #ffb4c0;
-  --t1-bg: #1e3a8a; --t1-fg: #dbeafe;
-  --t2-bg: #713f12; --t2-fg: #fde68a;
-  --t3-bg: #14532d; --t3-fg: #dcfce7;
-  --t4-bg: #831843; --t4-fg: #fce7f3;
-  --t5-bg: #4c1d95; --t5-fg: #ede9fe;
-  --t6-bg: #7c2d12; --t6-fg: #ffedd5;
+  --t1-bg: #171717; --t1-fg: #f5f5f5;
+  --t2-bg: #171717; --t2-fg: #f5f5f5;
+  --t3-bg: #171717; --t3-fg: #f5f5f5;
+  --t4-bg: #171717; --t4-fg: #f5f5f5;
+  --t5-bg: #171717; --t5-fg: #f5f5f5;
+  --t6-bg: #171717; --t6-fg: #f5f5f5;
 }
 
 /* ---------- base ---------- */
@@ -181,7 +226,8 @@ input[type="search"], input[type="text"], select, textarea#question { min-height
   font-size: 15px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
   border: 2px solid var(--line); background: var(--surface); color: var(--muted);
 }
-.health[data-health="ok"] { color: var(--ok-fg); background: var(--ok-bg); border-color: transparent; }
+.health[data-health="ok"] { color: var(--ready-fg); background: var(--ready-bg); border-color: var(--ready-line); }
+.health[data-health="ok"]::before { content: ""; display: var(--ready-dot-display); width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--ready-dot); vertical-align: middle; }
 .health[data-health="degraded"] { color: var(--warn-fg); background: var(--warn-bg); border-color: transparent; }
 .health[data-health="down"] { color: var(--err-fg); background: var(--err-bg); border-color: transparent; }
 
@@ -254,13 +300,13 @@ textarea#question::placeholder { color: var(--muted); }
 .topic-6 { --pill-bg: var(--t6-bg); --pill-fg: var(--t6-fg); }
 .examples { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; min-height: 48px; }
 .examples li button.link-button {
-  min-height: 44px; padding: 6px 16px; border: 2px solid var(--pill-bg); border-radius: 999px;
+  min-height: 44px; padding: 6px 16px; border: 2px solid var(--example-line); border-radius: 999px;
   background: var(--surface); color: var(--text); font-size: 15px; text-decoration: none;
   animation: pop-in 0.35s var(--ease) both;
 }
 .examples li:nth-child(2) button.link-button { animation-delay: 80ms; }
 .examples li:nth-child(3) button.link-button { animation-delay: 160ms; }
-.examples li button.link-button:hover { background: var(--pill-bg); color: var(--pill-fg); }
+.examples li button.link-button:hover { background: var(--example-hover-bg); color: var(--example-hover-fg); border-color: var(--example-hover-line); }
 .link-button { min-height: 32px; padding: 4px 6px; border: 0; background: transparent; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }   /* 32px with a mouse; 44px on touch below */
 
 /* ---------- panel states ---------- */
@@ -295,7 +341,7 @@ textarea#question::placeholder { color: var(--muted); }
 #answer-source { padding: 0 12px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; }   /* the plan the answer came from: seven plans share one page */
 .elapsed-pill {
   font-size: 15px; font-weight: 600; padding: 3px 12px; border-radius: 999px;
-  background: var(--ok-bg); color: var(--ok-fg); white-space: nowrap;
+  background: var(--elapsed-bg); color: var(--elapsed-fg); white-space: nowrap;
 }
 .answer-card-body { padding: 16px; }
 .cite-tabs { list-style: none; display: grid; gap: 8px; margin-bottom: 12px; }
@@ -324,7 +370,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .citation-box { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 .citation-title { font-weight: 600; font-size: 15px; }
 .cite-cards { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.cite-card { padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-2); border: 2px solid var(--line); color: var(--text); }
+.cite-card { padding: 8px 12px; border-radius: var(--radius-md); background: var(--answer-panel-bg); border: 2px solid var(--answer-panel-line); color: var(--text); }
 .cite-card-head { display: flex; align-items: baseline; gap: 8px; }
 .cite-page { font-weight: 600; color: var(--accent); }
 .cite-pdf { font-size: 15px; }
@@ -350,7 +396,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .course-meta { display: grid; justify-items: end; gap: 1px; text-align: right; }
 .course-credits { font-weight: 600; white-space: nowrap; }
 .course-hours { color: var(--muted); font-size: 15px; }
-.slot-tag { justify-self: start; font-size: 15px; font-weight: 600; padding: 1px 10px; border-radius: 999px; background: var(--t6-bg); color: var(--t6-fg); }
+.slot-tag { justify-self: start; font-size: 15px; font-weight: 600; padding: 1px 10px; border-radius: 999px; background: var(--choice-bg); color: var(--choice-fg); }
 .term-group-heading { display: flex; align-items: baseline; gap: 12px; }
 .term-group-heading .slot-tag { flex-shrink: 0; }
 .course-tail { margin-top: 8px; }
@@ -372,7 +418,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .prereq-box .course-line:last-child, .tool-card .course-lines .course-line:last-child { border-bottom: 0; }
 
 /* credit structure card: category, total credits, one bar per group */
-.credit-card { background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; }
+.credit-card { background: var(--answer-panel-bg); border: 2px solid var(--answer-panel-line); border-radius: var(--radius-md); padding: 12px 16px; }
 .credit-card + .credit-card { margin-top: 12px; }
 .credit-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .credit-title { font-family: var(--font-head); font-weight: 700; font-size: 18px; }
@@ -391,7 +437,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 }
 
 /* course overview card */
-.overview-card { background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 4px 16px 12px; }
+.overview-card { background: var(--answer-panel-bg); border: 2px solid var(--answer-panel-line); border-radius: var(--radius-md); padding: 4px 16px 12px; }
 .overview-card .course-line { border-bottom: 2px solid var(--line); }
 .overview-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 @media (max-width: 768px) { .overview-compare { grid-template-columns: minmax(0, 1fr); } }

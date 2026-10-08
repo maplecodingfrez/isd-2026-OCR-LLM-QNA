@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dark colour preview — Curriculum QnA</title>
+  <link rel="stylesheet" href="/static/dark-colour-preview.css?v=8">
+  <script defer src="/static/dark-colour-preview.js?v=8"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Find your dark theme.</h1>
+      <p>Compare colours on the real curriculum page. Each option keeps the same content and layout.</p>
+    </header>
+    <nav class="variants" aria-label="Colour direction">
+      <button type="button" data-variant="k" aria-pressed="true"><strong>K · Pure charcoal</strong><span>Your reference. Black and neutral grey.</span></button>
+      <button type="button" data-variant="j" aria-pressed="false"><strong>J · Green Lantern</strong><span>Near-black forest. Emerald actions.</span></button>
+      <button type="button" data-variant="i" aria-pressed="false"><strong>I · Midnight plum</strong><span>Your second reference. Near-black and deep purple.</span></button>
+      <button type="button" data-variant="h" aria-pressed="false"><strong>H · Reference purple palette</strong><span>Your four reference colours.</span></button>
+      <button type="button" data-variant="a" aria-pressed="false"><strong>A · Current</strong><span>Existing violet-navy palette.</span></button>
+      <button type="button" data-variant="b" aria-pressed="false"><strong>B · Clearer navy</strong><span>Distinct surfaces, quieter topics.</span></button>
+      <button type="button" data-variant="c" aria-pressed="false"><strong>C · Quiet slate</strong><span>Less violet in surfaces; same lilac accent.</span></button>
+      <button type="button" data-variant="g" aria-pressed="false"><strong>G · Midnight &amp; mint</strong><span>Batman-dark graphite. Same fresh mint.</span></button>
+      <button type="button" data-variant="d" aria-pressed="false"><strong>D · Charcoal &amp; mint</strong><span>Neutral charcoal. Fresh mint accents.</span></button>
+      <button type="button" data-variant="e" aria-pressed="false"><strong>E · Deep forest</strong><span>Dark pine. Soft sage accents.</span></button>
+      <button type="button" data-variant="f" aria-pressed="false"><strong>F · Warm espresso</strong><span>Coffee brown. Cream text and peach accents.</span></button>
+    </nav>
+    <section class="preview-details" aria-label="Selected palette">
+      <div><h2 id="direction-title">K · Pure charcoal</h2><p id="direction-description">Your five charcoal shades with readable light grey text and controls.</p></div>
+      <ul id="swatches" aria-label="Colour values"></ul>
+    </section>
+    <div class="preview-toolbar">
+      <div class="view-controls" role="group" aria-label="Preview width">
+        <button type="button" data-width="desktop" aria-pressed="true">Desktop</button>
+        <button type="button" data-width="mobile" aria-pressed="false">Phone · 390px</button>
+      </div>
+      <button type="button" id="show-answer">Show elective answer</button>
+      <a href="/" target="_blank" rel="noopener">Open current app</a>
+    </div>
+    <p id="preview-status" role="status">Loading the live page…</p>
+    <div class="preview-canvas" id="preview-canvas">
+      <iframe id="app-preview" src="/" title="Interactive curriculum app colour preview"></iframe>
+    </div>
+    <p class="footnote">Preview only. Changes stay inside this frame; your app theme is not saved or changed. K uses your five charcoal shades, with light grey added for readable text and controls. Earlier options remain available.</p>
+  </main>
+</body>
+</html>
