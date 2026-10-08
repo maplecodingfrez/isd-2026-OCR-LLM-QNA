@@ -356,8 +356,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | Status | เมื่อไร | `detail` | ข้อความที่ผู้ใช้เห็น (title) | ทำอะไรต่อ (action) |
 |---|---|---|---|---|
 | 422 | คำถามสั้น/ยาวเกิน (Pydantic) | array | คำถามไม่ผ่านการตรวจ (ต้องยาว 2–500 ตัวอักษร) | แก้คำถามแล้วกดถามอีกครั้ง |
-| 200 | Qwen สร้าง SQL ที่รันไม่ได้/ไม่ผ่านการตรวจ (ลองซ้ำแล้วยังไม่ผ่าน) — ไม่ถือเป็น error ของผู้ใช้/เซิร์ฟเวอร์ | answer = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", rows = [], error = null | (แสดงเป็นคำตอบปกติ) | ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม — เดิมตอบ 422 แต่คำถามตัวอย่างของอาจารย์เองเคยทำให้เกิด error จึงเปลี่ยน (กติกา Challenge: error = 0) |
-| 422 | (เดิม) Qwen สร้าง SQL ที่รันไม่ได้/ไม่ผ่านการตรวจ — ตอนนี้ backend แปลงเป็น 200 ข้างบนแล้ว; ฝั่ง frontend ยังคงข้อความสำรองไว้ถ้า backend ส่ง 422 แบบ string อื่นที่ไม่ใช่ Ollama | string | ระบบแปลงคำถามเป็นคำค้นไม่ได้ | ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม |
+| 422 | โมเดลสร้าง SQL ที่รันไม่ได้/ไม่ผ่านการตรวจ หลังลองซ้ำแล้ว | detail = ข้อความคำค้นไม่สำเร็จ; error/SQL ดิบเก็บใน server log | ระบบแปลงคำถามเป็นคำค้นไม่ได้ | ลองถามให้เจาะจงขึ้น เช่น ระบุปีหรือเทอม; ต่างจาก query ที่รันสำเร็จแต่ไม่มีข้อมูล (200) |
 | 404 | `program` ไม่มีในระบบ | string | ไม่พบหลักสูตรที่เลือก | รีเฟรชหน้าแล้วเลือกหลักสูตรใหม่ |
 | 422 | Ollama ล่มตอนสร้าง SQL — `lab8b.ask` จับ error ขั้นนี้เอง จึงตอบ 422 ไม่ใช่ 503; `detail` ขึ้นต้นด้วยชื่อ error ของ requests เช่น `ConnectionError: …` | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
 | 503 | ไม่พบไฟล์ DB หรือ Ollama ล่มตอนสรุปคำตอบ (ขั้นที่สอง) | string | ระบบยังไม่พร้อม (ฐานข้อมูลหรือโมเดล) | แจ้งผู้ดูแล หรือเปิดหน้า /api/health เพื่อดูว่าส่วนไหนไม่ทำงาน |
@@ -604,3 +603,14 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 `/api/health` reports `ollama_ready: true` only when Ollama responds and its model inventory contains the configured model (including its explicit tag). An empty inventory or a different model produces `status: degraded`. This is an installation check, not a guarantee that inference will fit available memory.
 
 Model-generated SQL is bounded independently of its SQL text: Lab 8B allows up to 200 returned rows; the adapter uses `CURRICULUM_MAX_ROWS` (default 100). Each generated query has a 2-second or 2,000,000-VM-instruction budget. Excess rows or work return a resource error rather than an incomplete answer; `/api/ask` returns HTTP 503 and a message requesting a narrower question. SQLite progress callbacks cannot preempt a single long native function or a database lock wait.
+
+### Combined credit and hours questions
+The deterministic hours filter can also apply one exact credit condition, for example 3 credits and zero lab hours. Unsupported credit ranges, alternatives, or year/semester constraints leave this shortcut so it cannot silently drop them. SQL generation/execution failures return a safe 422 query error; successful empty queries remain 200.
+
+### Topic-search provenance
+
+The SQL / Search method drawer shows executable SQL for SQL-backed answers. Topic search merges `course`, `elective_group_course`, and `course_description`, then matches and ranks in Python; its `sql` field therefore contains a labelled, comment-only search explanation rather than an illustrative query. It is explicitly marked as non-executable. SQL-backed course lists also restore selected eight-digit course identifiers if the generated answer omits them.
+
+### Explicit grade and English-name requests
+
+Explicit failed-grade wording (`ได้ F`, `ได้เกรด F`, `ติด F`) uses the existing prerequisite eligibility rules, including alternative prerequisites. Other grades and ambiguous F text do not imply failure. Explicit English-name prefix requests scoped to the selected plan query `v_plan` joined to `course.name_en`; they do not search the elective catalog or mistake an English-name field for Foundation English courses. Unsupported additional constraints leave this shortcut. Lab aliases consume an existing ชั่วโมง prefix once, so ชั่วโมงแล็บ does not become ชั่วโมงชั่วโมงปฏิบัติ.

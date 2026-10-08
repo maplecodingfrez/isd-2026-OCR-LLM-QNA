@@ -323,7 +323,17 @@ def _topic(conn, text: str):
     except ImportError:
         return None
     shown = course_search.search_courses(conn, topic, limit=_MAX_LISTED + 1)
-    sql = f"SELECT code, name_th FROM course WHERE name_th LIKE '%{topic.replace(chr(39), chr(39) * 2)}%'"
+    # Matching and ranking happen in Python after merging the three source tables.
+    # An illustrative LIKE query would not reproduce these results.
+    sql = (
+        "-- Search explanation / วิธีค้นข้อมูล (not an executable SQL query)\n"
+        f"-- Topic / หัวข้อ: {topic}\n"
+        "-- Sources: course, elective_group_course, course_description; merge by code\n"
+        "-- Match every query word against code, Thai/English names and descriptions; "
+        "normalize spaces/case and expand course acronyms\n"
+        "-- Rank: code, name, description; prefer plan, elective, catalog; break ties by code\n"
+        f"-- Display at most {_MAX_LISTED} matches; inspect one extra match for truncation"
+    )
     if not shown:
         return f"ไม่พบวิชาที่เกี่ยวกับ \"{topic}\" ในหลักสูตรนี้", [], sql
     more = len(shown) > _MAX_LISTED

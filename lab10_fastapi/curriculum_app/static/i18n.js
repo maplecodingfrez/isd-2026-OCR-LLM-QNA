@@ -59,7 +59,7 @@
     "withdraw.about": ["ดูว่าวิชาต่อเนื่องที่เรียนไม่ได้ ทั้งโดยตรงและทางอ้อม ถ้าถอนวิชานี้", "See which follow-on courses are blocked, directly and indirectly, if you withdraw."],
     "tools.summary": ["เครื่องมือ: ค้นวิชา · บังคับก่อน · ถอนวิชา", "Tools"],
     "drawer.summary": ["SQL และข้อมูลดิบที่ใช้ตอบ", "SQL and raw data behind the answer"],
-    "drawer.sql": ["คำสั่ง SQL", "SQL query"],
+    "drawer.sql": ["SQL / วิธีค้นข้อมูล", "SQL / Search method"],
     "drawer.rows": ["ข้อมูลดิบ", "Raw data"],
     "tools.aria": ["เครื่องมือช่วยค้นหา", "Lookup tools"],
     "tabs.aria": ["เลือกเครื่องมือ", "Choose a tool"],

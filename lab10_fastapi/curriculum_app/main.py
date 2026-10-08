@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 import os
 import re
 import sqlite3
@@ -36,6 +37,7 @@ from .schemas import (  # noqa: E402
 )
 
 
+_logger = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -219,9 +221,8 @@ def ask(request: AskRequest) -> dict:
             raise HTTPException(status_code=503, detail="คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลงแล้วลองใหม่")
         if str(result["error"]).split(":", 1)[0].strip() in _INFRA_ERRORS:      # Ollama/เครือข่ายมีปัญหา = error จริงให้ UI แสดงสถานะ error
             raise HTTPException(status_code=422, detail=result["error"])
-        # โมเดลสร้าง SQL ไม่สำเร็จหลังลองซ้ำ (เช่น คำถามตัวอย่างของอาจารย์เคยทำให้เกิด "ambiguous column name") = ไม่ใช่ความผิดของผู้ใช้/เซิร์ฟเวอร์
-        # ตอบ "ไม่พบ" แทน HTTP error (ซื่อตรงกว่าเดา และกติกา Challenge ถือว่า error ระหว่างทดสอบ = 0)
-        result["answer"], result["rows"], result["error"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร", [], None
+        _logger.warning("Curriculum query failed: %s; SQL=%s", result["error"], result.get("sql"))
+        raise HTTPException(status_code=422, detail="ระบบแปลงคำถามเป็นคำค้นไม่ได้ กรุณาลองถามใหม่ให้เจาะจงขึ้น")
     result["program"] = request.program
     result["processing_seconds"] = round(time.perf_counter() - started, 4)
     return result

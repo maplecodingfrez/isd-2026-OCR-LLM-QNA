@@ -1690,33 +1690,48 @@ _HOURS_OPS = ((r"ไม่น้อยกว่า|อย่างน้อย|�
 
 
 def _hours_filter_spec(question: str) -> tuple[str, str, int, str, str] | None:
-    """(คอลัมน์, ตัวดำเนินการ, ค่า, ชื่อชั่วโมง, คำบอกเงื่อนไข) จากคำถามแบบ "วิชาที่ชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมง" / "ไม่มีชั่วโมงปฏิบัติ";
-    คำถามเจาะวิชาเดียว (มีรหัส/ไม่มีตัวดำเนินการ+ตัวเลข) หรือไม่ได้ถามรายการ = None"""
-    if "ชั่วโมง" not in question or _CODE8.search(question) or not _LIST_WORD.search(question):
+    """Parse one hours condition, binding its operator and number to that column."""
+    requested_list = _LIST_WORD.search(question) or re.search(r"ขอรหัสและชื่อ(?:ราย)?วิชา", question)
+    if "ชั่วโมง" not in question or _CODE8.search(question) or not requested_list:
         return None
-    col = next(((c, label) for w, c, label in _HOURS_COLS if w in question), None)
-    if col is None:
+    if len({c for w, c, _ in _HOURS_COLS if w in question}) != 1:
         return None
-    if re.search(r"ไม่มี(?:ชั่วโมง)?(?:บรรยาย|ปฏิบัติ|ศึกษาด้วยตนเอง|นอกชั้นเรียน)", question):
-        return col[0], "=", 0, col[1], "เท่ากับ"
-    n = re.search(r"(\d+)\s*ชั่วโมง", question)
-    if not n:
-        return None
-    op = next(((o, label) for p, o, label in _HOURS_OPS if re.search(p, question)), None)
-    if op is None and re.search(r"มี\s*\d+\s*ชั่วโมง", question):
-        op = ("=", "เท่ากับ")
-    return (col[0], op[0], int(n.group(1)), col[1], op[1]) if op else None
+    word, col, label = next((w, c, label) for w, c, label in _HOURS_COLS if w in question)
+    if re.search(r"ไม่มี(?:ชั่วโมง)?" + re.escape(word), question):
+        return col, "=", 0, label, "เท่ากับ"
+    ops = "|".join(p for p, _, _ in _HOURS_OPS)
+    match = re.search(re.escape(word) + rf"\s*(?P<op>{ops}|มี|เป็น|=)?\s*(?P<n>\d+)(?!\d)", question)
+    if match:
+        raw_op = match.group("op") or "เท่ากับ"
+        op, op_label = next(((o, text) for p, o, text in _HOURS_OPS if re.fullmatch(p, raw_op)), ("=", "เท่ากับ"))
+        return col, op, int(match.group("n")), label, op_label
+    match = re.search(r"มี\s*(\d+)\s*ชั่วโมง\s*" + re.escape(word), question)
+    return (col, "=", int(match.group(1)), label, "เท่ากับ") if match else None
 
 
 def _hours_filter_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     spec = _hours_filter_spec(question)
-    if spec is None:
+    if spec is None or any(_term_numbers(question)):
         return None
-    col, op, value, label, op_label = spec                # col/op มาจากตารางคงที่ด้านบน (ไม่ใช่ข้อความผู้ใช้) value เป็น int
+    credit = None
+    if "หน่วยกิต" in question:
+        # Support one exact credit condition; decline other credit constraints.
+        comparisons = "|".join(p for p, op, _ in _HOURS_OPS if op != "=")
+        if (question.count("หน่วยกิต") != 1 or re.search(r"หรือ|ระหว่าง|ถึง", question)
+                or re.search(rf"(?:{comparisons}|ไม่ใช่|ยกเว้น|ไม่เท่ากับ)\s*\d+\s*หน่วยกิต|หน่วยกิต\s*(?:{comparisons}|ไม่เท่ากับ)", question)):
+            return None
+        match = re.search(r"(?<![\d.-])(\d+)\s*หน่วยกิต|หน่วยกิต\s*(?:เท่ากับ|เป็น|=)\s*(\d+)(?!\d)", question)
+        if match is None:
+            return None
+        credit = int(match.group(1) or match.group(2))
+    col, op, value, label, op_label = spec
+    credit_filter = f" AND c.credits = {credit}" if credit is not None else ""
     sql = (f"SELECT c.code, c.name_th, c.credits, c.lecture_h, c.lab_h, c.self_h FROM course c "
-           f"WHERE c.code IN (SELECT code FROM plan_item) AND c.{col} IS NOT NULL AND c.{col} {op} {value} ORDER BY c.code")
+           f"WHERE c.code IN (SELECT code FROM plan_item) AND c.{col} IS NOT NULL AND c.{col} {op} {value}"
+           + credit_filter + " ORDER BY c.code")
     rows = [dict(r) for r in conn.execute(sql).fetchall()]
-    head = f"วิชาในแผนที่ชั่วโมง{label}{op_label} {value} ชั่วโมง มี {len(rows)} วิชา"
+    credit_label = f"ที่มี {credit} หน่วยกิตและ" if credit is not None else "ที่"
+    head = f"วิชาในแผน{credit_label}ชั่วโมง{label}{op_label} {value} ชั่วโมง มี {len(rows)} วิชา"
     if not rows:
         return head, rows, sql
     return (head + ": " + ", ".join(f"{r['code']} {r['name_th']} (บรรยาย {r['lecture_h']}-ปฏิบัติ {r['lab_h']}-ศึกษาด้วยตนเอง {r['self_h']})"
@@ -2618,11 +2633,45 @@ def _which_first_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
 
 # ---- "รหัสของ <ชื่อสั้น>" ที่เป็นต้นชื่อของหลายวิชา (สหกิจศึกษา / สหกิจศึกษาต่างประเทศ) → ลิสต์ทุกวิชาในตระกูลชื่อนั้น ----
 _CODE_FAMILY_ASK = re.compile(r"รหัสวิชา(?:อะไร|ไหน|ใด)|รหัสอะไร|ขอรหัส|รหัสของ|รหัสคือ")
+_ENGLISH_NAME_FIELD = re.compile(r"ชื่อ(?:วิชา)?(?:เป็น)?(?:ภาษา)?อังกฤษ|name_en|english(?:course)?name", re.I)
+
+
+_ENGLISH_PLAN_PREFIX_Q = re.compile(
+    r"ขึ้นต้น(?:ด้วย|ว่า)(?:คำว่า)?\s*['\"“‘]?(?P<p>[A-Za-z][A-Za-z0-9 \-]*?)"
+    r"['\"”’]?\s*(?:พร้อมรหัสวิชา|มีอะไรบ้าง|มีวิชาอะไรบ้าง|มีวิชาไหนบ้าง)?\s*[?？]?\s*$")
+
+
+def _english_plan_prefix_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """Explicit English-name prefix in the selected plan; leave other constraints to their own handlers."""
+    if not _ENGLISH_NAME_FIELD.search(re.sub(r"\s+", "", question)):
+        return None
+    mt = _ENGLISH_PLAN_PREFIX_Q.search(question)
+    if not mt:
+        return None
+    lead = re.sub(r"\s+", "", question[:mt.start()])
+    if not re.search(r"(?:ใน|จาก)แผน(?:การศึกษา)?", lead):
+        return None
+    lead = _ENGLISH_NAME_FIELD.sub("", lead)
+    # Only the whole supported request shape may use this shortcut.
+    if re.sub(r"แผนการศึกษา|รายวิชา|รหัสวิชา|แผน|รหัส|วิชา|ของ|ขอ|ช่วย|และ|ใน|จาก|ที่", "", lead):
+        return None
+    prefix = " ".join(mt.group("p").split())
+    sql = ("SELECT DISTINCT p.code, c.name_en FROM v_plan p JOIN course c ON c.code = p.code "
+           f"WHERE c.name_en LIKE '{prefix}%' ORDER BY p.code")
+    rows = [dict(r) for r in execute_bounded_rows(conn, sql, row_limit=SQL_ROW_LIMIT)]
+    if not rows:
+        return f'ไม่พบรายวิชาในแผนที่ชื่อภาษาอังกฤษขึ้นต้นด้วย "{prefix}"', [], sql
+    answer = f'รายวิชาในแผนที่ชื่อภาษาอังกฤษขึ้นต้นด้วย "{prefix}" มี {len(rows)} วิชา:\n'
+    answer += "\n".join(f"- {r['code']} {r['name_en']}" for r in rows)
+    return answer, rows, sql
 
 
 def _code_family_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """ผู้ถามเรียกชื่อสั้น ("สหกิจศึกษา") ซึ่งเป็น "ต้นชื่อ" ของ 2-4 วิชา (สหกิจศึกษา…, สหกิจศึกษาต่างประเทศ…) → ลิสต์รหัสของทุกวิชาในตระกูลนั้น;
     ต้องยาว >= 8 ตัวอักษร, ไม่ตรงชื่อเต็มของวิชาใด, ไม่มีรหัส/ปี/เทอม/หน่วยกิต; ไม่ใช่ตระกูล = None"""
+    # A requested English-name field is not the Thai course family "ภาษาอังกฤษ".
+    if _ENGLISH_NAME_FIELD.search(re.sub(r"\s+", "", question)):
+        return None
     if not _CODE_FAMILY_ASK.search(question) or _CODE8.search(question) or any(_term_numbers(question)) or re.search(r"หน่วยกิต|ชั่วโมง|ก่อน", question):
         return None
     try:
@@ -2714,7 +2763,7 @@ def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[st
         if code == target:
             return None
         ctx = question[max(0, st - 16):st]
-        if re.search(r"ตก|ไม่ผ่าน", ctx):
+        if _FAIL_WORD.search(ctx):
             last = "fail"
         elif "ผ่าน" in ctx:
             last = "pass"
@@ -2751,7 +2800,8 @@ _NAME_PREFIX_Q = re.compile(r"ขึ้นต้น(?:ด้วย|ว่า)(?:
 def _name_prefix_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """รายวิชา (หรือจำนวน) ที่ชื่อไทยขึ้นต้นด้วยคำที่ระบุ (ตัวพิมพ์/ช่องว่างไม่สำคัญ); คำสั้นกว่า 3 ตัวอักษร/มีรหัส/ปี-เทอม/ไม่พบวิชาใดเลย = None"""
     mt = _NAME_PREFIX_Q.search(question)
-    if not mt or _CODE8.search(question) or any(_term_numbers(question)):
+    if (_ENGLISH_NAME_FIELD.search(re.sub(r"\s+", "", question))
+            or not mt or _CODE8.search(question) or any(_term_numbers(question))):
         return None
     prefix = _name_key(mt.group("p"))
     if len(prefix) < 3:
@@ -5239,7 +5289,8 @@ def _other_program_answer(conn: sqlite3.Connection, question: str) -> tuple[str,
 
 # ---- ใช่/ไม่ใช่เรื่องวิชาบังคับก่อน: "สอบตก X จะเรียน Y ได้ไหม" / "เรียน Y ก่อน X ได้ไหม" — ตอบ "ไม่ได้" ได้เมื่อ X เป็นวิชาบังคับก่อนของ Y แน่ ๆ เท่านั้น ----
 _YESNO = re.compile(r"ได้ไหม|ได้หรือไม่|ได้หรือเปล่า|ได้มั้ย|ได้รึเปล่า")
-_FAIL_WORD = re.compile(r"สอบตก|ยังไม่ผ่าน|ไม่ผ่าน|ตก")
+_FAIL_WORD = re.compile(
+    r"สอบตก|ยังไม่ผ่าน|ไม่ผ่าน|ตก|(?<!ไม่)(?:ได้|ติด)\s*(?:เกรด\s*)?F(?![A-Za-z0-9+\-])", re.I)
 
 
 def _prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -5511,7 +5562,7 @@ _SHORTCUTS = (
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
-    _code_lookup_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
+    _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
@@ -5654,7 +5705,7 @@ def ask(conn: sqlite3.Connection, question: str,
             if verbose:
                 print(f"    รอบที่ {attempt + 1} รันไม่ผ่าน: {e}")
             if attempt == 1:
-                result["answer"] = _NOT_FOUND_TEXT                   # SQL สร้าง/รันไม่สำเร็จหลังลองซ้ำ = ตอบแบบเดียวกับ "ไม่พบ" (judge/ผู้ใช้เห็นข้อความเดียว; error ยังเก็บไว้ในฟิลด์ error สำหรับตรวจ)
+                result["answer"] = "ระบบแปลงคำถามเป็นคำค้นไม่ได้ กรุณาลองถามใหม่ให้เจาะจงขึ้น"
                 return result
             prompt = (base_prompt
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
@@ -5692,6 +5743,8 @@ def ask(conn: sqlite3.Connection, question: str,
     # ถ้าผลลัพธ์เป็นรายการค่าเดี่ยวสั้น ๆ หลายแถว และคำตอบของโมเดลยังมีไม่ครบทุกค่า
     # ให้ประกอบคำตอบเองจากค่าในแถวตรง ๆ (score_one เทียบที่แถว SQL อยู่แล้ว
     # ตัวนี้แค่ทำให้ "ข้อความคำตอบ" ตรงกับข้อมูลจริงด้วย)
+    row_codes = {v.strip() for r in result["rows"] for v in r.values()
+                 if isinstance(v, str) and re.fullmatch(r"\d{8}", v.strip())}
     flat = [str(v).strip() for r in result["rows"] if len(r) == 1
             for v in r.values() if v is not None]
     if len(flat) == len(result["rows"]) >= 2 and all(len(v) <= 40 for v in flat):
@@ -5710,7 +5763,8 @@ def ask(conn: sqlite3.Connection, question: str,
             result["answer"] = value
     # รายการหลายแถว หลายคอลัมน์ (เช่น วิชาเลือก: กลุ่ม+รหัส+ชื่อ+หน่วยกิต): num_predict=256 ตัดคำตอบกลางสตริงจนได้ข้อความว่าง
     # และ qwen สะกดไทยเพี้ยน → ถ้าคำตอบขาดค่าข้อความของแถวใด (หรือว่าง) ประกอบจากแถวจริงตรง ๆ; คำตอบที่ครบอยู่แล้วไม่แตะ
-    elif 2 <= len(result["rows"]) <= 80 and all(len(r) >= 2 for r in result["rows"]):
+    elif (1 <= len(result["rows"]) <= 80 and all(len(r) >= 2 for r in result["rows"])
+          and (len(result["rows"]) >= 2 or row_codes)):
         rows_ = result["rows"]
         # คอลัมน์ยอดรวมของภาคเรียน (ค่าเดียวกันทุกแถว) รายงานครั้งเดียวท้ายคำตอบ ไม่ซ้ำทุกแถว
         totals = {c: rows_[0][c] for c in TERM_TOTAL_COLS
@@ -5720,7 +5774,9 @@ def ask(conn: sqlite3.Connection, question: str,
                  if isinstance(v, str) and v.strip() and not v.strip().isdigit()]
         ans = result["answer"] or ""
         has_totals = all(re.search(rf"(?<!\d){re.escape(str(v))}(?!\d)", ans) for v in totals.values())
-        if not ans.strip() or not all(t in ans for t in texts) or not has_totals:
+        # Numeric course codes are required identifiers, even when names are complete.
+        has_codes = all(re.search(rf"(?<!\d){re.escape(code)}(?!\d)", ans) for code in row_codes)
+        if not ans.strip() or not all(t in ans for t in texts) or not has_totals or not has_codes:
             hour_labels = {col: label for col, label, _ in _HOUR_ATTRS}
             body = "; ".join(" ".join(
                 f"{hour_labels[k]} {v} ชั่วโมงต่อสัปดาห์" if k in hour_labels else str(v).strip()
