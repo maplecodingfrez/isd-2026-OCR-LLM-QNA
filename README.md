@@ -26,6 +26,8 @@
 
 ## 1. รันระบบ
 
+**สรุป:** ติดตั้งครั้งแรกทำข้อ 1.1 ครั้งเดียว หลังจากนั้นทุกครั้งใช้ 3 คำสั่งในข้อ 1.2 (`ollama serve` → เปิด venv → `uvicorn`) แล้วเปิด <http://127.0.0.1:8000/>
+
 ### 1.1 ติดตั้ง (ครั้งเดียวต่อเครื่อง)
 ```powershell
 git clone https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA.git
@@ -35,12 +37,18 @@ python -m venv .venv
 pip install -r lab10_fastapi/curriculum_app/requirements.txt
 ollama pull qwen3:4b
 ```
-> Windows ฟ้อง execution policy → `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+> Windows ฟ้อง execution policy ดูวิธีแก้ในหัวข้อ "แก้ปัญหา"
 
 ### 1.2 เปิดใช้งาน (ทุกครั้งที่เปิดเครื่องใหม่)
-เปิด PowerShell ที่โฟลเดอร์โปรเจกต์ แล้วรันตามลำดับ:
+ใช้เทอร์มินัล 2 หน้าต่าง เปิดที่โฟลเดอร์โปรเจกต์ทั้งคู่ (PowerShell หรือเทอร์มินัลใน VSCode: Terminal > New Terminal)
+
+**เทอร์มินัล 1: เปิด Ollama** (เปิดค้างไว้ ข้ามได้ถ้าแอป Ollama เปิดอยู่ในถาดระบบแล้ว)
 ```powershell
-ollama serve        # ข้ามได้ถ้าแอป Ollama เปิดอยู่ในถาดระบบแล้ว (เปิดค้างไว้ แล้วเปิดเทอร์มินัลใหม่)
+ollama serve
+```
+
+**เทอร์มินัล 2: เปิดแอป**
+```powershell
 .venv\Scripts\Activate.ps1
 python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
 ```
@@ -66,11 +74,15 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 | พอร์ต 8000 ถูกใช้อยู่ | เปลี่ยน `--port 8001` แล้วเปิด URL ตามพอร์ตใหม่ |
 | `/api/health` ไม่ ok / แจ้งเชื่อมต่อ Ollama ไม่ได้ | ตรวจว่า `ollama serve` ทำงาน และ `ollama list` เห็น `qwen3:4b` |
 | ถามแล้วช้าครั้งแรก | ปกติ — โมเดลกำลังโหลด ครั้งถัดไปเร็วขึ้น |
+| `ollama` ไม่รู้จักคำสั่ง | ปิดแล้วเปิดเทอร์มินัลใหม่หลังติดตั้ง Ollama (ต้องโหลด PATH ใหม่) |
+| `Activate.ps1` ฟ้อง execution policy | รัน `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` แล้วลองใหม่ |
 
 > ถ้าไม่เปิด Ollama ระบบตอบได้เฉพาะคำถามที่มีกฎตายตัว (ราว 30–45%) ที่เหลือจะแจ้งว่าเชื่อมต่อไม่ได้
 
 ## เอกสารเพิ่มเติม
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
+- เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
+- สคริปต์วิดีโอเดโม: [`docs/demo-video-script.md`](docs/demo-video-script.md)
 - ความแม่นยำ: ชุดคำถามอิสระ + Master Test Suite ราว 75–79% กับสำนวนที่ไม่เคยเห็น
 
 ## สมาชิก
