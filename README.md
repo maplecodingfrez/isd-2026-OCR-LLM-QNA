@@ -82,7 +82,6 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 ## เอกสารเพิ่มเติม
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
 - เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
-- สคริปต์วิดีโอเดโม: [`docs/demo-video-script.md`](docs/demo-video-script.md)
 - ความแม่นยำ: ชุดคำถามอิสระ + Master Test Suite ราว 75–79% กับสำนวนที่ไม่เคยเห็น
 
 ## สมาชิก
