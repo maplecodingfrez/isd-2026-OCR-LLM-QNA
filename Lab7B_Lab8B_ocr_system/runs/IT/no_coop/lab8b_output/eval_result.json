@@ -24,7 +24,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 6)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 0.0
+    "seconds": 0.1
   },
   {
     "id": "A2",
@@ -146,28 +146,13 @@
         "pdf_page": 32,
         "printed_page": "27",
         "courses": [
-          "06016408",
-          "06066001",
-          "06066101",
-          "06066301",
-          "90641002",
-          "90644008"
+          "06066101"
         ],
         "course_names": {
-          "06016408": "การสร้างโปรแกรมเชิงวัตถุ",
-          "06066001": "ความน่าจะเป็นและสถิติ",
-          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ",
-          "06066301": "โครงสร้างข้อมูลและอัลกอริทึม",
-          "90641002": "ความฉลาดทางดิจิทัล",
-          "90644008": "ภาษาอังกฤษพื้นฐาน 2"
+          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
         },
         "course_names_en": {
-          "06016408": "OBJECT-ORIENTED PROGRAMMING",
-          "06066001": "PROBABILITY AND STATISTICS",
-          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
-          "06066301": "DATA STRUCTURES AND ALGORITHMS",
-          "90641002": "DIGITAL INTELLIGENCE QUOTIENT",
-          "90644008": "FOUNDATION ENGLISH 2"
+          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
         }
       },
       {
@@ -184,8 +169,8 @@
         }
       },
       {
-        "pdf_page": 331,
-        "printed_page": "330",
+        "pdf_page": 24,
+        "printed_page": "19",
         "courses": [
           "06016408"
         ],
@@ -197,10 +182,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS\n   – 90641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT\n   – 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 325 (PDF 326)\n   – 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING\n• หน้า 330 (PDF 331)\n   – 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 325 (PDF 326)\n   – 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING\n• หน้า 19 (PDF 24)\n   – 06016408 การสร้างโปรแกรมเชิงวัตถุ / OBJECT-ORIENTED PROGRAMMING",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 3.4
+    "seconds": 4.0
   },
   {
     "id": "B4",
@@ -294,30 +279,7 @@
       {
         "pdf_page": 33,
         "printed_page": "28",
-        "courses": [
-          "06016403",
-          "06016409",
-          "06016413",
-          "06066000",
-          "06066300",
-          "06066304"
-        ],
-        "course_names": {
-          "06016403": "เทคโนโลยีสื่อประสม",
-          "06016409": "การประมวลทางกายภาพ",
-          "06016413": "ระบบเครือข่ายเบื้องต้น",
-          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง",
-          "06066300": "แนวคิดระบบฐานข้อมูล",
-          "06066304": "การวิเคราะห์และออกแบบระบบสารสนเทศ"
-        },
-        "course_names_en": {
-          "06016403": "MULTIMEDIA TECHNOLOGY",
-          "06016409": "PHYSICAL COMPUTING",
-          "06016413": "INTRODUCTION TO NETWORK SYSTEMS",
-          "06066000": "DISCRETE MATHEMATICS",
-          "06066300": "DATABASE SYSTEM CONCEPTS",
-          "06066304": "INFORMATION SYSTEM ANALYSIS AND DESIGN"
-        }
+        "courses": []
       },
       {
         "pdf_page": 324,
@@ -352,10 +314,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 28 (PDF 33)\n   – 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY\n   – 06016409 การประมวลทางกายภาพ / PHYSICAL COMPUTING\n   – 06016413 ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n   – 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN\n• หน้า 323 (PDF 324)\n   – 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 28 (PDF 33)\n• หน้า 323 (PDF 324)\n   – 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06016403 เทคโนโลยีสื่อประสม / MULTIMEDIA TECHNOLOGY\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.7
+    "seconds": 3.3
   },
   {
     "id": "C1",
@@ -376,19 +338,6 @@
     "answer_model_output": "{\"answer\": \"โครงสร้างข้อมูลและอัลกอริทึม\"}",
     "answer": "โครงสร้างข้อมูลและอัลกอริทึม",
     "citations": [
-      {
-        "pdf_page": 32,
-        "printed_page": "27",
-        "courses": [
-          "06066301"
-        ],
-        "course_names": {
-          "06066301": "โครงสร้างข้อมูลและอัลกอริทึม"
-        },
-        "course_names_en": {
-          "06066301": "DATA STRUCTURES AND ALGORITHMS"
-        }
-      },
       {
         "pdf_page": 359,
         "printed_page": "358",
@@ -416,10 +365,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS\n• หน้า 358 (PDF 359)\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS\n• หน้า 18 (PDF 23)\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 358 (PDF 359)\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS\n• หน้า 18 (PDF 23)\n   – 06066301 โครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.6
   },
   {
     "id": "C2",
@@ -450,7 +399,7 @@
           "06016416": "วิศวกรรมความต้องการ"
         },
         "course_names_en": {
-          "06016416": "SERVER-SIDE WEB DEVELOPMENT"
+          "06016416": "REQUIREMENT ENGINEERING"
         }
       },
       {
@@ -463,7 +412,7 @@
           "06016416": "วิศวกรรมความต้องการ"
         },
         "course_names_en": {
-          "06016416": "SERVER-SIDE WEB DEVELOPMENT"
+          "06016416": "REQUIREMENT ENGINEERING"
         }
       },
       {
@@ -476,14 +425,14 @@
           "06016416": "วิศวกรรมความต้องการ"
         },
         "course_names_en": {
-          "06016416": "SERVER-SIDE WEB DEVELOPMENT"
+          "06016416": "REQUIREMENT ENGINEERING"
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 06016416 วิศวกรรมความต้องการ / SERVER-SIDE WEB DEVELOPMENT\n• หน้า 329 (PDF 330)\n   – 06016416 วิศวกรรมความต้องการ / SERVER-SIDE WEB DEVELOPMENT\n• หน้า 20 (PDF 25)\n   – 06016416 วิศวกรรมความต้องการ / SERVER-SIDE WEB DEVELOPMENT",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 06016416 วิศวกรรมความต้องการ / REQUIREMENT ENGINEERING\n• หน้า 329 (PDF 330)\n   – 06016416 วิศวกรรมความต้องการ / REQUIREMENT ENGINEERING\n• หน้า 20 (PDF 25)\n   – 06016416 วิศวกรรมความต้องการ / REQUIREMENT ENGINEERING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.4
   },
   {
     "id": "C3",
@@ -547,7 +496,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT\n• หน้า 330 (PDF 331)\n   – 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT\n• หน้า 20 (PDF 25)\n   – 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.9
+    "seconds": 2.5
   },
   {
     "id": "D1",
@@ -562,26 +511,13 @@
       "06066001"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('06066001')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066001')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "06066001 (ความน่าจะเป็นและสถิติ)",
+    "answer": "06066001 (ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS)",
     "citations": [
-      {
-        "pdf_page": 32,
-        "printed_page": "27",
-        "courses": [
-          "06066001"
-        ],
-        "course_names": {
-          "06066001": "ความน่าจะเป็นและสถิติ"
-        },
-        "course_names_en": {
-          "06066001": "PROBABILITY AND STATISTICS"
-        }
-      },
       {
         "pdf_page": 357,
         "printed_page": "356",
@@ -607,9 +543,22 @@
         "course_names_en": {
           "06066001": "PROBABILITY AND STATISTICS"
         }
+      },
+      {
+        "pdf_page": 375,
+        "printed_page": "374",
+        "courses": [
+          "06066001"
+        ],
+        "course_names": {
+          "06066001": "ความน่าจะเป็นและสถิติ"
+        },
+        "course_names_en": {
+          "06066001": "PROBABILITY AND STATISTICS"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n• หน้า 356 (PDF 357)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n• หน้า 18 (PDF 23)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 356 (PDF 357)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n• หน้า 18 (PDF 23)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n• หน้า 374 (PDF 375)\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -627,12 +576,12 @@
       "06016419"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('06016419')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06016419')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "06016419 (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร)",
+    "answer": "06016419 (โครงสร้างพื้นฐานเครือข่ายการสื่อสาร / COMMUNICATION NETWORK INFRASTRUCTURE)",
     "citations": [
       {
         "pdf_page": 34,
@@ -692,12 +641,12 @@
       "06016423"
     ],
     "name_key": "name_en",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('06016423')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06016423')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้)",
+    "answer": "06016423 (การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้ / INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION)",
     "citations": [
       {
         "pdf_page": 35,
@@ -757,7 +706,7 @@
       "90643021"
     ],
     "name_key": "name_th",
-    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '90643021'",
+    "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '90643021' ORDER BY p.year, p.semester",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
@@ -822,26 +771,13 @@
       "90644042"
     ],
     "name_key": "name_th",
-    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '90644042'",
+    "sql": "SELECT code, name_th, credits FROM course WHERE code = '90644042'",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
     "answer": "90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ: 3 หน่วยกิต",
     "citations": [
-      {
-        "pdf_page": 35,
-        "printed_page": "30",
-        "courses": [
-          "90644042"
-        ],
-        "course_names": {
-          "90644042": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
-        },
-        "course_names_en": {
-          "90644042": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
-        }
-      },
       {
         "pdf_page": 36,
         "printed_page": "31",
@@ -867,9 +803,22 @@
         "course_names_en": {
           "90644042": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
         }
+      },
+      {
+        "pdf_page": 22,
+        "printed_page": "17",
+        "courses": [
+          "90644042"
+        ],
+        "course_names": {
+          "90644042": "การสื่อสารและการนำเสนออย่างมืออาชีพ"
+        },
+        "course_names_en": {
+          "90644042": "PROFESSIONAL COMMUNICATION AND PRESENTATION"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION\n• หน้า 31 (PDF 36)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION\n• หน้า 228 (PDF 229)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 31 (PDF 36)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION\n• หน้า 228 (PDF 229)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION\n• หน้า 17 (PDF 22)\n   – 90644042 การสื่อสารและการนำเสนออย่างมืออาชีพ / PROFESSIONAL COMMUNICATION AND PRESENTATION",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -895,19 +844,6 @@
     "answer": "06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
     "citations": [
       {
-        "pdf_page": 35,
-        "printed_page": "30",
-        "courses": [
-          "06066100"
-        ],
-        "course_names": {
-          "06066100": "การบริหารโครงการเทคโนโลยีสารสนเทศ"
-        },
-        "course_names_en": {
-          "06066100": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
-        }
-      },
-      {
         "pdf_page": 36,
         "printed_page": "31",
         "courses": [
@@ -932,9 +868,22 @@
         "course_names_en": {
           "06066100": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
         }
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18",
+        "courses": [
+          "06066100"
+        ],
+        "course_names": {
+          "06066100": "การบริหารโครงการเทคโนโลยีสารสนเทศ"
+        },
+        "course_names_en": {
+          "06066100": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT\n• หน้า 31 (PDF 36)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT\n• หน้า 356 (PDF 357)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 31 (PDF 36)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT\n• หน้า 356 (PDF 357)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT\n• หน้า 18 (PDF 23)\n   – 06066100 การบริหารโครงการเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -973,19 +922,6 @@
         }
       },
       {
-        "pdf_page": 346,
-        "printed_page": "345",
-        "courses": [
-          "06066101"
-        ],
-        "course_names": {
-          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
-        },
-        "course_names_en": {
-          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
-        }
-      },
-      {
         "pdf_page": 357,
         "printed_page": "356",
         "courses": [
@@ -997,12 +933,25 @@
         "course_names_en": {
           "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
         }
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18",
+        "courses": [
+          "06066101"
+        ],
+        "course_names": {
+          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
+        },
+        "course_names_en": {
+          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 345 (PDF 346)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 356 (PDF 357)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 356 (PDF 357)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.4
   },
   {
     "id": "F1",
@@ -1022,66 +971,31 @@
       "06016407"
     ],
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06016407'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06016407' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06016406\"}",
-    "answer": "06016406 (โครงงาน 1)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06016407 โครงงาน 2 / PROJECT 2\nวิชาบังคับก่อน: 06016406 (โครงงาน 1 / PROJECT 1)",
     "citations": [
-      {
-        "pdf_page": 37,
-        "printed_page": "32",
-        "courses": [
-          "06016407",
-          "06016406"
-        ],
-        "course_names": {
-          "06016407": "โครงงาน 2",
-          "06016406": "โครงงาน 1"
-        },
-        "course_names_en": {
-          "06016407": "PROJECT 2",
-          "06016406": "PROJECT 1"
-        }
-      },
       {
         "pdf_page": 326,
         "printed_page": "325",
         "courses": [
-          "06016407",
-          "06016406"
+          "06016407"
         ],
         "course_names": {
-          "06016407": "โครงงาน 2",
-          "06016406": "โครงงาน 1"
+          "06016407": "โครงงาน 2"
         },
         "course_names_en": {
-          "06016407": "PROJECT 2",
-          "06016406": "PROJECT 1"
-        }
-      },
-      {
-        "pdf_page": 23,
-        "printed_page": "18",
-        "courses": [
-          "06016407",
-          "06016406"
-        ],
-        "course_names": {
-          "06016407": "โครงงาน 2",
-          "06016406": "โครงงาน 1"
-        },
-        "course_names_en": {
-          "06016407": "PROJECT 2",
-          "06016406": "PROJECT 1"
+          "06016407": "PROJECT 2"
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 32 (PDF 37)\n   – 06016407 โครงงาน 2 / PROJECT 2\n   – 06016406 โครงงาน 1 / PROJECT 1\n• หน้า 325 (PDF 326)\n   – 06016407 โครงงาน 2 / PROJECT 2\n   – 06016406 โครงงาน 1 / PROJECT 1\n• หน้า 18 (PDF 23)\n   – 06016407 โครงงาน 2 / PROJECT 2\n   – 06016406 โครงงาน 1 / PROJECT 1",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 325 (PDF 326)\n   – 06016407 โครงงาน 2 / PROJECT 2",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "F2",
@@ -1102,45 +1016,16 @@
     ],
     "name_key": "name_th",
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06016422' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06016422'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06016422' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06016413\"}",
-    "answer": "06016413 (ระบบเครือข่ายเบื้องต้น)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS\nวิชาบังคับก่อน: 06016413 (ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS)",
     "citations": [
-      {
-        "pdf_page": 35,
-        "printed_page": "30",
-        "courses": [
-          "06016422"
-        ],
-        "course_names": {
-          "06016422": "อินเทอร์เน็ตของสรรพสิ่ง"
-        },
-        "course_names_en": {
-          "06016422": "INTERNET OF THINGS"
-        }
-      },
       {
         "pdf_page": 333,
         "printed_page": "332",
-        "courses": [
-          "06016422",
-          "06016413"
-        ],
-        "course_names": {
-          "06016422": "อินเทอร์เน็ตของสรรพสิ่ง",
-          "06016413": "ระบบเครือข่ายเบื้องต้น"
-        },
-        "course_names_en": {
-          "06016422": "INTERNET OF THINGS",
-          "06016413": "INTRODUCTION TO NETWORK SYSTEMS"
-        }
-      },
-      {
-        "pdf_page": 25,
-        "printed_page": "20",
         "courses": [
           "06016422"
         ],
@@ -1152,10 +1037,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 30 (PDF 35)\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS\n• หน้า 332 (PDF 333)\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS\n   – 06016413 ระบบเครือข่ายเบื้องต้น / INTRODUCTION TO NETWORK SYSTEMS\n• หน้า 20 (PDF 25)\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 332 (PDF 333)\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "F3",
@@ -1183,49 +1068,23 @@
     "answer": "06066102 (ระบบสารสนเทศเพื่อการจัดการ)",
     "citations": [
       {
-        "pdf_page": 32,
-        "printed_page": "27",
+        "pdf_page": 358,
+        "printed_page": "357",
         "courses": [
-          "06066101"
+          "06066102"
         ],
         "course_names": {
-          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
+          "06066102": "ระบบสารสนเทศเพื่อการจัดการ"
         },
         "course_names_en": {
-          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
-        }
-      },
-      {
-        "pdf_page": 346,
-        "printed_page": "345",
-        "courses": [
-          "06066101"
-        ],
-        "course_names": {
-          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
-        },
-        "course_names_en": {
-          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
-        }
-      },
-      {
-        "pdf_page": 357,
-        "printed_page": "356",
-        "courses": [
-          "06066101"
-        ],
-        "course_names": {
-          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
-        },
-        "course_names_en": {
-          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+          "06066102": "MANAGEMENT INFORMATION SYSTEMS"
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 345 (PDF 346)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 356 (PDF 357)\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 357 (PDF 358)\n   – 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 2.5
   },
   {
     "id": "F4",
@@ -1234,15 +1093,28 @@
     "question": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่",
     "expect": {
       "type": "value",
-      "value": "8"
+      "value": "9"
     },
     "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "8 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "answer": "9 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
     "citations": [
+      {
+        "pdf_page": 220,
+        "printed_page": "219",
+        "courses": [
+          "90644008"
+        ],
+        "course_names": {
+          "90644008": "ภาษาอังกฤษพื้นฐาน 2"
+        },
+        "course_names_en": {
+          "90644008": "FOUNDATION ENGLISH 2"
+        }
+      },
       {
         "pdf_page": 326,
         "printed_page": "325",
@@ -1328,7 +1200,7 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 325 (PDF 326)\n   – 06016407 โครงงาน 2 / PROJECT 2\n• หน้า 330 (PDF 331)\n   – 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT\n   – 06016419 โครงสร้างพื้นฐานเครือข่ายการสื่อสาร / COMMUNICATION NETWORK INFRASTRUCTURE\n• หน้า 331 (PDF 332)\n   – 06016420 ระบบโครงสร้างพื้นฐานและการบริการ / INFRASTRUCTURE SYSTEMS AND SERVICES\n• หน้า 332 (PDF 333)\n   – 06016421 ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS\n• หน้า 333 (PDF 334)\n   – 06016423 การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้ / INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION\n• หน้า 357 (PDF 358)\n   – 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 219 (PDF 220)\n   – 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 325 (PDF 326)\n   – 06016407 โครงงาน 2 / PROJECT 2\n• หน้า 330 (PDF 331)\n   – 06016418 การพัฒนาเว็บฝั่งเซิร์ฟเวอร์ / SERVER-SIDE WEB DEVELOPMENT\n   – 06016419 โครงสร้างพื้นฐานเครือข่ายการสื่อสาร / COMMUNICATION NETWORK INFRASTRUCTURE\n• หน้า 331 (PDF 332)\n   – 06016420 ระบบโครงสร้างพื้นฐานและการบริการ / INFRASTRUCTURE SYSTEMS AND SERVICES\n• หน้า 332 (PDF 333)\n   – 06016421 ความมั่นคงปลอดภัยโครงสร้างพื้นฐานทางเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY INFRASTRUCTURE SECURITY\n   – 06016422 อินเทอร์เน็ตของสรรพสิ่ง / INTERNET OF THINGS\n• หน้า 333 (PDF 334)\n   – 06016423 การออโตเมชั่นและโครงสร้างพื้นฐานที่สามารถโปรแกรมได้ / INFRASTRUCTURE PROGRAMMABILITY AND AUTOMATION\n• หน้า 357 (PDF 358)\n   – 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -1373,7 +1245,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• หน้า 27 (PDF 32)\n• หน้า 28 (PDF 33)\n• หน้า 29 (PDF 34)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.5
   },
   {
     "id": "G2",
@@ -1391,22 +1263,6 @@
     "answer_model_output": null,
     "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ และ 06016405 พื้นฐานความมั่นคงปลอดภัยไซเบอร์ และ 06016410 วิศวกรรมซอฟต์แวร์ และ 06016413 ระบบเครือข่ายเบื้องต้น และ 06016424 การออกแบบส่วนต่อประสานกับมนุษย์ และ 06066000 คณิตศาสตร์ไม่ต่อเนื่อง และ 06066001 ความน่าจะเป็นและสถิติ และ 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ และ 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ และ 90641002 ความฉลาดทางดิจิทัล และ 90644007 ภาษาอังกฤษพื้นฐาน 1 และ 90644008 ภาษาอังกฤษพื้นฐาน 2 (3 ชั่วโมงต่อสัปดาห์)",
     "citations": [
-      {
-        "pdf_page": 31,
-        "printed_page": "26",
-        "courses": [
-          "06016401",
-          "90644007"
-        ],
-        "course_names": {
-          "06016401": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
-          "90644007": "ภาษาอังกฤษพื้นฐาน 1"
-        },
-        "course_names_en": {
-          "06016401": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
-          "90644007": "FOUNDATION ENGLISH 1"
-        }
-      },
       {
         "pdf_page": 324,
         "printed_page": "323",
@@ -1444,9 +1300,25 @@
           "06066001": "PROBABILITY AND STATISTICS",
           "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
         }
+      },
+      {
+        "pdf_page": 38,
+        "printed_page": "33",
+        "courses": [
+          "06016401",
+          "90644007"
+        ],
+        "course_names": {
+          "06016401": "คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ",
+          "90644007": "ภาษาอังกฤษพื้นฐาน 1"
+        },
+        "course_names_en": {
+          "06016401": "MATHEMATICS FOR INFORMATION TECHNOLOGY",
+          "90644007": "FOUNDATION ENGLISH 1"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n   – 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1\n• หน้า 323 (PDF 324)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n   – 06016405 พื้นฐานความมั่นคงปลอดภัยไซเบอร์ / CYBERSECURITY FUNDAMENTALS\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 323 (PDF 324)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n• หน้า 18 (PDF 23)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n   – 06016405 พื้นฐานความมั่นคงปลอดภัยไซเบอร์ / CYBERSECURITY FUNDAMENTALS\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 33 (PDF 38)\n   – 06016401 คณิตศาสตร์สำหรับเทคโนโลยีสารสนเทศ / MATHEMATICS FOR INFORMATION TECHNOLOGY\n   – 90644007 ภาษาอังกฤษพื้นฐาน 1 / FOUNDATION ENGLISH 1",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -1491,7 +1363,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• หน้า 27 (PDF 32)\n• หน้า 28 (PDF 33)\n• หน้า 29 (PDF 34)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.8
   },
   {
     "id": "H1",
@@ -1512,7 +1384,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 1.0
   },
   {
     "id": "H2",
@@ -1533,7 +1405,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.6
   },
   {
     "id": "H3",
@@ -1544,17 +1416,17 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT c.name_th, c.name_en, c.credits FROM course c WHERE c.code = '06017262' LIMIT 200",
+    "sql": "SELECT * FROM course WHERE code = '06017262'",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT c.name_th, c.name_en, c.credits FROM course c WHERE c.code = '06017262'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีรหัสวิชา 06017262 ในหลักสูตรนี้)",
     "citations": [],
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.0
   },
   {
     "id": "H4",
@@ -1575,7 +1447,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.9
   },
   {
     "id": "H5",
@@ -1586,7 +1458,7 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง' LIMIT 200",
+    "sql": "SELECT NULL WHERE 0",
     "n_rows": 0,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง'\"}",
@@ -1596,6 +1468,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 1.0
   }
 ]

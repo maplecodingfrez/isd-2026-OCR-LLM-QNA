@@ -75,14 +75,14 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 1.9
   },
   {
     "id": "B2",
@@ -106,11 +106,11 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -144,7 +144,7 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": [
           "06036102",
           "06036109",
@@ -197,10 +197,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM\n   – 96641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 234 (PDF 239)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n   – 06036109 กระบวนการและโมเดลทางธุรกิจ / BUSINESS PROCESSES AND BUSINESS MODEL\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n   – 06036125 สถาปัตยกรรมคอมพิวเตอร์และระบบปฏิบัติการ / COMPUTER ARCHITECTURE AND OPERATING SYSTEM\n   – 96641002 ความฉลาดทางดิจิทัล / DIGITAL INTELLIGENCE QUOTIENT\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 234 (PDF 239)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036102 การวิเคราะห์เชิงสถิติสำหรับธุรกิจ / STATISTICAL ANALYSIS FOR BUSINESS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.8
+    "seconds": 3.4
   },
   {
     "id": "B4",
@@ -224,11 +224,11 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -255,11 +255,11 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -293,7 +293,7 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": [
           "06036103",
           "06036104",
@@ -346,10 +346,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n   – 06036104 องค์กรและการจัดการ / MANAGEMENT AND ORGANIZATIONS\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n   – 06036120 หลักการโครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS PRINCIPLES\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 234 (PDF 239)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n   – 06036104 องค์กรและการจัดการ / MANAGEMENT AND ORGANIZATIONS\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n   – 06036120 หลักการโครงสร้างข้อมูลและอัลกอริทึม / DATA STRUCTURES AND ALGORITHMS PRINCIPLES\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 234 (PDF 239)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS\n• หน้า 16 (PDF 21)\n   – 06036103 บูรณาการเทคนิคเชิงสถิติสำหรับธุรกิจ / INTEGRATION OF STATISTICAL TECHNIQUES FOR BUSINESS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.8
+    "seconds": 2.7
   },
   {
     "id": "C1",
@@ -372,7 +372,7 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": [
           "06036117"
         ],
@@ -410,10 +410,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 240 (PDF 245)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 17 (PDF 22)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 240 (PDF 245)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA\n• หน้า 17 (PDF 22)\n   – 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.8
   },
   {
     "id": "C2",
@@ -436,7 +436,7 @@
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": [
           "06036105"
         ],
@@ -474,7 +474,7 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 235 (PDF 240)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 17 (PDF 22)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 235 (PDF 240)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS\n• หน้า 17 (PDF 22)\n   – 06036105 บัญชีการเงินสำหรับผู้มิใช่นักบัญชี / FINANCIAL ACCOUNTING FOR NON-AccountANTS",
     "correct": true,
     "why": "ตรง",
     "seconds": 2.2
@@ -541,7 +541,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 28 (PDF 33)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY\n• หน้า 243 (PDF 248)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY\n• หน้า 18 (PDF 23)\n   – 06036124 เครือข่ายคอมพิวเตอร์และความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO COMPUTER NETWORK AND CYBERSECURITY",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.6
   },
   {
     "id": "D1",
@@ -556,12 +556,12 @@
       "06036114"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('06036114')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06036114')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
+    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS)",
     "citations": [
       {
         "pdf_page": 33,
@@ -621,29 +621,16 @@
       "06036119"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('06036119')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06036119')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "06036119 (พื้นฐานการเขียนโปรแกรม)",
+    "answer": "06036119 (พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS)",
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
-        "courses": [
-          "06036119"
-        ],
-        "course_names": {
-          "06036119": "พื้นฐานการเขียนโปรแกรม"
-        },
-        "course_names_en": {
-          "06036119": "PROGRAMMING FUNDAMENTALS"
-        }
-      },
-      {
-        "pdf_page": 244,
-        "printed_page": "239",
+        "printed_page": "27",
         "courses": [
           "06036119"
         ],
@@ -666,9 +653,22 @@
         "course_names_en": {
           "06036119": "PROGRAMMING FUNDAMENTALS"
         }
+      },
+      {
+        "pdf_page": 23,
+        "printed_page": "18",
+        "courses": [
+          "06036119"
+        ],
+        "course_names": {
+          "06036119": "พื้นฐานการเขียนโปรแกรม"
+        },
+        "course_names_en": {
+          "06036119": "PROGRAMMING FUNDAMENTALS"
+        }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n• หน้า 239 (PDF 244)\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n• หน้า 241 (PDF 246)\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n• หน้า 241 (PDF 246)\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n• หน้า 18 (PDF 23)\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -686,16 +686,16 @@
       "96644008"
     ],
     "name_key": "name_en",
-    "sql": "SELECT code, name_th FROM course WHERE code IN ('96644008')",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('96644008')",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "96644008 (ภาษาอังกฤษพื้นฐาน 2)",
+    "answer": "96644008 (ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2)",
     "citations": [
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": [
           "96644008"
         ],
@@ -733,7 +733,7 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 178 (PDF 183)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 15 (PDF 20)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 27 (PDF 32)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 178 (PDF 183)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 15 (PDF 20)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -751,7 +751,7 @@
       "96643021"
     ],
     "name_key": "name_th",
-    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '96643021'",
+    "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '96643021' ORDER BY p.year, p.semester",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
@@ -816,7 +816,7 @@
       "06036108"
     ],
     "name_key": "name_th",
-    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '06036108'",
+    "sql": "SELECT code, name_th, credits FROM course WHERE code = '06036108'",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
@@ -996,7 +996,7 @@
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 28 (PDF 33)\n   – 06036111 เทคโนโลยีดิจิทัลสำหรับธุรกิจ / DIGITAL TECHNOLOGY FOR BUSINESS\n• หน้า 238 (PDF 243)\n   – 06036111 เทคโนโลยีดิจิทัลสำหรับธุรกิจ / DIGITAL TECHNOLOGY FOR BUSINESS\n• หน้า 17 (PDF 22)\n   – 06036111 เทคโนโลยีดิจิทัลสำหรับธุรกิจ / DIGITAL TECHNOLOGY FOR BUSINESS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.4
   },
   {
     "id": "F1",
@@ -1017,48 +1017,16 @@
       "06036114"
     ],
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06036114' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06036114'",
     "n_rows": 2,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06036114' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06036119, 06036122\"}",
-    "answer": "06036119 (พื้นฐานการเขียนโปรแกรม), 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\nวิชาบังคับก่อน: ผ่านอย่างใดอย่างหนึ่ง: 06036119 (พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS) หรือ 06036122 (การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS)",
     "citations": [
-      {
-        "pdf_page": 33,
-        "printed_page": "28",
-        "courses": [
-          "06036114"
-        ],
-        "course_names": {
-          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
-        },
-        "course_names_en": {
-          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
-        }
-      },
       {
         "pdf_page": 244,
         "printed_page": "239",
-        "courses": [
-          "06036114",
-          "06036119",
-          "06036122"
-        ],
-        "course_names": {
-          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก",
-          "06036119": "พื้นฐานการเขียนโปรแกรม",
-          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
-        },
-        "course_names_en": {
-          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
-          "06036119": "PROGRAMMING FUNDAMENTALS",
-          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
-        }
-      },
-      {
-        "pdf_page": 22,
-        "printed_page": "17",
         "courses": [
           "06036114"
         ],
@@ -1070,10 +1038,10 @@
         }
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 28 (PDF 33)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n   – 06036119 พื้นฐานการเขียนโปรแกรม / PROGRAMMING FUNDAMENTALS\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 17 (PDF 22)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.3
+    "seconds": 0.0
   },
   {
     "id": "E5",
@@ -1088,7 +1056,7 @@
       "06036123"
     ],
     "name_key": "name_th",
-    "sql": "SELECT c.code, c.name_th, c.credits, p.year, p.semester FROM course c LEFT JOIN plan_item p ON p.code = c.code WHERE c.code = '06036123'",
+    "sql": "SELECT code, name_th, credits FROM course WHERE code = '06036123'",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
@@ -1158,76 +1126,12 @@
       "06036122"
     ],
     "direction": "reverse",
-    "sql": "SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre' LIMIT 200",
-    "n_rows": 1,
-    "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06036122' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06036114\"}",
-    "answer": "06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก)",
-    "citations": [
-      {
-        "pdf_page": 32,
-        "printed_page": null,
-        "courses": [
-          "06036122"
-        ],
-        "course_names": {
-          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
-        },
-        "course_names_en": {
-          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
-        }
-      },
-      {
-        "pdf_page": 244,
-        "printed_page": "239",
-        "courses": [
-          "06036122",
-          "06036114"
-        ],
-        "course_names": {
-          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ",
-          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
-        },
-        "course_names_en": {
-          "06036122": "VISUAL COMMUNICATION FOR BUSINESS",
-          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
-        }
-      },
-      {
-        "pdf_page": 247,
-        "printed_page": "242",
-        "courses": [
-          "06036122"
-        ],
-        "course_names": {
-          "06036122": "การสื่อสารด้วยภาพสำหรับธุรกิจ"
-        },
-        "course_names_en": {
-          "06036122": "VISUAL COMMUNICATION FOR BUSINESS"
-        }
-      }
-    ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 32\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n• หน้า 239 (PDF 244)\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS\n• หน้า 242 (PDF 247)\n   – 06036122 การสื่อสารด้วยภาพสำหรับธุรกิจ / VISUAL COMMUNICATION FOR BUSINESS",
-    "correct": true,
-    "why": "ครบพอดี",
-    "seconds": 2.2
-  },
-  {
-    "id": "F3",
-    "category": "F",
-    "level": "2",
-    "question": "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่",
-    "expect": {
-      "type": "value",
-      "value": "2"
-    },
-    "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
+    "sql": "SELECT code FROM prerequisite WHERE requires = '06036122'",
     "n_rows": 1,
     "error": null,
     "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "2 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "answer": "วิชาต่อที่ต้องผ่าน 06036122 ก่อน:\n06036114 (การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS) (วิชานี้เป็นทางเลือกหนึ่ง)",
     "citations": [
       {
         "pdf_page": 244,
@@ -1244,6 +1148,54 @@
       }
     ],
     "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
+    "correct": true,
+    "why": "ครบพอดี",
+    "seconds": 0.0
+  },
+  {
+    "id": "F3",
+    "category": "F",
+    "level": "2",
+    "question": "ความสัมพันธ์วิชาบังคับก่อนมีทั้งหมดกี่คู่",
+    "expect": {
+      "type": "value",
+      "value": "3"
+    },
+    "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
+    "n_rows": 1,
+    "error": null,
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "3 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "citations": [
+      {
+        "pdf_page": 183,
+        "printed_page": "178",
+        "courses": [
+          "96644008"
+        ],
+        "course_names": {
+          "96644008": "ภาษาอังกฤษพื้นฐาน 2"
+        },
+        "course_names_en": {
+          "96644008": "FOUNDATION ENGLISH 2"
+        }
+      },
+      {
+        "pdf_page": 244,
+        "printed_page": "239",
+        "courses": [
+          "06036114"
+        ],
+        "course_names": {
+          "06036114": "การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก"
+        },
+        "course_names_en": {
+          "06036114": "WEB APPLICATION DEVELOPMENT USING FRAMEWORKS"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 178 (PDF 183)\n   – 96644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 239 (PDF 244)\n   – 06036114 การพัฒนาเว็บแอปพลิเคชันโดยใช้เฟรมเวิร์ก / WEB APPLICATION DEVELOPMENT USING FRAMEWORKS",
     "correct": true,
     "why": "ตรง",
     "seconds": 0.0
@@ -1271,7 +1223,7 @@
       },
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       },
       {
@@ -1280,10 +1232,10 @@
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• PDF 32\n• หน้า 28 (PDF 33)",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• หน้า 27 (PDF 32)\n• หน้า 28 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.1
   },
   {
     "id": "G2",
@@ -1384,7 +1336,7 @@
       },
       {
         "pdf_page": 32,
-        "printed_page": null,
+        "printed_page": "27",
         "courses": []
       },
       {
@@ -1393,10 +1345,10 @@
         "courses": []
       }
     ],
-    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• PDF 32\n• หน้า 28 (PDF 33)",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 26 (PDF 31)\n• หน้า 27 (PDF 32)\n• หน้า 28 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.7
   },
   {
     "id": "H1",
@@ -1417,7 +1369,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 1.0
   },
   {
     "id": "H2",
@@ -1438,7 +1390,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.7
   },
   {
     "id": "H3",
@@ -1449,7 +1401,7 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE code = '06039430' LIMIT 200",
+    "sql": "SELECT NULL WHERE 0",
     "n_rows": 0,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE code = '06039430'\" }",
@@ -1459,7 +1411,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 0.8
   },
   {
     "id": "H4",
@@ -1480,7 +1432,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 1.2
+    "seconds": 1.9
   },
   {
     "id": "H5",
@@ -1491,7 +1443,7 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาการทำอาหารไทยเชิงพาณิชย์' LIMIT 200",
+    "sql": "SELECT NULL WHERE 0",
     "n_rows": 0,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาการทำอาหารไทยเชิงพาณิชย์'\" }",
@@ -1501,6 +1453,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 1.0
   }
 ]
