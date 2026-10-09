@@ -272,8 +272,8 @@
 
   function prerequisiteEmptyText(data) {
     return data && data.prerequisite_status === "none"
-      ? "ไม่มีวิชาบังคับก่อนตามข้อมูลหลักสูตร"
-      : "ยังไม่ทราบข้อมูลวิชาบังคับก่อน กรุณาตรวจเล่มหลักสูตร";
+      ? t("prereq.noneRequired")
+      : t("prereq.unknownRequired");
   }
 
   async function currentProgramResult(request, program, currentProgram) {
@@ -611,7 +611,7 @@
       var rootNames = courseNames(data.course);
       $("withdraw-course").textContent = (data.course.code || "") + " " + rootNames.primary;
       $("withdraw-summary").textContent = t("withdraw.summary", { d: data.direct.length, i: data.indirect.length });
-      $("withdraw-note").textContent = data.note;
+      $("withdraw-note").textContent = t("withdraw.note");
       ["direct", "indirect"].forEach(function (key) {
         var list = $("withdraw-" + key);
         clear(list);
@@ -859,17 +859,29 @@
     var tabs = $("cite-tabs");
     if (tabs) {
       clear(tabs);
-      items.forEach(function (c) {        // 1 หน้าอ้างอิง = 1 แถว: ตราเลขหน้า + วิชาที่พบในหน้านั้น
-        var stamp = el("span", { className: "cite-tab" }, [
-          el("span", { className: "page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf }),
-          c.printed !== null ? el("span", { className: "pdf", text: "PDF " + c.pdf }) : null
-        ].filter(Boolean));
-        var row = el("li", { className: "cite-row" }, [stamp]);
-        if (c.courses.length) {
+      // หน้าที่อ้างวิชาชุดเดียวกัน = หัวข้อเดียวกัน → รวมเป็นกรอบเดียว (ตราเลขหน้าหลายใบ + รายการวิชาครั้งเดียว);
+      // หน้าที่ไม่มีวิชาระบุรวมเป็นกรอบ "เฉพาะหน้า" กรอบเดียว กรอบอื่นแยกกันคนละกรอบ
+      var groups = [], byKey = {};
+      items.forEach(function (c) {
+        var key = c.courses.join("|");
+        if (!byKey.hasOwnProperty(key)) { byKey[key] = { courses: c.courses, names: c.names, namesEn: c.namesEn, pages: [] }; groups.push(byKey[key]); }
+        byKey[key].pages.push(c);
+      });
+      groups.forEach(function (group) {
+        var stamps = el("div", { className: "cite-stamps" }, group.pages.map(function (c) {
+          return el("span", { className: "cite-tab" }, [
+            el("span", { className: "page", text: c.printed !== null ? t("cite.page", { n: c.printed }) : "PDF " + c.pdf }),
+            c.printed !== null ? el("span", { className: "pdf", text: "PDF " + c.pdf }) : null
+          ].filter(Boolean));
+        }));
+        var row = el("li", { className: "cite-row" }, [stamps]);
+        if (group.courses.length) {
           var chipList = el("ul", { className: "cite-chip-list" });
-          c.courses.forEach(function (code) {
-            var label = [c.names[code] ? code + " " + c.names[code] : code, c.namesEn[code]].filter(Boolean).join(" / ");
-            chipList.appendChild(el("li", { className: "cite-chip", text: label }));
+          group.courses.forEach(function (code) {
+            var parts = [el("span", { className: "cite-code", text: code })];
+            if (group.names[code]) parts.push(el("span", { className: "cite-name", text: group.names[code] }));
+            if (group.namesEn[code]) parts.push(el("span", { className: "cite-name-en", text: group.namesEn[code] }));
+            chipList.appendChild(el("li", { className: "cite-chip" }, parts));
           });
           row.appendChild(chipList);
         }
@@ -1019,7 +1031,7 @@
       $("copy-hint").hidden = true;
       $("copy-button").textContent = t("copy.done");
       $("copy-button").classList.add("is-copied");
-      $("live-status").textContent = "คัดลอกผลแล้ว";     // ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ
+      $("live-status").textContent = t("copy.live");     // ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ
       clearTimeout(copyTimer);
       copyTimer = setTimeout(function () {
         $("copy-button").textContent = t("copy.btn");
@@ -1031,7 +1043,7 @@
     box.value = text;
     box.hidden = false;
     $("copy-hint").hidden = false;
-    $("live-status").textContent = "คัดลอกอัตโนมัติไม่ได้ โปรดคัดลอกจากกล่องด้านล่าง";
+    $("live-status").textContent = t("copy.hint");
     box.focus();
     box.select();
   }
@@ -1209,6 +1221,7 @@
   var programInfo = {};
   var coursesRequest = 0;
   var loadedCourses = [];
+  var coursesState = "loading";
 
   // รายการ autocomplete + ตัวอย่างรายวิชาในการ์ดภาพรวม (วาดใหม่ได้เมื่อสลับภาษา)
   function renderCourseLists() {
@@ -1221,6 +1234,11 @@
     });
     var previewBox = $("dash-course-preview");
     clear(previewBox);
+    if (coursesState !== "success") {
+      previewBox.appendChild(el("p", { className: "muted", text: t(coursesState === "loading" ? "dash.loading" : "dash.unavailable") }));
+      $("dash-course-count").textContent = "-";
+      return;
+    }
     loadedCourses.slice(0, 4).forEach(function (course) {
       previewBox.appendChild(el("div", { className: "course-mini-row" }, [
         el("span", { className: "mini-code", text: course.code || "" }),
@@ -1234,10 +1252,16 @@
 
   async function loadCourses() {
     var mine = ++coursesRequest;           // เปลี่ยนหลักสูตรเร็ว ๆ: ใช้เฉพาะผลของคำขอล่าสุด
+    loadedCourses = [];
+    coursesState = "loading";
+    renderCourseLists();
+    clear($("prereq-samples"));
+    $("prereq-samples-wrap").hidden = true;
     try {
       var courses = await apiFetch(withProgram("/api/courses?limit=100", $("program").value), {}, { timeoutMs: 15000 });
       if (mine !== coursesRequest) return;
       loadedCourses = courses;
+      coursesState = "success";
       renderCourseLists();
       var samples = $("prereq-samples");
       clear(samples);
@@ -1247,7 +1271,9 @@
       $("prereq-samples-wrap").hidden = courses.length === 0;
     } catch (e) {
       if (mine !== coursesRequest) return;
-      clear($("courses-list"));            // ไม่มี autocomplete ก็ใช้งานได้ (และไม่ค้างรายการของหลักสูตรก่อนหน้า)
+      loadedCourses = [];
+      coursesState = "unavailable";
+      renderCourseLists();
       clear($("prereq-samples"));
       $("prereq-samples-wrap").hidden = true;
     }
@@ -1322,9 +1348,7 @@
   }
 
   function currentTheme() {
-    var chosen = document.documentElement.dataset.theme;
-    if (chosen === "light" || chosen === "dark") return chosen;
-    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";   // ยังไม่เลือก = ตามระบบ
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";   // ยังไม่เลือก = สว่าง (ไม่ตามระบบ)
   }
 
   function syncThemeButton() {
@@ -1598,9 +1622,6 @@
   $("theme-toggle").addEventListener("click", function () {
     applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
-  if (window.matchMedia) {
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncThemeButton);
-  }
 
   var savedTab = 0;
   try { savedTab = parseInt(localStorage.getItem("tool-tab"), 10); } catch (e) { savedTab = 0; }

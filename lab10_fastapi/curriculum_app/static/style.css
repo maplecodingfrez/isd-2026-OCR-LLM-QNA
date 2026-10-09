@@ -1,7 +1,7 @@
 /* ==========================================================================
    Curriculum QnA: warm cream (light) and layered charcoal (dark) themes.
-   One token set; the theme follows the system setting unless the visitor
-   picked one (data-theme on the root element).
+   One token set; light is the default and dark only applies when the visitor
+   picked it (data-theme="dark" on the root element, saved by the toggle).
    ========================================================================== */
 
 @font-face {
@@ -38,6 +38,7 @@
 /* ---------- tokens: light is the base ---------- */
 :root {
   color-scheme: light;
+  --tag-col: 5.5rem;   /* code / "เลือกเอง" column of course rows */
   --bg: #fff8f0;
   --page-background: var(--bg);
   --header-background: var(--bg);
@@ -88,54 +89,7 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* dark: layered charcoal, used when the system asks for it and nothing was chosen.
-   Keep the values identical to :root[data-theme="dark"] below (CSS cannot share one rule across a media query). */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-    --page-background: radial-gradient(ellipse at 45% 0%, #151518 0%, #0c0c0e 65%);
-    --header-background: #111114;
-    --card-shadow: 0 1px 0 #ffffff05 inset, 0 12px 36px #00000020;
-    --bg: #0c0c0e;
-    --surface: #161619;
-    --surface-2: #1e1e22;
-    --surface-hover: #28282d;
-    --line: #36363d;
-    --field-line: #858585;
-    --ready-bg: #1e1e22;
-    --ready-fg: #bdbdbd;
-    --ready-line: #36363d;
-    --ready-dot-display: inline-block;
-    --ready-dot: #83b896;
-    --elapsed-bg: #28282d;
-    --elapsed-fg: #bdbdbd;
-    --example-line: #858585;
-    --example-hover-bg: #28282d;
-    --example-hover-fg: #f5f5f5;
-    --example-hover-line: #dedede;
-    --answer-panel-bg: #1e1e22;
-    --answer-panel-line: #45454e;
-    --text: #f5f5f5;
-    --muted: #bdbdbd;
-    --accent: #dedede;
-    --accent-hover: #ffffff;
-    --on-accent: #101010;
-    --choice-bg: #28282d;
-    --choice-fg: #dedede;
-    --ok-bg: #12372b;
-    --ok-fg: #7ee2b0;
-    --warn-bg: #4a3512;
-    --warn-fg: #fde68a;
-    --err-bg: #3b1020;
-    --err-fg: #ffb4c0;
-    --t1-bg: #1e1e22; --t1-fg: #f5f5f5;
-    --t2-bg: #1e1e22; --t2-fg: #f5f5f5;
-    --t3-bg: #1e1e22; --t3-fg: #f5f5f5;
-    --t4-bg: #1e1e22; --t4-fg: #f5f5f5;
-    --t5-bg: #1e1e22; --t5-fg: #f5f5f5;
-    --t6-bg: #1e1e22; --t6-fg: #f5f5f5;
-  }
-}
+:root[lang="en"] { --tag-col: 7.25rem; }   /* "Your choice" is wider than "เลือกเอง"; one width for every row keeps names aligned */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --page-background: radial-gradient(ellipse at 45% 0%, #151518 0%, #0c0c0e 65%);
@@ -358,10 +312,17 @@ textarea#question::placeholder { color: var(--muted); }
   background: var(--elapsed-bg); color: var(--elapsed-fg); white-space: nowrap;
 }
 .answer-card-body { padding: 16px; }
-.cite-tabs { list-style: none; display: grid; gap: 8px; margin-bottom: 12px; }
-.cite-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-.cite-row .cite-chip-list { margin-top: 0; }
-.cite-row .cite-chip { border: 2px solid var(--line); }
+.cite-tabs { list-style: none; display: grid; gap: 10px; margin-bottom: 12px; }
+/* one framed box per cited topic: page stamps on top, the courses found there listed below (one per line, not pills) */
+.cite-row { display: grid; gap: 8px; padding: 10px 12px; border: 2px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.cite-stamps { display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.cite-row .cite-chip-list { display: grid; gap: 0; margin-top: 0; }
+.cite-row .cite-chip { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; gap: 0 12px; padding: 6px 0; border-radius: 0; background: none; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.cite-row .cite-chip:first-child { border-top: 0; padding-top: 2px; }
+.cite-code { font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--accent); }
+.cite-name { font-weight: 600; }
+.cite-name-en { grid-column: 2; color: var(--muted); font-size: 15px; }
+@media (max-width: 580px) { .cite-row .cite-chip { grid-template-columns: minmax(0, 1fr); } .cite-name-en { grid-column: 1; } }
 /* page reference under the answer: a compact outlined tag, quieter than the answer itself */
 .cite-block { margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
 .cite-block:has(#cite-tabs:empty) { display: none; }
@@ -373,6 +334,7 @@ textarea#question::placeholder { color: var(--muted); }
 }
 .cite-tab .pdf { font-family: var(--font-body); font-weight: 400; font-size: 15px; color: var(--text); }
 .answer-text { font-size: 17px; line-height: 1.7; max-width: 70ch; }
+.answer-text:has(.course-lines) { max-width: none; }   /* course rows fill the card; the 70ch cap left a dead strip on the right (credits column stopped at ~680px) */
 .answer-text p + p, .answer-text p + ul, .answer-text ul + p { margin-top: 10px; }
 .answer-text .count-big { font-family: var(--font-head); font-size: 30px; color: var(--accent); font-variant-numeric: tabular-nums; }
 .answer-list, .course-list { list-style: none; display: grid; gap: 6px; }
@@ -400,7 +362,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .course-lead { font-family: var(--font-head); font-weight: 700; font-size: 18px; margin-bottom: 4px; }
 .course-lines { list-style: none; display: grid; }
 .course-line {
-  display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
+  display: grid; grid-template-columns: var(--tag-col) minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
   padding: 10px 0; border-bottom: 2px solid var(--line);
 }
 .course-line:last-child { border-bottom: 0; }
@@ -410,7 +372,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .course-meta { display: grid; justify-items: end; gap: 1px; text-align: right; }
 .course-credits { font-weight: 600; white-space: nowrap; }
 .course-hours { color: var(--muted); font-size: 15px; }
-.slot-tag { justify-self: start; font-size: 15px; font-weight: 600; padding: 1px 10px; border-radius: 999px; background: var(--choice-bg); color: var(--choice-fg); }
+.slot-tag { justify-self: start; white-space: nowrap; font-size: 15px; font-weight: 600; padding: 1px 10px; border-radius: 999px; background: var(--choice-bg); color: var(--choice-fg); }
 .term-group-heading { display: flex; align-items: baseline; gap: 12px; }
 .term-group-heading .slot-tag { flex-shrink: 0; }
 .course-tail { margin-top: 8px; }
@@ -427,7 +389,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .impact-summary { font-family: var(--font-head); font-weight: 700; font-size: 18px; color: var(--accent); margin: 4px 0 8px; }
 .impact-note { margin-top: 12px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--surface-2); border: 2px solid var(--line); color: var(--muted); font-size: 15px; }
 .tool-card .cite-cards { margin-top: 10px; }
-.tool-card .course-line { grid-template-columns: 5.5rem minmax(0, 1fr); padding: 8px 0; }
+.tool-card .course-line { grid-template-columns: var(--tag-col) minmax(0, 1fr); padding: 8px 0; }
 .tool-card .course-meta { grid-column: 2; display: flex; flex-wrap: wrap; justify-items: start; gap: 2px 12px; text-align: left; }
 .prereq-box .course-line:last-child, .tool-card .course-lines .course-line:last-child { border-bottom: 0; }
 
@@ -524,7 +486,9 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .stat-key { color: var(--muted); }
 .stat-val { font-weight: 600; font-variant-numeric: tabular-nums; }
 .course-mini-row { display: flex; gap: 10px; padding: 3px 0; font-size: 15px; }
-.mini-credits { margin-left: auto; color: var(--muted); }
+.mini-code { flex: none; white-space: nowrap; }
+.mini-name { min-width: 0; }
+.mini-credits { margin-left: auto; flex: none; white-space: nowrap; color: var(--muted); }
 
 /* ---------- motion ---------- */
 @keyframes fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -550,7 +514,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 }
 
 @media (max-width: 580px) {
-  textarea#question { min-height: 104px; }
+  textarea#question { min-height: 128px; }   /* fits the 4-line wrapped placeholder (4 x 25.5px + 12px padding) without an inner scrollbar */
   .tab { flex: 1 1 auto; text-align: center; }
   .elective-credits { margin-left: 0; }
 }
