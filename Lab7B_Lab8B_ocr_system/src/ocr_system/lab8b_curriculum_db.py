@@ -1211,6 +1211,29 @@ _TERM_SEM_Q = re.compile(r"(?:เทอม|ภาค(?:เรียน|การ
 TERM_TOTAL_COLS = ("total_credits", "n_courses")
 
 
+_LAB_HOURS_Q = re.compile(r"แล็บ|แลป|ปฏิบัติ|ลงมือ")
+_SELF_HOURS_Q = re.compile(r"ศึกษาด้วยตนเอง|ศึกษาเอง|นอกชั้นเรียน")
+
+
+def _lab_hours_hint_text(question: str) -> str:
+    """ถามชั่วโมงแล็บ/ปฏิบัติ หรือศึกษาด้วยตนเอง: qwen เคยเลือกผิดคอลัมน์ (lecture_h/self_h) บวกสามคอลัมน์รวมกัน
+    และอ้าง plan_item ที่ไม่มีคอลัมน์ชั่วโมง คำใบ้บอกความหมายคอลัมน์ — เปิดเฉพาะเมื่อมี "ชั่วโมง" และคำของคอลัมน์นั้น
+    (คำถามอื่น prompt เหมือนเดิมทุกตัวอักษร)"""
+    if "ชั่วโมง" not in question:
+        return ""
+    if _LAB_HOURS_Q.search(question):
+        column, label = "lab_h", "ชั่วโมงปฏิบัติการ"
+    elif _SELF_HOURS_Q.search(question):
+        column, label = "self_h", "ชั่วโมงศึกษาด้วยตนเอง"
+    else:
+        return ""
+    return (
+        "ชั่วโมงต่อสัปดาห์อยู่ในตาราง course เท่านั้น (plan_item ไม่มีคอลัมน์ชั่วโมง): "
+        "lab_h = ชั่วโมงปฏิบัติการ/แล็บ/ภาคปฏิบัติ, lecture_h = ชั่วโมงบรรยาย/ทฤษฎี, self_h = ชั่วโมงศึกษาด้วยตนเอง/นอกชั้นเรียน — "
+        f"คำถามนี้ถาม{label} ให้ใช้ {column} คอลัมน์เดียว ห้ามบวกรวมกับคอลัมน์อื่น\n\n"
+    )
+
+
 def _term_summary_hint_text(question: str) -> str:
     """คำถามควบ "ปี/เทอมนี้ กี่หน่วยกิต/กี่วิชา + มีวิชาอะไรบ้าง": มีคำว่า "กี่…" โมเดลเลยเลือก v_semester_credits
     (มีแค่ credits, n_courses ไม่มีชื่อวิชา) ส่วน "…อะไรบ้าง" ไปใช้ v_plan (ได้ชื่อวิชาแต่ไม่มียอดรวม) — ได้ครึ่งเดียวทั้งสองทาง
@@ -1700,12 +1723,12 @@ def _hours_filter_spec(question: str) -> tuple[str, str, int, str, str] | None:
     if re.search(r"ไม่มี(?:ชั่วโมง)?" + re.escape(word), question):
         return col, "=", 0, label, "เท่ากับ"
     ops = "|".join(p for p, _, _ in _HOURS_OPS)
-    match = re.search(re.escape(word) + rf"\s*(?P<op>{ops}|มี|เป็น|=)?\s*(?P<n>\d+)(?!\d)", question)
+    match = re.search(re.escape(word) + rf"(?:การ)?\s*(?P<op>{ops}|มี|เป็น|=)?\s*(?P<n>\d+)(?!\d)", question)
     if match:
         raw_op = match.group("op") or "เท่ากับ"
         op, op_label = next(((o, text) for p, o, text in _HOURS_OPS if re.fullmatch(p, raw_op)), ("=", "เท่ากับ"))
         return col, op, int(match.group("n")), label, op_label
-    match = re.search(r"มี\s*(\d+)\s*ชั่วโมง\s*" + re.escape(word), question)
+    match = re.search(r"มี\s*(\d+)\s*ชั่วโมง\s*" + re.escape(word) + r"(?:การ)?", question)
     return (col, "=", int(match.group(1)), label, "เท่ากับ") if match else None
 
 
@@ -5666,7 +5689,8 @@ def ask(conn: sqlite3.Connection, question: str,
     # แทรกไว้หน้าบรรทัดคำถาม และเฉพาะเมื่อเจอชื่อวิชา (ไม่เจอ = prompt เหมือนเดิมทุกตัวอักษร)
     base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
     hints = (_course_name_hint_text(conn, question) + _elective_hint_text(conn, question)
-             + _topic_hint_text(conn, question) + _term_summary_hint_text(question))
+             + _topic_hint_text(conn, question) + _term_summary_hint_text(question)
+             + _lab_hours_hint_text(question))
     if hints:
         tail = f"คำถาม: {question}\nSQL:"
         base_prompt = base_prompt[: -len(tail)] + hints + tail

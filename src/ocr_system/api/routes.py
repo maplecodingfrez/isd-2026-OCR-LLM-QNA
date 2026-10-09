@@ -33,6 +33,21 @@ from .service import OCRService, repository
 _ocr_slots = BoundedSemaphore(settings.max_concurrent_ocr)
 
 
+async def _read_upload_limited(file: UploadFile, filename: str) -> bytes:
+    """Bound application memory even when parsed upload size is unavailable."""
+    known_size = getattr(file, "size", None)
+    OCRService.validate_file(filename, known_size if known_size is not None else 0)
+    max_bytes = settings.max_upload_mb * 1024 * 1024
+    content = bytearray()
+    while True:
+        chunk = await file.read(min(64 * 1024, max_bytes - len(content) + 1))
+        if not chunk:
+            return bytes(content)
+        content.extend(chunk)
+        if len(content) > max_bytes:
+            OCRService.validate_file(filename, len(content))
+
+
 def _process_document_limited(**kwargs) -> DocumentDetailResponse:
     if not _ocr_slots.acquire(blocking=False):
         raise HTTPException(status_code=503, detail='OCR workers are busy; retry later')
@@ -123,7 +138,7 @@ async def process_document(
     extract_fields: Annotated[bool, Form(description="Extract common regex fields (ID, date, etc.)")] = True,
 ) -> DocumentDetailResponse:
     filename = file.filename or "upload.bin"
-    file_bytes = await file.read()
+    file_bytes = await _read_upload_limited(file, filename)
 
     detail = await run_in_threadpool(
         _process_document_limited,
