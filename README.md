@@ -24,23 +24,43 @@
 
 ใช้งานได้ทันทีหลัง clone — ฐานข้อมูล `curriculum.db` ทั้ง 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมีไฟล์ PDF เล่มหลักสูตรหรือไฟล์ `.env`
 
-**สิ่งที่ต้องมี:** Python 3.10+ และ [Ollama](https://ollama.com) (โมเดล `qwen3:4b`)
+**สิ่งที่ต้องมี:** Python 3.10+, Git และ [Ollama](https://ollama.com) (โมเดล `qwen3:4b`, ใช้ดิสก์ราว 3 GB) — ไม่ต้องมี GPU, ไม่ต้องต่ออินเทอร์เน็ตตอนใช้งาน (ต้องใช้เฉพาะตอนติดตั้งและดึงโมเดลครั้งแรก)
 
-```bash
+### ข้อ 1 — ตั้งค่าครั้งแรก (ทำครั้งเดียวต่อเครื่อง)
+
+```powershell
 git clone https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA.git
-cd isd-2026-OCR-LLM-QNA
-git checkout feature/lab11-frontend          # ถ้ายังไม่ merge เข้า main
+cd isd-2026-OCR-LLM-QNA                      # branch main คือโค้ดฉบับส่งงาน
 
 python -m venv .venv
-.venv\Scripts\Activate.ps1                   # Windows PowerShell (macOS/Linux: source .venv/bin/activate)
+.venv\Scripts\Activate.ps1                   # macOS/Linux: source .venv/bin/activate
 # *หาก Windows แจ้งข้อผิดพลาด execution policy ให้รัน: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r lab10_fastapi/curriculum_app/requirements.txt
 
-ollama pull qwen3:4b                         # ครั้งแรกครั้งเดียว (และเปิดแอปพลิเคชัน Ollama ไว้)
+ollama pull qwen3:4b                         # ดึงโมเดล (ต้องต่อเน็ต) ตรวจด้วย: ollama list
+```
+
+### ข้อ 2 — เปิดใช้งานทุกครั้ง (เปิดเครื่องใหม่ / ปิดโปรแกรมไปแล้ว)
+
+เปิดเทอร์มินัล PowerShell ที่โฟลเดอร์โปรเจกต์ แล้วรันตามลำดับ:
+
+```powershell
+# 2.1 เปิด Ollama (ถ้าเปิดแอป Ollama ในถาด Windows อยู่แล้ว ข้ามข้อนี้ได้)
+ollama serve                                 # เปิดค้างไว้ในเทอร์มินัลนี้ แล้วเปิดเทอร์มินัลใหม่ต่อ
+
+# 2.2 เข้าโฟลเดอร์โปรเจกต์ + เปิด venv (ในเทอร์มินัลใหม่)
+cd isd-2026-OCR-LLM-QNA
+.venv\Scripts\Activate.ps1
+
+# 2.3 เปิดเซิร์ฟเวอร์ (ครั้งแรกจะอุ่นโมเดลให้ตอนเริ่ม รอจนขึ้น "Application startup complete")
 python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
 ```
 
+### ข้อ 3 — เปิดหน้าเว็บ
+
 เปิด <http://127.0.0.1:8000/> (หน้าเว็บ) · ตรวจความพร้อม: <http://127.0.0.1:8000/api/health> ต้องได้ `status: ok` · เอกสาร API: <http://127.0.0.1:8000/docs>
+
+หยุดระบบ: กด `Ctrl+C` ในเทอร์มินัลของ uvicorn
 
 **วิธีใช้หน้าเว็บ**
 1. เลือกหลักสูตรจาก 7 แผน (AIT, BIT/DSBA/IT แบบสหกิจ–ไม่สหกิจ)
@@ -55,7 +75,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 **ข้อควรรู้**
 - ต้องเปิด Ollama ไว้ — ไม่งั้นมีเพียงคำถามที่ระบบตอบด้วยกฎตายตัว (ราว 30–45% ของคำถามที่ไม่เคยเห็น) ที่ตอบได้ ที่เหลือจะแจ้งว่าเชื่อมต่อ Ollama ไม่ได้ ครั้งแรกโมเดลโหลดช้า (เซิร์ฟเวอร์อุ่นโมเดลให้ตอนเริ่ม)
-- ความแม่นกับสำนวนคำถามที่ไม่เคยเห็นประมาณ 75% (วัดด้วยชุดคำถามอิสระ) ข้อจำกัดที่รู้อยู่ใน `lab10_fastapi/README.md` §19
+- ความแม่นกับสำนวนคำถามที่ไม่เคยเห็นราว 75–79% (ชุดคำถามอิสระ + Master Test Suite 108/136) ข้อจำกัดที่รู้อยู่ใน `lab10_fastapi/README.md` §19
 - ปัญหาที่พบบ่อย: พอร์ต 8000 ถูกใช้อยู่ → เปลี่ยน `--port`; `/api/health` ไม่ ok → ตรวจว่า `ollama serve` ทำงานและมีโมเดล `qwen3:4b` (`ollama list`)
 - รายละเอียด API/สถาปัตยกรรม: `lab10_fastapi/README.md`
 
