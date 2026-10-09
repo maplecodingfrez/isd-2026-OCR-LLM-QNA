@@ -1,0 +1,37 @@
+{
+ "question": "วิชาที่มีชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมงมีอะไรบ้าง",
+ "answer": "วิชาในแผนที่ชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมง มี 5 วิชา: 06026214 โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1 — 3 (0-9-0) หน่วยกิต (บรรยาย 0-ปฏิบัติ 9-ศึกษาด้วยตนเอง 0), 06026215 โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2 — 3 (0-9-0) หน่วยกิต (บรรยาย 0-ปฏิบัติ 9-ศึกษาด้วยตนเอง 0), 06026259 สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต (บรรยาย 0-ปฏิบัติ 35-ศึกษาด้วยตนเอง 0), 06026260 สหกิจศึกษาต่างประเทศทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ / OVERSEA COOPERERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS — 6 (0-35-0) หน่วยกิต (บรรยาย 0-ปฏิบัติ 35-ศึกษาด้วยตนเอง 0), 90641003 กีฬาและนันทนาการ / SPORTS AND RECREATIONAL ACTIVITIES — 1 (0-3-2) หน่วยกิต (บรรยาย 0-ปฏิบัติ 3-ศึกษาด้วยตนเอง 2)",
+ "answer_type": "database",
+ "rows": [
+  {
+   "code": "06026214",
+   "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
+   "credits": 3,
+   "lecture_h": 0,
+   "lab_h": 9,
+   "self_h": 0,
+   "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
+   "credits_display": "3 (0-9-0)"
+  },
+  {
+   "code": "06026215",
+   "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2",
+   "credits": 3,
+   "lecture_h": 0,
+   "lab_h": 9,
+   "self_h": 0,
+   "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
+   "credits_display": "3 (0-9-0)"
+  },
+  {
+   "code": "06026259",
+   "name_th": "สหกิจศึกษาทางวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ",
+   "credits": 6,
+   "lecture_h": 0,
+   "lab_h": 35,
+   "self_h": 0,
+   "name_en": "COOPERATIVE EDUCATION IN DATA SCIENCE AND BUSINESS ANALYTICS",
+   "credits_display": "6 (0-35-0)"
+  }
+ ]
+}

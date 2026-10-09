@@ -1,0 +1,43 @@
+{
+ "question": "มีวิชาเกี่ยวกับฐานข้อมูลไหม",
+ "program": "bit_coop",
+ "answer": "วิชาที่เกี่ยวกับ \"ฐานข้อมูล\" ในหลักสูตรนี้ มี 4 วิชา:\n- 06036112 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06036127 ระบบฐานข้อมูลขั้นสูง (มีในเล่ม)\n- 06036100 พื้นฐานทางด้านเทคโนโลยีสารสนเทศ / INFORMATION TECHNOLOGY FUNDAMENTALS — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06036117 อัจฉริยะทางธุรกิจและข้อมูลขนาดใหญ่ / BUSINESS INTELLIGENCE AND BIG DATA — 3 (3-0-6) หน่วยกิต (ในแผน)",
+ "answer_type": "database",
+ "rows": [
+  {
+   "code": "06036112",
+   "name_th": "แนวคิดระบบฐานข้อมูล",
+   "name_en": "DATABASE SYSTEM CONCEPTS",
+   "credits": 3,
+   "lecture_h": 2,
+   "lab_h": 2,
+   "self_h": 5,
+   "description_th": null,
+   "source": "plan",
+   "credits_display": "3 (2-2-5)"
+  },
+  {
+   "code": "06036127",
+   "name_th": "ระบบฐานข้อมูลขั้นสูง",
+   "name_en": null,
+   "credits": null,
+   "lecture_h": null,
+   "lab_h": null,
+   "self_h": null,
+   "description_th": null,
+   "source": "catalog"
+  },
+  {
+   "code": "06036100",
+   "name_th": "พื้นฐานทางด้านเทคโนโลยีสารสนเทศ",
+   "name_en": "INFORMATION TECHNOLOGY FUNDAMENTALS",
+   "credits": 3,
+   "lecture_h": 2,
+   "lab_h": 2,
+   "self_h": 5,
+   "description_th": null,
+   "source": "plan",
+   "credits_display": "3 (2-2-5)"
+  }
+ ]
+}

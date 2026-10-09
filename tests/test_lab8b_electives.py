@@ -994,6 +994,7 @@ def test_no_prereq_shortcut_leaves_other_questions_alone(tmp_path, monkeypatch, 
     ("วิชาที่มีชั่วโมงปฏิบัติมากกว่า 2 ชั่วโมงมีอะไรบ้าง", {"06020003", "06020004"}),
     ("วิชาที่มีชั่วโมงบรรยายน้อยกว่า 2 ชั่วโมงมีอะไรบ้าง", {"06020003", "06020004"}),
     ("วิชาที่ไม่มีชั่วโมงปฏิบัติมีอะไรบ้าง", {"06020001", "06020002", "06020005"}),
+    ("วิชาที่มีชั่วโมงปฏิบัติการมากกว่า 2 ชั่วโมงมีอะไรบ้าง", {"06020003", "06020004"}),   # "ปฏิบัติการ" (lab) must hit lab_h without a model call
     ("วิชาที่มีชั่วโมงศึกษาด้วยตนเองเท่ากับ 6 ชั่วโมงมีอะไรบ้าง", {"06020001", "06020002"}),
     ("วิชาที่ชั่วโมงบรรยายไม่น้อยกว่า 3 ชั่วโมงมีวิชาอะไรบ้าง", {"06020001", "06020002"}),
     ("วิชาที่ชั่วโมงปฏิบัติไม่เกิน 4 ชั่วโมงมีวิชาอะไรบ้าง", {"06020001", "06020002", "06020003", "06020005"}),
@@ -3996,3 +3997,80 @@ def test_valid_empty_query_and_retry_recovery_are_not_query_failures(monkeypatch
     assert len(calls)==expected_calls
     assert result["answer"]==m._NOT_FOUND_TEXT and result["rows"]==[]
     assert result["error"] is None and result["answer_model_output"] is None
+
+
+# ---- hint: lab-hours questions that reach the model must name lab_h; other questions keep the prompt unchanged ----
+@pytest.mark.parametrize("question", ["นับวิชาที่ชั่วโมงลงมือทำ (แล็บ) เป็นศูนย์", "วิชาที่เน้นภาคปฏิบัติ ไม่เกิน 4 ชั่วโมง ในปี 2 มีอะไรบ้าง"])
+def test_lab_hours_hint_names_lab_h(question):
+    assert "lab_h" in m._lab_hours_hint_text(question)
+
+
+@pytest.mark.parametrize("question", ["PROBABILITY AND STATISTICS lecture สัปดาห์ละกี่ชั่วโมง", "ปี 1 เทอม 1 ต้องเรียนวิชาอะไรบ้าง", "วิชาที่ฝึกปฏิบัติงานมีอะไรบ้าง"])
+def test_lab_hours_hint_stays_off_for_other_questions(question):
+    assert m._lab_hours_hint_text(question) == ""
+
+
+def test_hours_hint_names_self_h_for_self_study_wording():
+    hint = m._lab_hours_hint_text("ชั่วโมงเรียนนอกชั้นเรียนเฉลี่ยของวิชาเท่าไหร่")
+    assert "self_h คอลัมน์เดียว" in hint and "lab_h คอลัมน์เดียว" not in hint
+
+
+# ---- hint: English keyword searches must point qwen at name_en; other questions keep the prompt unchanged ----
+@pytest.mark.parametrize("question,word", [("รายชื่อวิชาที่มีคำว่า data", "data"), ("วิชาที่เกี่ยวกับ cloud มีอะไรบ้าง และเรียนปีไหน", "cloud")])
+def test_english_keyword_hint_points_to_name_en(question, word):
+    hint = m._english_keyword_hint_text(question)
+    assert "name_en LIKE '%" + word + "%'" in hint
+
+
+@pytest.mark.parametrize("question", ["วิชาที่ชื่อมีคำว่า 'คอมพิวเตอร์'", "ปี 1 เทอม 1 เรียนวิชาอะไรบ้าง", "วิชา INFORMATION SYSTEM ANALYSIS AND DESIGN รหัสอะไร"])
+def test_english_keyword_hint_stays_off_otherwise(question):
+    assert m._english_keyword_hint_text(question) == ""
+
+
+# ---- "กี่ตัว" และขอบเขตทั้งหลักสูตร: เดิม "ปี 2 มีวิชาบังคับกี่ตัว และวิชาเลือกกี่ตัว" หลุดไปให้โมเดลตอบ "5 และ 5" (ผิด ปี 2 บังคับ 12 วิชา) ----
+def test_kind_count_accepts_ตัว_as_well_as_วิชา_for_a_whole_year():
+    with closing(_real("DSBA/coop")) as c:
+        text, rows, sql = _chain(c, "ปี 2 มีวิชาบังคับกี่ตัว และวิชาเลือกกี่ตัว")
+        assert "มีวิชาบังคับ 12 วิชา" in text and "มีวิชาเลือก 0 วิชา" in text and "ช่องที่นักศึกษาเลือกเองอีก 1 ช่อง" in text, text
+
+
+def test_kind_count_for_one_term_accepts_ตัว():
+    with closing(_real("DSBA/coop")) as c:
+        text, _rows, _sql = _chain(c, "ปี 2 เทอม 1 มีวิชาบังคับกี่ตัว")
+        assert "มีวิชาบังคับ 5 วิชา" in text, text
+
+
+def test_kind_count_for_the_whole_program_counts_from_plan_notes_not_from_the_model():
+    with closing(_real("DSBA/coop")) as c:
+        required = c.execute("SELECT COUNT(*) FROM plan_item WHERE note LIKE '%| บังคับ'").fetchone()[0]
+        text, _rows, sql = _chain(c, "ทั้งหลักสูตรมีวิชาบังคับกี่วิชา")
+        assert f"มีวิชาบังคับ {required} วิชา" in text and text.startswith("ทั้งหลักสูตร"), text
+        assert "plan_item" in sql
+
+
+@pytest.mark.parametrize("question", ["วิชาบังคับมีอะไรบ้าง", "ทั้งหลักสูตรวิชาบังคับมีอะไรบ้าง", "ทั้งหลักสูตรมีวิชาบังคับก่อนกี่วิชา"])
+def test_kind_count_whole_program_still_refuses_lists_and_prerequisite_questions(question):
+    with closing(_real("DSBA/coop")) as c:
+        assert m._term_kind_list_answer(c, question) is None, question
+
+
+# เมื่อหมายเหตุประเภทวิชา (บังคับ/เลือก) ในเล่มไม่ครบ ทางลัดนับให้ไม่ได้ — ต้องตอบตรง ๆ ว่านับไม่ได้ ห้ามปล่อยให้โมเดลเดาตัวเลข ----
+@pytest.mark.parametrize("rel,question", [
+    ("IT/coop", "ปี 3 มีวิชาบังคับกี่ตัว และวิชาเลือกกี่ตัว"),
+    ("AIT", "ทั้งหลักสูตรมีวิชาบังคับกี่วิชา"),
+    ("DSBA/no_coop", "ทั้งหลักสูตรมีวิชาเลือกกี่วิชา")])
+def test_kind_count_says_it_cannot_count_when_book_notes_are_incomplete_and_never_asks_the_model(rel, question, monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("the model must not be asked to guess a required/elective count")
+    monkeypatch.setattr(m, "ollama_generate", boom)
+    with closing(_real(rel)) as c:
+        assert m._term_kind_list_answer(c, question) is None          # the exact shortcut declines ...
+        r = m.ask(c, question, verbose=False)                         # ... and ask() still answers without the model
+        assert r["answer_type"] != "ai" and r["rows"] == []
+        assert "นับ" in r["answer"] and "ไม่ได้" in r["answer"] and "ไม่ครบ" in r["answer"], r["answer"]
+
+
+def test_kind_count_decline_does_not_swallow_other_questions(monkeypatch):
+    with closing(_real("IT/coop")) as c:
+        assert m._kind_count_undecided_answer(c, "ปี 3 เทอม 1 เรียนวิชาอะไรบ้าง") is None
+        assert m._kind_count_undecided_answer(c, "วิชาบังคับก่อนของแคลคูลัส 2 มีกี่วิชา") is None

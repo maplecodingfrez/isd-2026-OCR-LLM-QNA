@@ -1,0 +1,43 @@
+{
+ "question": "มีวิชาเกี่ยวกับฐานข้อมูลไหม",
+ "answer": "วิชาที่เกี่ยวกับ \"ฐานข้อมูล\" ในหลักสูตรนี้ มี 11 วิชา:\n- 06026207 ระบบฐานข้อมูลแบบโนเอสคิวแอล / NOSQL DATABASE SYSTEMS — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06026243 ระบบฐานข้อมูลขั้นสูง / ADVANCED DATABASE SYSTEMS — 3 (3-0-6) หน่วยกิต (ในแผน)\n- 06026244 การดูแลและบำรุงรักษาระบบฐานข้อมูล / DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06026245 ระบบฐานข้อมูลแบบกระจาย / DISTRIBUTED DATABASE SYSTEMS — 3 (3-0-6) หน่วยกิต (ในแผน)\n- 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06026213 ระบบข้อมูลมหัต / BIG DATA SYSTEMS — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06026255 การได้มาและการจัดการข้อมูลทางด้านคลินิก / CLINICAL DATA ACQUISITION AND MANAGEMENT — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING — 3 (2-2-5) หน่วยกิต (ในแผน)\n- 06026242 โครงสร้างพื้นฐานด้านเทคโนโลยีกลุ่มเมฆ / CLOUD TECHNOLOGY INFRASTRUCTURE — 3 หน่วยกิต (วิชาเลือก)\n- 90642026 การพัฒนาทักษะเชิงวิจัย / RESEARCH SKILL DEVELOPMENT — 3 หน่วยกิต (วิชาเลือก)\n- 90642122 การใช้แอปพลิเคชัน ไมโครคอมพิวเตอร์ / INTRODUCTION TO MICROCOMPUTER APPLICATION — 3 หน่วยกิต (วิชาเลือก)",
+ "answer_type": "database",
+ "rows": [
+  {
+   "code": "06026207",
+   "name_th": "ระบบฐานข้อมูลแบบโนเอสคิวแอล",
+   "name_en": "NOSQL DATABASE SYSTEMS",
+   "credits": 3,
+   "lecture_h": 2,
+   "lab_h": 2,
+   "self_h": 5,
+   "description_th": null,
+   "source": "plan",
+   "credits_display": "3 (2-2-5)"
+  },
+  {
+   "code": "06026243",
+   "name_th": "ระบบฐานข้อมูลขั้นสูง",
+   "name_en": "ADVANCED DATABASE SYSTEMS",
+   "credits": 3,
+   "lecture_h": 3,
+   "lab_h": 0,
+   "self_h": 6,
+   "description_th": null,
+   "source": "plan",
+   "credits_display": "3 (3-0-6)"
+  },
+  {
+   "code": "06026244",
+   "name_th": "การดูแลและบำรุงรักษาระบบฐานข้อมูล",
+   "name_en": "DATABASE SYSTEM MAINTENANCE AND ADMINISTRATION",
+   "credits": 3,
+   "lecture_h": 2,
+   "lab_h": 2,
+   "self_h": 5,
+   "description_th": null,
+   "source": "plan",
+   "credits_display": "3 (2-2-5)"
+  }
+ ]
+}

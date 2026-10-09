@@ -162,10 +162,14 @@ def test_timeout_is_not_claimed_to_equal_a_backend_setting():
 # ---------- Minor ข้อ 3 และ 4 จากรีวิว ----------
 
 def test_copy_result_is_announced_to_screen_readers():
-    """spec 3: ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ -> เขียนลง live region ถาวรด้วย"""
+    """spec 3: ป้ายปุ่มเปลี่ยนอย่างเดียวโปรแกรมอ่านหน้าจอไม่ประกาศ -> เขียนลง live region ถาวรด้วย
+    ข้อความมาจากคีย์ i18n (ไทย/EN) ไม่ฝังภาษาไทยในโค้ด เพื่อให้โหมด EN ประกาศเป็นอังกฤษ"""
     js = read("app.js")
-    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*"คัดลอกผลแล้ว"', js)
-    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*"คัดลอกอัตโนมัติไม่ได้', js)
+    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*t\("copy\.live"\)', js)
+    assert re.search(r'\$\("live-status"\)\.textContent\s*=\s*t\("copy\.hint"\)', js)
+    i18n = read("i18n.js")
+    assert '"copy.live": ["คัดลอกผลแล้ว", "Result copied"]' in i18n
+    assert '"copy.hint": ["คัดลอกอัตโนมัติไม่ได้' in i18n
 
 
 def test_empty_result_shows_the_rephrase_hint_from_spec():

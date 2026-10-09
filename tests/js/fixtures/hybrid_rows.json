@@ -1,0 +1,36 @@
+{
+ "question": "สรุปวิชาปี 3 เทอม 2 พร้อมหน่วยกิตให้หน่อย",
+ "program": "dsba_coop",
+ "answer": "3 2 ระบบข้อมูลมหัต BIG DATA SYSTEMS 3; 3 2 โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1 PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1 3; 3 2 การบริหารโครงการเทคโนโลยีสารสนเทศ INFORMATION TECHNOLOGY PROJECT MANAGEMENT 3; 3 2 ผู้ประกอบการสมัยใหม่ MODERN ENTREPRENEURS 3",
+ "answer_type": "hybrid",
+ "rows": [
+  {
+   "year": 3,
+   "semester": 2,
+   "name_th": "ระบบข้อมูลมหัต",
+   "name_en": "BIG DATA SYSTEMS",
+   "credits": 3
+  },
+  {
+   "year": 3,
+   "semester": 2,
+   "name_th": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 1",
+   "name_en": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 1",
+   "credits": 3
+  },
+  {
+   "year": 3,
+   "semester": 2,
+   "name_th": "การบริหารโครงการเทคโนโลยีสารสนเทศ",
+   "name_en": "INFORMATION TECHNOLOGY PROJECT MANAGEMENT",
+   "credits": 3
+  },
+  {
+   "year": 3,
+   "semester": 2,
+   "name_th": "ผู้ประกอบการสมัยใหม่",
+   "name_en": "MODERN ENTREPRENEURS",
+   "credits": 3
+  }
+ ]
+}
