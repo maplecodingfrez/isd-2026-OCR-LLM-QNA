@@ -72,7 +72,7 @@ isd-2026-OCR-LLM-QNA_main/
 │       ├── config.py             # โหลดค่าจาก .env เข้า Dataclass Settings
 │       ├── schemas.py            # Pydantic Schemas กำหนด Data Contract
 │       ├── database.py           # ตัวเชื่อมต่อ SQLite และควบคุมความปลอดภัย SQL
-│       ├── model_service.py      # ตัวประสานงาน Text-to-SQL กับ Ollama (Qwen)
+│       ├── model_service.py      # ตรวจความพร้อมของ Ollama และโมเดล Qwen (ใช้ใน /api/health)
 │       ├── main.py               # จุดศูนย์กลาง FastAPI Router และ Web Server
 │       ├── requirements.txt      # รายการแพ็กเกจ Python สำหรับแอป
 │       └── static/
@@ -94,7 +94,7 @@ isd-2026-OCR-LLM-QNA_main/
    - `HealthResponse`: รายงานสถานะความพร้อมของ DB และ Ollama
    - `CoursePrerequisitesResponse` และ `PrerequisiteItem`: กำหนด Data Contract สำหรับส่งข้อมูลวิชาบังคับก่อน (`prerequisites_required`) และวิชาที่ปลดล็อคให้เรียนต่อ (`unlocked_courses`)
 3. **`database.py`**: คลาส `CurriculumDatabase` ที่นำฟังก์ชัน `open_db()` และ `guard_sql()` จาก Lab 8B มาใช้งาน เปิดฐานข้อมูลแบบ Read-only เสมอ และเพิ่มเมธอด `get_course_prerequisites()` สำหรับ Query ข้อมูลวิชาบังคับก่อนอย่างปลอดภัย
-4. **`model_service.py`**: คลาส `QwenTextToSQL` จัดการ System Prompt, การแปลงภาษาไทยเป็น SQL คำสั่งเดียว และการนำผลลัพธ์จากฐานข้อมูลมาให้โมเดลสรุปเป็นข้อความภาษาไทย
+4. **`model_service.py`**: คลาส `QwenTextToSQL` มีเมธอด `available()` เช็กว่า Ollama เปิดอยู่และโมเดลที่ตั้งไว้ (`qwen3:4b`) ติดตั้งแล้ว ใช้ใน `/api/health` ส่วนการแปลงคำถามเป็น SQL, การรัน และการสรุปผลเป็นภาษาไทย (พร้อมกฎทางลัดสำหรับคำถามที่พบบ่อย) ทำใน `ask()` ของ `lab8b_curriculum_db.py` ซึ่ง `POST /api/ask` เรียกโดยตรง
 5. **`static/index.html`**: หน้าเว็บแบบ Single Page ใช้งานง่าย สะอาดตา ประกอบด้วยส่วนถามคำถาม AI (Text-to-SQL) และส่วนตรวจสอบวิชาบังคับก่อน (พร้อมระบบ Autocomplete ค้นหารายชื่อวิชา และปุ่มลัดคลิกทดสอบวิชาตัวอย่าง)
 
 ---
