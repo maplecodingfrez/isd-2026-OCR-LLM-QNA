@@ -1234,6 +1234,23 @@ def _lab_hours_hint_text(question: str) -> str:
     )
 
 
+_ENGLISH_KEYWORD_Q = re.compile(r"(?:คำว่า|ชื่อ(?:มี)?|เกี่ยวกับ)\s*['\"“‘]?\s*([A-Za-z][A-Za-z0-9-]*(?:\s[A-Za-z][A-Za-z0-9-]*)?)")
+
+
+def _english_keyword_hint_text(question: str) -> str:
+    """ถามหาวิชาด้วยคำภาษาอังกฤษ ("มีคำว่า data", "เกี่ยวกับ AI"): qwen เคยค้น name_th (ไทยล้วน) ได้ว่าง → "ไม่พบ"
+    คำใบ้ชี้ไปที่ name_en — เปิดเฉพาะเมื่อมีคำนำ + คำอังกฤษ (คำถามอื่น prompt เหมือนเดิมทุกตัวอักษร)"""
+    m = _ENGLISH_KEYWORD_Q.search(question)
+    if not m:
+        return ""
+    word = m.group(1).strip()
+    return (
+        f"คำค้น '{word}' เป็นภาษาอังกฤษ: ชื่อภาษาอังกฤษอยู่ในคอลัมน์ name_en ของตาราง course (name_th เป็นภาษาไทย ไม่มีคำนี้) "
+        f"ให้ค้น name_en LIKE '%{word}%' (LIKE ไม่สนตัวพิมพ์ใหญ่เล็ก) ถามรายชื่อให้ SELECT code, name_th, name_en FROM course "
+        "ถามจำนวนให้ SELECT COUNT(*) FROM course\n\n"
+    )
+
+
 def _term_summary_hint_text(question: str) -> str:
     """คำถามควบ "ปี/เทอมนี้ กี่หน่วยกิต/กี่วิชา + มีวิชาอะไรบ้าง": มีคำว่า "กี่…" โมเดลเลยเลือก v_semester_credits
     (มีแค่ credits, n_courses ไม่มีชื่อวิชา) ส่วน "…อะไรบ้าง" ไปใช้ v_plan (ได้ชื่อวิชาแต่ไม่มียอดรวม) — ได้ครึ่งเดียวทั้งสองทาง
@@ -5376,7 +5393,8 @@ def _prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
 # เดิมไปทางโมเดล: คำถามนี้ error ("ambiguous column name") และ "วิชาเลือก" ตอบ "ไม่พบ"
 _KIND_LIST_Q = re.compile(r"วิชา(?:เฉพาะ)?(เลือกเสรี|เลือก|บังคับ)(?!ก่อน)")
 _KIND_LIST_ASK = re.compile(r"อะไรบ้าง|มีอะไร|วิชาอะไร|วิชาไหน|รายชื่อ|รายวิชา|ได้แก่")
-_KIND_COUNT_ASK = re.compile(r"กี่วิชา|กี่รายวิชา|มีกี่")
+_KIND_COUNT_ASK = re.compile(r"กี่วิชา|กี่รายวิชา|กี่ตัว|มีกี่")
+_KIND_WHOLE_PROGRAM = re.compile(r"ทั้งหลักสูตร|ตลอดหลักสูตร|ทั้งแผน|ในหลักสูตร(?:นี้)?")      # นับทั้งแผน (ไม่ระบุปี): ตอบได้เฉพาะ "กี่วิชา" ไม่ใช่รายชื่อ
 _KIND_LIST_NOT = re.compile(r"ก่อน|ไหม|หรือ|มาก|น้อย|ที่สุด|สูงสุด|ต่ำสุด|หน่วยกิต|ชั่วโมง|เฉลี่ย|รวม|เปรียบเทียบ|ต่างกัน|ถ้า")
 _KIND_CATEGORY = re.compile(r"หมวด(?:วิชา)?(เฉพาะ|ศึกษาทั่วไป|เลือกเสรี)")      # กรองหมวดเฉพาะเมื่อพูดว่า "หมวด…" (หมวดในหมายเหตุของแผนบางเล่มอ่านผิด เช่น BIT วิชาเฉพาะบางตัวเป็น "ศึกษาทั่วไป" จึงไม่ถือ "วิชาเฉพาะ" เป็นตัวกรอง)
 
@@ -5412,13 +5430,14 @@ def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | No
     q = question.replace("ปีสุดท้าย", f"ปี {last_year}" if last_year else "ปีสุดท้าย").replace("ปีแรก", "ปี 1")
     q = re.sub(r"(?:เทอม|ภาค(?:การศึกษา)?)แรก", "เทอม 1", q)
     y, s = _term_numbers(q)
-    if not y or _named_courses(conn, question, strict=False):
+    whole = not y and count_q and bool(_KIND_WHOLE_PROGRAM.search(question))
+    if (not y and not whole) or _named_courses(conn, question, strict=False):
         return None
     kind = _kind or mt.group(1)
     cm = _KIND_CATEGORY.search(question)
     category = cm.group(1) if cm else None
-    where = "year = ?" + (" AND semester = ?" if s else "")
-    args = (y, s) if s else (y,)
+    where = "year = ?" + (" AND semester = ?" if s else "") if y else "year >= 0"
+    args = ((y, s) if s else (y,)) if y else ()
     try:
         items = [dict(r) for r in conn.execute(
             f"SELECT p.year, p.semester, p.code, c.name_th, c.name_en, p.credits, p.note FROM plan_item p LEFT JOIN course c ON c.code = p.code "
@@ -5430,9 +5449,9 @@ def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | No
     if (not items and not slots) or any(k is None for k in kinds):            # หมายเหตุไม่ครบ = ไม่ตัดสิน
         return None
     picked = [dict(it, kind=k) for it, k in zip(items, kinds) if k == kind and (not category or category in (it["note"] or ""))]
-    label = _TERM_LABEL.format(y=y, s=s) if s else f"ปี {y}"
+    label = "ทั้งหลักสูตร" if whole else (_TERM_LABEL.format(y=y, s=s) if s else f"ปี {y}")
     cat_text = f"หมวด{category}" if category else ""
-    sql = (f"SELECT code, credits, note FROM plan_item WHERE year = {y}" + (f" AND semester = {s}" if s else "") + f" AND note LIKE '%| {kind}'"
+    sql = (f"SELECT code, credits, note FROM plan_item WHERE " + (f"year = {y}" if y else "year >= 0") + (f" AND semester = {s}" if s else "") + f" AND note LIKE '%| {kind}'"
            + (f" AND note LIKE '%{category}%'" if category else ""))
     rows = [{"year": it["year"], "semester": it["semester"], "code": it["code"], "name_th": it["name_th"], "credits": it["credits"], "kind": kind}
             for it in picked] + [{"slot": sl["name_th"], "credits": sl["credits"]} for sl in slots]
@@ -5449,6 +5468,22 @@ def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | No
     if slots:
         text += "; ช่องที่นักศึกษาเลือกเอง: " + ", ".join(f"{sl['name_th']} ({sl['credits']} หน่วยกิต)" for sl in slots)
     return text, rows, sql
+
+
+def _kind_count_undecided_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ปี N / ทั้งหลักสูตร มีวิชาบังคับ/เลือกกี่วิชา" ที่ทางลัดนับตามหมายเหตุไม่ได้ (เล่มไม่ระบุประเภทวิชาครบ):
+    เดิมหลุดไปให้โมเดลเดาตัวเลข (เคยได้ "5 วิชาบังคับ และ 5 วิชาเลือก" ทั้งที่จริง 12) — ตอบตรง ๆ ว่านับให้ไม่ได้แทน
+    ใช้เมื่อทางลัดนับตัวจริงปฏิเสธเท่านั้น และคำถามเป็นการนับล้วน ๆ (ไม่มีชื่อ/รหัสวิชา ไม่ใช่วิชาบังคับก่อน)"""
+    if not _KIND_LIST_Q.search(question) or not _KIND_COUNT_ASK.search(question) or _KIND_LIST_NOT.search(question) or _CODE8.search(question):
+        return None
+    q = question.replace("ปีสุดท้าย", "ปี 9").replace("ปีแรก", "ปี 1")
+    year, _sem = _term_numbers(q)
+    if not year and not _KIND_WHOLE_PROGRAM.search(question):
+        return None
+    if _named_courses(conn, question, strict=False) or _term_kind_list_answer(conn, question) is not None:
+        return None
+    return ("นับวิชาบังคับ/วิชาเลือกให้ไม่ได้แน่ชัด เพราะเล่มหลักสูตรของแผนนี้ระบุประเภทวิชา (บังคับ/เลือก) ไม่ครบทุกรายวิชาในช่วงที่ถาม",
+            [], "SELECT NULL WHERE 0")
 
 
 # ---- ตัวอย่างระดับ 2 ของอาจารย์: "วิชา X ต้องผ่านวิชาใดก่อน? ถ้ายังไม่ผ่านจะลงทะเบียนได้ไหม" — เดิมตอบแค่ลิสต์วิชา ไม่ตอบส่วน "ลงทะเบียนได้ไหม" ----
@@ -5582,7 +5617,7 @@ def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) 
 
 _SHORTCUTS = (
     _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
@@ -5690,7 +5725,7 @@ def ask(conn: sqlite3.Connection, question: str,
     base_prompt = SQL_PROMPT.format(ddl=ddl, question=question)
     hints = (_course_name_hint_text(conn, question) + _elective_hint_text(conn, question)
              + _topic_hint_text(conn, question) + _term_summary_hint_text(question)
-             + _lab_hours_hint_text(question))
+             + _lab_hours_hint_text(question) + _english_keyword_hint_text(question))
     if hints:
         tail = f"คำถาม: {question}\nSQL:"
         base_prompt = base_prompt[: -len(tail)] + hints + tail
