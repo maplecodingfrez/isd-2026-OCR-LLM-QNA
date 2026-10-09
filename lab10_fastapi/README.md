@@ -325,7 +325,7 @@ ollama list
 ## 13. API Contract (Lab 11)
 
 หน้าเว็บ (`curriculum_app/static/index.html` + `style.css` + `app.js`) คุยกับ backend ผ่าน endpoint ด้านล่าง
-ทุกแถวในตาราง error ถูกตรวจด้วยเทส contract (เก็บในเครื่องผู้พัฒนา) และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py`
+ทุกแถวในตาราง error ถูกตรวจด้วยเทส contract (`tests/test_curriculum_api_contract.py`) และข้อความที่ผู้ใช้เห็นถูกตรวจด้วย `tests/test_curriculum_app_js.py` เทสต์ทั้งหมดอยู่ใน branch `dev/tests` (ไม่ได้รวมไว้ใน `main`) ดูได้ด้วย `git checkout dev/tests`
 
 ### 13.1 รูปแบบ error
 
