@@ -444,7 +444,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 
 ### 13.7 Wireframe
 
-`docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa> (ฉบับปัจจุบัน; ฉบับเก่าก่อนมีค้นวิชา/ถอนวิชา/ธีม/ภาษา อยู่ใน git history)
+`docs/wireframes/curriculum_app.png` — ต้นฉบับใน Figma: <https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa> (ฉบับปัจจุบัน; ฉบับเก่าก่อนมีค้นวิชา/ถอนวิชา/ธีม/ภาษา อยู่ใน git history) อัปเดตเป็น v3 (2026-10-09): ธีมสว่างเป็นค่าเริ่มต้น, ส่วน v3 ท้ายภาพแสดงคำตอบแบบมีโครงสร้าง (วิชาเลือกศึกษาทั่วไป, เทียบแผน, รายการวิชา, แหล่งอ้างอิงแยกกรอบต่อหัวข้อ) และแท็บถอนวิชามีปุ่มรหัสตัวอย่าง
 
 ## 14. วัน Challenge: รันคำถามเป็นชุด และอุ่นโมเดล
 
