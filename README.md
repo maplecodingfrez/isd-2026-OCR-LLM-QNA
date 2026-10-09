@@ -1,6 +1,22 @@
 # isd-2026-OCR-LLM-QNA
 > ระบบถาม-ตอบเล่มหลักสูตร (AIT / BIT / DSBA / IT) — พิมพ์คำถามภาษาไทย ได้คำตอบพร้อมหน้าอ้างอิงในเล่ม
 
+## โครงสร้างโฟลเดอร์
+
+```text
+.
+├── lab10_fastapi/curriculum_app/   # แอปที่รัน: FastAPI (main.py) + หน้าเว็บ (static/)
+├── Lab7B_Lab8B_ocr_system/
+│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
+│   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
+│       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
+│       ├── lab7b_output/           # ผล OCR + ผลประเมิน
+│       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
+├── Lab9_evaluation/                # ชุดคำถามทอง + รายงาน metric
+├── docs/                           # wireframe, รายงาน
+└── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
+```
+
 ใช้งานได้ทันทีหลัง clone: ฐานข้อมูล 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมี PDF หรือไฟล์ `.env`
 
 ## สิ่งที่ต้องมี
@@ -43,21 +59,6 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 ตรวจความพร้อม <http://127.0.0.1:8000/api/health> ต้องได้ `status: ok` · เอกสาร API <http://127.0.0.1:8000/docs>
 
-## โครงสร้างโฟลเดอร์
-
-```text
-.
-├── lab10_fastapi/curriculum_app/   # แอปที่รัน: FastAPI (main.py) + หน้าเว็บ (static/)
-├── Lab7B_Lab8B_ocr_system/
-│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
-│   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
-│       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
-│       ├── lab7b_output/           # ผล OCR + ผลประเมิน
-│       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
-├── Lab9_evaluation/                # ชุดคำถามทอง + รายงาน metric
-├── docs/                           # wireframe, รายงาน
-└── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
-```
 
 ## แก้ปัญหา
 | อาการ | วิธีแก้ |
