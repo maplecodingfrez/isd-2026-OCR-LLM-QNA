@@ -1,15 +1,23 @@
 """Application 1: curriculum database question answering."""
 
+import hashlib
 import json
+import logging
 import os
+import re
 import sqlite3
 import sys
+import threading
+import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import requests
-from fastapi import FastAPI, HTTPException, Query, status
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 
 from .config import PROJECT_ROOT, settings, PROGRAMS, _project_path, program_db_path
 
@@ -24,25 +32,101 @@ import lab8b_curriculum_db as lab8b  # noqa: E402
 from .database import CurriculumDatabase  # noqa: E402
 from .model_service import QwenTextToSQL  # noqa: E402
 from .schemas import (  # noqa: E402
-    AskRequest, AskResponse, CourseCreate, CourseResponse, HealthResponse, ProgramInfo,
-    CoursePrerequisitesResponse,
+    AskRequest, AskResponse, CourseCreate, CourseResponse, CourseSearchItem, HealthResponse, ProgramInfo,
+    CoursePrerequisitesResponse, SampleQuestionsResponse,
 )
 
 
+_logger = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # โหลดโมเดลล่วงหน้าเบื้องหลัง: คำถามแรกไม่ต้องรอโหลด (ไม่ block การเปิดเซิร์ฟเวอร์ และไม่ล้มถ้า Ollama ยังไม่เปิด)
+    def warm() -> None:
+        try:
+            lab8b.warm_up()
+        except Exception:
+            pass
+    threading.Thread(target=warm, daemon=True).start()
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title=f"{settings.app_name} — Curriculum",
     description="Qwen text-to-SQL + SQLite curriculum application",
     version="1.0.0",
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
+app.add_middleware(GZipMiddleware, minimum_size=1000)   # js/css/json ใหญ่ ๆ ส่งแบบบีบอัด (ฟอนต์ woff2 ถูกข้ามเองเพราะบีบแล้ว)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 database = CurriculumDatabase(lab8b, settings.db_path, settings.max_rows)
 model = QwenTextToSQL(settings, lab8b)
 
 
+def _database_for(program: str | None) -> CurriculumDatabase:
+    """ไม่ระบุ program = ฐานข้อมูลที่ตั้งไว้ใน .env; ระบุ = ฐานข้อมูลของหลักสูตรนั้น (ใช้ร่วมกันหลาย endpoint)"""
+    if program is None:
+        return database
+    path = program_db_path(program)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{program}' - ใช้ได้: {', '.join(PROGRAMS)}")
+    return CurriculumDatabase(lab8b, path, settings.max_rows)
+
+
+_ASSET_LINK = re.compile(r'(/static/(?:style\.css|theme-init\.js|i18n\.js|app\.js))(?=")')
+
+
+def asset_version() -> str:
+    """Short hash of the four page assets: a new release gets a new URL, so a browser never keeps showing an old copy."""
+    digest = hashlib.sha1()
+    for name in ("style.css", "theme-init.js", "i18n.js", "app.js"):
+        digest.update((STATIC_DIR / name).read_bytes())
+    return digest.hexdigest()[:10]
+
+
+@app.middleware("http")
+async def static_cache_headers(request: Request, call_next):
+    """ลิงก์ที่มี ?v=<hash> เปลี่ยนตามเนื้อหา จึงแคชได้ยาว; ฟอนต์แคชหนึ่งสัปดาห์; ไฟล์อื่นให้เบราว์เซอร์ถามซ้ำด้วย ETag"""
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/static/") and response.status_code == 200:
+        if request.query_params.get("v"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path.startswith("/static/fonts/"):
+            response.headers["Cache-Control"] = "public, max-age=604800"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/", include_in_schema=False)
-def index() -> FileResponse:
-    return FileResponse(STATIC_DIR / "index.html")
+def index() -> HTMLResponse:
+    html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    version = asset_version()
+    return HTMLResponse(_ASSET_LINK.sub(lambda m: f"{m.group(1)}?v={version}", html), headers={"Cache-Control": "no-cache"})
+
+
+def _display_path(path: Path) -> str:
+    """Path relative to the project root, so the health check never reveals the machine's directory layout."""
+    try:
+        return Path(path).resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return Path(path).name
 
 
 @app.get("/api/health", response_model=HealthResponse)
@@ -51,11 +135,11 @@ def health() -> dict:
     ollama_ready = model.available()
     return {
         "status": "ok" if db_ready and ollama_ready else "degraded",
-        "database": str(settings.db_path),
+        "database": _display_path(settings.db_path),
         "database_ready": db_ready,
         "model": settings.ollama_model,
         "ollama_ready": ollama_ready,
-        "lab8b_module": str(Path(lab8b.__file__).resolve()),
+        "lab8b_module": _display_path(Path(lab8b.__file__)),
     }
 
 
@@ -69,47 +153,67 @@ def get_program() -> dict:
         raise HTTPException(status_code=404, detail="ไม่พบข้อมูลหลักสูตร")
     return program
 
-@app.get("/api/programs", response_model=list[ProgramInfo])     
-def list_programs() -> list[dict]:                                 
-    items = []                                               
-    for program_id, (label, rel_path) in PROGRAMS.items():         
-        path = _project_path(rel_path)                          
-        item = {"id": program_id, "label": label,                 
-                "available": path.exists()}
-        if item["available"]:                                    
-            row = CurriculumDatabase(lab8b, path, settings.max_rows).program()   
-            if row:                                                
+@app.get("/api/programs", response_model=list[ProgramInfo])
+def list_programs() -> list[dict]:
+    items = []
+    for program_id, (label, rel_path) in PROGRAMS.items():
+        path = _project_path(rel_path)
+        item = {"id": program_id, "label": label, "available": path.exists(),
+                "default": path.resolve() == settings.db_path.resolve()}      # DB ที่เซิร์ฟเวอร์ใช้เป็นค่าเริ่มต้น (CURRICULUM_DB_PATH)
+        if item["available"]:
+            row = CurriculumDatabase(lab8b, path, settings.max_rows).program()
+            if row:
                 item["name_th"] = row.get("name_th")
                 item["total_credits"] = row.get("total_credits")
                 item["years"] = row.get("years")
-        items.append(item)                                         
-    return items                                                   
+        items.append(item)
+    return items
 
-@app.get("/api/courses", response_model=list[CourseResponse])
+
+@app.get("/api/sample-questions", response_model=SampleQuestionsResponse)
+def get_sample_questions(program: str | None = Query(default=None)) -> dict:
+    """ตัวอย่างคำถามของแผนที่เลือก: สร้างจากข้อมูลของแผนนั้น (วิชาจริง) และมีเฉพาะข้อที่แผนนั้นตอบได้"""
+    try:
+        return {"topics": _database_for(program).sample_questions()}
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/courses", response_model=list[CourseSearchItem])
 def get_courses(
     search: str = Query(default="", max_length=100),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    program: str | None = Query(default=None),
 ) -> list[dict]:
     try:
-        return database.courses(search, limit, offset)
+        return _database_for(program).courses(search, limit, offset)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post("/api/courses", response_model=CourseResponse,
           status_code=status.HTTP_201_CREATED)
-def post_course(course: CourseCreate) -> dict:
+def post_course(course: CourseCreate, program: str | None = Query(default=None)) -> dict:
+    if not settings.allow_write:       # DB หลักสูตรเป็นข้อมูลอ้างอิง: เขียนได้เฉพาะเมื่อตั้ง CURRICULUM_ALLOW_WRITE=1
+        raise HTTPException(status_code=403, detail="ปิดการเพิ่มรายวิชา (ตั้ง CURRICULUM_ALLOW_WRITE=1 เพื่อเปิด)")
     try:
-        return database.create_course(course.model_dump())
+        return _database_for(program).create_course(course.model_dump())
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except sqlite3.IntegrityError as exc:
         raise HTTPException(status_code=409, detail="รหัสวิชานี้มีอยู่แล้ว") from exc
 
 
+# ชื่อ exception ของ requests ที่แปลว่า Ollama/เครือข่ายมีปัญหา (ต่างจาก SQL ที่โมเดลเขียนผิด) — lab8b.ask เก็บเป็นสตริง "ชื่อ: ข้อความ"
+# ตอบ 503 ข้อความคงที่ ไม่ส่งข้อความ exception (มี host/port) ออกไปให้ client
+_INFRA_ERRORS = {"ConnectionError", "Timeout", "ReadTimeout", "ConnectTimeout", "HTTPError", "RequestException", "ChunkedEncodingError",
+                 "SSLError", "ProxyError", "TooManyRedirects"}
+
+
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest) -> dict:
+    started = time.perf_counter()
     db_path = program_db_path(request.program)
     if db_path is None:
         raise HTTPException(status_code=404, detail=f"ไม่พบหลักสูตร '{request.program}' - ใช้ได้: {', '.join(PROGRAMS)}")
@@ -118,26 +222,51 @@ def ask(request: AskRequest) -> dict:
     conn = lab8b.open_db(str(db_path), readonly=True)
     try:
         result = lab8b.ask(conn, request.question, verbose=False)
+        from course_display import format_course_answer
+        format_course_answer(conn, result)
     except requests.RequestException as exc:
         raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้") from exc
     finally:
         conn.close()
     if result["error"]:
-        raise HTTPException(status_code=422, detail=result["error"])
+        if str(result["error"]).split(":", 1)[0].strip() in {"QueryBudgetExceeded", "QueryRowLimitExceeded"}:
+            raise HTTPException(status_code=503, detail="คำถามนี้ใช้ทรัพยากรมากเกินไป กรุณาระบุเงื่อนไขให้แคบลงแล้วลองใหม่")
+        if str(result["error"]).split(":", 1)[0].strip() in _INFRA_ERRORS:      # Ollama/เครือข่ายมีปัญหา = error จริงให้ UI แสดงสถานะ error
+            _logger.warning("Model backend error: %s", result["error"])
+            raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้")
+        _logger.warning("Curriculum query failed: %s; SQL=%s", result["error"], result.get("sql"))
+        raise HTTPException(status_code=422, detail="ระบบแปลงคำถามเป็นคำค้นไม่ได้ กรุณาลองถามใหม่ให้เจาะจงขึ้น")
     result["program"] = request.program
+    result["processing_seconds"] = round(time.perf_counter() - started, 4)
     return result
 
 
-@app.get("/api/courses/{code}/prerequisites", response_model=CoursePrerequisitesResponse, tags=["Prerequisites"])
-def get_course_prerequisites(code: str) -> dict:
-    """ตรวจสอบวิชาบังคับก่อน (Prerequisite) และวิชาที่ปลดล็อคให้เรียนต่อได้"""
-    if not code.isdigit() or len(code) != 8:
+def _check_course_code(code: str) -> None:
+    if not (code.isascii() and code.isdigit() and len(code) == 8):      # isascii: กันเลขอารบิก-อินเดียที่ isdigit() ผ่าน
         raise HTTPException(status_code=422, detail="รหัสวิชาต้องเป็นตัวเลข 8 หลัก")
+
+
+@app.get("/api/courses/{code}/prerequisites", response_model=CoursePrerequisitesResponse, tags=["Prerequisites"])
+def get_course_prerequisites(code: str, program: str | None = Query(default=None)) -> dict:
+    """ตรวจสอบวิชาบังคับก่อน (Prerequisite) และวิชาที่ปลดล็อคให้เรียนต่อได้"""
+    _check_course_code(code)
     try:
-        data = database.get_course_prerequisites(code)
+        data = _database_for(program).get_course_prerequisites(code)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     if not data:
         raise HTTPException(status_code=404, detail=f"ไม่พบรายวิชารหัส {code} ในฐานข้อมูลหลักสูตร")
+    return data
+
+
+@app.get("/api/courses/{code}/withdrawal-impact", tags=["Prerequisites"])
+def get_withdrawal_impact(code: str, program: str | None = Query(default=None)) -> dict:
+    _check_course_code(code)
+    try:
+        data = _database_for(program).withdrawal_impact(code)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"ไม่พบรายวิชารหัส {code} ในหลักสูตรที่เลือก")
     return data

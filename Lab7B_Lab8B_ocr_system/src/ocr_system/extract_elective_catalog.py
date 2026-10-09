@@ -10,6 +10,11 @@
     python -m ocr_system.extract_elective_catalog \
         --text "../outputs/bit/bit_curriculum_ocr.txt" --start-page 24 --end-page 25 \
         -o runs/BIT/electives.json
+
+GE image-OCR candidate (review before replacing the live catalog):
+    python extract_elective_catalog.py --ocr-json <pipeline_ocr.json> --edition 2566 -o <candidate.json>
+The --ocr-json path never reads PDF text or ground truth. --pdf remains an explicit
+text-layer reference mode; OCR errors are not silently repaired from that reference.
 """
 
 import argparse
@@ -153,18 +158,232 @@ def parse_groups(block: str) -> list[dict]:
     return kept
 
 
+# ---------- หมวดวิชาศึกษาทั่วไป (GE) จาก PDF ที่มี text layer (เช่น GE66_Th_Ed240501.pdf) ----------
+# ฟอนต์ของไฟล์นี้ใช้อักขระ Private Use (U+F7xx) แทนวรรณยุกต์/สระที่ลอยต่ำ — ตารางนี้หามาจากการเทียบกับ GT เดิม + บริบทของคำ
+# (เช่น U+F70B = ไม้โท: "ดาน" = ด้าน, "ฟน" = ฟื้น, "ฝก" = ฝึก)
+PUA_TO_THAI = {"": "่", "": "้", "": "์", "": "์", "": "ั",
+               "": "็", "": "ิ", "": "ึ", "": "ื", "": "้",
+               "": "่"}
+_UPPER_VOWEL = "ั็ิีึื"          # ั ็ ิ ี ึ ื
+_TONE = "่้๊๋์"                      # ่ ้ ๊ ๋ ์
+_CLUSTER_REPEAT = re.compile(rf"((?:[{_UPPER_VOWEL}]?[{_TONE}]|[{_UPPER_VOWEL}]))\1+")   # "ั้ั้" → "ั้", "ัั" → "ั"
+
+
+def fix_pua(text: str) -> str:
+    """แปลงอักขระ Private Use เป็นวรรณยุกต์/สระจริง แล้วตัดเครื่องหมายที่ซ้ำติดกัน (มีซ้ำใน PDF จริง เช่น "ขั้ั้น")"""
+    return _CLUSTER_REPEAT.sub(r"\1", "".join(PUA_TO_THAI.get(c, c) for c in text))
+
+
+_GE_CREDIT = re.compile(r"^(\d+)\s*\((\d+)-(\d+)-(\d+)\)\s*$")
+_GE_CODE = re.compile(r"^\*{0,2}(9064\d{4})$")      # "*" = ประเมินผลแบบ ผ่าน/ไม่ผ่าน (S/U), "**" = วิชาบังคับก่อนที่ไม่นับหน่วยกิต
+GE_GROUP_NAMES = {1: ("กลุ่มทักษะส่งเสริมอัตลักษณ์สถาบันฯ", "KMITL IDENTITY SKILLS"),
+                  2: ("กลุ่มทักษะบุคคลและส่งเสริมวิชาชีพ", "PERSONAL AND PROFESSIONAL SKILLS"),
+                  3: ("กลุ่มทักษะการจัดการและภาวะความเป็นผู้นำ", "MANAGEMENT AND LEADERSHIP SKILLS"),
+                  4: ("กลุ่มทักษะภาษาและการสื่อสาร", "LANGUAGE AND COMMUNICATION SKILLS"),
+                  # ภาคผนวก ฉ: รหัสสำหรับ "เทียบโอน" จากการศึกษานอกระบบ/สะสมหน่วยกิต (1–2 หน่วยกิต) ไม่ใช่วิชาเลือกที่ลงเรียนปกติ
+                  5: ("กลุ่มทักษะเพื่อการเรียนรู้ตลอดชีวิต (เพื่อการเทียบโอน)", "LIFE-LONG LEARNING SKILLS (CREDIT TRANSFER)")}
+
+
+def parse_ge_pdf(pdf_path) -> list[dict]:
+    """รายวิชาของ GE จาก PDF: แต่ละวิชาเป็นบรรทัด รหัส / ชื่อไทย / ชื่ออังกฤษ (หลายบรรทัดได้) / หน่วยกิต "n (a-b-c)"
+    กลุ่มดูจากรหัสตัวที่ 5 (1 อัตลักษณ์ 2 บุคคลและวิชาชีพ 3 การจัดการและผู้นำ 4 ภาษาและการสื่อสาร); เจอรหัสซ้ำ = เก็บครั้งแรก"""
+    import pymupdf
+    courses: dict[str, dict] = {}
+    for pno, page in enumerate(pymupdf.open(pdf_path), start=1):
+        lines = [fix_pua(l.strip()) for l in page.get_text().split("\n") if l.strip()]
+        i = 0
+        while i < len(lines):
+            m = _GE_CODE.match(lines[i])
+            if m:
+                block, j = [], i + 1
+                while j < len(lines) and not _GE_CODE.match(lines[j]) and not _GE_CREDIT.match(lines[j]) and j - i < 8:
+                    block.append(lines[j])
+                    j += 1
+                if j < len(lines) and _GE_CREDIT.match(lines[j]) and block:
+                    code = m.group(1)
+                    courses.setdefault(code, {
+                        "code": code, "name_th": block[0], "name_en": " ".join(block[1:]),
+                        "credits": int(_GE_CREDIT.match(lines[j]).group(1)), "credit_text": lines[j],
+                        "group": int(code[4]), "graded_su": lines[i].startswith("*"), "page": pno})
+                    i = j
+            i += 1
+    return sorted(courses.values(), key=lambda c: c["code"])
+
+
+def parse_ge_ocr(pages: list[dict]) -> list[dict]:
+    """Read GE catalog rows from image OCR only; keep errors visible, never fill from PDF text/GT.
+
+    Require an exact eight-digit code, Thai title, English title and complete
+    credit structure. Conflicting duplicate records are excluded for review.
+    """
+    from html import unescape
+
+    header = re.compile(r"^\s*(\*{0,2})(9064\d{4})(?:\s+(.+))?$")
+    # A malformed next code must still terminate this row; do not borrow its credit.
+    boundary = re.compile(r"^\*{0,2}9[0-9A-Za-z)]{6,10}(?:\s|$)")
+    credit = re.compile(r"(\d+)\s*\(\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*\)")
+    english = re.compile(r"^[A-Za-z][A-Za-z0-9 &'’‘“”\"(),./:+@%!?=\[\]#–—-]*$")
+
+    def components(parts):
+        """Reorder observed fields only; never repair names, codes or digits."""
+        names_th, names_en, hours_found = [], [], []
+        separate_english = any(english.fullmatch(credit.sub("", p).strip()) for p in parts)
+        for part in parts:
+            hours_found.extend(credit.findall(part))
+            name = credit.sub("", part).strip()
+            if not name:
+                continue
+            thai = list(re.finditer(r"[ก-๙]", name))
+            if thai:
+                if names_en:             # Footer/description, not a title continuation.
+                    # A credit in this line belongs to another field/row: refuse.
+                    if credit.search(part):
+                        return None
+                    break
+                # Typhoon sometimes puts Thai and English on the same line/cell.
+                # Split after the final Thai character; preserve embedded DNA etc.
+                start_en = re.search(r"(?<!\S)[A-Za-z]", name[thai[-1].end():])
+                if start_en and not separate_english:
+                    split = thai[-1].end() + start_en.start()
+                    # Multiple bilingual titles or English preceding Thai indicate
+                    # shifted/merged rows. Do not assign a previous row's title.
+                    prefix = name[:split]
+                    if re.search(r"[A-Za-z]", prefix[:thai[0].start()]) or re.search(
+                            r"[A-Za-z]+\s+[A-Za-z]+", prefix):
+                        return None
+                    names_th.append(name[:split].strip())
+                    candidate_en = name[split:].strip()
+                    if not english.fullmatch(candidate_en):
+                        return None
+                    names_en.append(candidate_en)
+                else:
+                    names_th.append(name)
+            elif english.fullmatch(name):
+                names_en.append(name)
+            else:
+                break
+        if not names_th or not names_en or len(hours_found) != 1:
+            return None
+        return " ".join(names_th), " ".join(names_en), tuple(map(int, hours_found[0]))
+
+    courses, conflicts = {}, set()
+    for page in sorted(pages, key=lambda p: int(p["page"])):
+        text = unescape(page.get("text", ""))
+        # These tags can incorrectly wrap credits, not just printed page numbers.
+        text = re.sub(r"</?page_number\b[^>]*>", "", text, flags=re.I)
+        if re.search(r"<table\b", text, flags=re.I):
+            # Reuse the existing Markdown table reader; this is format conversion,
+            # not name/credit repair. Incomplete rows never become course records.
+            from code_from_book import _cells
+            converted = []
+            for table_html in re.findall(r"<table\b[^>]*>(.*?)(?:</table>|(?=<table\b)|$)", text, flags=re.S | re.I):
+                pending = None
+                for row_html in re.findall(r"<tr\b[^>]*>(.*?)</tr>", table_html, flags=re.S | re.I):
+                    tagged_cells = _cells(row_html)
+                    cells = [unescape(value).strip() for _, value in tagged_cells]
+                    if not cells:
+                        pending = None
+                        continue
+                    own_code = _GE_CODE.fullmatch(cells[0])
+                    parts = [part.strip() for cell in cells[1:] for part in cell.splitlines() if part.strip()]
+                    if own_code:
+                        code = cells[0]
+                        fields = components(parts)
+                        pending = (code, parts, bool(re.search(
+                            r"rowspan\s*=\s*['\"]?2\b", tagged_cells[0][0], re.I))) if not fields else None
+                    elif pending:
+                        code, previous, explicit_span = pending
+                        pending = None
+                        # A continuation must be marked by rowspan/colspan and
+                        # contain only English/credit, not the next Thai title.
+                        colspan = any(re.search(r"colspan\s*=\s*['\"]?[23]\b", attrs, re.I)
+                                      for attrs, _ in tagged_cells)
+                        continuation = [part.strip() for cell in cells for part in cell.splitlines() if part.strip()]
+                        if not (explicit_span or colspan) or any(re.search(r"[ก-๙]", p) for p in continuation):
+                            continue
+                        fields = components([*previous, *continuation])
+                    else:
+                        continue
+                    if fields:
+                        th, en, hours = fields
+                        total, lecture, practice, study = hours
+                        converted.extend([f"{code} {th} {total} ({lecture}-{practice}-{study})", en])
+            text = "\n".join(converted)
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        for i, line in enumerate(lines):
+            match = header.match(line)
+            if not match or int(match[2][4]) not in GE_GROUP_NAMES:
+                continue
+            block = [match[3] or ""]
+            for following in lines[i + 1:i + 8]:
+                if boundary.match(following):
+                    break
+                block.append(following)
+            fields = components(block)
+            if fields is None:
+                continue
+            name_th, name_en, (total, lecture, practice, study) = fields
+            if total > 12 or any(h > 99 for h in (lecture, practice, study)):
+                continue
+            row = {"code": match[2], "name_th": name_th, "name_en": name_en,
+                   "credits": total, "credit_text": f"{total} ({lecture}-{practice}-{study})",
+                   "group": int(match[2][4]), "graded_su": bool(match[1]), "page": int(page["page"])}
+            previous = courses.get(row["code"])
+            if previous and any(previous[key] != row[key] for key in ("name_th", "name_en", "credits", "credit_text")):
+                conflicts.add(row["code"])
+            else:
+                courses.setdefault(row["code"], row)
+    return [courses[code] for code in sorted(courses) if code not in conflicts]
+
+
+def build_ge_catalog(pdf_path, edition: str, *, ocr_json=None) -> dict:
+    """รูปแบบเดียวกับ electives.json (ใช้ load-electives เดิมได้) — plan_slot ชื่อใหม่ จึงไม่ลบแคตตาล็อกวิชาเลือกเดิมของหลักสูตร"""
+    if ocr_json is not None:
+        payload = json.loads(Path(ocr_json).read_text(encoding="utf-8"))
+        if not payload.get("engine") or not isinstance(payload.get("pages"), list):
+            raise ValueError("GE OCR JSON requires engine and pages")
+        courses = parse_ge_ocr(payload["pages"])
+        source = f"{Path(ocr_json).name} {payload['engine']} OCR (เลขหน้าเป็นหน้า PDF)"
+    else:
+        courses = parse_ge_pdf(pdf_path)
+        source = f"{Path(pdf_path).name} PDF text layer (เลขหน้าเป็นหน้า PDF)"
+    groups = [{"group_no": g, "name_th": GE_GROUP_NAMES[g][0], "name_en": GE_GROUP_NAMES[g][1],
+               "courses": [{"code": c["code"], "name_th": c["name_th"], "name_en": c["name_en"],
+                            "credits": c["credit_text"], "graded_su": c["graded_su"], "page": c["page"]}
+                           for c in courses if c["group"] == g]} for g in GE_GROUP_NAMES]
+    return {"program": "GE", "source": source,
+            "plan_slot": f"หมวดวิชาศึกษาทั่วไป ฉบับปรับปรุง พ.ศ. {edition}",
+            "credits_required": 24, "groups": groups}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--text", required=True, help="ไฟล์ OCR เต็มเล่ม (มี marker '--- Page N ---')")
-    parser.add_argument("--start-page", type=int, required=True)
-    parser.add_argument("--end-page", type=int, required=True)
-    parser.add_argument("--program", required=True, help="เช่น BIT")
-    parser.add_argument("--plan-slot", required=True,
+    ge_input = parser.add_mutually_exclusive_group()
+    ge_input.add_argument("--pdf", help="โหมด GE จาก PDF text layer (ใช้คู่กับ --edition)")
+    ge_input.add_argument("--ocr-json", help="โหมด GE จาก OCR JSON ของ pipeline เดิม ไม่อ่าน PDF text layer (ใช้คู่กับ --edition)")
+    parser.add_argument("--edition", help="ปีฉบับของ GE เช่น 2566 (ใช้กับ --pdf)")
+    parser.add_argument("--text", help="ไฟล์ OCR เต็มเล่ม (มี marker '--- Page N ---')")
+    parser.add_argument("--start-page", type=int)
+    parser.add_argument("--end-page", type=int)
+    parser.add_argument("--program", help="เช่น BIT")
+    parser.add_argument("--plan-slot",
                         help="ชื่อช่องในตารางแผนที่ wildcard นี้แทนอยู่ เช่น "
                              "'วิชาเลือกทางเทคโนโลยีสารสนเทศทางธุรกิจ 1/2 (ปี 4/2, รหัส 06036xxx)'")
-    parser.add_argument("--credits-required", type=int, required=True)
+    parser.add_argument("--credits-required", type=int)
     parser.add_argument("-o", "--output", required=True)
     args = parser.parse_args()
+
+    if args.pdf or args.ocr_json:                           # GE: choose one explicit source
+        if not args.edition:
+            parser.error("--pdf/--ocr-json ต้องมี --edition")
+        result = build_ge_catalog(args.pdf, args.edition, ocr_json=args.ocr_json)
+        out = Path(args.output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"  พบ {sum(len(g['courses']) for g in result['groups'])} วิชา ใน {len(result['groups'])} กลุ่ม — เขียน {out}")
+        return
+    if any(getattr(args, a) is None for a in ("text", "start_page", "end_page", "program", "plan_slot", "credits_required")):
+        parser.error("โหมด OCR ข้อความต้องมี --text --start-page --end-page --program --plan-slot --credits-required")
 
     text = Path(args.text).read_text(encoding="utf-8")
     block = extract_page_range(text, args.start_page, args.end_page)
@@ -173,7 +392,7 @@ def main() -> None:
     n_courses = sum(len(g["courses"]) for g in groups)
     result = {
         "program": args.program,
-        "source": f"{args.text} หน้า {args.start_page}-{args.end_page}",
+        "source": f"{args.text} PDF หน้า {args.start_page}-{args.end_page}",   # เลขหน้า PDF (marker --- Page N ---) ไม่ใช่เลขที่พิมพ์
         "plan_slot": args.plan_slot,
         "credits_required": args.credits_required,
         "groups": groups,

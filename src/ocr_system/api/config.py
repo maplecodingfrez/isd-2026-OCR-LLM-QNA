@@ -18,6 +18,7 @@ class APISettings:
         "and curriculum extraction following ISD Chapter 10 architecture."
     )
     max_upload_mb: int = int(os.getenv("MAX_UPLOAD_MB", "15"))
+    max_concurrent_ocr: int = int(os.getenv("MAX_CONCURRENT_OCR", "2"))
     allowed_extensions: tuple[str, ...] = (
         ".pdf",
         ".png",
@@ -36,6 +37,11 @@ class APISettings:
     host: str = os.getenv("API_HOST", "127.0.0.1")
     port: int = int(os.getenv("API_PORT", "8000"))
     cors_origins: tuple[str, ...] = ("*",)
+
+    def __post_init__(self) -> None:
+        if (not isinstance(self.max_concurrent_ocr, int)
+                or isinstance(self.max_concurrent_ocr, bool) or self.max_concurrent_ocr < 1):
+            raise ValueError("MAX_CONCURRENT_OCR must be a positive integer")
 
 
 settings = APISettings()

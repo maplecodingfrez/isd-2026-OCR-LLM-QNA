@@ -2,12 +2,12 @@
   "source_text": "outputs/bit/bit_curriculum_ocr.txt",
   "courses": 36,
   "counts": {
-    "found": 1,
-    "none": 26,
-    "not_found": 8,
-    "unreadable": 1
+    "found": 2,
+    "none": 28,
+    "not_found": 6,
+    "unreadable": 0
   },
-  "pairs_inserted": 2,
+  "pairs_inserted": 3,
   "or_groups": 1,
   "per_course": {
     "06036100": {
@@ -222,19 +222,19 @@
       "dropped": []
     },
     "06036147": {
-      "status": "not_found",
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "06036148": {
-      "status": "not_found",
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "96641001": {
@@ -286,8 +286,10 @@
       "dropped": []
     },
     "96644008": {
-      "status": "unreadable",
-      "requires": [],
+      "status": "found",
+      "requires": [
+        "96644007"
+      ],
       "op": null,
       "note": null,
       "occurrences": 1,

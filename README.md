@@ -20,6 +20,47 @@
 * 67070185 - 17decc
 * 67070195 - zvacia
 
+## คู่มือใช้งานสำหรับผู้ตรวจ (Lab 11/12: เว็บถาม-ตอบหลักสูตร)
+
+ใช้งานได้ทันทีหลัง clone — ฐานข้อมูล `curriculum.db` ทั้ง 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมีไฟล์ PDF เล่มหลักสูตรหรือไฟล์ `.env`
+
+**สิ่งที่ต้องมี:** Python 3.10+ และ [Ollama](https://ollama.com) (โมเดล `qwen3:4b`)
+
+```bash
+git clone https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA.git
+cd isd-2026-OCR-LLM-QNA
+git checkout feature/lab11-frontend          # ถ้ายังไม่ merge เข้า main
+
+python -m venv .venv
+.venv\Scripts\Activate.ps1                   # Windows PowerShell (macOS/Linux: source .venv/bin/activate)
+# *หาก Windows แจ้งข้อผิดพลาด execution policy ให้รัน: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -r lab10_fastapi/curriculum_app/requirements.txt
+
+ollama pull qwen3:4b                         # ครั้งแรกครั้งเดียว (และเปิดแอปพลิเคชัน Ollama ไว้)
+python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
+```
+
+เปิด <http://127.0.0.1:8000/> (หน้าเว็บ) · ตรวจความพร้อม: <http://127.0.0.1:8000/api/health> ต้องได้ `status: ok` · เอกสาร API: <http://127.0.0.1:8000/docs>
+
+**วิธีใช้หน้าเว็บ**
+1. เลือกหลักสูตรจาก 7 แผน (AIT, BIT/DSBA/IT แบบสหกิจ–ไม่สหกิจ)
+2. พิมพ์คำถามภาษาไทย (2–500 ตัวอักษร) แล้วกด "ถาม" — ได้คำตอบพร้อมหน้าอ้างอิงในเล่ม (เลขหน้า PDF/หน้าที่พิมพ์ รหัส + ชื่อวิชาไทย/อังกฤษ)
+3. ปุ่ม "คัดลอกผล" คัดลอกคำถาม–คำตอบ–หน้าอ้างอิงเป็นข้อความพร้อมส่ง; ดู SQL ที่ใช้ตอบได้จากส่วนรายละเอียด
+4. หน้าเว็บมี 4 สถานะ: ว่าง / กำลังโหลด / สำเร็จ / ผิดพลาด (ข้อความผิดพลาดบอกสาเหตุ ไม่แสดงข้อมูลภายใน)
+
+**ตัวอย่างคำถาม:** `ปี 1 เทอม 1 เรียนอะไรบ้าง` · `วิชา Calculus 1 กี่หน่วยกิต` · `การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน` · `ปี 2 เทอม 1 มีกี่หน่วยกิต` · `แผนสหกิจกับไม่สหกิจต่างกันอย่างไร`
+คำถามที่เล่มหลักสูตรไม่มีคำตอบจะตอบว่า "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" (ไม่เดา)
+
+**ส่งชุดคำถามเป็นชุด (วัน Challenge):** ใช้ `ask-batch` ตามขั้นตอนใน `lab10_fastapi/README.md` §14 หรือกดปุ่ม "คัดลอกผล" ทีละข้อ
+
+**ข้อควรรู้**
+- ต้องเปิด Ollama ไว้ — ไม่งั้นมีเพียงคำถามที่ระบบตอบด้วยกฎตายตัว (ราว 30–45% ของคำถามที่ไม่เคยเห็น) ที่ตอบได้ ที่เหลือจะแจ้งว่าเชื่อมต่อ Ollama ไม่ได้ ครั้งแรกโมเดลโหลดช้า (เซิร์ฟเวอร์อุ่นโมเดลให้ตอนเริ่ม)
+- ความแม่นกับสำนวนคำถามที่ไม่เคยเห็นประมาณ 75% (วัดด้วยชุดคำถามอิสระ) ข้อจำกัดที่รู้อยู่ใน `lab10_fastapi/README.md` §19
+- ปัญหาที่พบบ่อย: พอร์ต 8000 ถูกใช้อยู่ → เปลี่ยน `--port`; `/api/health` ไม่ ok → ตรวจว่า `ollama serve` ทำงานและมีโมเดล `qwen3:4b` (`ollama list`)
+- รายละเอียด API/สถาปัตยกรรม: `lab10_fastapi/README.md`
+
+---
+
 ## Quick start — รันระบบถาม-ตอบหลักสูตร (Lab 7B → 8B → 9)
 
 ต้องมี Python 3.10+ และ [Ollama](https://ollama.com) ในเครื่อง (`ollama pull qwen3:4b`) — ข้อมูลที่สกัดแล้ว
@@ -38,8 +79,7 @@ source .venv/bin/activate         # macOS / Linux
 2) ติดตั้งเฉพาะที่ Lab 7B–9 ใช้ (ไม่ต้องลง torch/paddle ของ Lab 3–6 ใน `requirements.txt`) แล้วรัน:
 
 ```bash
-pip install pydantic requests pillow opencv-python numpy pytesseract pythainlp pytest
-python -m pytest tests -q                                # เทสทั้งหมด (ไม่ต้องใช้ Ollama)
+pip install pydantic requests pillow opencv-python numpy pytesseract pythainlp
 
 cd Lab7B_Lab8B_ocr_system
 python run_lab8b.py --plan it_coop --skip-lab7           # 1 แผน: ซ่อมข้อมูลจากเล่ม -> SQLite -> ตรวจ -> ถาม 30 ข้อ
@@ -72,7 +112,7 @@ OCR engines ที่มีให้:
 
 > **หมายเหตุ:** โฟลเดอร์ `src/`, `scripts/`, `outputs/`, `data/` ที่ root เป็นงาน **Lab 3-6**
 > (OCR/extraction/evaluation รอบแรก) งานของ Lab 7B ขึ้นไปอยู่ในโฟลเดอร์แยก: `Lab7B_Lab8B_ocr_system/`,
-> `Lab9_evaluation/`, `lab10_fastapi/` (เทสอยู่ที่ `tests/`)
+> `Lab9_evaluation/`, `lab10_fastapi/` (ชุดเทส pytest เก็บในเครื่องผู้พัฒนา ไม่ได้อยู่ใน repo)
 
 ## ทำงานร่วมกันบน Git (ก่อนเริ่มทำงานทุกครั้ง)
 
@@ -165,7 +205,6 @@ ocr_system/
 │   └── reports/                   # lab9_metrics_latest.md/.json, สรุป overfit/underfit, P/R/F1 + CER/WER ของ Lab 7B
 ├── lab10_fastapi/                 # Lab 10: เว็บ/API ถาม-ตอบหลักสูตร (ดู lab10_fastapi/README.md)
 │   └── curriculum_app/            # main.py (FastAPI), database.py + model_service.py (ใช้ lab8b ซ้ำ), static/index.html
-└── tests/                         # pytest ของ Lab 7B–9 (python -m pytest tests -q, ไม่ต้องใช้ Ollama)
 ```
 
 ---
@@ -1269,6 +1308,8 @@ docstring ของ `Lab7B_Lab8B_ocr_system/src/ocr_system/lab7b_curriculum.py` 
 **ไม่อยู่ใน git:** PDF หลักสูตรเต็มเล่ม (`data/input/*.pdf`), ภาพทุกหน้า `outputs/*/pages/`,
 `outputs/ocr_backup_before_workers/`, `Lab7B_Lab8B_ocr_system/archive/`, `work/`, `.env` — และภาพ `data_input/` ที่ซ้ำกันในโฟลเดอร์
 `*_retry*` / `AIT_dewm*` (สคริปต์ retry/dewm ก๊อปให้เองจาก `data_input/` ของรันหลัก)
+
+> หมายเหตุ: โฟลเดอร์ `*_retry` ใน `Lab7B_Lab8B_ocr_system/runs/` (7 โฟลเดอร์ รันเมื่อ 26 ก.ย. 2026) ถูกบีบเก็บเป็น `runs/_archive/retry_2026-09-26.zip` แล้วลบโฟลเดอร์เดิมออก (zip อยู่เฉพาะเครื่อง ไม่อยู่ใน git) path `runs/.../*_retry` ที่อ้างในเอกสารนี้ให้แตก zip ก่อนดู
 Lab 7B/8B ใช้ภาพใน `runs/<แผน>/data_input/` จึงไม่ต้องมี PDF เพื่อรันซ้ำ; ต้องใช้ PDF เฉพาะเมื่อจะทำ OCR ทั้งเล่มของ Lab 4–6 ใหม่
 
 **ลองรันเร็ว ๆ (ไม่ OCR ใหม่ ~1 นาที, ต้องมี Ollama + `qwen3:4b`):**
@@ -1563,7 +1604,7 @@ matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab
 | `GET` | `/api/program` | อ่านข้อมูลภาพรวมหลักสูตร | ไม่มี |
 | `GET` | `/api/programs` | รายชื่อ 7 แผนและสถานะไฟล์ฐานข้อมูล | ไม่มี |
 | `GET` | `/api/courses` | อ่านและค้นหารายวิชา | `search`, `limit`, `offset` |
-| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล | JSON: `CourseCreate` |
+| `POST` | `/api/courses` | เพิ่มรายวิชาใหม่เข้าฐานข้อมูล (ปิดเป็นค่าเริ่มต้น: ต้องตั้ง `CURRICULUM_ALLOW_WRITE=1`) | JSON: `CourseCreate` |
 | `POST` | `/api/ask` | ถามคำถามหลักสูตร (Qwen Text-to-SQL + SQLite) | JSON: `{"question": "...", "program": "it_no_coop"}` |
 | `GET` | `/api/courses/{code}/prerequisites` | ⭐ **(API เพิ่มเติม)** ตรวจสอบวิชาบังคับก่อนและวิชาที่ปลดล็อค | Path: `code` (รหัสวิชา 8 หลัก) |
 
@@ -1601,3 +1642,7 @@ matrix แยกจากเกณฑ์เดิม) อยู่ที่ `Lab
 * **หมายเหตุข้อมูล**: ฐานข้อมูลปัจจุบันเป็นหลักสูตร IT (มี 41 รายวิชาตามแผน 4 ปี และมีกฎ Prerequisite ตามเล่ม 4 รายวิชา คือ `06016407`, `06016418`, `06016419`, `06016420`) หากค้นหารหัสวิชาอื่นที่ไม่อยู่ในเล่มจะตอบกลับ `404 Not Found`
 
 รายละเอียดเต็มของ Lab 10 อยู่ที่ [`lab10_fastapi/README.md`](lab10_fastapi/README.md) และรายงานฉบับสมบูรณ์อยู่ที่ [`docs/reports/lab10_fastapi_report.md`](docs/reports/lab10_fastapi_report.md)
+
+### OCR API processing limits
+
+The legacy `/api/v1/ocr/process` route runs OCR in worker threads. `MAX_CONCURRENT_OCR` sets active OCR jobs per server process (default `2`, minimum `1`); excess jobs receive HTTP 503 and can be retried. Cancelling an HTTP request does not forcibly stop an already running OCR worker. Corrupt documents return 422; engine failures without a complete digital-PDF fallback return 503.

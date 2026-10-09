@@ -8,17 +8,23 @@
       "type": "value",
       "value": "132"
     },
-    "sql": "SELECT total_credits FROM program LIMIT 200",
+    "sql": "SELECT total_credits FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT total_credits FROM program\"}",
-    "answer_model_output": "{\"answer\": \"132 หน่วยกิต\"}",
-    "answer": "132 หน่วยกิต",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หน่วยกิตรวมตลอดหลักสูตร 132 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 2,
+        "printed_page": "1",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 2)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.4
+    "seconds": 0.1
   },
   {
     "id": "A2",
@@ -29,17 +35,23 @@
       "type": "value",
       "value": "4"
     },
-    "sql": "SELECT years FROM program LIMIT 200",
+    "sql": "SELECT years FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT years FROM program\"}",
-    "answer_model_output": "{\"answer\": \"4 ปี\"}",
-    "answer": "4 ปี",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
+    "citations": [
+      {
+        "pdf_page": 3,
+        "printed_page": "2",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 2 (PDF 3)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.2
+    "seconds": 0.0
   },
   {
     "id": "B1",
@@ -54,17 +66,23 @@
       1,
       1
     ],
-    "sql": "SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1 LIMIT 200",
+    "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 1 AND semester = 1",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year = 1 AND semester = 1\"}",
-    "answer_model_output": "{\"answer\": \"7 วิชา\"}",
-    "answer": "7 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 1 เทอม 1 ต้องลงทะเบียน 7 วิชา",
+    "citations": [
+      {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "B2",
@@ -79,17 +97,23 @@
       1,
       1
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 1 AND semester = 1",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=1 AND semester=1\"}",
-    "answer_model_output": "{\"answer\": \"18 หน่วยกิต\"}",
-    "answer": "18 หน่วยกิต",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 1 เทอม 1 รวม 18 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "B3",
@@ -120,22 +144,55 @@
     "answer": "06026200 (แคลคูลัส 1), 06026202 (พีชคณิตเชิงเส้น), 06066101 (พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ), 06066303 (การแก้ปัญหาและการโปรแกรมคอมพิวเตอร์), 90641001 (โรงเรียนสร้างเสน่ห์), 90641003 (กีฬาและนันทนาการ), 90644007 (ภาษาอังกฤษพื้นฐาน 1)",
     "citations": [
       {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": [
+          "06026200",
+          "06066101"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1",
+          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1",
+          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+        }
+      },
+      {
         "pdf_page": 314,
-        "printed_page": "313"
+        "printed_page": "313",
+        "courses": [
+          "06026200"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1"
+        }
       },
       {
         "pdf_page": 17,
-        "printed_page": "16"
-      },
-      {
-        "pdf_page": 30,
-        "printed_page": "29"
+        "printed_page": "16",
+        "courses": [
+          "06026200",
+          "06026202"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1",
+          "06026202": "พีชคณิตเชิงเส้น"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1",
+          "06026202": "LINEAR ALGEBRA"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 313 (PDF 314), หน้า 16 (PDF 17), หน้า 29 (PDF 30))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 313 (PDF 314)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n• หน้า 16 (PDF 17)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n   – 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.9
+    "seconds": 3.8
   },
   {
     "id": "B4",
@@ -150,17 +207,23 @@
       2,
       2
     ],
-    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=2 LIMIT 200",
+    "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 2 AND semester = 2",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=2\"}",
-    "answer_model_output": "{\"answer\": \"7 วิชา\"}",
-    "answer": "7 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 2 ต้องลงทะเบียน 7 วิชา",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "32",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 32 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 0.0
   },
   {
     "id": "B5",
@@ -175,17 +238,23 @@
       2,
       2
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=2 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 2",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=2\"}",
-    "answer_model_output": "{\"answer\": \"21 หน่วยกิจ\"}",
-    "answer": "21 หน่วยกิจ",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 2 รวม 21 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 33,
+        "printed_page": "32",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 32 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "B6",
@@ -216,22 +285,49 @@
     "answer": "06026204 (เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น), 06026207 (ระบบฐานข้อมูลแบบโนเอสคิวแอล), 06026208 (พื้นฐานวิทยาการข้อมูล), 06026209 (การแสดงข้อมูลด้วยแผนภาพ), 06026210 (การหาค่าที่เหมาะสมที่สุด), 06066102 (ระบบสารสนเทศเพื่อการจัดการ), 06066301 (โครงสร้างข้อมูลและอัลกอริทึม)",
     "citations": [
       {
+        "pdf_page": 33,
+        "printed_page": "32",
+        "courses": [
+          "06026204"
+        ],
+        "course_names": {
+          "06026204": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06026204": "INTRODUCTION TO NETWORKS AND CYBERSECURITY"
+        }
+      },
+      {
         "pdf_page": 316,
-        "printed_page": "315"
+        "printed_page": "315",
+        "courses": [
+          "06026204"
+        ],
+        "course_names": {
+          "06026204": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06026204": "INTRODUCTION TO NETWORKS AND CYBERSECURITY"
+        }
       },
       {
         "pdf_page": 17,
-        "printed_page": "16"
-      },
-      {
-        "pdf_page": 26,
-        "printed_page": "25"
+        "printed_page": "16",
+        "courses": [
+          "06026204"
+        ],
+        "course_names": {
+          "06026204": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น"
+        },
+        "course_names_en": {
+          "06026204": "INTRODUCTION TO NETWORKS AND CYBERSECURITY"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 315 (PDF 316), หน้า 16 (PDF 17), หน้า 25 (PDF 26))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 32 (PDF 33)\n   – 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY\n• หน้า 315 (PDF 316)\n   – 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY\n• หน้า 16 (PDF 17)\n   – 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.4
+    "seconds": 3.0
   },
   {
     "id": "C1",
@@ -253,22 +349,49 @@
     "answer": "ผู้ประกอบการสมัยใหม่",
     "citations": [
       {
+        "pdf_page": 35,
+        "printed_page": "34",
+        "courses": [
+          "90643021"
+        ],
+        "course_names": {
+          "90643021": "ผู้ประกอบการสมัยใหม่"
+        },
+        "course_names_en": {
+          "90643021": "MODERN ENTREPRENEURS"
+        }
+      },
+      {
         "pdf_page": 201,
-        "printed_page": "200"
+        "printed_page": "200",
+        "courses": [
+          "90643021"
+        ],
+        "course_names": {
+          "90643021": "ผู้ประกอบการสมัยใหม่"
+        },
+        "course_names_en": {
+          "90643021": "MODERN ENTREPRENEURS"
+        }
       },
       {
         "pdf_page": 16,
-        "printed_page": "15"
-      },
-      {
-        "pdf_page": 28,
-        "printed_page": "27"
+        "printed_page": "15",
+        "courses": [
+          "90643021"
+        ],
+        "course_names": {
+          "90643021": "ผู้ประกอบการสมัยใหม่"
+        },
+        "course_names_en": {
+          "90643021": "MODERN ENTREPRENEURS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 200 (PDF 201), หน้า 15 (PDF 16), หน้า 27 (PDF 28))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 34 (PDF 35)\n   – 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS\n• หน้า 200 (PDF 201)\n   – 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS\n• หน้า 15 (PDF 16)\n   – 90643021 ผู้ประกอบการสมัยใหม่ / MODERN ENTREPRENEURS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 2.6
   },
   {
     "id": "C2",
@@ -291,21 +414,48 @@
     "citations": [
       {
         "pdf_page": 318,
-        "printed_page": "317"
+        "printed_page": "317",
+        "courses": [
+          "06066300"
+        ],
+        "course_names": {
+          "06066300": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06066300": "DATABASE SYSTEM CONCEPTS"
+        }
+      },
+      {
+        "pdf_page": 18,
+        "printed_page": "17",
+        "courses": [
+          "06066300"
+        ],
+        "course_names": {
+          "06066300": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06066300": "DATABASE SYSTEM CONCEPTS"
+        }
       },
       {
         "pdf_page": 323,
-        "printed_page": "322"
-      },
-      {
-        "pdf_page": 324,
-        "printed_page": "323"
+        "printed_page": "322",
+        "courses": [
+          "06066300"
+        ],
+        "course_names": {
+          "06066300": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06066300": "DATABASE SYSTEM CONCEPTS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 317 (PDF 318), หน้า 322 (PDF 323), หน้า 323 (PDF 324))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 317 (PDF 318)\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n• หน้า 17 (PDF 18)\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n• หน้า 322 (PDF 323)\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.4
   },
   {
     "id": "C3",
@@ -328,21 +478,48 @@
     "citations": [
       {
         "pdf_page": 323,
-        "printed_page": "322"
+        "printed_page": "322",
+        "courses": [
+          "06026212"
+        ],
+        "course_names": {
+          "06026212": "การสร้างคลังข้อมูล"
+        },
+        "course_names_en": {
+          "06026212": "DATA WAREHOUSING"
+        }
       },
       {
         "pdf_page": 18,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06026212"
+        ],
+        "course_names": {
+          "06026212": "การสร้างคลังข้อมูล"
+        },
+        "course_names_en": {
+          "06026212": "DATA WAREHOUSING"
+        }
       },
       {
         "pdf_page": 27,
-        "printed_page": "26"
+        "printed_page": "26",
+        "courses": [
+          "06026212"
+        ],
+        "course_names": {
+          "06026212": "การสร้างคลังข้อมูล"
+        },
+        "course_names_en": {
+          "06026212": "DATA WAREHOUSING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 322 (PDF 323), หน้า 17 (PDF 18), หน้า 26 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 322 (PDF 323)\n   – 06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING\n• หน้า 17 (PDF 18)\n   – 06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING\n• หน้า 26 (PDF 27)\n   – 06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 2.5
   },
   {
     "id": "D1",
@@ -357,30 +534,57 @@
       "06066302"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'การเขียนโปรแกรมเว็บพื้นฐาน' LIMIT 200",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066302')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'การเขียนโปรแกรมเว็บพื้นฐาน'\" }",
-    "answer_model_output": "{\"answer\": \"06066302\"}",
-    "answer": "06066302 (การเขียนโปรแกรมเว็บพื้นฐาน)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06066302 (การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING)",
     "citations": [
       {
         "pdf_page": 319,
-        "printed_page": "318"
+        "printed_page": "318",
+        "courses": [
+          "06066302"
+        ],
+        "course_names": {
+          "06066302": "การเขียนโปรแกรมเว็บพื้นฐาน"
+        },
+        "course_names_en": {
+          "06066302": "FUNDAMENTAL WEB PROGRAMMING"
+        }
       },
       {
         "pdf_page": 18,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06066302"
+        ],
+        "course_names": {
+          "06066302": "การเขียนโปรแกรมเว็บพื้นฐาน"
+        },
+        "course_names_en": {
+          "06066302": "FUNDAMENTAL WEB PROGRAMMING"
+        }
       },
       {
         "pdf_page": 25,
-        "printed_page": "24"
+        "printed_page": "24",
+        "courses": [
+          "06066302"
+        ],
+        "course_names": {
+          "06066302": "การเขียนโปรแกรมเว็บพื้นฐาน"
+        },
+        "course_names_en": {
+          "06066302": "FUNDAMENTAL WEB PROGRAMMING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 318 (PDF 319), หน้า 17 (PDF 18), หน้า 24 (PDF 25))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 318 (PDF 319)\n   – 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING\n• หน้า 17 (PDF 18)\n   – 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING\n• หน้า 24 (PDF 25)\n   – 06066302 การเขียนโปรแกรมเว็บพื้นฐาน / FUNDAMENTAL WEB PROGRAMMING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 0.0
   },
   {
     "id": "D2",
@@ -395,30 +599,57 @@
       "06026202"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'พีชคณิตเชิงเส้น' LIMIT 200",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06026202')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'พีชคณิตเชิงเส้น'\" }",
-    "answer_model_output": "{\"answer\": \"06026202\"}",
-    "answer": "06026202 (พีชคณิตเชิงเส้น)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06026202 (พีชคณิตเชิงเส้น / LINEAR ALGEBRA)",
     "citations": [
       {
         "pdf_page": 315,
-        "printed_page": "314"
+        "printed_page": "314",
+        "courses": [
+          "06026202"
+        ],
+        "course_names": {
+          "06026202": "พีชคณิตเชิงเส้น"
+        },
+        "course_names_en": {
+          "06026202": "LINEAR ALGEBRA"
+        }
       },
       {
         "pdf_page": 17,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06026202"
+        ],
+        "course_names": {
+          "06026202": "พีชคณิตเชิงเส้น"
+        },
+        "course_names_en": {
+          "06026202": "LINEAR ALGEBRA"
+        }
       },
       {
         "pdf_page": 23,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06026202"
+        ],
+        "course_names": {
+          "06026202": "พีชคณิตเชิงเส้น"
+        },
+        "course_names_en": {
+          "06026202": "LINEAR ALGEBRA"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 314 (PDF 315), หน้า 16 (PDF 17), หน้า 22 (PDF 23))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 314 (PDF 315)\n   – 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA\n• หน้า 16 (PDF 17)\n   – 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA\n• หน้า 22 (PDF 23)\n   – 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 0.0
   },
   {
     "id": "D3",
@@ -433,17 +664,44 @@
       "06066304"
     ],
     "name_key": "name_en",
-    "sql": "SELECT code FROM course WHERE name_th = 'INFORMATION SYSTEM ANALYSIS AND DESIGN' LIMIT 200",
-    "n_rows": 0,
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06066304')",
+    "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'INFORMATION SYSTEM ANALYSIS AND DESIGN'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 06066304 (ได้ [])",
-    "seconds": 0.9
+    "answer": "06066304 (การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN)",
+    "citations": [
+      {
+        "pdf_page": 320,
+        "printed_page": "319",
+        "courses": [
+          "06066304"
+        ],
+        "course_names": {
+          "06066304": "การวิเคราะห์และออกแบบระบบสารสนเทศ"
+        },
+        "course_names_en": {
+          "06066304": "INFORMATION SYSTEM ANALYSIS AND DESIGN"
+        }
+      },
+      {
+        "pdf_page": 18,
+        "printed_page": "17",
+        "courses": [
+          "06066304"
+        ],
+        "course_names": {
+          "06066304": "การวิเคราะห์และออกแบบระบบสารสนเทศ"
+        },
+        "course_names_en": {
+          "06066304": "INFORMATION SYSTEM ANALYSIS AND DESIGN"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 319 (PDF 320)\n   – 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN\n• หน้า 17 (PDF 18)\n   – 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ / INFORMATION SYSTEM ANALYSIS AND DESIGN",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 0.0
   },
   {
     "id": "E1",
@@ -458,30 +716,57 @@
       "06026211"
     ],
     "name_key": "name_th",
-    "sql": "SELECT p.year FROM v_plan p WHERE p.code = '06026211' LIMIT 200",
+    "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06026211' ORDER BY p.year, p.semester",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT p.year FROM v_plan p WHERE p.code = '06026211'\" }",
-    "answer_model_output": "{\"answer\": \"ปีที่ 3\"}",
-    "answer": "ปีที่ 3",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06026211 การเรียนรู้ของเครื่องเชิงประยุกต์: ปี 3 เทอม 1",
     "citations": [
       {
         "pdf_page": 323,
-        "printed_page": "322"
+        "printed_page": "322",
+        "courses": [
+          "06026211"
+        ],
+        "course_names": {
+          "06026211": "การเรียนรู้ของเครื่องเชิงประยุกต์"
+        },
+        "course_names_en": {
+          "06026211": "APPLIED MACHINE LEARNING"
+        }
       },
       {
         "pdf_page": 18,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06026211"
+        ],
+        "course_names": {
+          "06026211": "การเรียนรู้ของเครื่องเชิงประยุกต์"
+        },
+        "course_names_en": {
+          "06026211": "APPLIED MACHINE LEARNING"
+        }
       },
       {
         "pdf_page": 354,
-        "printed_page": "353"
+        "printed_page": "353",
+        "courses": [
+          "06026211"
+        ],
+        "course_names": {
+          "06026211": "การเรียนรู้ของเครื่องเชิงประยุกต์"
+        },
+        "course_names_en": {
+          "06026211": "APPLIED MACHINE LEARNING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 322 (PDF 323), หน้า 17 (PDF 18), หน้า 353 (PDF 354))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 322 (PDF 323)\n   – 06026211 การเรียนรู้ของเครื่องเชิงประยุกต์ / APPLIED MACHINE LEARNING\n• หน้า 17 (PDF 18)\n   – 06026211 การเรียนรู้ของเครื่องเชิงประยุกต์ / APPLIED MACHINE LEARNING\n• หน้า 353 (PDF 354)\n   – 06026211 การเรียนรู้ของเครื่องเชิงประยุกต์ / APPLIED MACHINE LEARNING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "E2",
@@ -496,30 +781,57 @@
       "90641001"
     ],
     "name_key": "name_th",
-    "sql": "SELECT credits FROM v_plan WHERE code = '90641001' LIMIT 200",
+    "sql": "SELECT DISTINCT v.code, c.name_th, c.credits FROM v_plan v JOIN course c ON c.code = v.code WHERE c.name_th LIKE '%โรงเรียนสร้างเสน่ห์%'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_plan WHERE code = '90641001'\" }",
-    "answer_model_output": "{\"answer\": \"2 หน่วยกิต\"}",
-    "answer": "2 หน่วยกิต",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL — 2 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 151,
-        "printed_page": "150"
+        "printed_page": "150",
+        "courses": [
+          "90641001"
+        ],
+        "course_names": {
+          "90641001": "โรงเรียนสร้างเสน่ห์"
+        },
+        "course_names_en": {
+          "90641001": "CHARM SCHOOL"
+        }
       },
       {
         "pdf_page": 16,
-        "printed_page": "15"
+        "printed_page": "15",
+        "courses": [
+          "90641001"
+        ],
+        "course_names": {
+          "90641001": "โรงเรียนสร้างเสน่ห์"
+        },
+        "course_names_en": {
+          "90641001": "CHARM SCHOOL"
+        }
       },
       {
         "pdf_page": 123,
-        "printed_page": "122"
+        "printed_page": "122",
+        "courses": [
+          "90641001"
+        ],
+        "course_names": {
+          "90641001": "โรงเรียนสร้างเสน่ห์"
+        },
+        "course_names_en": {
+          "90641001": "CHARM SCHOOL"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 150 (PDF 151), หน้า 15 (PDF 16), หน้า 122 (PDF 123))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 150 (PDF 151)\n   – 90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL\n• หน้า 15 (PDF 16)\n   – 90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL\n• หน้า 122 (PDF 123)\n   – 90641001 โรงเรียนสร้างเสน่ห์ / CHARM SCHOOL",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.0
+    "seconds": 0.0
   },
   {
     "id": "E3",
@@ -534,30 +846,57 @@
       "06026200"
     ],
     "name_key": "name_th",
-    "sql": "SELECT lecture_h FROM course WHERE code = '06026200' LIMIT 200",
+    "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06026200'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT lecture_h FROM course WHERE code = '06026200'\"}",
-    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
-    "answer": "3 ชั่วโมง",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06026200 แคลคูลัส 1: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
     "citations": [
       {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": [
+          "06026200"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1"
+        }
+      },
+      {
         "pdf_page": 314,
-        "printed_page": "313"
+        "printed_page": "313",
+        "courses": [
+          "06026200"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1"
+        }
       },
       {
         "pdf_page": 17,
-        "printed_page": "16"
-      },
-      {
-        "pdf_page": 30,
-        "printed_page": "29"
+        "printed_page": "16",
+        "courses": [
+          "06026200"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 313 (PDF 314), หน้า 16 (PDF 17), หน้า 29 (PDF 30))",
-    "correct": false,
-    "why": "ไม่พบค่า 0 (ได้ ['3'])",
-    "seconds": 2.0
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n• หน้า 313 (PDF 314)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n• หน้า 16 (PDF 17)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 0.0
   },
   {
     "id": "E4",
@@ -581,21 +920,48 @@
     "citations": [
       {
         "pdf_page": 315,
-        "printed_page": "314"
+        "printed_page": "314",
+        "courses": [
+          "06066000"
+        ],
+        "course_names": {
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง"
+        },
+        "course_names_en": {
+          "06066000": "DISCRETE MATHEMATICS"
+        }
       },
       {
         "pdf_page": 17,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06066000"
+        ],
+        "course_names": {
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง"
+        },
+        "course_names_en": {
+          "06066000": "DISCRETE MATHEMATICS"
+        }
       },
       {
         "pdf_page": 353,
-        "printed_page": "352"
+        "printed_page": "352",
+        "courses": [
+          "06066000"
+        ],
+        "course_names": {
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง"
+        },
+        "course_names_en": {
+          "06066000": "DISCRETE MATHEMATICS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 314 (PDF 315), หน้า 16 (PDF 17), หน้า 352 (PDF 353))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 314 (PDF 315)\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n• หน้า 16 (PDF 17)\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n• หน้า 352 (PDF 353)\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.7
   },
   {
     "id": "F1",
@@ -615,30 +981,31 @@
       "06026212"
     ],
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06026212'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06026212' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06066300\"}",
-    "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING\nวิชาบังคับก่อน: 06066300 (แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS)",
     "citations": [
       {
         "pdf_page": 323,
-        "printed_page": "322"
-      },
-      {
-        "pdf_page": 18,
-        "printed_page": "17"
-      },
-      {
-        "pdf_page": 27,
-        "printed_page": "26"
+        "printed_page": "322",
+        "courses": [
+          "06026212"
+        ],
+        "course_names": {
+          "06026212": "การสร้างคลังข้อมูล"
+        },
+        "course_names_en": {
+          "06026212": "DATA WAREHOUSING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 322 (PDF 323), หน้า 17 (PDF 18), หน้า 26 (PDF 27))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 322 (PDF 323)\n   – 06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "F2",
@@ -659,30 +1026,31 @@
     ],
     "name_key": "name_th",
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06026213' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06026213'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06026213' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06066300\"}",
-    "answer": "06066300 (แนวคิดระบบฐานข้อมูล)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06026213 ระบบข้อมูลมหัต / BIG DATA SYSTEMS\nวิชาบังคับก่อน: 06066300 (แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS)",
     "citations": [
       {
         "pdf_page": 324,
-        "printed_page": "323"
-      },
-      {
-        "pdf_page": 19,
-        "printed_page": "18"
-      },
-      {
-        "pdf_page": 28,
-        "printed_page": "27"
+        "printed_page": "323",
+        "courses": [
+          "06026213"
+        ],
+        "course_names": {
+          "06026213": "ระบบข้อมูลมหัต"
+        },
+        "course_names_en": {
+          "06026213": "BIG DATA SYSTEMS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 323 (PDF 324), หน้า 18 (PDF 19), หน้า 27 (PDF 28))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 323 (PDF 324)\n   – 06026213 ระบบข้อมูลมหัต / BIG DATA SYSTEMS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "F3",
@@ -702,30 +1070,31 @@
       "06026214"
     ],
     "direction": "reverse",
-    "sql": "SELECT code FROM prerequisite WHERE requires='06026214' AND kind='pre' LIMIT 200",
+    "sql": "SELECT code FROM prerequisite WHERE requires = '06026214'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06026214' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"ไม่พบข้อมูลนี้ในเล่มหลักสูตร\"}",
-    "answer": "06026215 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "วิชาต่อที่ต้องผ่าน 06026214 ก่อน:\n06026215 (โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2)",
     "citations": [
       {
-        "pdf_page": 324,
-        "printed_page": "323"
-      },
-      {
         "pdf_page": 325,
-        "printed_page": "324"
-      },
-      {
-        "pdf_page": 19,
-        "printed_page": "18"
+        "printed_page": "324",
+        "courses": [
+          "06026215"
+        ],
+        "course_names": {
+          "06026215": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2"
+        },
+        "course_names_en": {
+          "06026215": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 323 (PDF 324), หน้า 324 (PDF 325), หน้า 18 (PDF 19))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 324 (PDF 325)\n   – 06026215 โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.3
+    "seconds": 0.0
   },
   {
     "id": "F4",
@@ -734,19 +1103,98 @@
     "question": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่",
     "expect": {
       "type": "value",
-      "value": "5"
+      "value": "6"
     },
-    "sql": "SELECT COUNT(*) FROM prerequisite LIMIT 200",
+    "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
-    "answer_model_output": "{\"answer\": \"5 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
-    "answer": "5 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "6 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "citations": [
+      {
+        "pdf_page": 209,
+        "printed_page": "208",
+        "courses": [
+          "90644008"
+        ],
+        "course_names": {
+          "90644008": "ภาษาอังกฤษพื้นฐาน 2"
+        },
+        "course_names_en": {
+          "90644008": "FOUNDATION ENGLISH 2"
+        }
+      },
+      {
+        "pdf_page": 314,
+        "printed_page": "313",
+        "courses": [
+          "06026201"
+        ],
+        "course_names": {
+          "06026201": "แคลคูลัส 2"
+        },
+        "course_names_en": {
+          "06026201": "CALCULUS 2"
+        }
+      },
+      {
+        "pdf_page": 318,
+        "printed_page": "317",
+        "courses": [
+          "06066102"
+        ],
+        "course_names": {
+          "06066102": "ระบบสารสนเทศเพื่อการจัดการ"
+        },
+        "course_names_en": {
+          "06066102": "MANAGEMENT INFORMATION SYSTEMS"
+        }
+      },
+      {
+        "pdf_page": 323,
+        "printed_page": "322",
+        "courses": [
+          "06026212"
+        ],
+        "course_names": {
+          "06026212": "การสร้างคลังข้อมูล"
+        },
+        "course_names_en": {
+          "06026212": "DATA WAREHOUSING"
+        }
+      },
+      {
+        "pdf_page": 324,
+        "printed_page": "323",
+        "courses": [
+          "06026213"
+        ],
+        "course_names": {
+          "06026213": "ระบบข้อมูลมหัต"
+        },
+        "course_names_en": {
+          "06026213": "BIG DATA SYSTEMS"
+        }
+      },
+      {
+        "pdf_page": 325,
+        "printed_page": "324",
+        "courses": [
+          "06026215"
+        ],
+        "course_names": {
+          "06026215": "โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2"
+        },
+        "course_names_en": {
+          "06026215": "PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 208 (PDF 209)\n   – 90644008 ภาษาอังกฤษพื้นฐาน 2 / FOUNDATION ENGLISH 2\n• หน้า 313 (PDF 314)\n   – 06026201 แคลคูลัส 2 / CALCULUS 2\n• หน้า 317 (PDF 318)\n   – 06066102 ระบบสารสนเทศเพื่อการจัดการ / MANAGEMENT INFORMATION SYSTEMS\n• หน้า 322 (PDF 323)\n   – 06026212 การสร้างคลังข้อมูล / DATA WAREHOUSING\n• หน้า 323 (PDF 324)\n   – 06026213 ระบบข้อมูลมหัต / BIG DATA SYSTEMS\n• หน้า 324 (PDF 325)\n   – 06026215 โครงงานวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 2 / PROJECT IN DATA SCIENCE AND BUSINESS ANALYTICS 2",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 0.0
   },
   {
     "id": "G1",
@@ -763,11 +1211,32 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND credits = 1\"}",
     "answer_model_output": "{\"answer\": \"1 วิชา\"}",
     "answer": "1 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": []
+      },
+      {
+        "pdf_page": 31,
+        "printed_page": "30",
+        "courses": []
+      },
+      {
+        "pdf_page": 32,
+        "printed_page": "31",
+        "courses": []
+      },
+      {
+        "pdf_page": 33,
+        "printed_page": "32",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)\n• หน้า 30 (PDF 31)\n• หน้า 31 (PDF 32)\n• หน้า 32 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 2.4
   },
   {
     "id": "G2",
@@ -778,17 +1247,78 @@
       "type": "value",
       "value": "3"
     },
-    "sql": "SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12 LIMIT 200",
-    "n_rows": 1,
+    "sql": "SELECT DISTINCT c.code, c.name_th, c.lecture_h FROM course c JOIN plan_item p ON p.code = c.code WHERE c.lecture_h IS NOT NULL AND p.year IN (1, 2) ORDER BY c.lecture_h DESC",
+    "n_rows": 16,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12\"}",
-    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
-    "answer": "3 ชั่วโมง",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06026200 แคลคูลัส 1 และ 06026201 แคลคูลัส 2 และ 06026202 พีชคณิตเชิงเส้น และ 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น และ 06026205 การตลาดเบื้องต้น และ 06026208 พื้นฐานวิทยาการข้อมูล และ 06026210 การหาค่าที่เหมาะสมที่สุด และ 06066000 คณิตศาสตร์ไม่ต่อเนื่อง และ 06066001 ความน่าจะเป็นและสถิติ และ 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ และ 06066102 ระบบสารสนเทศเพื่อการจัดการ และ 06066304 การวิเคราะห์และออกแบบระบบสารสนเทศ และ 90641002 ความฉลาดทางดิจิทัล และ 90642033 กฎหมายสำหรับคนรุ่นใหม่ และ 90644007 ภาษาอังกฤษพื้นฐาน 1 และ 90644008 ภาษาอังกฤษพื้นฐาน 2 (3 ชั่วโมงต่อสัปดาห์)",
+    "citations": [
+      {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": [
+          "06026200",
+          "06066101"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1",
+          "06066101": "พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1",
+          "06066101": "BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY"
+        }
+      },
+      {
+        "pdf_page": 314,
+        "printed_page": "313",
+        "courses": [
+          "06026200",
+          "06026201"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1",
+          "06026201": "แคลคูลัส 2"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1",
+          "06026201": "CALCULUS 2"
+        }
+      },
+      {
+        "pdf_page": 17,
+        "printed_page": "16",
+        "courses": [
+          "06026200",
+          "06026201",
+          "06026202",
+          "06026204",
+          "06066000",
+          "06066001"
+        ],
+        "course_names": {
+          "06026200": "แคลคูลัส 1",
+          "06026201": "แคลคูลัส 2",
+          "06026202": "พีชคณิตเชิงเส้น",
+          "06026204": "เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น",
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง",
+          "06066001": "ความน่าจะเป็นและสถิติ"
+        },
+        "course_names_en": {
+          "06026200": "CALCULUS 1",
+          "06026201": "CALCULUS 2",
+          "06026202": "LINEAR ALGEBRA",
+          "06026204": "INTRODUCTION TO NETWORKS AND CYBERSECURITY",
+          "06066000": "DISCRETE MATHEMATICS",
+          "06066001": "PROBABILITY AND STATISTICS"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n   – 06066101 พื้นฐานทางธุรกิจสำหรับเทคโนโลยีสารสนเทศ / BUSINESS FUNDAMENTALS FOR INFORMATION TECHNOLOGY\n• หน้า 313 (PDF 314)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n   – 06026201 แคลคูลัส 2 / CALCULUS 2\n• หน้า 16 (PDF 17)\n   – 06026200 แคลคูลัส 1 / CALCULUS 1\n   – 06026201 แคลคูลัส 2 / CALCULUS 2\n   – 06026202 พีชคณิตเชิงเส้น / LINEAR ALGEBRA\n   – 06026204 เครือข่ายและความมั่นคงทางไซเบอร์เบื้องต้น / INTRODUCTION TO NETWORKS AND CYBERSECURITY\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.1
+    "seconds": 0.0
   },
   {
     "id": "G3",
@@ -805,11 +1335,32 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE name_th LIKE '%คอมพิวเตอร์%' AND year BETWEEN 1 AND 2\"}",
     "answer_model_output": "{\"answer\": \"2 วิชา\"}",
     "answer": "2 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 30,
+        "printed_page": "29",
+        "courses": []
+      },
+      {
+        "pdf_page": 31,
+        "printed_page": "30",
+        "courses": []
+      },
+      {
+        "pdf_page": 32,
+        "printed_page": "31",
+        "courses": []
+      },
+      {
+        "pdf_page": 33,
+        "printed_page": "32",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 29 (PDF 30)\n• หน้า 30 (PDF 31)\n• หน้า 31 (PDF 32)\n• หน้า 32 (PDF 33)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.3
+    "seconds": 2.8
   },
   {
     "id": "H1",
@@ -830,7 +1381,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.6
+    "seconds": 0.8
   },
   {
     "id": "H2",
@@ -851,7 +1402,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.5
+    "seconds": 0.6
   },
   {
     "id": "H3",
@@ -862,17 +1413,17 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT name_th, name_en, credits FROM course WHERE code = '06027750' LIMIT 200",
+    "sql": "SELECT * FROM course WHERE code = '06027750'",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT name_th, name_en, credits FROM course WHERE code = '06027750'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีรหัสวิชา 06027750 ในหลักสูตรนี้)",
     "citations": [],
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 0.0
   },
   {
     "id": "H4",
@@ -893,7 +1444,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 1.2
+    "seconds": 1.4
   },
   {
     "id": "H5",
@@ -904,7 +1455,7 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง' LIMIT 200",
+    "sql": "SELECT NULL WHERE 0",
     "n_rows": 0,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง'\"}",
@@ -914,6 +1465,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.9
+    "seconds": 1.0
   }
 ]

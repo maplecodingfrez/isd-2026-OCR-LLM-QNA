@@ -94,6 +94,22 @@ def run_plan(plan: str, skip_lab7: bool) -> None:
     # วิชาบังคับก่อน: สกัดจากข้อความ OCR ทั้งเล่มของ Lab 4–6 (หาไม่เจอ = ไม่มีแถว)
     if book_txt.exists():
         run(LAB8, "load-prerequisites", "-t", book_txt, "-d", db, "-o", lab8_out / "prerequisites_report.json")
+    # แคตตาล็อกวิชาเลือกของหลักสูตร (Lab 7B: runs/<หลักสูตร>/electives.json ใช้ร่วมกันทั้ง coop/no_coop) — ไม่มีไฟล์ = ข้าม
+    electives = ROOT / "runs" / rel.split("/")[0] / "electives.json"
+    if electives.exists():
+        run(LAB8, "load-electives", "-d", db, "-i", electives, "--program-id", program_id)
+    # แคตตาล็อกหมวดวิชาศึกษาทั่วไป ฉบับ 2566 (python -m ocr_system.extract_elective_catalog --pdf data/input/GE66_Th_Ed240501.pdf
+    # --edition 2566) — plan_slot คนละชื่อกับวิชาเลือกของหลักสูตร จึงไม่ลบกัน; BIT เป็นหลักสูตรนานาชาติ ใช้หมวดศึกษาทั่วไปของตัวเอง ไม่โหลดให้
+    ge_catalog = ROOT / "runs" / "ge66_catalog.json"
+    if ge_catalog.exists() and not rel.startswith("BIT"):
+        run(LAB8, "load-electives", "-d", db, "-i", ge_catalog, "--program-id", program_id)
+    # โครงสร้างหน่วยกิตต่อหมวด (ก./ข./ค. → กลุ่มย่อย) จากหัวข้อ 3.1.3 ของข้อความ OCR ทั้งเล่ม — ผลรวมหมวดระดับบนไม่ตรงหน่วยกิตรวม = ไม่โหลด
+    if book_txt.exists():
+        run(LAB8, "load-credit-structure", "-t", book_txt, "-d", db)
+        # คำอธิบายรายวิชา (ไทย/อังกฤษ) จากภาคผนวกของเล่ม — ยกข้อความตามเล่ม ไม่สรุปเอง
+        run(LAB8, "load-course-descriptions", "-t", book_txt, "-d", db)
+        # หัวข้อ มคอ.2 (ชื่อปริญญา/อาชีพ/คุณสมบัติ/เกณฑ์จบ ฯลฯ) — ยกข้อความตามเล่ม
+        run(LAB8, "load-book-sections", "-t", book_txt, "-d", db)
     # หน้าในเล่มสำหรับอ้างอิงคำตอบ (citations.py) — ไม่มีไฟล์ที่ต้องใช้ = คำสั่งพิมพ์บอกว่าข้าม
     run(LAB8, "load-course-pages", "-d", db, "--ocr-json", book_txt.with_suffix(".json"),
         "--data-input", run_dir / "data_input", "-m", md_file)

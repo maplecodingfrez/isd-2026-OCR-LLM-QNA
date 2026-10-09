@@ -1,0 +1,7 @@
+Self-hosted web fonts (SIL Open Font License 1.1; see OFL.txt for the licence text).
+
+- Bai Jamjuree 700 (headings, large numbers): Cadson Demak. Subsets: thai, latin.
+- Noto Sans Thai 400 and 600 (body text): Google. Subsets: thai, latin.
+
+Files come from the Fontsource distribution (woff2). They are self-hosted so the page
+works offline and the CSS never loads an external resource.

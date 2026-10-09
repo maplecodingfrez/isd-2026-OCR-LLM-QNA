@@ -1,6 +1,6 @@
 """Curriculum App HTTP request and response schemas."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -12,6 +12,7 @@ class ProgramInfo(BaseModel):
     total_credits: int | None = None    # จากตาราง program ใน DB
     years: int | None = None            # จากตาราง program ใน DB
     available: bool                     # มีไฟล์ DB หรือไม่
+    default: bool = False               # ตรงกับ DB ที่เซิร์ฟเวอร์ตั้งเป็นค่าเริ่มต้น
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
@@ -26,6 +27,8 @@ class AskResponse(BaseModel):
     answer: str
     citations: list[dict[str, Any]] = []
     citation_text: str = ""
+    answer_type: Literal["database", "rule", "ocr", "ai", "hybrid", "course_overview"] | None = None
+    processing_seconds: float | None = None
 
 
 class CourseCreate(BaseModel):
@@ -43,6 +46,37 @@ class CourseResponse(CourseCreate):
     pass
 
 
+class CourseSearchItem(BaseModel):
+    """A course found by GET /api/courses. `source` says which table named it: plan (placed in the plan),
+    elective (an elective or general-education group) or catalog (only described in the book)."""
+    code: str
+    name_th: str | None = None
+    name_en: str | None = None
+    credits: int | None = None
+    lecture_h: int | None = None
+    lab_h: int | None = None
+    self_h: int | None = None
+    description_th: str | None = None
+    source: Literal["plan", "elective", "catalog"] = "plan"
+
+
+class SampleExample(BaseModel):
+    label_th: str
+    label_en: str
+    th: str
+    en: str
+    needs_model: bool = False        # True = the answer uses the language model (slower, a little less predictable)
+
+
+class SampleTopic(BaseModel):
+    key: Literal["credits", "term", "course", "prereq", "withdraw", "compare"]
+    examples: list[SampleExample]
+
+
+class SampleQuestionsResponse(BaseModel):
+    topics: list[SampleTopic]
+
+
 class HealthResponse(BaseModel):
     status: str
     database: str
@@ -57,14 +91,19 @@ class PrerequisiteItem(BaseModel):
     name_th: str | None = None
     name_en: str | None = None
     credits: int | None = None
+    credits_display: str | None = None
     kind: str = "pre"
+    alternative_group: int | None = None
 
 
 class CoursePrerequisitesResponse(BaseModel):
     code: str
     name_th: str
     name_en: str | None = None
-    credits: int
+    credits: int | None = None
+    credits_display: str | None = None
+    citations: list[dict[str, Any]] = Field(default_factory=list)
+    prerequisite_status: Literal['found', 'none', 'not_found', 'unreadable', 'unknown', 'not_in_plan'] = 'unknown'
     prerequisites_required: list[PrerequisiteItem] = Field(
         default_factory=list,
         description="รายวิชาที่ต้องเรียนผ่านก่อน จึงจะสามารถลงเรียนวิชานี้ได้"

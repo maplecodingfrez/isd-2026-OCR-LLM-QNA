@@ -2,12 +2,12 @@
   "source_text": "outputs/dsba/dsba_curriculum_ocr.txt",
   "courses": 50,
   "counts": {
-    "found": 5,
-    "none": 38,
-    "not_found": 6,
-    "unreadable": 1
+    "found": 6,
+    "none": 41,
+    "not_found": 3,
+    "unreadable": 0
   },
-  "pairs_inserted": 5,
+  "pairs_inserted": 6,
   "or_groups": 0,
   "per_course": {
     "06026200": {
@@ -357,11 +357,11 @@
       "dropped": []
     },
     "90641001": {
-      "status": "not_found",
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "90641002": {
@@ -381,11 +381,11 @@
       "dropped": []
     },
     "90642033": {
-      "status": "not_found",
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "90643021": {
@@ -397,16 +397,18 @@
       "dropped": []
     },
     "90644007": {
-      "status": "not_found",
+      "status": "none",
       "requires": [],
       "op": null,
       "note": null,
-      "occurrences": 0,
+      "occurrences": 1,
       "dropped": []
     },
     "90644008": {
-      "status": "unreadable",
-      "requires": [],
+      "status": "found",
+      "requires": [
+        "90644007"
+      ],
       "op": null,
       "note": null,
       "occurrences": 1,

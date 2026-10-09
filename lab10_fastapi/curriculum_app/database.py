@@ -2,6 +2,9 @@
 
 from pathlib import Path
 from types import ModuleType
+import sqlite3
+
+from . import course_search, sample_questions
 
 
 class CurriculumDatabase:
@@ -27,17 +30,24 @@ class CurriculumDatabase:
         self._require_db()
         limit = min(max(limit, 1), self.max_rows)
         offset = max(offset, 0)
-        sql = "SELECT * FROM course"
-        params: list[object] = []
-        if search.strip():
-            sql += " WHERE code LIKE ? OR name_th LIKE ? OR name_en LIKE ?"
-            pattern = f"%{search.strip()}%"
-            params.extend([pattern, pattern, pattern])
-        sql += " ORDER BY code LIMIT ? OFFSET ?"
-        params.extend([limit, offset])
         conn = self.lab8b.open_db(self.path, readonly=True)
         try:
-            return [dict(row) for row in conn.execute(sql, params).fetchall()]
+            if search.strip():
+                # a query searches every table that names a course (plan, elective groups, book catalogue)
+                return course_search.search_courses(conn, search, limit, offset)
+            # no query = the plan's own course list (the page's autocomplete and overview card)
+            rows = conn.execute("SELECT * FROM course ORDER BY code LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+            return [{**dict(row), "source": "plan"} for row in rows]
+        finally:
+            conn.close()
+
+    def sample_questions(self) -> list[dict]:
+        """The sample questions this plan's data can answer (see sample_questions.py)."""
+        self._require_db()
+        conn = self.lab8b.open_db(self.path, readonly=True)
+        try:
+            sibling = (self.lab8b._sibling_plan_db(conn) or (None, None))[1] is not None
+            return sample_questions.build_samples(conn, sibling)
         finally:
             conn.close()
 
@@ -64,8 +74,8 @@ class CurriculumDatabase:
         safe_sql = self.lab8b.guard_sql(sql)
         conn = self.lab8b.open_db(self.path, readonly=True)
         try:
-            rows = [dict(row) for row in conn.execute(safe_sql).fetchall()]
-            return safe_sql, rows[:self.max_rows]
+            rows = self.lab8b.execute_bounded_rows(conn, safe_sql, row_limit=self.max_rows)
+            return safe_sql, rows
         finally:
             conn.close()
 
@@ -79,7 +89,20 @@ class CurriculumDatabase:
                 (code,),
             ).fetchone()
             if not course_row:
-                return None
+                outside = course_search.known_course(conn, code)       # an elective or catalogue course: known, but not in the plan
+                if outside is None:
+                    return None
+                return {
+                    "code": code,
+                    "name_th": outside["name_th"] or outside["name_en"] or code,
+                    "name_en": outside["name_en"],
+                    "credits": outside["credits"],
+                    "credits_display": None,
+                    "prerequisites_required": [],
+                    "unlocked_courses": [],
+                    "citations": [],
+                    "prerequisite_status": "not_in_plan",
+                }
             course_info = dict(course_row)
 
             # วิชาที่ต้องผ่านก่อนวิชานี้ (requires)
@@ -91,6 +114,12 @@ class CurriculumDatabase:
                 ORDER BY p.requires
             """
             prerequisites_required = [dict(r) for r in conn.execute(req_sql, (code,)).fetchall()]
+            try:
+                alternatives = dict(conn.execute('SELECT requires,group_no FROM prerequisite_alt WHERE code=?', (code,)))
+            except sqlite3.OperationalError:
+                alternatives = {}
+            for item in prerequisites_required:
+                item['alternative_group'] = alternatives.get(item['code']) if item['kind'] == 'pre' else None
 
             # วิชาที่จะปลดล็อคให้ลงเรียนได้หลังจากผ่านวิชานี้ (unlocks)
             unlock_sql = """
@@ -101,18 +130,58 @@ class CurriculumDatabase:
                 ORDER BY p.code
             """
             unlocked_courses = [dict(r) for r in conn.execute(unlock_sql, (code,)).fetchall()]
+            from course_display import add_course_display
+            add_course_display(conn, [course_info] + prerequisites_required + unlocked_courses)
+            source_codes = {code} | {r["code"] for r in unlocked_courses}
+            cites = []
+            for page in self.lab8b._prereq_pair_pages(conn, source_codes):
+                codes = sorted(set(page["courses"]) & source_codes)
+                if codes:
+                    cites.append({**page, "courses": codes})
+            self.lab8b._citations_module().add_course_names(conn, cites)
 
             return {
                 "code": course_info["code"],
                 "name_th": course_info["name_th"],
                 "name_en": course_info["name_en"],
                 "credits": course_info["credits"],
+                "credits_display": course_info.get("credits_display"),
                 "prerequisites_required": prerequisites_required,
                 "unlocked_courses": unlocked_courses,
+                "citations": cites,
+                "prerequisite_status": self.lab8b.prerequisite_status(conn, code),
             }
         finally:
             conn.close()
 
+
+
+    def withdrawal_impact(self, code: str) -> dict | None:
+        """Reverse dependency reachability, not a personal registration decision."""
+        self._require_db()
+        conn = self.lab8b.open_db(self.path, readonly=True)
+        try:
+            data = self.lab8b.withdrawal_graph(conn, code)
+            if data is None:
+                outside = course_search.known_course(conn, code)
+                if outside is None:
+                    return None
+                data = {"course": {"code": code, "name_th": outside["name_th"], "name_en": outside["name_en"],
+                                   "credits": outside["credits"], "credits_display": None},
+                        "direct": [], "indirect": []}
+            results = data["direct"] + data["indirect"]
+            affected = {r["code"] for r in results}
+            cites = []
+            for page in self.lab8b._prereq_pair_pages(conn):
+                codes = sorted(set(page["courses"]) & affected)
+                if codes:
+                    cites.append({**page, "courses": codes})
+            self.lab8b._citations_module().add_course_names(conn, cites)
+            return {"course": data["course"], "direct": data["direct"],
+                    "indirect": data["indirect"], "citations": cites,
+                    "note": "แสดงความสัมพันธ์ที่พบในหลักสูตร หากถอนแล้วยังไม่เคยผ่านวิชานี้ ตัวต่ออาจได้รับผลกระทบ; เงื่อนไขทางเลือกหรือเรียนร่วมกันและวิชาที่ผ่านแล้วอาจทำให้ผลต่างออกไป ไม่ใช่ผลอนุมัติลงทะเบียน"}
+        finally:
+            conn.close()
 
 
 SQL_SCHEMA_CONTEXT = """

@@ -336,6 +336,75 @@ def add_names_found_in_term(md: str, courses: list[dict], idx: dict[str, dict[st
     return done
 
 
+def add_zero_credit_plan_rows(courses: list[dict], book_text: str,
+                              idx: dict[str, dict[str, Any]], credits: dict[str, str]) -> list[dict]:
+    """Recover omitted zero-credit rows only from an unambiguous OCR plan table.
+
+    An explicit numbered plan section and two distinct existing neighbors
+    must agree on one term. Full title and
+    credit notation must agree with the independently repeated book index.
+    Page/table boundaries prevent course descriptions from being used as plans.
+    """
+    present = {str(c.get('code') or '') for c in courses}
+    terms: dict[str, set[tuple]] = {}
+    for c in courses:
+        if c.get('year') is not None and c.get('semester') is not None:
+            terms.setdefault(str(c.get('code') or ''), set()).add((c['year'], c['semester']))
+    blocks, block, page, in_plan = [], None, None, False
+    for line_no, line in enumerate(book_text.splitlines(), 1):
+        section = re.match(r'^\s*\d+(?:\.\d+)+\s+(.+)', line)
+        if section:
+            if block is not None:
+                blocks.append(block)
+            block = None
+            in_plan = section.group(1).strip().startswith('แผนการศึกษา')
+            continue
+        mark = re.match(r'--- Page (\d+) ---', line.strip())
+        if mark or ('รหัสวิชา' in line and 'หน่วยกิต' in line):
+            if block is not None:
+                blocks.append(block)
+            if mark:
+                page, block = int(mark.group(1)), None
+            else:
+                block = [] if in_plan else None
+            continue
+        if block is not None:
+            match = BOOK_LINE_RE.search(line)
+            if match:
+                block.append((match.group(1), match.group(2), page, line_no))
+    if block is not None:
+        blocks.append(block)
+    candidates: dict[str, list[tuple]] = {}
+    for block in blocks:
+        neighbors = {code for code, *_ in block if code in terms}
+        locations = set().union(*(terms[code] for code in neighbors))
+        if len(neighbors) < 2 or len(locations) != 1:
+            continue
+        term = next(iter(locations))
+        for code, rest, source_page, line_no in block:
+            if code in present or code not in idx:
+                continue
+            credit = FULL_CREDIT_RE.search(rest)
+            name = re.split(r'\s{2,}|\||\d+\s*\(', rest, maxsplit=1)[0].strip(' .*-:')
+            if (not credit or credit.group(1) != '0' or normalize(name) != idx[code]['key']
+                    or re.sub(r'\s+', '', credit.group(0)) != credits.get(code)):
+                continue
+            candidates.setdefault(code, []).append((term, source_page, line_no))
+    done = []
+    for code, evidence in candidates.items():
+        if len({term for term, *_ in evidence}) != 1:
+            continue
+        term, source_page, line_no = evidence[0]
+        courses.append({'code': code, 'name_th': idx[code]['name'], 'name_en': None,
+                        'credits': credits[code], 'year': term[0], 'semester': term[1],
+                        'category': None, 'type': None,
+                        '_code_from_book': {'from': None, 'via': 'zero_credit_plan_table',
+                                            'pdf_page': source_page, 'line': line_no}})
+        done.append({'action': 'add', 'to': code, 'term': f'{term[0]}/{term[1]}',
+                     'pdf_page': source_page, 'line': line_no})
+    return done
+
+
 def fix_placeholder_names(courses: list[dict], idx: dict[str, dict[str, Any]]) -> list[dict]:
     """กฎ 3: วิชารหัสจริง 8 หลักที่ชื่อว่าง หรือชื่อเป็นป้ายช่องวิชาเลือก ("วิชาเลือก…"/"วิชาเสรี…" — รหัสจริง
     ไม่ใช่ช่องเลือก) -> ใช้ชื่อจากดัชนีของเล่ม (เติมหน่วยกิตถ้าว่าง) ไม่แตะชื่อที่เป็นชื่อวิชาปกติอยู่แล้ว"""
@@ -393,12 +462,16 @@ EN_LINE_RE = re.compile(r"^\(?[A-Z0-9][A-Z0-9 ,&/()\-.:']*$")
 EN_WRAP_RE = re.compile(r"\b(AND|OF|FOR|IN|TO|THE|WITH|ON)$")   # ชื่ออังกฤษที่ตัดบรรทัดกลางวลี
 
 
-def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
+def book_english_names(book_text: str, evidence: list[dict] | None = None) -> dict[str, dict[str, int]]:
     """{รหัส: {ชื่ออังกฤษ: จำนวนจุดในเล่ม}} — บรรทัดตัวพิมพ์ใหญ่ใต้หัว "<รหัส> <ชื่อไทย> <หน่วยกิต>"
     ต่อบรรทัดที่สองเฉพาะเมื่อบรรทัดแรกจบด้วยคำเชื่อม (AND/OF/...) ซึ่งแปลว่าชื่อถูกตัดบรรทัด"""
     lines = book_text.splitlines()
     out: dict[str, dict[str, int]] = {}
+    page = None
     for i, line in enumerate(lines):
+        marker = re.match(r'^--- Page (\d+) ---', line)
+        if marker:
+            page = int(marker.group(1))
         m = BOOK_LINE_RE.search(line)
         if not m or not re.search(r"[฀-๿]", m.group(2)):
             continue
@@ -414,25 +487,47 @@ def book_english_names(book_text: str) -> dict[str, dict[str, int]]:
         if len(name) >= 4:
             counts = out.setdefault(m.group(1), {})
             counts[name] = counts.get(name, 0) + 1
+            if evidence is not None and page is not None:
+                title = re.split(r'\s{2,}|\||\d+\s*\(', m.group(2), maxsplit=1)[0].strip(' .*-:')
+                title = re.sub(r'^[^฀-๿A-Za-z0-9]+', '', title)
+                evidence.append({'code':m.group(1),'title_key':normalize(title),'name_en':name,'pdf_page':page})
     return out
 
 
 def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dict]:
-    """กฎ 5: วิชารหัสจริงที่ name_en ว่าง -> ชื่ออังกฤษที่เล่มพิมพ์ (ไม่ทับค่าที่มีอยู่แล้ว)
+    """กฎ 5: เติมชื่ออังกฤษที่ว่าง; แก้ alias ที่คัดลอกข้ามรหัสเมื่อชื่อไทยเต็ม+sourceซ้ำยืนยัน
     เลือกแบบที่พบ >= 2 จุดและมากกว่าแบบอื่นชัดเจน; ถ้าเสมอ/พบจุดเดียว ใช้ได้เฉพาะแบบเดียวที่ Typhoon (Markdown)
     ก็อ่านได้ตรงกัน (เล่ม "NOSQL" 2 ครั้ง / "NOSOL" 2 ครั้ง -> Markdown มี NOSQL) ไม่งั้นปล่อยว่าง ไม่เดา"""
-    names = book_english_names(book_text)
+    evidence: list[dict] = []
+    names = book_english_names(book_text, evidence)
+    index = book_index(book_text)
+    source_pages: dict[tuple[str, str], set[int]] = {}
+    for item in evidence:
+        if item['title_key'] == index.get(item['code'], {}).get('key'):
+            source_pages.setdefault((item['code'],item['name_en']),set()).add(item['pdf_page'])
+    owners: dict[str, set[str]] = {}
+    for course in courses:
+        current = re.sub(r'\s+', ' ', str(course.get('name_en') or '')).strip().upper()
+        if current:
+            owners.setdefault(current, set()).add(str(course.get('code') or ''))
     md_key = re.sub(r"\s+", "", re.sub(r"<[^>]+>", " ", md)).upper()
     done: list[dict] = []
     for c in courses:
         code = str(c.get("code") or "").strip()
-        if not re.fullmatch(r"\d{8}", code) or str(c.get("name_en") or "").strip() or code not in names:
+        current = str(c.get('name_en') or '').strip()
+        if not re.fullmatch(r"\d{8}", code) or code not in names:
             continue
         if str(c.get("name_th") or "").strip().startswith(SKIP_PREFIXES):
             continue                      # ช่องวิชาเลือกที่ LLM ประทับรหัสจริง — ไม่ใช่วิชานั้น (เหมือนกฎ 3)
         ranked = sorted(names[code].items(), key=lambda kv: -kv[1])
         top_n = ranked[0][1]
         second = ranked[1][1] if len(ranked) > 1 else 0
+        if current:
+            normalized = re.sub(r'\s+', ' ', current).upper()
+            if (normalized in names[code] or len(owners.get(normalized, set())) < 2
+                    or len(ranked) != 1 or top_n < 2 or len(source_pages.get((code,ranked[0][0]), set())) < 2
+                    or index.get(code, {}).get('key') != normalize(c.get('name_th') or '')):
+                continue
         if top_n >= 2 and top_n > second:
             name = ranked[0][0]
         else:
@@ -440,18 +535,22 @@ def fill_english_names(md: str, courses: list[dict], book_text: str) -> list[dic
             if len(in_md) != 1:
                 continue
             name = in_md[0]
+        if current:
+            c['_english_from_book'] = {'from': current, 'via': 'repeated_title_duplicate_alias',
+                                      'source_count': top_n, 'pdf_pages': sorted(source_pages[(code,name)])}
         c["name_en"] = name
         done.append({"action": "name_en", "to": code, "name_en": name})
     return done
 
 
 def repair_with_book(md: str, courses: list[dict], book_text: str) -> list[dict]:
-    """กฎ 1-5 ตามลำดับ (แยกรหัสที่รวม -> เพิ่มวิชาที่ชื่ออยู่ในเทอม -> แก้ชื่อว่าง/ป้าย -> แก้หน่วยกิตหลายแบบ
+    """กฎตามลำดับ (แยกรหัสที่รวม -> เพิ่มชื่อในเทอม/วิชา0หน่วยกิตในหัวข้อแผน -> แก้ชื่อว่าง/ป้าย -> แก้หน่วยกิตหลายแบบ
     -> เติมชื่ออังกฤษที่ว่าง) รันซ้ำได้"""
     idx = book_index(book_text)
     credits = book_credits(book_text)
     return (split_merged_codes(courses, idx)
             + add_names_found_in_term(md, courses, idx, book_variants(book_text), credits)
+            + add_zero_credit_plan_rows(courses, book_text, idx, credits)
             + fix_placeholder_names(courses, idx)
             + fix_malformed_credits(courses, credits)
             + fill_english_names(md, courses, book_text))

@@ -1,6 +1,6 @@
 {
   "program": "IT",
-  "source": "../outputs/it/it_curriculum_ocr.txt หน้า 26-29",
+  "source": "../outputs/it/it_curriculum_ocr.txt PDF หน้า 26-29",
   "plan_slot": "วิชาเลือกทางเทคโนโลยีสารสนเทศ 1/2/3 (รหัส placeholder 060164xx)",
   "credits_required": 9,
   "groups": [
@@ -329,5 +329,35 @@
         }
       ]
     }
-  ]
+  ],
+  "modules": [
+    {
+      "no": "M1",
+      "name_en": "Full-Stack Web Developer",
+      "codes": [
+        "06016428",
+        "06016429",
+        "06016430"
+      ]
+    },
+    {
+      "no": "M2",
+      "name_en": "Network/System Engineer",
+      "codes": [
+        "06016439",
+        "06016440",
+        "06016441"
+      ]
+    },
+    {
+      "no": "M3",
+      "name_en": "Game Developer",
+      "codes": [
+        "06016446",
+        "06016447",
+        "06016448"
+      ]
+    }
+  ],
+  "modules_note": "เล่มหลักสูตร (it_curriculum_ocr.txt บรรทัด ~901-918): ไม่บังคับเลือกโมดูล เลือกวิชานอกโมดูลหรือข้ามโมดูลได้"
 }

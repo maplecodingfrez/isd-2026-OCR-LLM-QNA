@@ -8,17 +8,23 @@
       "type": "value",
       "value": "120"
     },
-    "sql": "SELECT total_credits FROM program LIMIT 200",
+    "sql": "SELECT total_credits FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT total_credits FROM program\"}",
-    "answer_model_output": "{\"answer\": \"120 หน่วยกิต\"}",
-    "answer": "120 หน่วยกิต",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หน่วยกิตรวมตลอดหลักสูตร 120 หน่วยกิต",
+    "citations": [
+      {
+        "pdf_page": 5,
+        "printed_page": "1",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 5)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.6
+    "seconds": 0.1
   },
   {
     "id": "A2",
@@ -29,17 +35,23 @@
       "type": "value",
       "value": "4"
     },
-    "sql": "SELECT years FROM program LIMIT 200",
+    "sql": "SELECT years FROM program",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT years FROM program\"}",
-    "answer_model_output": "{\"answer\": \"4 ปี\"}",
-    "answer": "4 ปี",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "หลักสูตรนี้ใช้เวลาเรียนตามแผน 4 ปี",
+    "citations": [
+      {
+        "pdf_page": 5,
+        "printed_page": "1",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 1 (PDF 5)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.3
+    "seconds": 0.0
   },
   {
     "id": "B1",
@@ -54,22 +66,23 @@
       2,
       1
     ],
-    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=1 LIMIT 200",
+    "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=1\"}",
-    "answer_model_output": "{\"answer\": \"6 วิชา\"}",
-    "answer": "6 วิชา",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 1 ต้องลงทะเบียน 6 วิชา",
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "B2",
@@ -84,22 +97,23 @@
       2,
       1
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 1",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=1\"}",
-    "answer_model_output": "{\"answer\": \"18 หน่วยกิจ\"}",
-    "answer": "18 หน่วยกิจ",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 1 รวม 18 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "B3",
@@ -130,21 +144,72 @@
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": [
+          "06046405",
+          "06046406",
+          "06046409",
+          "06046413",
+          "06066300",
+          "90641009"
+        ],
+        "course_names": {
+          "06046405": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น",
+          "06046406": "พื้นฐานการเรียนรู้เชิงลึก",
+          "06046409": "คอมพิวเตอร์ทัศนเบื้องต้น",
+          "06046413": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง",
+          "06066300": "แนวคิดระบบฐานข้อมูล",
+          "90641009": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1"
+        },
+        "course_names_en": {
+          "06046405": "PROBABILISTIC MACHINE LEARNING",
+          "06046406": "FUNDAMENTALS OF DEEP LEARNING",
+          "06046409": "INTRODUCTION TO COMPUTER VISION",
+          "06046413": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING",
+          "06066300": "DATABASE SYSTEM CONCEPTS",
+          "90641009": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+        }
       },
       {
-        "pdf_page": 290,
-        "printed_page": "286"
+        "pdf_page": 291,
+        "printed_page": "287",
+        "courses": [
+          "06046405"
+        ],
+        "course_names": {
+          "06046405": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น"
+        },
+        "course_names_en": {
+          "06046405": "PROBABILISTIC MACHINE LEARNING"
+        }
       },
       {
         "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06046405",
+          "06046406",
+          "06046409",
+          "06066300"
+        ],
+        "course_names": {
+          "06046405": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น",
+          "06046406": "พื้นฐานการเรียนรู้เชิงลึก",
+          "06046409": "คอมพิวเตอร์ทัศนเบื้องต้น",
+          "06066300": "แนวคิดระบบฐานข้อมูล"
+        },
+        "course_names_en": {
+          "06046405": "PROBABILISTIC MACHINE LEARNING",
+          "06046406": "FUNDAMENTALS OF DEEP LEARNING",
+          "06046409": "INTRODUCTION TO COMPUTER VISION",
+          "06066300": "DATABASE SYSTEM CONCEPTS"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 286 (PDF 290), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING\n   – 06046406 พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING\n   – 06046409 คอมพิวเตอร์ทัศนเบื้องต้น / INTRODUCTION TO COMPUTER VISION\n   – 06046413 ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง / ARTIFICIAL INTELLIGENCE AND INTERNET OF THING\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS\n   – 90641009 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1\n• หน้า 287 (PDF 291)\n   – 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING\n• หน้า 16 (PDF 20)\n   – 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING\n   – 06046406 พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING\n   – 06046409 คอมพิวเตอร์ทัศนเบื้องต้น / INTRODUCTION TO COMPUTER VISION\n   – 06066300 แนวคิดระบบฐานข้อมูล / DATABASE SYSTEM CONCEPTS",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.3
+    "seconds": 5.6
   },
   {
     "id": "B4",
@@ -159,22 +224,23 @@
       2,
       2
     ],
-    "sql": "SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=2 LIMIT 200",
+    "sql": "SELECT n_entries AS n_courses FROM main.v_semester_credits_full WHERE year = 2 AND semester = 2",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT n_courses FROM v_semester_credits WHERE year=2 AND semester=2\"}",
-    "answer_model_output": "{\"answer\": \"7 วิชา\"}",
-    "answer": "7 วิชา",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 2 ต้องลงทะเบียน 7 วิชา",
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "B5",
@@ -189,22 +255,23 @@
       2,
       2
     ],
-    "sql": "SELECT credits FROM v_semester_credits WHERE year=2 AND semester=2 LIMIT 200",
+    "sql": "SELECT credits FROM main.v_semester_credits_full WHERE year = 2 AND semester = 2",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM v_semester_credits WHERE year=2 AND semester=2\"}",
-    "answer_model_output": "{\"answer\": \"19 หน่วยกิจ\"}",
-    "answer": "19 หน่วยกิจ",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "ปี 2 เทอม 2 รวม 19 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": []
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "B6",
@@ -236,21 +303,81 @@
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": [
+          "06046407",
+          "06046408",
+          "06046410",
+          "06046411",
+          "06046412",
+          "90641005",
+          "90641010"
+        ],
+        "course_names": {
+          "06046407": "พื้นฐานวิทยาการข้อมูล",
+          "06046408": "การแสดงข้อมูลด้วยแผนภาพ",
+          "06046410": "การประมวลผลภาษาธรรมชาติเบื้องต้น",
+          "06046411": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย",
+          "06046412": "การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม",
+          "90641005": "โครงงานกลุ่ม 2",
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "06046407": "FUNDAMENTALS OF DATA SCIENCE",
+          "06046408": "DATA VISUALIZATION",
+          "06046410": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING",
+          "06046411": "NETWORK ANALYSIS AND OPTIMIZATION",
+          "06046412": "NEURAL NETWORK OPTIMIZATION",
+          "90641005": "TEAM-PROJECT 2",
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
       },
       {
         "pdf_page": 292,
-        "printed_page": "288"
+        "printed_page": "288",
+        "courses": [
+          "06046407",
+          "06046408"
+        ],
+        "course_names": {
+          "06046407": "พื้นฐานวิทยาการข้อมูล",
+          "06046408": "การแสดงข้อมูลด้วยแผนภาพ"
+        },
+        "course_names_en": {
+          "06046407": "FUNDAMENTALS OF DATA SCIENCE",
+          "06046408": "DATA VISUALIZATION"
+        }
       },
       {
         "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06046407",
+          "06046408",
+          "06046410",
+          "06046411",
+          "06046412"
+        ],
+        "course_names": {
+          "06046407": "พื้นฐานวิทยาการข้อมูล",
+          "06046408": "การแสดงข้อมูลด้วยแผนภาพ",
+          "06046410": "การประมวลผลภาษาธรรมชาติเบื้องต้น",
+          "06046411": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย",
+          "06046412": "การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม"
+        },
+        "course_names_en": {
+          "06046407": "FUNDAMENTALS OF DATA SCIENCE",
+          "06046408": "DATA VISUALIZATION",
+          "06046410": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING",
+          "06046411": "NETWORK ANALYSIS AND OPTIMIZATION",
+          "06046412": "NEURAL NETWORK OPTIMIZATION"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 288 (PDF 292), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 06046407 พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE\n   – 06046408 การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION\n   – 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING\n   – 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION\n   – 06046412 การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม / NEURAL NETWORK OPTIMIZATION\n   – 90641005 โครงงานกลุ่ม 2 / TEAM-PROJECT 2\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2\n• หน้า 288 (PDF 292)\n   – 06046407 พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE\n   – 06046408 การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION\n• หน้า 16 (PDF 20)\n   – 06046407 พื้นฐานวิทยาการข้อมูล / FUNDAMENTALS OF DATA SCIENCE\n   – 06046408 การแสดงข้อมูลด้วยแผนภาพ / DATA VISUALIZATION\n   – 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING\n   – 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION\n   – 06046412 การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม / NEURAL NETWORK OPTIMIZATION",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 2.4
+    "seconds": 3.7
   },
   {
     "id": "C1",
@@ -273,21 +400,48 @@
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": [
+          "06046411"
+        ],
+        "course_names": {
+          "06046411": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย"
+        },
+        "course_names_en": {
+          "06046411": "NETWORK ANALYSIS AND OPTIMIZATION"
+        }
       },
       {
         "pdf_page": 294,
-        "printed_page": "290"
+        "printed_page": "290",
+        "courses": [
+          "06046411"
+        ],
+        "course_names": {
+          "06046411": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย"
+        },
+        "course_names_en": {
+          "06046411": "NETWORK ANALYSIS AND OPTIMIZATION"
+        }
       },
       {
         "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06046411"
+        ],
+        "course_names": {
+          "06046411": "การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย"
+        },
+        "course_names_en": {
+          "06046411": "NETWORK ANALYSIS AND OPTIMIZATION"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 290 (PDF 294), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION\n• หน้า 290 (PDF 294)\n   – 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION\n• หน้า 16 (PDF 20)\n   – 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย / NETWORK ANALYSIS AND OPTIMIZATION",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 3.0
   },
   {
     "id": "C2",
@@ -310,21 +464,48 @@
     "citations": [
       {
         "pdf_page": 25,
-        "printed_page": "21"
+        "printed_page": "21",
+        "courses": [
+          "90642012"
+        ],
+        "course_names": {
+          "90642012": "กระบวนการคิดเชิงออกแบบ"
+        },
+        "course_names_en": {
+          "90642012": "DESIGN THINKING"
+        }
       },
       {
         "pdf_page": 147,
-        "printed_page": "143"
+        "printed_page": "143",
+        "courses": [
+          "90642012"
+        ],
+        "course_names": {
+          "90642012": "กระบวนการคิดเชิงออกแบบ"
+        },
+        "course_names_en": {
+          "90642012": "DESIGN THINKING"
+        }
       },
       {
         "pdf_page": 19,
-        "printed_page": "15"
+        "printed_page": "15",
+        "courses": [
+          "90642012"
+        ],
+        "course_names": {
+          "90642012": "กระบวนการคิดเชิงออกแบบ"
+        },
+        "course_names_en": {
+          "90642012": "DESIGN THINKING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 143 (PDF 147), หน้า 15 (PDF 19))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 25)\n   – 90642012 กระบวนการคิดเชิงออกแบบ / DESIGN THINKING\n• หน้า 143 (PDF 147)\n   – 90642012 กระบวนการคิดเชิงออกแบบ / DESIGN THINKING\n• หน้า 15 (PDF 19)\n   – 90642012 กระบวนการคิดเชิงออกแบบ / DESIGN THINKING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.4
+    "seconds": 2.7
   },
   {
     "id": "C3",
@@ -347,21 +528,48 @@
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": [
+          "06046410"
+        ],
+        "course_names": {
+          "06046410": "การประมวลผลภาษาธรรมชาติเบื้องต้น"
+        },
+        "course_names_en": {
+          "06046410": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
+        }
       },
       {
         "pdf_page": 293,
-        "printed_page": "289"
+        "printed_page": "289",
+        "courses": [
+          "06046410"
+        ],
+        "course_names": {
+          "06046410": "การประมวลผลภาษาธรรมชาติเบื้องต้น"
+        },
+        "course_names_en": {
+          "06046410": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
+        }
       },
       {
         "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06046410"
+        ],
+        "course_names": {
+          "06046410": "การประมวลผลภาษาธรรมชาติเบื้องต้น"
+        },
+        "course_names_en": {
+          "06046410": "INTRODUCTION TO NATURAL LANGUAGE PROCESSING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 289 (PDF 293), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING\n• หน้า 289 (PDF 293)\n   – 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING\n• หน้า 16 (PDF 20)\n   – 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น / INTRODUCTION TO NATURAL LANGUAGE PROCESSING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 3.0
   },
   {
     "id": "D1",
@@ -376,30 +584,57 @@
       "06046442"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2' LIMIT 200",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06046442')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2'\"}",
-    "answer_model_output": "{\"answer\": \"06046442\"}",
-    "answer": "06046442 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046442 (โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2)",
     "citations": [
       {
         "pdf_page": 26,
-        "printed_page": "22"
+        "printed_page": "22",
+        "courses": [
+          "06046442"
+        ],
+        "course_names": {
+          "06046442": "โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2"
+        },
+        "course_names_en": {
+          "06046442": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2"
+        }
       },
       {
         "pdf_page": 303,
-        "printed_page": "299"
+        "printed_page": "299",
+        "courses": [
+          "06046442"
+        ],
+        "course_names": {
+          "06046442": "โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2"
+        },
+        "course_names_en": {
+          "06046442": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2"
+        }
       },
       {
         "pdf_page": 22,
-        "printed_page": "18"
+        "printed_page": "18",
+        "courses": [
+          "06046442"
+        ],
+        "course_names": {
+          "06046442": "โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2"
+        },
+        "course_names_en": {
+          "06046442": "PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 22 (PDF 26), หน้า 299 (PDF 303), หน้า 18 (PDF 22))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 22 (PDF 26)\n   – 06046442 โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2\n• หน้า 299 (PDF 303)\n   – 06046442 โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2\n• หน้า 18 (PDF 22)\n   – 06046442 โครงงานเทคโนโลยีปัญญาประดิษฐ์ 2 / PROJECT IN ARTIFICIAL INTELLIGENCE TECHNOLOGY 2",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 0.0
   },
   {
     "id": "D2",
@@ -414,30 +649,57 @@
       "06046415"
     ],
     "name_key": "name_th",
-    "sql": "SELECT code FROM course WHERE name_th = 'การประมวลผลสัญญาณ' LIMIT 200",
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('06046415')",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'การประมวลผลสัญญาณ'\" }",
-    "answer_model_output": "{\"answer\": \"06046415\"}",
-    "answer": "06046415 (การประมวลผลสัญญาณ)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046415 (การประมวลผลสัญญาณ / SIGNAL PROCESSING)",
     "citations": [
       {
         "pdf_page": 25,
-        "printed_page": "21"
+        "printed_page": "21",
+        "courses": [
+          "06046415"
+        ],
+        "course_names": {
+          "06046415": "การประมวลผลสัญญาณ"
+        },
+        "course_names_en": {
+          "06046415": "SIGNAL PROCESSING"
+        }
       },
       {
         "pdf_page": 296,
-        "printed_page": "292"
+        "printed_page": "292",
+        "courses": [
+          "06046415"
+        ],
+        "course_names": {
+          "06046415": "การประมวลผลสัญญาณ"
+        },
+        "course_names_en": {
+          "06046415": "SIGNAL PROCESSING"
+        }
       },
       {
         "pdf_page": 21,
-        "printed_page": "17"
+        "printed_page": "17",
+        "courses": [
+          "06046415"
+        ],
+        "course_names": {
+          "06046415": "การประมวลผลสัญญาณ"
+        },
+        "course_names_en": {
+          "06046415": "SIGNAL PROCESSING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 292 (PDF 296), หน้า 17 (PDF 21))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 25)\n   – 06046415 การประมวลผลสัญญาณ / SIGNAL PROCESSING\n• หน้า 292 (PDF 296)\n   – 06046415 การประมวลผลสัญญาณ / SIGNAL PROCESSING\n• หน้า 17 (PDF 21)\n   – 06046415 การประมวลผลสัญญาณ / SIGNAL PROCESSING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "D3",
@@ -452,17 +714,57 @@
       "90641010"
     ],
     "name_key": "name_en",
-    "sql": "SELECT code FROM course WHERE name_th = 'INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2' LIMIT 200",
-    "n_rows": 0,
+    "sql": "SELECT code, name_th, name_en FROM course WHERE code IN ('90641010')",
+    "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM course WHERE name_th = 'INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
-    "citations": [],
-    "citation_text": "",
-    "correct": false,
-    "why": "ไม่พบค่า 90641010 (ได้ [])",
-    "seconds": 0.9
+    "answer": "90641010 (ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2)",
+    "citations": [
+      {
+        "pdf_page": 24,
+        "printed_page": "20",
+        "courses": [
+          "90641010"
+        ],
+        "course_names": {
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
+      },
+      {
+        "pdf_page": 145,
+        "printed_page": "141",
+        "courses": [
+          "90641010"
+        ],
+        "course_names": {
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
+      },
+      {
+        "pdf_page": 19,
+        "printed_page": "15",
+        "courses": [
+          "90641010"
+        ],
+        "course_names": {
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2\n• หน้า 141 (PDF 145)\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2\n• หน้า 15 (PDF 19)\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2",
+    "correct": true,
+    "why": "ตรง",
+    "seconds": 0.0
   },
   {
     "id": "E1",
@@ -477,30 +779,57 @@
       "06046414"
     ],
     "name_key": "name_th",
-    "sql": "SELECT p.year FROM v_plan p WHERE p.code = '06046414' LIMIT 200",
+    "sql": "SELECT DISTINCT p.code, p.year, p.semester FROM plan_item p WHERE p.code = '06046414' ORDER BY p.year, p.semester",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT p.year FROM v_plan p WHERE p.code = '06046414'\"}",
-    "answer_model_output": "{\"answer\": \"ปีที่ 3\"}",
-    "answer": "ปีที่ 3",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046414 การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก: ปี 3 เทอม 1",
     "citations": [
       {
         "pdf_page": 25,
-        "printed_page": "21"
+        "printed_page": "21",
+        "courses": [
+          "06046414"
+        ],
+        "course_names": {
+          "06046414": "การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก"
+        },
+        "course_names_en": {
+          "06046414": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING"
+        }
       },
       {
         "pdf_page": 295,
-        "printed_page": "291"
+        "printed_page": "291",
+        "courses": [
+          "06046414"
+        ],
+        "course_names": {
+          "06046414": "การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก"
+        },
+        "course_names_en": {
+          "06046414": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING"
+        }
       },
       {
         "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "16",
+        "courses": [
+          "06046414"
+        ],
+        "course_names": {
+          "06046414": "การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก"
+        },
+        "course_names_en": {
+          "06046414": "NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 291 (PDF 295), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 25)\n   – 06046414 การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก / NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING\n• หน้า 291 (PDF 295)\n   – 06046414 การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก / NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING\n• หน้า 16 (PDF 20)\n   – 06046414 การประมวลผลภาษาธรรมชาติด้วยการเรียนรู้อย่างเชิงลึก / NATURAL LANGUAGE PROCESSING WITH DEEP LEARNING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 2.2
+    "seconds": 0.0
   },
   {
     "id": "E2",
@@ -515,30 +844,57 @@
       "90641006"
     ],
     "name_key": "name_th",
-    "sql": "SELECT credits FROM course WHERE code = '90641006' LIMIT 200",
+    "sql": "SELECT code, name_th, credits FROM course WHERE code = '90641006'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE code = '90641006'\" }",
-    "answer_model_output": "{\"answer\": \"1 หน่วยกิต\"}",
-    "answer": "1 หน่วยกิต",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "90641006 โครงงานกลุ่ม 3: 1 หน่วยกิต",
     "citations": [
       {
         "pdf_page": 25,
-        "printed_page": "21"
-      },
-      {
-        "pdf_page": 120,
-        "printed_page": "116"
+        "printed_page": "21",
+        "courses": [
+          "90641006"
+        ],
+        "course_names": {
+          "90641006": "โครงงานกลุ่ม 3"
+        },
+        "course_names_en": {
+          "90641006": "TEAM-PROJECT 3"
+        }
       },
       {
         "pdf_page": 144,
-        "printed_page": null
+        "printed_page": null,
+        "courses": [
+          "90641006"
+        ],
+        "course_names": {
+          "90641006": "โครงงานกลุ่ม 3"
+        },
+        "course_names_en": {
+          "90641006": "TEAM-PROJECT 3"
+        }
+      },
+      {
+        "pdf_page": 18,
+        "printed_page": "14",
+        "courses": [
+          "90641006"
+        ],
+        "course_names": {
+          "90641006": "โครงงานกลุ่ม 3"
+        },
+        "course_names_en": {
+          "90641006": "TEAM-PROJECT 3"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 21 (PDF 25), หน้า 116 (PDF 120), PDF 144)",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 21 (PDF 25)\n   – 90641006 โครงงานกลุ่ม 3 / TEAM-PROJECT 3\n• PDF 144\n   – 90641006 โครงงานกลุ่ม 3 / TEAM-PROJECT 3\n• หน้า 14 (PDF 18)\n   – 90641006 โครงงานกลุ่ม 3 / TEAM-PROJECT 3",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.4
+    "seconds": 0.0
   },
   {
     "id": "E3",
@@ -553,26 +909,44 @@
       "06046413"
     ],
     "name_key": "name_th",
-    "sql": "SELECT lab_h FROM course WHERE code = '06046413' LIMIT 200",
+    "sql": "SELECT code, name_th, lab_h FROM course WHERE code = '06046413'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT lab_h FROM course WHERE code = '06046413'\" }",
-    "answer_model_output": "{\"answer\": \"0 ชั่วโมง\"}",
-    "answer": "0 ชั่วโมง",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046413 ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง: ชั่วโมงปฏิบัติ 0 ชั่วโมงต่อสัปดาห์",
     "citations": [
       {
         "pdf_page": 24,
-        "printed_page": "20"
+        "printed_page": "20",
+        "courses": [
+          "06046413"
+        ],
+        "course_names": {
+          "06046413": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง"
+        },
+        "course_names_en": {
+          "06046413": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"
+        }
       },
       {
         "pdf_page": 295,
-        "printed_page": "291"
+        "printed_page": "291",
+        "courses": [
+          "06046413"
+        ],
+        "course_names": {
+          "06046413": "ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง"
+        },
+        "course_names_en": {
+          "06046413": "ARTIFICIAL INTELLIGENCE AND INTERNET OF THING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 291 (PDF 295))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 20 (PDF 24)\n   – 06046413 ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง / ARTIFICIAL INTELLIGENCE AND INTERNET OF THING\n• หน้า 291 (PDF 295)\n   – 06046413 ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง / ARTIFICIAL INTELLIGENCE AND INTERNET OF THING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "E4",
@@ -587,30 +961,57 @@
       "90641007"
     ],
     "name_key": "name_en",
-    "sql": "SELECT lecture_h FROM course WHERE code = '90641007' LIMIT 200",
+    "sql": "SELECT code, name_th, lecture_h FROM course WHERE code = '90641007'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT lecture_h FROM course WHERE code = '90641007'\" }",
-    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
-    "answer": "3 ชั่วโมง",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "90641007 พลเมืองดิจิทัล: ชั่วโมงบรรยาย 3 ชั่วโมงต่อสัปดาห์",
     "citations": [
       {
         "pdf_page": 23,
-        "printed_page": "19"
+        "printed_page": "19",
+        "courses": [
+          "90641007"
+        ],
+        "course_names": {
+          "90641007": "พลเมืองดิจิทัล"
+        },
+        "course_names_en": {
+          "90641007": "DIGITAL CITIZEN"
+        }
       },
       {
-        "pdf_page": 119,
-        "printed_page": "115"
+        "pdf_page": 144,
+        "printed_page": null,
+        "courses": [
+          "90641007"
+        ],
+        "course_names": {
+          "90641007": "พลเมืองดิจิทัล"
+        },
+        "course_names_en": {
+          "90641007": "DIGITAL CITIZEN"
+        }
       },
       {
-        "pdf_page": 120,
-        "printed_page": "116"
+        "pdf_page": 19,
+        "printed_page": "15",
+        "courses": [
+          "90641007"
+        ],
+        "course_names": {
+          "90641007": "พลเมืองดิจิทัล"
+        },
+        "course_names_en": {
+          "90641007": "DIGITAL CITIZEN"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 19 (PDF 23), หน้า 115 (PDF 119), หน้า 116 (PDF 120))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 19 (PDF 23)\n   – 90641007 พลเมืองดิจิทัล / DIGITAL CITIZEN\n• PDF 144\n   – 90641007 พลเมืองดิจิทัล / DIGITAL CITIZEN\n• หน้า 15 (PDF 19)\n   – 90641007 พลเมืองดิจิทัล / DIGITAL CITIZEN",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 0.0
   },
   {
     "id": "F1",
@@ -631,30 +1032,31 @@
       "06046406"
     ],
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06046406' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06046406'",
     "n_rows": 2,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06046406' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06046401, 06046402\"}",
-    "answer": "06046401 (แคลคูลัส 2), 06046402 (พีชคณิตเชิงเส้น)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046406 พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING\nวิชาบังคับก่อน: 06046401 (แคลคูลัส 2 / CALCULUS 2); 06046402 (พีชคณิตเชิงเส้น / LINEAR ALGEBRA)",
     "citations": [
       {
-        "pdf_page": 24,
-        "printed_page": "20"
-      },
-      {
         "pdf_page": 292,
-        "printed_page": "288"
-      },
-      {
-        "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "288",
+        "courses": [
+          "06046406"
+        ],
+        "course_names": {
+          "06046406": "พื้นฐานการเรียนรู้เชิงลึก"
+        },
+        "course_names_en": {
+          "06046406": "FUNDAMENTALS OF DEEP LEARNING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 288 (PDF 292), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 288 (PDF 292)\n   – 06046406 พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 1.7
+    "seconds": 0.0
   },
   {
     "id": "F2",
@@ -675,30 +1077,31 @@
     ],
     "name_key": "name_th",
     "direction": "forward",
-    "sql": "SELECT requires FROM prerequisite WHERE code='06046405' AND kind='pre' LIMIT 200",
+    "sql": "SELECT requires FROM prerequisite WHERE code = '06046405'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT requires FROM prerequisite WHERE code='06046405' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06066001\"}",
-    "answer": "06066001 (ความน่าจะเป็นและสถิติ)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING\nวิชาบังคับก่อน: 06066001 (ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS)",
     "citations": [
       {
-        "pdf_page": 24,
-        "printed_page": "20"
-      },
-      {
         "pdf_page": 291,
-        "printed_page": "287"
-      },
-      {
-        "pdf_page": 20,
-        "printed_page": "16"
+        "printed_page": "287",
+        "courses": [
+          "06046405"
+        ],
+        "course_names": {
+          "06046405": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น"
+        },
+        "course_names_en": {
+          "06046405": "PROBABILISTIC MACHINE LEARNING"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 20 (PDF 24), หน้า 287 (PDF 291), หน้า 16 (PDF 20))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 287 (PDF 291)\n   – 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 1.6
+    "seconds": 0.0
   },
   {
     "id": "F3",
@@ -718,30 +1121,31 @@
       "06046400"
     ],
     "direction": "reverse",
-    "sql": "SELECT code FROM prerequisite WHERE requires='06046400' AND kind='pre' LIMIT 200",
+    "sql": "SELECT code FROM prerequisite WHERE requires = '06046400'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT code FROM prerequisite WHERE requires='06046400' AND kind='pre'\" }",
-    "answer_model_output": "{\"answer\": \"06046401\"}",
-    "answer": "06046401 (แคลคูลัส 2)",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "วิชาต่อที่ต้องผ่าน 06046400 ก่อน:\n06046401 (แคลคูลัส 2 / CALCULUS 2)",
     "citations": [
       {
-        "pdf_page": 23,
-        "printed_page": "19"
-      },
-      {
         "pdf_page": 287,
-        "printed_page": "283"
-      },
-      {
-        "pdf_page": 19,
-        "printed_page": "15"
+        "printed_page": "283",
+        "courses": [
+          "06046401"
+        ],
+        "course_names": {
+          "06046401": "แคลคูลัส 2"
+        },
+        "course_names_en": {
+          "06046401": "CALCULUS 2"
+        }
       }
     ],
-    "citation_text": "(อ้างอิง: เล่มหลักสูตร หน้า 19 (PDF 23), หน้า 283 (PDF 287), หน้า 15 (PDF 19))",
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 283 (PDF 287)\n   – 06046401 แคลคูลัส 2 / CALCULUS 2",
     "correct": true,
     "why": "ครบพอดี",
-    "seconds": 1.6
+    "seconds": 0.0
   },
   {
     "id": "F4",
@@ -750,19 +1154,91 @@
     "question": "ในฐานข้อมูลนี้มีคู่วิชากับวิชาบังคับก่อนทั้งหมดกี่คู่",
     "expect": {
       "type": "value",
-      "value": "6"
+      "value": "8"
     },
-    "sql": "SELECT COUNT(*) FROM prerequisite LIMIT 200",
+    "sql": "SELECT COUNT(*) AS pairs FROM prerequisite WHERE kind = 'pre'",
     "n_rows": 1,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM prerequisite\"}",
-    "answer_model_output": "{\"answer\": \"6 คู่วิชากับวิชาบังคับก่อนทั้งหมด\"}",
-    "answer": "6 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "8 คู่วิชากับวิชาบังคับก่อนทั้งหมด",
+    "citations": [
+      {
+        "pdf_page": 144,
+        "printed_page": null,
+        "courses": [
+          "90641005",
+          "90641006"
+        ],
+        "course_names": {
+          "90641005": "โครงงานกลุ่ม 2",
+          "90641006": "โครงงานกลุ่ม 3"
+        },
+        "course_names_en": {
+          "90641005": "TEAM-PROJECT 2",
+          "90641006": "TEAM-PROJECT 3"
+        }
+      },
+      {
+        "pdf_page": 145,
+        "printed_page": "141",
+        "courses": [
+          "90641009",
+          "90641010"
+        ],
+        "course_names": {
+          "90641009": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1",
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "90641009": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1",
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
+      },
+      {
+        "pdf_page": 287,
+        "printed_page": "283",
+        "courses": [
+          "06046401"
+        ],
+        "course_names": {
+          "06046401": "แคลคูลัส 2"
+        },
+        "course_names_en": {
+          "06046401": "CALCULUS 2"
+        }
+      },
+      {
+        "pdf_page": 291,
+        "printed_page": "287",
+        "courses": [
+          "06046405"
+        ],
+        "course_names": {
+          "06046405": "การเรียนรู้ของเครื่องเชิงความน่าจะเป็น"
+        },
+        "course_names_en": {
+          "06046405": "PROBABILISTIC MACHINE LEARNING"
+        }
+      },
+      {
+        "pdf_page": 292,
+        "printed_page": "288",
+        "courses": [
+          "06046406"
+        ],
+        "course_names": {
+          "06046406": "พื้นฐานการเรียนรู้เชิงลึก"
+        },
+        "course_names_en": {
+          "06046406": "FUNDAMENTALS OF DEEP LEARNING"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• PDF 144\n   – 90641005 โครงงานกลุ่ม 2 / TEAM-PROJECT 2\n   – 90641006 โครงงานกลุ่ม 3 / TEAM-PROJECT 3\n• หน้า 141 (PDF 145)\n   – 90641009 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2\n• หน้า 283 (PDF 287)\n   – 06046401 แคลคูลัส 2 / CALCULUS 2\n• หน้า 287 (PDF 291)\n   – 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น / PROBABILISTIC MACHINE LEARNING\n• หน้า 288 (PDF 292)\n   – 06046406 พื้นฐานการเรียนรู้เชิงลึก / FUNDAMENTALS OF DEEP LEARNING",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 0.0
   },
   {
     "id": "G1",
@@ -779,11 +1255,22 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year BETWEEN 1 AND 2 AND credits = 1\"}",
     "answer_model_output": "{\"answer\": \"2 วิชา\"}",
     "answer": "2 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 23,
+        "printed_page": "19",
+        "courses": []
+      },
+      {
+        "pdf_page": 24,
+        "printed_page": "20",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 19 (PDF 23)\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.6
+    "seconds": 3.1
   },
   {
     "id": "G2",
@@ -794,17 +1281,99 @@
       "type": "value",
       "value": "3"
     },
-    "sql": "SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12 LIMIT 200",
-    "n_rows": 1,
+    "sql": "SELECT DISTINCT c.code, c.name_th, c.lecture_h FROM course c JOIN plan_item p ON p.code = c.code WHERE c.lecture_h IS NOT NULL AND p.year IN (1, 2) ORDER BY c.lecture_h DESC",
+    "n_rows": 17,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT MAX(lecture_h) FROM course WHERE credits BETWEEN 0 AND 12\"}",
-    "answer_model_output": "{\"answer\": \"3 ชั่วโมง\"}",
-    "answer": "3 ชั่วโมง",
-    "citations": [],
-    "citation_text": "",
+    "sql_model_output": null,
+    "answer_model_output": null,
+    "answer": "วิชาที่ชั่วโมงบรรยายมากที่สุดในปี 1, 2คือ 06046400 แคลคูลัส 1 และ 06046401 แคลคูลัส 2 และ 06046402 พีชคณิตเชิงเส้น และ 06046404 พื้นฐานของระบบสมองกลฝังตัว และ 06046405 การเรียนรู้ของเครื่องเชิงความน่าจะเป็น และ 06046406 พื้นฐานการเรียนรู้เชิงลึก และ 06046407 พื้นฐานวิทยาการข้อมูล และ 06046409 คอมพิวเตอร์ทัศนเบื้องต้น และ 06046410 การประมวลผลภาษาธรรมชาติเบื้องต้น และ 06046411 การวิเคราะห์และเพิ่มประสิทธิภาพเครือข่าย และ 06046412 การเพิ่มประสิทธิภาพโครงข่ายประสาทเทียม และ 06046413 ปัญญาประดิษฐ์และอินเทอร์เน็ตประสานสรรพสิ่ง และ 06066000 คณิตศาสตร์ไม่ต่อเนื่อง และ 06066001 ความน่าจะเป็นและสถิติ และ 90641007 พลเมืองดิจิทัล และ 90641009 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1 และ 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 (3 ชั่วโมงต่อสัปดาห์)",
+    "citations": [
+      {
+        "pdf_page": 23,
+        "printed_page": "19",
+        "courses": [
+          "06046400",
+          "06046401",
+          "06046402",
+          "06046404",
+          "06066000",
+          "06066001",
+          "90641007"
+        ],
+        "course_names": {
+          "06046400": "แคลคูลัส 1",
+          "06046401": "แคลคูลัส 2",
+          "06046402": "พีชคณิตเชิงเส้น",
+          "06046404": "พื้นฐานของระบบสมองกลฝังตัว",
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง",
+          "06066001": "ความน่าจะเป็นและสถิติ",
+          "90641007": "พลเมืองดิจิทัล"
+        },
+        "course_names_en": {
+          "06046400": "CALCULUS 1",
+          "06046401": "CALCULUS 2",
+          "06046402": "LINEAR ALGEBRA",
+          "06046404": "FUNDAMENTAL OF EMBEDDED SYSTEM",
+          "06066000": "DISCRETE MATHEMATICS",
+          "06066001": "PROBABILITY AND STATISTICS",
+          "90641007": "DIGITAL CITIZEN"
+        }
+      },
+      {
+        "pdf_page": 287,
+        "printed_page": "283",
+        "courses": [
+          "06046400",
+          "06046401"
+        ],
+        "course_names": {
+          "06046400": "แคลคูลัส 1",
+          "06046401": "แคลคูลัส 2"
+        },
+        "course_names_en": {
+          "06046400": "CALCULUS 1",
+          "06046401": "CALCULUS 2"
+        }
+      },
+      {
+        "pdf_page": 19,
+        "printed_page": "15",
+        "courses": [
+          "06046400",
+          "06046401",
+          "06046402",
+          "06066000",
+          "06066001",
+          "90641007",
+          "90641009",
+          "90641010"
+        ],
+        "course_names": {
+          "06046400": "แคลคูลัส 1",
+          "06046401": "แคลคูลัส 2",
+          "06046402": "พีชคณิตเชิงเส้น",
+          "06066000": "คณิตศาสตร์ไม่ต่อเนื่อง",
+          "06066001": "ความน่าจะเป็นและสถิติ",
+          "90641007": "พลเมืองดิจิทัล",
+          "90641009": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1",
+          "90641010": "ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2"
+        },
+        "course_names_en": {
+          "06046400": "CALCULUS 1",
+          "06046401": "CALCULUS 2",
+          "06046402": "LINEAR ALGEBRA",
+          "06066000": "DISCRETE MATHEMATICS",
+          "06066001": "PROBABILITY AND STATISTICS",
+          "90641007": "DIGITAL CITIZEN",
+          "90641009": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1",
+          "90641010": "INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2"
+        }
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 19 (PDF 23)\n   – 06046400 แคลคูลัส 1 / CALCULUS 1\n   – 06046401 แคลคูลัส 2 / CALCULUS 2\n   – 06046402 พีชคณิตเชิงเส้น / LINEAR ALGEBRA\n   – 06046404 พื้นฐานของระบบสมองกลฝังตัว / FUNDAMENTAL OF EMBEDDED SYSTEM\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n   – 90641007 พลเมืองดิจิทัล / DIGITAL CITIZEN\n• หน้า 283 (PDF 287)\n   – 06046400 แคลคูลัส 1 / CALCULUS 1\n   – 06046401 แคลคูลัส 2 / CALCULUS 2\n• หน้า 15 (PDF 19)\n   – 06046400 แคลคูลัส 1 / CALCULUS 1\n   – 06046401 แคลคูลัส 2 / CALCULUS 2\n   – 06046402 พีชคณิตเชิงเส้น / LINEAR ALGEBRA\n   – 06066000 คณิตศาสตร์ไม่ต่อเนื่อง / DISCRETE MATHEMATICS\n   – 06066001 ความน่าจะเป็นและสถิติ / PROBABILITY AND STATISTICS\n   – 90641007 พลเมืองดิจิทัล / DIGITAL CITIZEN\n   – 90641009 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 1 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1\n   – 90641010 ทักษะการสื่อสารภาษาอังกฤษระหว่างวัฒนธรรม 2 / INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 2",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.7
+    "seconds": 0.0
   },
   {
     "id": "G3",
@@ -821,11 +1390,22 @@
     "sql_model_output": "{\"sql\": \"SELECT COUNT(*) FROM v_plan WHERE year IN (1, 2) AND name_th LIKE '%ข้อมูล%'\" }",
     "answer_model_output": "{\"answer\": \"4 วิชา\"}",
     "answer": "4 วิชา",
-    "citations": [],
-    "citation_text": "",
+    "citations": [
+      {
+        "pdf_page": 23,
+        "printed_page": "19",
+        "courses": []
+      },
+      {
+        "pdf_page": 24,
+        "printed_page": "20",
+        "courses": []
+      }
+    ],
+    "citation_text": "อ้างอิงเล่มหลักสูตร:\n• หน้า 19 (PDF 23)\n• หน้า 20 (PDF 24)",
     "correct": true,
     "why": "ตรง",
-    "seconds": 1.5
+    "seconds": 2.8
   },
   {
     "id": "H1",
@@ -846,7 +1426,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 1.0
   },
   {
     "id": "H2",
@@ -867,7 +1447,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.4
+    "seconds": 0.6
   },
   {
     "id": "H3",
@@ -878,17 +1458,17 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT name_th, name_en, credits FROM course WHERE code = '06048352' LIMIT 200",
+    "sql": "SELECT * FROM course WHERE code = '06048352'",
     "n_rows": 0,
     "error": null,
-    "sql_model_output": "{\"sql\": \"SELECT name_th, name_en, credits FROM course WHERE code = '06048352'\" }",
+    "sql_model_output": null,
     "answer_model_output": null,
-    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร",
+    "answer": "ไม่พบข้อมูลนี้ในเล่มหลักสูตร (ไม่มีรหัสวิชา 06048352 ในหลักสูตรนี้)",
     "citations": [],
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.7
+    "seconds": 0.0
   },
   {
     "id": "H4",
@@ -909,7 +1489,7 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 1.2
+    "seconds": 1.5
   },
   {
     "id": "H5",
@@ -920,7 +1500,7 @@
       "type": "none",
       "value": null
     },
-    "sql": "SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง' LIMIT 200",
+    "sql": "SELECT NULL WHERE 0",
     "n_rows": 0,
     "error": null,
     "sql_model_output": "{\"sql\": \"SELECT credits FROM course WHERE name_th = 'วิชาการเล่นหมากรุกสากลขั้นสูง'\"}",
@@ -930,6 +1510,6 @@
     "citation_text": "",
     "correct": true,
     "why": "ตอบว่าไม่พบตามที่ควร",
-    "seconds": 0.8
+    "seconds": 1.1
   }
 ]

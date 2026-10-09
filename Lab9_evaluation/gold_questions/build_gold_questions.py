@@ -1,8 +1,9 @@
 """ชุดคำถามทอง (gold questions) — 30 ข้อต่อแผน × 7 แผน ตรงเกณฑ์ ch8 (30 ข้อ, ข้อ "ไม่รู้" >= 2, ให้คะแนนจากผล SQL)
 
-เฉลยคำนวณจาก ground_truth_scoped (แก้ให้ตรงเล่มแล้ว) + หน่วยกิตรวม/จำนวนปีที่เล่มประกาศ — ไม่อ่าน DB
+เฉลยคำนวณจาก ground_truth_scoped + source corrections ที่ตรวจ OCR แล้ว + หน่วยกิตรวม/จำนวนปีที่เล่มประกาศ — ไม่อ่าน DB
 สุ่มด้วย seed ตายตัว "gold-v2:<แผน>" รันซ้ำได้ไฟล์เดิมทุกไบต์ — ไฟล์ที่สร้างแล้วถูกล็อก (sha256 ใน frozen.json)
-ห้ามแก้หลังเห็นผล; `tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับตัวสร้างและ sha256
+การแก้เฉลยต้องเป็น revision แยก มีหลักฐานและเก็บชุด historical; ไม่ใช่ผล held-out ใหม่
+`tests/test_gold_questions.py` ตรวจว่าไฟล์ตรงกับตัวสร้างและ sha256
 
 ประวัติ: ชุดนี้คือ "v2" ที่ออกแบบมาแทนชุดแรก (v1) — ชุด v1 อยู่ใน git tag `gold-v1`
 (ดูโดยไม่ทับไฟล์ปัจจุบัน: `git show gold-v1:Lab9_evaluation/gold_questions/ait_gold_questions.json`) ค่าที่ v2 ใช้จาก v1 (วิชาที่ v1 ถามแล้ว ให้เลี่ยง,
@@ -52,13 +53,62 @@ def is_placed(course: dict) -> bool:
     return True
 
 
-def expected_prerequisite_pairs(scoped_courses: list[dict]) -> int:
+SOURCE_PAIR_CORRECTIONS = {
+    "dsba": {"pair": ["90644008", "90644007"],
+             "source": "outputs/dsba/dsba_curriculum_ocr.txt", "line": 8121,
+             "source_sha256": "23d942a106917c37aad11421ec09f388ca5ac04c58eaeea765d83bdaa96e62e3",
+             "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1", "pdf_page": 209},
+    "bit": {"pair": ["96644008", "96644007"],
+            "source": "outputs/bit/bit_curriculum_ocr.txt", "line": 6735,
+            "source_sha256": "cb6f7869f135d9be205e6f785740d88e0504f1b4deffb7a280e4c87e0117516d",
+            "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1"},
+    "ait": {"pair": ["90641010", "90641009"],
+            "source": "outputs/ait/ait_curriculum_ocr.txt", "line": 5049,
+            "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+            "prerequisite_text": "PREREQUISITE : INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"},
+}
+
+
+# v2.2: independent source facts; preserve questions/seed and the earlier v2.1 history.
+_IT_ENGLISH_CORRECTION = {
+    "question_id": "F4", "pair": ["90644008", "90644007"],
+    "source": "outputs/it/it_curriculum_ocr.txt", "line": 7574, "pdf_page": 220,
+    "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+    "source_format": "Original OCR snapshot bytes; Git conversion disabled",
+    "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+    "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+}
+SOURCE_ORACLE_CORRECTIONS = {
+    "ait": [{
+        "question_id": "F4", "pair": ["90641009", "90641008"],
+        "source": "outputs/ait/ait_curriculum_ocr.txt", "line": 5039, "pdf_page": 145,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+        "source_placed_codes": ["90641008"],
+        "placement_evidence": {"code": "90641008", "line": 731, "pdf_page": 23, "year": 1, "semester": 1},
+        "reason": "Source year1/semester1 contains zero-credit English course omitted by scoped truth",
+    }],
+    "it_no_coop": [_IT_ENGLISH_CORRECTION],
+    "it_coop": [_IT_ENGLISH_CORRECTION, {
+        "question_id": "E3", "code": "06016425", "credits": "3(2-2-5)",
+        "source": "outputs/it/it_curriculum_ocr.txt", "line": 12052, "pdf_page": 334, "printed_page": "333",
+        "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "source_format": "Original OCR snapshot bytes; Git conversion disabled",
+        "reason": "Source image and OCR confirm lecture2/lab2/self5; scoped lab0 is stale",
+    }],
+}
+
+
+def expected_prerequisite_pairs(scoped_courses: list[dict], additional_pairs=(), source_placed_codes=()) -> int:
     """จำนวนคู่ (วิชา, วิชาบังคับก่อน) ที่ควรอยู่ในตาราง prerequisite ตามเฉลย scoped (แก้ให้ตรงเล่มแล้ว)
 
     นับเฉพาะวิชาที่ระบุตัวชัด (รหัส 8 หลัก + ปี/ภาคแน่นอน) และวิชาบังคับก่อนที่ก็เป็นวิชาระบุตัวชัดในแผนเดียวกัน
     (ตรงกับที่ตาราง course ของ Lab 8B มี — รหัสที่ไม่อยู่ในแผนถูกทิ้งตอนโหลด); "A หรือ B" นับเป็นสองคู่
     เพราะตาราง prerequisite เก็บแยกรหัส; แถวซ้ำ (เช่น IT 06016418 สองแทร็ก) นับคู่เดียว"""
     placed = {c["code"] for c in scoped_courses if re.fullmatch(r"\d{8}", c["code"] or "") and is_placed(c)}
+    if any(not re.fullmatch(r"\d{8}", code) for code in source_placed_codes):
+        raise ValueError("Source-confirmed placement must have an exact course code")
+    placed.update(source_placed_codes)
     pairs = set()
     for c in scoped_courses:
         if c["code"] not in placed:
@@ -66,6 +116,10 @@ def expected_prerequisite_pairs(scoped_courses: list[dict]) -> int:
         for req in re.findall(r"(?<!\d)\d{8}(?!\d)", c.get("prerequisite") or ""):
             if req in placed and req != c["code"]:
                 pairs.add((c["code"], req))
+    for code, requires in additional_pairs:
+        if code not in placed or requires not in placed or code == requires:
+            raise ValueError(f"Source correction is outside the selected plan: {code} -> {requires}")
+        pairs.add((code, requires))
     return len(pairs)
 
 
@@ -334,7 +388,15 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
         meta["replaced"].append("F1-F3 -> E (แผนนี้ไม่มีคู่วิชาบังคับก่อนในแผน)")
         for _ in range(3):
             extra_e()
-    add("F", "2", tmpl("f_pairs"), {"type": "value", "value": str(expected_prerequisite_pairs(rows))})
+    correction = SOURCE_PAIR_CORRECTIONS.get(plan.split("_")[0])
+    before = expected_prerequisite_pairs(rows)
+    after = expected_prerequisite_pairs(rows, [correction["pair"]] if correction else [])
+    add("F", "2", tmpl("f_pairs"), {"type": "value", "value": str(after)})
+    if correction:
+        meta["revision"] = "gold-v2.1-source-correction"
+        meta["oracle_corrections"] = [{"question_id": qs[-1]["id"], "before": str(before),
+                                      "after": str(after), "reason": "Name-based prerequisite omitted in scoped truth",
+                                      **correction}]
 
     # G — ภาพรวม
     catalog = [placed[c] for c in sorted(placed) if _term_of(placed[c])[0] in (1, 2)]
@@ -362,6 +424,22 @@ def build_plan(plan: str) -> tuple[list[dict], dict]:
 
     if len(qs) != 30 or len({q["question"] for q in qs}) != 30:
         raise ValueError(f"{plan}: ได้ {len(qs)} ข้อ / คำถามซ้ำ")
+    for evidence in SOURCE_ORACLE_CORRECTIONS.get(plan, []):
+        question = next(q for q in qs if q["id"] == evidence["question_id"])
+        before_value = question["expect"]["value"]
+        if "pair" in evidence:
+            previous_pairs = [correction["pair"]] if correction else []
+            value = str(expected_prerequisite_pairs(
+                rows, previous_pairs + [evidence["pair"]], evidence.get("source_placed_codes", ())))
+        else:
+            if question.get("about_codes") != [evidence["code"]] or question["id"] != "E3":
+                raise ValueError("Hour correction does not match the original Gold question")
+            value = str(parse_credits(evidence["credits"])[2])
+        question["expect"] = {**question["expect"], "value": value}
+        meta["revision"] = "gold-v2.2-source-correction"
+        meta.setdefault("oracle_corrections", []).append({
+            **evidence, "before": before_value, "after": value,
+            "correction_revision": "gold-v2.2-source-correction"})
     return qs, meta
 
 

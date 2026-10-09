@@ -15,7 +15,50 @@
     "terms_relaxed": false,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "d52c37b32af659aeb7b60cf8e58e9a3f1e38db16aa7240319325e4a9865f2df7"
+    "revision": "gold-v2.2-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "6",
+        "after": "7",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90641010",
+          "90641009"
+        ],
+        "source": "outputs/ait/ait_curriculum_ocr.txt",
+        "line": 5049,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTERCULTURAL COMMUNICATION SKILLS IN ENGLISH 1"
+      },
+      {
+        "question_id": "F4",
+        "pair": [
+          "90641009",
+          "90641008"
+        ],
+        "source": "outputs/ait/ait_curriculum_ocr.txt",
+        "line": 5039,
+        "pdf_page": 145,
+        "source_sha256": "fae1b72f9b8cdeef4df947b8248c666216c012c45922627b70f8ea3c505a9d4d",
+        "prerequisite_text": "PREREQUISITE : INTRODUCTION TO ENGLISH COMMUNICATION SKILLS",
+        "source_placed_codes": [
+          "90641008"
+        ],
+        "placement_evidence": {
+          "code": "90641008",
+          "line": 731,
+          "pdf_page": 23,
+          "year": 1,
+          "semester": 1
+        },
+        "reason": "Source year1/semester1 contains zero-credit English course omitted by scoped truth",
+        "before": "7",
+        "after": "8",
+        "correction_revision": "gold-v2.2-source-correction"
+      }
+    ],
+    "sha256": "eac1dcb12ce16e09cbfd4d8b956d1d9598875875865b8d5746b62e7484707765"
   },
   "bit_coop": {
     "plan": "bit_coop",
@@ -35,7 +78,24 @@
     "replaced": [
       "F2 -> E (ไม่มีวิชาอื่นนอกจาก F1 ที่มีวิชาบังคับก่อนและชื่อไม่ซ้ำ)"
     ],
-    "sha256": "ff12a3f993669ca5ea54c3497e21de9079e180c67670aa63f5f5a9e69cb25784"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F3",
+        "before": "2",
+        "after": "3",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "96644008",
+          "96644007"
+        ],
+        "source": "outputs/bit/bit_curriculum_ocr.txt",
+        "line": 6735,
+        "source_sha256": "cb6f7869f135d9be205e6f785740d88e0504f1b4deffb7a280e4c87e0117516d",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1"
+      }
+    ],
+    "sha256": "b3abba0976e331dc1be519ac7d5e4a9fa0186b564a3843ea493cd6fe5c00f390"
   },
   "bit_no_coop": {
     "plan": "bit_no_coop",
@@ -53,7 +113,24 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "81642622affbdeb629cd5c575b5f4434b3bdaa1996ef0d3528d70783707f1e8c"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "3",
+        "after": "4",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "96644008",
+          "96644007"
+        ],
+        "source": "outputs/bit/bit_curriculum_ocr.txt",
+        "line": 6735,
+        "source_sha256": "cb6f7869f135d9be205e6f785740d88e0504f1b4deffb7a280e4c87e0117516d",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1"
+      }
+    ],
+    "sha256": "40e7942001a624007e1d8d8cfe4edb58efa9616b2c55eaa939094a4017106385"
   },
   "dsba_coop": {
     "plan": "dsba_coop",
@@ -71,7 +148,25 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "da0d3055c5d88888337b7d5da9f5acb8651a06e14c73dd9fa7a6c9d7049b9a49"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "5",
+        "after": "6",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/dsba/dsba_curriculum_ocr.txt",
+        "line": 8121,
+        "source_sha256": "23d942a106917c37aad11421ec09f388ca5ac04c58eaeea765d83bdaa96e62e3",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "pdf_page": 209
+      }
+    ],
+    "sha256": "4616dd3fa19892371ec9da785357d21e14ed99e9d23e807f12bd32e56d7a740d"
   },
   "dsba_no_coop": {
     "plan": "dsba_no_coop",
@@ -89,7 +184,25 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "969daaff62df56e2d3feb57dbd8e521ee776d9b20c5bf4666cc735f16ef120a6"
+    "revision": "gold-v2.1-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "before": "5",
+        "after": "6",
+        "reason": "Name-based prerequisite omitted in scoped truth",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/dsba/dsba_curriculum_ocr.txt",
+        "line": 8121,
+        "source_sha256": "23d942a106917c37aad11421ec09f388ca5ac04c58eaeea765d83bdaa96e62e3",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "pdf_page": 209
+      }
+    ],
+    "sha256": "b6778aac1278ad1a356b9965af46058e0c5dda430c26cae1809f72d1f19c2852"
   },
   "it_coop": {
     "plan": "it_coop",
@@ -107,7 +220,42 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "12ae9aba81383c2bc3d5af65f9dfa5a95e25f2abdf4a1c1f7b4f294e29ebaa5b"
+    "revision": "gold-v2.2-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 7574,
+        "pdf_page": 220,
+        "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "source_format": "Original OCR snapshot bytes; Git conversion disabled",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+        "before": "8",
+        "after": "9",
+        "correction_revision": "gold-v2.2-source-correction"
+      },
+      {
+        "question_id": "E3",
+        "code": "06016425",
+        "credits": "3(2-2-5)",
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 12052,
+        "pdf_page": 334,
+        "printed_page": "333",
+        "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "source_format": "Original OCR snapshot bytes; Git conversion disabled",
+        "reason": "Source image and OCR confirm lecture2/lab2/self5; scoped lab0 is stale",
+        "before": "0",
+        "after": "2",
+        "correction_revision": "gold-v2.2-source-correction"
+      }
+    ],
+    "sha256": "f89fb687c1023d1885d959ef3a60021c19294d336cc72e4b4874cda9356c92b7"
   },
   "it_no_coop": {
     "plan": "it_no_coop",
@@ -125,6 +273,26 @@
     "terms_relaxed": true,
     "fallback_v1_codes": [],
     "replaced": [],
-    "sha256": "df81c744e36386a5e9bbe7a4fa0a6f4bae3e68143c1b59c0cd344912bf51997a"
+    "revision": "gold-v2.2-source-correction",
+    "oracle_corrections": [
+      {
+        "question_id": "F4",
+        "pair": [
+          "90644008",
+          "90644007"
+        ],
+        "source": "outputs/it/it_curriculum_ocr.txt",
+        "line": 7574,
+        "pdf_page": 220,
+        "source_sha256": "5e27bd63a7b1a7bdfc649bb9afcbb3c01f559a35ae4008040461f27869cf5de4",
+        "source_format": "Original OCR snapshot bytes; Git conversion disabled",
+        "prerequisite_text": "PREREQUISITE : FOUNDATION ENGLISH 1",
+        "reason": "English2 requires English1 in source description; scoped truth omitted this pair",
+        "before": "8",
+        "after": "9",
+        "correction_revision": "gold-v2.2-source-correction"
+      }
+    ],
+    "sha256": "4ab4574857bdddd9622238170e9be51afe6aa17c49c3730f1cee462048719ad2"
   }
 }

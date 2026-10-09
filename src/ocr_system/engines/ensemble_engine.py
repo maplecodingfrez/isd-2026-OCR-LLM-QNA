@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from .base import BaseOCREngine
 from .paddle_engine import PaddleOCREngine
@@ -34,30 +36,65 @@ class EnsembleOCREngine(BaseOCREngine):
         candidates.extend(tesseract_result or [])
         candidates.extend(trocr_result or [])
 
-        # Simple production-safe default: keep all lines, sorted top-to-bottom if boxes exist.
-        # Dedup exact repeated text while preserving stronger confidence.
-        best: dict[str, OCRLine] = {}
+        # Equal text is a duplicate only when it describes the same region.
+        lines: list[OCRLine] = []
+        regions: dict[tuple[str, int | None], list[int]] = {}
+        boxes = []
         for line in candidates:
-            key = line.text.strip()
-            if not key:
+            text = line.text.strip()
+            if not text:
                 continue
-            if key not in best:
-                best[key] = line
-            else:
-                old_conf = best[key].confidence or 0.0
-                new_conf = line.confidence or 0.0
-                if new_conf > old_conf:
-                    best[key] = line
-
-        lines = list(best.values())
-        lines.sort(key=lambda x: _box_top(x.box))
+            key = (text, line.page)
+            bounds = _bounds(line.box)
+            matched = None
+            for index in regions.get(key, []):
+                kept = boxes[index]
+                if bounds is not None and kept is not None and _iou(bounds, kept) >= 0.5:
+                    matched = index
+                    break
+            if matched is None:
+                regions.setdefault(key, []).append(len(lines))
+                lines.append(line)
+                boxes.append(bounds)
+            elif _confidence(line.confidence) > _confidence(lines[matched].confidence):
+                lines[matched] = line
+                boxes[matched] = bounds
+        lines.sort(key=lambda line: _box_top(line.box))
         return lines
 
 
-def _box_top(box) -> float:
-    if not box:
-        return 10**9
+def _bounds(box) -> tuple[float, float, float, float] | None:
+    if box is None:
+        return None
     try:
-        return min(float(p[1]) for p in box)
-    except Exception:
-        return 10**9
+        points = [(float(point[0]), float(point[1])) for point in box]
+        if not points or not all(math.isfinite(value) for point in points for value in point):
+            return None
+        xs, ys = zip(*points)
+        bounds = (min(xs), min(ys), max(xs), max(ys))
+        return bounds if bounds[2] > bounds[0] and bounds[3] > bounds[1] else None
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return None
+
+
+def _iou(a, b) -> float:
+    left, top = max(a[0], b[0]), max(a[1], b[1])
+    right, bottom = min(a[2], b[2]), min(a[3], b[3])
+    intersection = max(0.0, right-left) * max(0.0, bottom-top)
+    area_a = (a[2]-a[0]) * (a[3]-a[1])
+    area_b = (b[2]-b[0]) * (b[3]-b[1])
+    union = area_a + area_b - intersection
+    return intersection / union if union > 0 else 0.0
+
+
+def _confidence(value) -> float:
+    try:
+        score = float(value)
+        return score if math.isfinite(score) else 0.0
+    except (TypeError, ValueError, OverflowError):
+        return 0.0
+
+
+def _box_top(box) -> float:
+    bounds = _bounds(box)
+    return bounds[1] if bounds is not None else 10**9
