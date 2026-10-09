@@ -5655,6 +5655,18 @@ def _ungrounded_literal(conn: sqlite3.Connection, sql: str) -> str | None:
     return None
 
 
+_TERM_WORD_Q = re.compile(r"ปี|เทอม|ภาค|ชั้น|year|semester|term|summer|ฤดูร้อน", re.I)
+_SQL_TERM_FILTER = re.compile(
+    r"\b(?:year|semester)\s*(?:[<>]=?|=)\s*\d|\b(?:year|semester)\s+(?:IN\s*\(\s*\d|BETWEEN\s+\d)", re.I)
+
+
+def _invented_term_filter(question: str, sql: str | None) -> bool:
+    """SQL กรอง year/semester เป็นตัวเลข แต่คำถามไม่มีคำว่า ปี/เทอม/ภาค/ชั้น/year/semester เลย = โมเดลเดาปี/เทอมเอง
+    (เช่น "Calculus 1 กี่หน่วยกิต" ใน IT ซึ่งไม่มีวิชานี้ ถูกอ่านเป็นปี 2 เทอม 1 แล้วตอบยอด 18 หน่วยกิต);
+    แคบโดยตั้งใจ: คำถามที่พูดถึงปี/เทอมไม่ว่ารูปแบบใด (เช่น "เทอมแรก") ไม่ถูกแตะ; JOIN ที่เทียบคอลัมน์กันเองไม่นับ"""
+    return bool(sql and _SQL_TERM_FILTER.search(sql) and not _TERM_WORD_Q.search(question))
+
+
 def ask(conn: sqlite3.Connection, question: str,
         verbose: bool = True) -> dict:
     """
@@ -5764,6 +5776,9 @@ def ask(conn: sqlite3.Connection, question: str,
                       + f"\n\nSQL ที่ลองไปแล้วมีข้อผิดพลาด: {e}\nเขียนใหม่ให้ถูก\nSQL:")
 
     result["sql"], result["rows"] = _term_summary_fallback(conn, question, result["sql"], result["rows"])
+
+    if result["rows"] and _invented_term_filter(question, result["sql"]):    # โมเดลเดาปี/เทอมที่ผู้ใช้ไม่ได้ถาม — ไม่ตอบยอดของเทอมที่แต่งขึ้น
+        result["sql_rejected"], result["sql"], result["rows"] = result["sql"], _NOT_FOUND[2], []
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
