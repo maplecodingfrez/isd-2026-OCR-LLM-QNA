@@ -1,5 +1,6 @@
 """OCR should occupy worker slots, not the ASGI event loop."""
 import asyncio
+import io
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import pytest
@@ -9,7 +10,8 @@ from ocr_system.api.config import APISettings
 
 class Upload:
     filename='sample.png'
-    async def read(self): return b'fixture'
+    def __init__(self): self.stream = io.BytesIO(b'fixture')
+    async def read(self, size=-1): return self.stream.read(size)
 
 def test_ocr_keeps_event_loop_responsive(monkeypatch):
     entered=threading.Event(); release=threading.Event()
