@@ -243,7 +243,7 @@
         <input id="withdraw-code" type="text" inputmode="numeric" autocomplete="off" list="courses-list" data-i18n-ph="withdraw.placeholder" placeholder="ป้อนรหัสวิชา 8 หลัก">
         <button type="submit" id="withdraw-button" data-i18n="withdraw.btn" data-i18n-busy="withdraw.busy">ตรวจผลกระทบ</button>
       </form>
-      <div class="state-idle"><p data-i18n="withdraw.idle">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
+      <div class="state-idle"><p id="withdraw-samples-wrap" class="muted" hidden><span data-i18n="withdraw.samples">ลองรหัสที่มีวิชาต่อ:</span> <span id="withdraw-samples"></span></p><p data-i18n="withdraw.idle">ค้นตัวต่อโดยตรงและทางอ้อมจากหลักสูตรที่เลือกด้านบน</p></div>
       <div class="state-loading">
         <div class="loading-indicator-row">
           <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>

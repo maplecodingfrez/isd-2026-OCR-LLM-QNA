@@ -334,7 +334,7 @@ textarea#question::placeholder { color: var(--muted); }
 }
 .cite-tab .pdf { font-family: var(--font-body); font-weight: 400; font-size: 15px; color: var(--text); }
 .answer-text { font-size: 17px; line-height: 1.7; max-width: 70ch; }
-.answer-text:has(.course-lines) { max-width: none; }   /* course rows fill the card; the 70ch cap left a dead strip on the right (credits column stopped at ~680px) */
+.answer-text:has(.course-lines), .answer-text:has(.book-section) { max-width: none; }   /* course rows fill the card; the 70ch cap left a dead strip on the right (credits column stopped at ~680px) */
 .answer-text p + p, .answer-text p + ul, .answer-text ul + p { margin-top: 10px; }
 .answer-text .count-big { font-family: var(--font-head); font-size: 30px; color: var(--accent); font-variant-numeric: tabular-nums; }
 .answer-list, .course-list { list-style: none; display: grid; gap: 6px; }
@@ -361,6 +361,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 /* layered course lines: code | name (+ other language) | credits and hours */
 .course-lead { font-family: var(--font-head); font-weight: 700; font-size: 18px; margin-bottom: 4px; }
 .course-lines { list-style: none; display: grid; }
+.course-line.no-code { grid-template-columns: minmax(0, 1fr) auto; }   /* rows built from model results may have no course code */
 .course-line {
   display: grid; grid-template-columns: var(--tag-col) minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
   padding: 10px 0; border-bottom: 2px solid var(--line);
@@ -419,6 +420,26 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 @media (max-width: 768px) { .overview-compare { grid-template-columns: minmax(0, 1fr); } }
 .overview-compare .course-line { grid-template-columns: minmax(0, 1fr); }
 .overview-compare .course-meta { justify-items: start; text-align: left; }
+
+/* structured answers that used to be one dense paragraph: plan comparison, GE electives, book sections */
+.plan-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0 6px; font-family: var(--font-head); font-size: 17px; }
+.plan-total { color: var(--muted); font-family: var(--font-body); font-size: 15px; font-weight: 400; white-space: nowrap; }
+.ge-section, .book-section { padding: 14px 16px; border: 2px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
+.ge-section + .ge-section, .answer-text > * + .ge-section { margin-top: 14px; }
+.ge-title, .book-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-family: var(--font-head); font-size: 17px; }
+.ge-term { padding: 1px 10px; border-radius: 999px; background: var(--choice-bg); color: var(--choice-fg); font-family: var(--font-body); font-size: 15px; font-weight: 600; }
+.ge-facts { margin-top: 4px; color: var(--muted); font-size: 15px; }
+.ge-groups { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.ge-group { display: inline-flex; align-items: baseline; gap: 8px; padding: 3px 12px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface-2); font-size: 15px; }
+.ge-group-n { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ge-label { margin-top: 14px; font-size: 15px; font-weight: 600; color: var(--muted); }
+.ge-section .course-lines { margin-top: 2px; }
+.book-intro { margin-top: 6px; line-height: 1.7; }
+.book-list { list-style: none; display: grid; gap: 6px; margin-top: 10px; }
+.book-list li { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr); gap: 8px; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.book-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.book-list li.is-sub { margin-left: 2rem; }
+.book-no { color: var(--accent); font-family: var(--font-mono); font-size: 15px; font-weight: 600; }
 .overview-facts { display: grid; gap: 10px; margin-top: 10px; }
 .overview-fact { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 4px 12px; align-items: baseline; }
 .overview-fact dt { font-weight: 600; font-size: 15px; }
@@ -475,7 +496,8 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .prereq-grid { display: grid; gap: 12px; }
 .prereq-box { padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-2); }
 .course-list li { font-size: 15px; }
-#prereq-samples button { margin-right: 8px; font-family: var(--font-mono); }
+#prereq-samples button, #withdraw-samples button { margin-right: 8px; font-family: var(--font-mono); }
+#withdraw-samples-wrap, #prereq-samples-wrap { margin-bottom: 10px; }
 
 /* ---------- overview below ---------- */
 .minimal-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 28px; }

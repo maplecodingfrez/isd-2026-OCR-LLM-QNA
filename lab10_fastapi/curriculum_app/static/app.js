@@ -330,6 +330,19 @@
     return out.length ? out : null;
   }
 
+  // รหัสวิชาตัวอย่างของแท็บ "ถอนวิชา": เอาจากตัวอย่างหัวข้อ withdraw ที่เซิร์ฟเวอร์เลือกให้ (เป็นวิชาที่มีตัวต่อจริงของแผนนั้น)
+  function withdrawSampleCodes(topics) {
+    var codes = [];
+    (Array.isArray(topics) ? topics : []).forEach(function (topic) {
+      if (!topic || topic.key !== "withdraw" || !Array.isArray(topic.examples)) return;
+      topic.examples.forEach(function (example) {
+        var m = /(?:^|[^\d])(\d{8})(?!\d)/.exec(example && example.q && example.q.th ? example.q.th : "");
+        if (m && codes.indexOf(m[1]) === -1) codes.push(m[1]);
+      });
+    });
+    return codes.slice(0, 3);
+  }
+
   // ลูกศร/Home/End บนแถบแท็บหรือแถบหัวข้อ → ตำแหน่งใหม่ (-1 = ไม่ใช่ปุ่มเลื่อน)
   function nextTabIndex(current, count, key) {
     if (!count) return -1;
@@ -349,6 +362,8 @@
 
   // บรรทัดวิชาจาก backend: "06016403 ชื่อไทย / ENGLISH NAME — 3 (2-2-5) หน่วยกิต" (+ หัวข้อนำหน้า "ปี 2 เทอม 1:" และหมายเหตุท้าย "(รวม …)")
   var COURSE_LINE = /^(\d{8})\s+(.+?)(?:\s+\/\s+(.+?))?\s+—\s+(\d+)(?:\s+\((\d+)-(\d+)-(\d+)\))?\s+หน่วยกิต$/;
+  var FREE_SLOT_LINE = /^(.+?)\s+\((ปี \d+ เทอม \d+)\):\s+(เลือกเรียน.*?)\s+(\d+)\s+หน่วยกิต\s*(.*)$/;
+  var FIXED_SLOT_LINE = /^(.+?)\s+\((ปี \d+ เทอม \d+)\):\s+ไม่ได้กำหนดรายวิชาตายตัวในแผน\s+—\s+ให้เลือก\s+(\d+)\s+หน่วยกิต\s*(.*)$/;
   var SLOT_LINE = /^ช่องที่นักศึกษาเลือกเอง:\s*(.+?)\s+(\d+(?:\s+\(\d+-\d+-\d+\))?(?:\s+หรือ\s+\d+(?:\s+\(\d+-\d+-\d+\))?)*)\s+หน่วยกิต$/;
 
   function parseCourseLine(text) {
@@ -356,6 +371,23 @@
     var note = null;
     var tail = /\s*\((รวม[^)]*)\)\s*$/.exec(s);
     if (tail) { note = tail[1]; s = s.slice(0, tail.index).trim(); }
+    s = s.replace(/\s*\(บรรยาย \d+-ปฏิบัติ \d+-ศึกษาด้วยตนเอง \d+\)\s*$/, "");   // ซ้ำกับ (l-p-s) ในบรรทัดอยู่แล้ว
+    var tag = null;                               // ป้ายท้ายบรรทัดจากผลค้นหา/เทียบแผน: "(ในแผน)" "(วิชาเลือก)" "[บังคับ]"
+    var tagged = /\s*(?:\((ในแผน|วิชาเลือก|มีในเล่ม)\)|\[(บังคับ)\])\s*$/.exec(s);
+    if (tagged) {
+      tag = tagged[1] === "ในแผน" ? t("tag.inPlan") : tagged[1] === "วิชาเลือก" ? t("tag.elective") : tagged[1] === "มีในเล่ม" ? t("tag.inBook") : t("tag.required");
+      s = s.slice(0, tagged.index).trim();
+    }
+    var free = FREE_SLOT_LINE.exec(s);            // "วิชาเลือกเสรี 1 (ปี 4 เทอม 1): เลือกเรียนจาก... ได้ 3 หน่วยกิต ไม่มีรายชื่อ..."
+    if (free) {
+      return { kind: "slot", lead: "", name: free[1].trim(), credits: free[4], sub: [free[2], free[3].replace(/\s*ได้$/, "").trim(), free[5]].filter(Boolean).join(" · "), note: note };
+    }
+    var when = /^(วิชาเลือก.+?)\s+อยู่\s*(ปี \d+ เทอม \d+)$/.exec(s);       // "วิชาเลือกเสรี 1 อยู่ปี 3 เทอม 2"
+    if (when) return { kind: "slot", lead: "", name: when[1].trim(), credits: null, sub: when[2], note: note };
+    var open = FIXED_SLOT_LINE.exec(s);           // "วิชาเลือก… (ปี 2 เทอม 2): ไม่ได้กำหนดรายวิชาตายตัวในแผน — ให้เลือก 3 หน่วยกิตจากรายวิชาที่…"
+    if (open) {
+      return { kind: "slot", lead: "", name: open[1].trim(), credits: open[3], sub: [open[2], "ไม่ได้กำหนดรายวิชาตายตัวในแผน", open[4].trim()].filter(Boolean).join(" · "), note: note };
+    }
     var path = null;
     var via = /\s*\(เส้นทาง\s+([^)]+)\)\s*$/.exec(s);
     if (via) { path = via[1].trim(); s = s.slice(0, via.index).trim(); }
@@ -365,12 +397,16 @@
     var m = COURSE_LINE.exec(s);
     if (m) {
       return { kind: "course", lead: lead, code: m[1], name: m[2].trim(), nameEn: (m[3] || "").trim(), credits: m[4],
-        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, path: path, note: note };
+        hours: m[5] !== undefined ? [m[5], m[6], m[7]] : null, path: path, note: note, tag: tag };
     }
     var bare = /^(\d{8})\s+\((.+)\)$/.exec(s);        // "06026200 (แคลคูลัส 1)": รหัส + ชื่อ ไม่มีหน่วยกิต
     if (bare) {
       var names = bare[2].split(/\s+\/\s+/);
-      return { kind: "course", lead: lead, code: bare[1], name: names[0].trim(), nameEn: names.slice(1).join(" / ").trim(), credits: null, hours: null, path: path, note: note };
+      return { kind: "course", lead: lead, code: bare[1], name: names[0].trim(), nameEn: names.slice(1).join(" / ").trim(), credits: null, hours: null, path: path, note: note, tag: tag };
+    }
+    var nameOnly = /^(\d{8})\s+([^—]+?)(?:\s+\/\s+(.+))?$/.exec(s);        // รหัส + ชื่อ ไม่มีหน่วยกิต (ผลค้นหา "(มีในเล่ม)" / เทียบแผน)
+    if (nameOnly && !/[:;]/.test(nameOnly[2])) {
+      return { kind: "course", lead: lead, code: nameOnly[1], name: nameOnly[2].trim(), nameEn: (nameOnly[3] || "").trim(), credits: null, hours: null, path: path, note: note, tag: tag };
     }
     var slot = SLOT_LINE.exec(s);
     if (slot) return { kind: "slot", lead: lead, name: slot[1].trim(), credits: slot[2].trim(), note: note };
@@ -441,6 +477,79 @@
     return "";
   }
 
+  // คำตอบที่โมเดลเรียบเรียงเอง (hybrid/ai) จากแถวหลายคอลัมน์มักออกมาเป็นข้อความดิบ "3 2 ชื่อ EN 3; 3 2 ..." อ่านยาก
+  // → ถ้าแถวผลลัพธ์เป็นวิชา (มี name_th) วาดจากแถวแทนข้อความ; คำตอบแบบกฎ/ฐานข้อมูลที่จัดรูปแล้วไม่แตะ
+  function modelRowEntries(data) {
+    if (!data || (data.answer_type !== "hybrid" && data.answer_type !== "ai")) return null;
+    var rows = Array.isArray(data.rows) ? data.rows : [];
+    if (rows.length < 2 || !rows.every(function (r) { return r && typeof r.name_th === "string" && r.name_th.trim(); })) return null;
+    return rows.map(function (r) {
+      var hasHours = r.lecture_h != null && r.lab_h != null && r.self_h != null;
+      return {
+        kind: "course", code: typeof r.code === "string" ? r.code : "", name: r.name_th.trim(),
+        nameEn: typeof r.name_en === "string" ? r.name_en.trim() : "",
+        credits: r.credits != null ? String(r.credits) : null,
+        hours: hasHours ? [String(r.lecture_h), String(r.lab_h), String(r.self_h)] : null,
+        tag: r.year != null && r.semester != null ? t("term.tag", { y: r.year, s: r.semester }) : null,
+        path: null, note: null
+      };
+    });
+  }
+
+  // เทียบแผนสหกิจ/ไม่สหกิจ: ย่อหน้า "…แผน X (รวม N หน่วยกิต): วิชา; ช่อง: …" + "เฉพาะแผน X: …" -> บล็อก {type:"plans"}
+  var PLAN_HEAD = /^(?:(ปี \d+ เทอม \d+) — )?(แผน.+?) \(รวม (\d+) หน่วยกิต\):\s*(.*)$/;
+  function groupPlanBlocks(blocks) {
+    var out = [];
+    var i = 0;
+    while (i < blocks.length) {
+      var head = blocks[i].type === "paragraph" ? PLAN_HEAD.exec(blocks[i].text) : null;
+      if (!head) { out.push(blocks[i]); i++; continue; }
+      var block = { type: "plans", term: head[1] || "", plans: [], notes: [] };
+      while (i < blocks.length && blocks[i].type === "paragraph") {
+        var text = blocks[i].text;
+        var h = PLAN_HEAD.exec(text);
+        if (h) {
+          if (h[1] && !block.term) block.term = h[1];
+          block.plans.push({ name: h[2], credits: h[3], entries: h[4] ? [parseCourseLine(h[4])].filter(Boolean) : [] });
+        } else if (/^ช่อง:\s*/.test(text) && block.plans.length) {
+          block.plans[block.plans.length - 1].entries.push({ kind: "slot", name: text.replace(/^ช่อง:\s*/, ""), credits: null });
+        } else if (/^เฉพาะแผน.+:/.test(text)) {
+          block.notes.push(text);
+        } else break;
+        i++;
+      }
+      out.push(block);
+    }
+    return out;
+  }
+
+  // วิชาเลือกหมวดศึกษาทั่วไป: ย่อหน้ายาว "… เลือก N หน่วยกิตตาม… — มี M วิชาให้เลือก (กลุ่ม …) เช่น code ชื่อ — 3 หน่วยกิต, …"
+  // + หัวข้อ "วิชาบังคับในแผน…:" และรายการ -> บล็อก {type:"ge"} ต่อหนึ่งช่อง (ปี/เทอม)
+  var GE_HEAD = /^(.+?) \((ปี \d+ เทอม \d+)\): เลือก (\d+) หน่วยกิต(?:ตาม(.+?))? — มี (\d+) วิชาให้เลือก \((.+?)\)(?: เช่น (.+?))?\s*…?$/;
+  function groupGeBlocks(blocks) {
+    var out = [];
+    for (var i = 0; i < blocks.length; i++) {
+      var m = blocks[i].type === "paragraph" ? GE_HEAD.exec(blocks[i].text) : null;
+      if (!m) { out.push(blocks[i]); continue; }
+      var groups = m[6].split(/,\s*/).map(function (g) {
+        var gm = /^(.+?)\s+(\d+)\s+วิชา$/.exec(g.trim());
+        return gm ? { name: gm[1], n: gm[2] } : { name: g.trim(), n: "" };
+      });
+      var examples = (m[7] || "").split(/,\s+(?=\d{8}\s)/).map(parseCourseLine).filter(Boolean);
+      var block = { type: "ge", title: m[1], term: m[2], pick: m[3], source: (m[4] || "").trim(), total: parseInt(m[5], 10), groups: groups, examples: examples, mandatory: [] };
+      var next = blocks[i + 1];
+      if (next && next.type === "paragraph" && /^วิชาบังคับในแผน.*:$/.test(next.text) && blocks[i + 2] && blocks[i + 2].type === "list") {
+        blocks[i + 2].items.forEach(function (item) {
+          var c = /^(\d{8})\s+(.+)$/.exec(item.trim());
+          if (c) block.mandatory.push({ kind: "course", code: c[1], name: c[2], nameEn: "", credits: null, hours: null, path: null, note: null });
+        });
+        i += 2;
+      }
+      out.push(block);
+    }
+    return out;
+  }
+
   // รวมย่อหน้าที่เป็นบรรทัดวิชาติดกันเป็นบล็อก {type:"courses", entries} เดียว; ย่อหน้าอื่นคงเดิม
   function groupCourseBlocks(blocks) {
     var out = [];
@@ -497,11 +606,15 @@
     parseCreditLine: parseCreditLine,
     groupCreditBlocks: groupCreditBlocks,
     sampleTopicsFromApi: sampleTopicsFromApi,
+    withdrawSampleCodes: withdrawSampleCodes,
     noRealAnswer: noRealAnswer,
     splitCredits: splitCredits,
     prereqTag: prereqTag,
+    modelRowEntries: modelRowEntries,
     parseCourseLine: parseCourseLine,
     groupCourseBlocks: groupCourseBlocks,
+    groupPlanBlocks: groupPlanBlocks,
+    groupGeBlocks: groupGeBlocks,
     SAMPLE_TOPICS: SAMPLE_TOPICS,
     nextTabIndex: nextTabIndex,
     countUpParts: countUpParts,
@@ -693,8 +806,9 @@
     if (entry.kind === "slot") {
       return el("li", { className: "course-line is-slot" }, [
         el("span", { className: "slot-tag", text: t("slot.tag") }),
-        el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })]),
-        el("span", { className: "course-meta" }, [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })])
+        el("span", { className: "course-main" }, [el("span", { className: "course-name", text: entry.name })].concat(
+          entry.sub ? [el("span", { className: "course-name-alt", text: entry.sub })] : [])),
+        el("span", { className: "course-meta" }, entry.credits ? [el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") })] : [])
       ]);
     }
     var swap = entry.primary === undefined && english && entry.nameEn;
@@ -710,11 +824,11 @@
     var meta = [];
     if (entry.credits) meta.push(el("span", { className: "course-credits", text: entry.credits + " " + t("credits.unit") }));
     if (entry.hours) meta.push(el("span", { className: "course-hours", text: t("hours.fmt", { l: entry.hours[0], p: entry.hours[1], s: entry.hours[2] }) }));
-    return el("li", { className: "course-line" }, [
-      el("span", { className: "code", text: entry.code }),
+    return el("li", { className: entry.code ? "course-line" : "course-line no-code" }, [
+      entry.code ? el("span", { className: "code", text: entry.code }) : null,
       el("span", { className: "course-main" }, main),
       el("span", { className: "course-meta" }, meta)
-    ]);
+    ].filter(Boolean));
   }
 
   // วิชาจาก API (code, name_th, name_en, credits_display) → entry สำหรับ buildCourseLine
@@ -839,6 +953,74 @@
     if (note) answer.appendChild(el("p", { className: "course-tail muted", text: "(" + note + ")" }));
   }
 
+  // การ์ดเทียบแผน: หนึ่งแผนต่อหนึ่งการ์ด วางคู่กันบนจอกว้าง (ใช้กริด overview-compare)
+  function renderPlanBlock(answer, block) {
+    if (block.term) answer.appendChild(el("p", { className: "group-overview", text: block.term }));
+    answer.appendChild(el("div", { className: "overview-compare" }, block.plans.map(function (plan) {
+      var card = el("section", { className: "overview-card plan-card" });
+      card.appendChild(el("h3", { className: "plan-title" }, [
+        el("span", { text: plan.name }),
+        el("span", { className: "plan-total", text: t("plan.total", { n: plan.credits }) })
+      ]));
+      if (plan.entries.length) card.appendChild(el("ul", { className: "course-lines" }, plan.entries.map(buildCourseLine)));
+      return card;
+    })));
+    block.notes.forEach(function (note) { answer.appendChild(el("p", { className: "course-tail muted", text: note })); });
+  }
+
+  // การ์ดวิชาเลือกศึกษาทั่วไป: หัวข้อ+ปี/เทอม, จำนวนที่ต้องเลือก, ชิปกลุ่ม, ตัวอย่างวิชา, วิชาบังคับในกลุ่มเดียวกัน
+  function renderGeBlock(answer, block) {
+    var section = el("section", { className: "ge-section" });
+    section.appendChild(el("h3", { className: "ge-title" }, [
+      el("span", { text: block.title }),
+      el("span", { className: "ge-term", text: block.term })
+    ]));
+    var facts = [t("ge.pick", { n: block.pick }), t("ge.total", { n: block.total })];
+    if (block.source) facts.splice(1, 0, block.source);
+    section.appendChild(el("p", { className: "ge-facts", text: facts.join(" · ") }));
+    if (block.groups.length) {
+      section.appendChild(el("ul", { className: "ge-groups" }, block.groups.map(function (g) {
+        return el("li", { className: "ge-group" }, [
+          el("span", { text: g.name }),
+          g.n ? el("span", { className: "ge-group-n", text: g.n }) : null
+        ].filter(Boolean));
+      })));
+    }
+    if (block.examples.length) {
+      section.appendChild(el("p", { className: "ge-label", text: t("ge.examples") }));
+      section.appendChild(el("ul", { className: "course-lines" }, block.examples.map(buildCourseLine)));
+      if (block.total > block.examples.length) section.appendChild(el("p", { className: "course-tail muted", text: t("ge.more", { n: block.total - block.examples.length }) }));
+    }
+    if (block.mandatory.length) {
+      section.appendChild(el("p", { className: "ge-label", text: t("ge.mandatory") }));
+      section.appendChild(el("ul", { className: "course-lines" }, block.mandatory.map(buildCourseLine)));
+    }
+    answer.appendChild(section);
+  }
+
+  // ข้อความตามเล่ม (answer_type "ocr"): หัวข้อ + เกริ่น + รายการลำดับ "1) … 2.1) …" แทนย่อหน้าเดียวยาว ๆ
+  function renderBookSection(answer, row) {
+    var body = String(row.body || "").trim();
+    var pieces = body.split(/\s(?=\d+(?:\.\d+)*\)\s)/);
+    var intro = /^\d+(?:\.\d+)*\)\s/.test(pieces[0]) ? "" : pieces.shift();
+    var numbered = pieces.filter(function (piece) { return /^\d+(?:\.\d+)*\)\s/.test(piece); });
+    var section = el("section", { className: "book-section" });
+    if (row.heading) section.appendChild(el("h3", { className: "book-title", text: String(row.heading).replace(/^\d+(?:\.\d+)*[.)]?\s+/, "").replace(/:\s*$/, "") }));
+    if (numbered.length < 3) {
+      section.appendChild(el("p", { className: "book-intro", text: body }));
+    } else {
+      if (intro) section.appendChild(el("p", { className: "book-intro", text: intro }));
+      section.appendChild(el("ol", { className: "book-list" }, numbered.map(function (piece) {
+        var m = /^(\d+(?:\.\d+)*)\)\s+(.*)$/.exec(piece);
+        return el("li", { className: m[1].indexOf(".") !== -1 ? "is-sub" : "" }, [
+          el("span", { className: "book-no", text: m[1] }),
+          el("span", { text: m[2] })
+        ]);
+      })));
+    }
+    answer.appendChild(section);
+  }
+
   // เลขเดี่ยวในคำตอบนับขึ้นจาก 0 ใน 0.7 วินาที; ตัวเลขสุดท้ายตรงกับข้อมูลเสมอ และข้ามเมื่อผู้ใช้ปิดแอนิเมชัน
   function animateCount(node, target) {
     if (!window.requestAnimationFrame || document.hidden || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return;   // แท็บซ่อนอยู่ rAF หยุด: โชว์เลขจริงเลย ไม่ค้างที่ 0
@@ -907,10 +1089,20 @@
       answer.appendChild(el("div", { className: "overview-compare" }, comparison.map(buildOverviewCard)));   // เปรียบเทียบสองวิชา = สองการ์ดเคียงกัน
     } else if (term) renderTermAnswer(answer, term);
     else if (groups.length) renderElectiveGroups(answer, groups, data);
-    else groupCreditBlocks(groupCourseBlocks(answerBlocks(data))).forEach(function (block, _i, blocks) {
+    else if (data.answer_type === "ocr" && Array.isArray(data.rows) && data.rows[0] && data.rows[0].body) renderBookSection(answer, data.rows[0]);
+    else if (modelRowEntries(data)) {
+      var modelRows = modelRowEntries(data);
+      answer.appendChild(el("p", { className: "group-overview", text: t("rows.count", { n: modelRows.length }) }));
+      renderCourseLines(answer, modelRows);
+    }
+    else groupCreditBlocks(groupCourseBlocks(groupGeBlocks(groupPlanBlocks(answerBlocks(data))))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
       if (block.type === "courses") {
         renderCourseLines(answer, block.entries);
+      } else if (block.type === "plans") {
+        renderPlanBlock(answer, block);
+      } else if (block.type === "ge") {
+        renderGeBlock(answer, block);
       } else if (block.type === "credits") {
         block.entries.forEach(function (entry) { answer.appendChild(buildCreditCard(entry)); });
       } else if (counted) {
@@ -1424,6 +1616,17 @@
     }
     if (currentTopic >= sampleTopics.length) currentTopic = -1;
     renderTopics();
+    renderWithdrawSamples();
+  }
+
+  function renderWithdrawSamples() {
+    var box = $("withdraw-samples");
+    clear(box);
+    var codes = withdrawSampleCodes(sampleTopics);
+    codes.forEach(function (code) {
+      box.appendChild(el("button", { className: "link-button", text: code, attrs: { type: "button", "data-code": code } }));
+    });
+    $("withdraw-samples-wrap").hidden = codes.length === 0;
   }
 
   function renderExamples() {
@@ -1609,6 +1812,12 @@
   $("prereq-retry").addEventListener("click", runPrereq);
   $("withdraw-form").addEventListener("submit", function (event) { event.preventDefault(); runWithdrawal(); });
   $("withdraw-retry").addEventListener("click", runWithdrawal);
+  $("withdraw-samples").addEventListener("click", function (event) {
+    var button = event.target.closest("[data-code]");
+    if (!button) return;
+    $("withdraw-code").value = button.dataset.code;
+    runWithdrawal();
+  });
   $("prereq-samples").addEventListener("click", function (event) {
     var button = event.target.closest("[data-code]");
     if (!button) return;
