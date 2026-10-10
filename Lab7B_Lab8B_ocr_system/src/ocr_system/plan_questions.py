@@ -81,6 +81,15 @@ def _term_count(conn, text: str):
     sql = f"SELECT code, name_th, year, semester FROM v_plan WHERE {where.replace('?', '{}').format(*params)}"
     if not rows:
         return f"ไม่พบรายวิชาของ{label}ในแผนนี้", [], sql
+    if not term:                                   # ทั้งปี: นับเท่ากับผลรวมช่องรายเทอมตามเล่ม (รวมช่องที่นักศึกษาเลือกเอง; กลุ่มทางเลือกนับหนึ่งรายการ)
+        try:
+            entries = conn.execute("SELECT SUM(n_entries) FROM main.v_semester_credits_full WHERE year = ?", (year,)).fetchone()[0]
+        except Exception:                          # noqa: BLE001 — DB ที่ไม่มีวิวนี้ = ใช้การนับเดิม
+            entries = None
+        if entries and entries != len(rows):
+            sql = f"SELECT SUM(n_entries) FROM main.v_semester_credits_full WHERE year = {year}"
+            return (f"{label} มี {entries} วิชา (นับทุกช่องในแผน รวมช่องวิชาเลือก; กลุ่มทางเลือกนับหนึ่งรายการ) "
+                    f"โดยมีวิชาที่ระบุรหัสในแผน {len(rows)} วิชา ที่เหลือเป็นช่องที่นักศึกษาเลือกเอง/กลุ่มทางเลือก"), rows, sql
     return f"{label} มี {len(rows)} วิชา (นับทุกช่องในแผน รวมช่องวิชาเลือก)", rows, sql
 
 

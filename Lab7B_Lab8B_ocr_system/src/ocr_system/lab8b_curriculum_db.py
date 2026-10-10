@@ -4113,9 +4113,71 @@ def _elective_credit_overview_answer(conn: sqlite3.Connection, question: str) ->
     if not nodes:
         return None
     listing = "; ".join(f"{n['name_th']} {n['credits']} หน่วยกิต" for n in nodes)
-    text = (f"เล่มหลักสูตรไม่มียอด \"วิชาเลือก\" รวมก้อนเดียว แต่แบ่งเป็นกลุ่มต่าง ๆ ได้แก่ {listing} "
-            "ถามเจาะจงกลุ่มได้ เช่น \"วิชาเลือกเสรีกี่หน่วยกิต\"")
+    # คำแนะนำไว้ต้นประโยค รายการกลุ่มไว้ท้ายสุดทีละกลุ่ม (หน้าเว็บแยกย่อหน้าตาม ";" — ถ้าไว้ท้ายจะไปติดกลุ่มสุดท้าย)
+    text = ("เล่มหลักสูตรไม่มียอด \"วิชาเลือก\" รวมก้อนเดียว (ถามเจาะจงกลุ่มได้ เช่น \"วิชาเลือกเสรีกี่หน่วยกิต\") แต่แบ่งเป็นกลุ่มต่าง ๆ ได้แก่ "
+            + listing)
     return text, nodes, "SELECT name_th, level, credits FROM credit_structure WHERE name_th LIKE '%เลือก%' AND name_th NOT LIKE '%ทางเลือก%'"
+
+
+_THRESH_WHICH_TERM = re.compile(r"(?:เทอม|ภาคเรียน|ภาคการศึกษา|ภาค)ไหน")
+_THRESH_WHICH_YEAR = re.compile(r"(?:ชั้นปี|ปี)ไหน")
+_THRESH_EXTREME = re.compile(r"ที่สุด|มากสุด|น้อยสุด|สูงสุด|ต่ำสุด")
+_THRESH_OPS = (                                              # ลำดับสำคัญ: "ไม่เกิน" ก่อน "เกิน", "ไม่น้อยกว่า" ก่อน "น้อยกว่า"
+    (re.compile(r"ไม่เกิน|น้อยกว่าหรือเท่ากับ|ต่ำกว่าหรือเท่ากับ|ไม่มากกว่า"), "<=", "ไม่เกิน {n}"),
+    (re.compile(r"ตั้งแต่\s*\d+\s*(?:หน่วยกิต|เครดิต)?\s*ขึ้นไป|อย่างน้อย|ไม่น้อยกว่า|มากกว่าหรือเท่ากับ|สูงกว่าหรือเท่ากับ"), ">=", "ตั้งแต่ {n} ขึ้นไป"),
+    (re.compile(r"เกิน|มากกว่า|สูงกว่า|เยอะกว่า"), ">", "เกิน {n}"),
+    (re.compile(r"น้อยกว่า|ต่ำกว่า|ไม่ถึง"), "<", "น้อยกว่า {n}"),
+    (re.compile(r"เท่ากับ|พอดี"), "=", "เท่ากับ {n}"),
+)
+
+
+def _term_credit_threshold_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"เทอมไหนหน่วยกิตเกิน 18" / "ปีไหนหน่วยกิตน้อยกว่า 36" → รายการเทอม/ปีที่ตรงเงื่อนไข จากยอดตามเล่ม (v_semester_credits_full)
+    (ราก: โมเดลเลือกคอลัมน์ semester แล้วได้ "2" ตัวเลขเดียว ทั้งที่คำตอบคือ ปี 1 เทอม 2 กับ ปี 2 เทอม 2);
+    ต้องมี: คำว่า เทอม/ปี + "ไหน", หน่วยกิต/เครดิต, ตัวกรอง (เกิน/น้อยกว่า/…) และตัวเลข; ไม่มีเลข/ถามค่าสูงสุด/ต่ำสุด/มีวิชาหรือรหัส = None"""
+    if not _ASK_CREDITS.search(question) or _THRESH_EXTREME.search(question) or _CODE8.search(question):
+        return None
+    by_term, by_year = bool(_THRESH_WHICH_TERM.search(question)), bool(_THRESH_WHICH_YEAR.search(question))
+    numbers = re.findall(r"\d+", question)
+    if not (by_term or by_year) or not numbers:
+        return None
+    op = next(((o, ph) for rx, o, ph in _THRESH_OPS if rx.search(question)), None)
+    if op is None or _named_courses(conn, question, strict=False):
+        return None
+    n = int(numbers[-1])
+    sym, phrase = op[0], op[1].format(n=n)
+    try:
+        if by_term:
+            rows = [dict(r) for r in conn.execute(f"SELECT year, semester, credits FROM main.v_semester_credits_full WHERE credits {sym} ? ORDER BY year, semester", (n,))]
+            sql = f"SELECT year, semester, credits FROM main.v_semester_credits_full WHERE credits {sym} {n}"
+            unit, items = "เทอม", [f"ปี {r['year']} เทอม {r['semester']} ({r['credits']} หน่วยกิต)" for r in rows]
+        else:
+            rows = [dict(r) for r in conn.execute(f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full GROUP BY year HAVING SUM(credits) {sym} ? ORDER BY year", (n,))]
+            sql = f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full GROUP BY year HAVING SUM(credits) {sym} {n}"
+            unit, items = "ปี", [f"ปี {r['year']} ({r['credits']} หน่วยกิต)" for r in rows]
+        if not conn.execute("SELECT 1 FROM main.v_semester_credits_full LIMIT 1").fetchone():
+            return None
+    except sqlite3.Error:
+        return None
+    if not rows:
+        return f"ไม่มี{unit}ที่มีหน่วยกิต{phrase} ตามเล่ม", [], sql
+    return f"{unit}ที่มีหน่วยกิต{phrase}: " + ", ".join(items), rows, sql
+
+
+_CONCEPT_DEF = re.compile(
+    r"^(?:ช่วยอธิบายว่า|อธิบายว่า|อยากรู้ว่า|อยากทราบว่า)?(?P<t>หน่วยกิต|เครดิต|เทอม|ภาคเรียน|ภาคการศึกษา|ชั้นปี|ปีการศึกษา|วิชาบังคับ|วิชาเลือกเสรี|"
+    r"วิชาเลือก|วิชาศึกษาทั่วไป|วิชาแกน|วิชาเฉพาะ|วิชาพื้นฐาน)(?:คืออะไร|หมายถึงอะไร|หมายความว่าอะไร|แปลว่าอะไร|คือ)$")
+
+
+def _concept_definition_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"หน่วยกิตคืออะไร" / "เทอมคืออะไร" = ขอนิยามคำศัพท์ทั่วไป เล่มที่ระบบอ่านไม่มีนิยาม → ไม่ตอบ (ราก: โมเดลตอบ "132 หน่วยกิต" = ยอดรวมหลักสูตร
+    ซึ่งไม่ใช่คำตอบของคำถามนี้); ต้องเป็นคำถามนิยามล้วน ๆ ของคำศัพท์ในชุดนี้เท่านั้น (มีรหัส/ชื่อวิชา/หัวข้ออื่น = None)"""
+    q = re.sub(r"\s+", "", _VAGUE_TAIL.sub("", question.strip()))
+    mt = _CONCEPT_DEF.match(q)
+    if not mt:
+        return None
+    return (f"{_NOT_FOUND_TEXT}: เล่มหลักสูตรที่ระบบอ่านไม่มีนิยามของคำว่า \"{mt.group('t')}\" ระบบตอบเฉพาะข้อมูลในแผน "
+            "ตัวอย่างคำถาม: \"หลักสูตรนี้กี่หน่วยกิต\", \"ปี 1 เทอม 1 เรียนอะไรบ้าง\", \"<ชื่อวิชา> กี่หน่วยกิต\"", [], _NOT_FOUND[2])
 
 
 _CLARIFY_MARK = "คำถามยังไม่ชัดเจน"
@@ -5856,7 +5918,7 @@ def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) 
 
 
 _SHORTCUTS = (
-    _other_program_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _withdrawal_answer, _planning_unsupported_answer,
+    _other_program_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
@@ -5906,6 +5968,24 @@ _SQL_TERM_FILTER = re.compile(
     r"\b(?:year|semester)\s*(?:[<>]=?|=)\s*\d|\b(?:year|semester)\s+(?:IN\s*\(\s*\d|BETWEEN\s+\d)", re.I)
 
 
+_SQL_READS = re.compile(r"\b(?:FROM|JOIN)\s+(?:main\.|temp\.)?([A-Za-z_]\w*)", re.I)
+
+
+def _sql_reads_no_table(conn: sqlite3.Connection, sql: str | None) -> bool:
+    """SQL ที่โมเดลเขียนมาไม่อ่านตาราง/วิวใดของฐานข้อมูลเลย (SELECT 1+1, SELECT 3*3 FROM (SELECT 1)) = ไม่ใช่คำถามเกี่ยวกับหลักสูตร
+    (ราก: คำถามเลขคณิตทั่วไปได้คำตอบ "2"/"12"); ตรวจจากชื่อหลัง FROM/JOIN เทียบตาราง/วิวจริง (รวม TEMP VIEW)"""
+    text = _SQL_STRING.sub("''", sql or "")
+    names = {n.lower() for n in _SQL_READS.findall(text)}
+    if not names:
+        return True
+    try:
+        real = {r[0].lower() for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type IN ('table','view') UNION SELECT name FROM sqlite_temp_master WHERE type IN ('table','view')")}
+    except sqlite3.Error:
+        return False
+    return not (names & real)
+
+
 _ASK_CREDITS = re.compile(r"หน่วยกิต|เครดิต")
 _ASK_COUNT = re.compile(r"กี่วิชา|กี่รายวิชา|กี่ตัว|จำนวนวิชา|มีกี่")
 
@@ -5923,7 +6003,7 @@ def _implausible_number(conn: sqlite3.Connection, question: str, rows: list[dict
         return None
     if value < 0:
         return f"ตัวเลขที่คำนวณได้ ({value}) ติดลบ ซึ่งเป็นไปไม่ได้"
-    if value != int(value):
+    if value != int(value) and not re.search(r"เฉลี่ย|average|mean", question, re.I):      # ค่าเฉลี่ยเป็นทศนิยมได้
         return f"ตัวเลขที่คำนวณได้ ({value}) ไม่ใช่จำนวนเต็ม"
     try:
         if asks_credits:
@@ -6077,12 +6157,17 @@ def ask(conn: sqlite3.Connection, question: str,
         result["sql_rejected"], result["sql"], result["rows"] = result["sql"], _NOT_FOUND[2], []
 
     rejected_why = _implausible_number(conn, question, result["rows"]) if result["rows"] else None
+    if result["rows"] and not rejected_why and _sql_reads_no_table(conn, result["sql"]):
+        rejected_why = "constant-sql"                       # ผลลัพธ์ไม่ได้มาจากตารางหลักสูตรเลย
     if rejected_why:                                      # ตัวเลขที่โมเดลคำนวณเป็นไปไม่ได้ — ไม่ตอบแทนเดา (บอกเหตุผล)
         result["sql_rejected"], result["sql"], result["rows"] = result["sql"], _NOT_FOUND[2], []
 
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
-        result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" + (f": {rejected_why} ระบบจึงไม่ตอบตัวเลขนี้ ลองถามให้เจาะจงขึ้น เช่น ระบุปี/เทอม" if rejected_why else "")
+        if rejected_why == "constant-sql":
+            result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร: นี่ไม่ใช่คำถามเกี่ยวกับหลักสูตร (ผลลัพธ์ไม่ได้มาจากข้อมูลในเล่ม) ระบบตอบเฉพาะข้อมูลหลักสูตร"
+        else:
+            result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" + (f": {rejected_why} ระบบจึงไม่ตอบตัวเลขนี้ ลองถามให้เจาะจงขึ้น เช่น ระบุปี/เทอม" if rejected_why else "")
         if _ungrounded_literal(conn, result["sql"] or ""):     # SQL ที่โมเดลแต่งค่าเอง (ไม่มีใน DB) — โชว์ SQL มาตรฐานของ "ไม่พบ" แทน (ผลเดิม ไม่เปลี่ยนคำตอบ)
             result["sql_rejected"], result["sql"] = result["sql"], _NOT_FOUND[2]
         return result
