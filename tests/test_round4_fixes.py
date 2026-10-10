@@ -3,6 +3,7 @@
 2) "วิชาที่มีหน่วยกิตมากที่สุดคือวิชาอะไร" ตอบวิชาเดียวทั้งที่เสมอกัน (สหกิจ 2 วิชา 6 หน่วยกิต) → ต้องบอกทุกวิชาที่เสมอกัน
 ทั้งสองต้องไม่เรียกโมเดล (ตอบด้วยกฎจาก DB)"""
 
+import re
 from contextlib import closing
 from pathlib import Path
 
@@ -66,6 +67,22 @@ def test_max_credit_course_lists_every_tie(rel, question, monkeypatch):
     assert {r["code"] for r in result["rows"]} == set(tops)       # เสมอกันต้องครบทุกวิชา ไม่ใช่วิชาเดียว
     if len(tops) > 1:
         assert f"{len(tops)} วิชา" in result["answer"]
+
+
+@pytest.mark.parametrize("rel", PLANS)
+def test_tie_answer_layout_renders_cleanly(rel, monkeypatch):
+    """หน้าเว็บแยกบรรทัดตามขึ้นบรรทัดใหม่ แล้วแยกวิชาตาม ";" → หัวคำตอบต้องอยู่บรรทัดแรกลงท้าย ":" ไม่ปนรหัสวิชา (เดิมวิชาแรกติดอยู่กับประโยคนำ);
+    เสมอกันมากเกินไล่ในประโยค = ไม่ใส่ตัวอย่างวิชา (เดิม "(เช่น … ฯลฯ" ยาวและรก)"""
+    _total, _crit, _best, tops = _truth(rel)
+    answer = _ask(rel, "วิชาที่มีหน่วยกิตมากที่สุดคือวิชาอะไร", monkeypatch)[0]["answer"]
+    if len(tops) == 1:
+        return
+    if len(tops) <= m._ECC_LIST_MAX:
+        head, _, body = answer.partition("\n")
+        assert head.endswith(":") and not re.search(r"\d{8}", head), answer
+        assert body.count(";") == len(tops) - 1 and all(code in body for code in tops), answer
+    else:
+        assert "ฯลฯ" not in answer and not re.search(r"\d{8}", answer), answer
 
 
 def test_coop_tie_names_both_courses(monkeypatch):
