@@ -3694,7 +3694,7 @@ def test_invented_sql_with_no_rows_is_shown_as_the_standard_not_found_sql(tmp_pa
 
 
 def test_real_literal_with_no_rows_keeps_its_own_sql(tmp_path, monkeypatch):
-    r = _ask_compound(tmp_path, monkeypatch, "ปี 9 มีวิชาอะไร", "SELECT code FROM plan_item WHERE code = '06010001' AND year = 9")
+    r = _ask_compound(tmp_path, monkeypatch, "ชั้นปีเก้ามีวิชาอะไร", "SELECT code FROM plan_item WHERE code = '06010001' AND year = 9")   # (ไม่ใช้ "ปี 9": กฎปี/เทอมนอกแผนตอบเองแล้ว)
     assert "ไม่พบ" in r["answer"] and "06010001" in r["sql"] and "sql_rejected" not in r, r
 
 
