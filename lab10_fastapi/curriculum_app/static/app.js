@@ -231,6 +231,12 @@
     };
   }
 
+  // ข้อความล้วนสำหรับวางลงไฟล์ text: คำตอบ + หน้าอ้างอิง (ไม่มีคำถาม/JSON) ใช้กับทั้งผลตอบ API และ payload ของ buildCopyPayload
+  function buildCopyText(data) {
+    var cite = data && typeof data.citation_text === "string" ? data.citation_text.trim() : "";
+    return answerText(data) + (cite ? "\n\n" + cite : "");
+  }
+
   var TIMEOUT_MS = 180000;   // เพดานรอของหน้าเว็บเอง (backend ไม่มีเพดานเท่ากัน: Ollama รอได้ถึง 600 วินาทีต่อครั้ง)
 
   // จุดเดียวที่คุยกับเครือข่าย: ทุกความล้มเหลวกลายเป็น ApiError ที่ describeError อธิบายได้
@@ -634,7 +640,8 @@
     answerBlocks: answerBlocks,
     electiveGroups: electiveGroups,
     isEmptyResult: isEmptyResult,
-    buildCopyPayload: buildCopyPayload
+    buildCopyPayload: buildCopyPayload,
+    buildCopyText: buildCopyText
   };
 
   // รันใน Node (ไม่มี document) = export ให้เทสต์แล้วจบ ไม่แตะ DOM
@@ -1189,6 +1196,8 @@
   // ---------- ปุ่ม "คัดลอกผล" ----------
   function resetCopyUi() {
     clearTimeout(copyTimer);
+    $("copy-text-button").textContent = t("copy.textBtn");
+    $("copy-text-button").classList.remove("is-copied");
     $("copy-button").textContent = t("copy.btn");
     $("copy-button").classList.remove("is-copied");
     $("link-copy-button").textContent = t("link.btn");
@@ -1232,7 +1241,39 @@
       }, 2000);
       return;
     }
-    var box = $("copy-fallback");     // คัดลอกอัตโนมัติไม่ได้ (เช่น เปิดผ่านที่อยู่ IP ของเครื่อง ไม่ใช่ localhost) → ให้เลือกไว้ให้แล้ว
+    var box = $("copy-fallback");
+    box.setAttribute("aria-label", t("copy.fallbackAria"));     // คัดลอกอัตโนมัติไม่ได้ (เช่น เปิดผ่านที่อยู่ IP ของเครื่อง ไม่ใช่ localhost) → ให้เลือกไว้ให้แล้ว
+    box.value = text;
+    box.hidden = false;
+    $("copy-hint").hidden = false;
+    $("live-status").textContent = t("copy.hint");
+    box.focus();
+    box.select();
+  }
+
+  // คัดลอกเฉพาะคำตอบ + หน้าอ้างอิง เป็นข้อความล้วน (รูปแบบเดียวกับ copyResult: clipboard → legacyCopy → กล่องข้อความให้ Ctrl+C เอง)
+  var textTimer = null;
+  async function copyAnswerText() {
+    if (!lastResult) return;
+    var text = buildCopyText(lastResult);
+    var ok = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); ok = true; }
+    } catch (e) { ok = false; }
+    if (!ok) ok = legacyCopy(text);
+    var button = $("copy-text-button");
+    if (ok) {
+      $("copy-fallback").hidden = true;
+      $("copy-hint").hidden = true;
+      button.textContent = t("copy.done");
+      button.classList.add("is-copied");
+      $("live-status").textContent = t("copy.textLive");
+      clearTimeout(textTimer);
+      textTimer = setTimeout(function () { button.textContent = t("copy.textBtn"); button.classList.remove("is-copied"); }, 2000);
+      return;
+    }
+    var box = $("copy-fallback");
+    box.setAttribute("aria-label", t("copy.fallbackAriaText"));
     box.value = text;
     box.hidden = false;
     $("copy-hint").hidden = false;
@@ -1754,6 +1795,7 @@
     $("question").value = "วิชา " + code;
     runAsk();
   });
+  $("copy-text-button").addEventListener("click", copyAnswerText);
   $("copy-button").addEventListener("click", copyResult);
   $("topic-bar").addEventListener("keydown", function (event) {
     var pills = Array.prototype.slice.call($("topic-bar").children);
