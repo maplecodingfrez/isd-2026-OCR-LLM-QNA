@@ -1,8 +1,11 @@
 from pathlib import Path
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path, pdfinfo_from_path
 import cv2
 from PIL import Image
 from .utils.io import ensure_dir
+
+# เรนเดอร์ PDF ทีละชุดหน้า แล้วเซฟทันที (เดิม convert_from_path ทั้งเล่มโหลดทุกหน้าเข้าแรมพร้อมกัน → 403 หน้า x 300 DPI = MemoryError)
+PDF_CHUNK_PAGES = 8
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
@@ -22,12 +25,16 @@ def pdf_to_images(pdf_path: str | Path, output_dir: str | Path, dpi: int = 300, 
     # the resulting images (and therefore OCR accuracy) are identical to
     # thread_count=1, just produced faster on multi-core machines.
     output_dir = ensure_dir(output_dir)
-    pages = convert_from_path(str(pdf_path), dpi=dpi, thread_count=thread_count)
+    total = int(pdfinfo_from_path(str(pdf_path))["Pages"])
     image_paths: list[Path] = []
-    for idx, page in enumerate(pages, start=1):
-        out = output_dir / f"{Path(pdf_path).stem}_page_{idx:03d}.jpg"
-        page.save(out, "JPEG")
-        image_paths.append(out)
+    for first in range(1, total + 1, PDF_CHUNK_PAGES):
+        last = min(first + PDF_CHUNK_PAGES - 1, total)
+        pages = convert_from_path(str(pdf_path), dpi=dpi, thread_count=thread_count, first_page=first, last_page=last)
+        for offset, page in enumerate(pages):
+            out = output_dir / f"{Path(pdf_path).stem}_page_{first + offset:03d}.jpg"
+            page.save(out, "JPEG")
+            image_paths.append(out)
+        del pages
     return image_paths
 
 
