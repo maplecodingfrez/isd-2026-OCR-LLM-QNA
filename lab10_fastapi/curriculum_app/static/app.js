@@ -189,6 +189,14 @@
     return text === "" || (isEmptyResult(data) && text.indexOf("ไม่พบข้อมูลนี้ในเล่มหลักสูตร") !== -1);
   }
 
+  // ประโยค "ไม่พบ" จากเซิร์ฟเวอร์เป็นภาษาไทยเสมอ — หน้าจอแสดงตามภาษาที่เลือก (EN เคยเหลือไทยกลางจอ); คัดลอก/JSON ยังใช้ข้อความเดิมจากเซิร์ฟเวอร์
+  // แปลเฉพาะประโยคเต็มที่ตรงกันเป๊ะ — คำตอบจริงหรือ "ไม่พบ…: เหตุผล" ไม่แตะ
+  var NOT_FOUND_TH = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร";
+  function displayAnswerData(data) {
+    if (!data || typeof data.answer !== "string" || data.answer.trim() !== NOT_FOUND_TH) return data;
+    return Object.assign({}, data, { answer: t("answer.notFound") });
+  }
+
   // ปุ่มคัดลอกในแถวคำตอบ: ปุ่มข้อความ (คำตอบ + หน้าอ้างอิง) แสดงเสมอ — วัน Challenge ต้อง copy "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ลงไฟล์ได้เหมือนข้ออื่น;
   // ปุ่ม JSON ซ่อนเมื่อไม่มีคำตอบจริง (ไม่มีข้อมูลให้ส่งต่อ)
   function copyButtonsVisible(data) {
@@ -650,6 +658,7 @@
     validateCode: validateCode,
     citationItems: citationItems,
     answerText: answerText,
+    displayAnswerData: displayAnswerData,
     answerBlocks: answerBlocks,
     electiveGroups: electiveGroups,
     isEmptyResult: isEmptyResult,
@@ -1117,7 +1126,7 @@
       answer.appendChild(el("p", { className: "group-overview", text: t("rows.count", { n: modelRows.length }) }));
       renderCourseLines(answer, modelRows);
     }
-    else groupCreditBlocks(groupCourseBlocks(groupGeBlocks(groupPlanBlocks(answerBlocks(data))))).forEach(function (block, _i, blocks) {
+    else groupCreditBlocks(groupCourseBlocks(groupGeBlocks(groupPlanBlocks(answerBlocks(displayAnswerData(data)))))).forEach(function (block, _i, blocks) {
       var counted = blocks.length === 1 && block.type === "paragraph" ? countUpParts(block.text) : null;
       if (block.type === "courses") {
         renderCourseLines(answer, block.entries);

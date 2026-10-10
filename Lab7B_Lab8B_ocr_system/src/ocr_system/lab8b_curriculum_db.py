@@ -2567,6 +2567,79 @@ def _plan_check_answer(conn: sqlite3.Connection, question: str) -> tuple[str, li
             "SELECT (SELECT SUM(credits) FROM main.v_semester_credits_full) AS plan_total, (SELECT total_credits FROM program) AS declared")
 
 
+# ---- รอบ 4: หน่วยกิตรวม + เกณฑ์จบ ในคำถามเดียว / วิชาที่หน่วยกิตมากสุด-น้อยสุด (เสมอกันบอกทุกวิชา) ----
+_TC_CREDITS = re.compile(r"กี่\s*หน่วยกิต|หน่วยกิต\s*(?:เท่าไร|เท่าไหร่)")
+_TC_CRITERIA = re.compile(r"เกณฑ์|เงื่อนไข")
+_TC_GRAD = re.compile(r"จบ|สำเร็จการศึกษา")
+
+
+def _total_and_criteria_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"เรียนจบหลักสูตรนี้ต้องเรียนครบกี่หน่วยกิต และมีเกณฑ์อะไรบ้าง" (ทั้งหลักสูตร) → หน่วยกิตรวมตลอดหลักสูตร + เกณฑ์สำเร็จการศึกษาจากเล่ม พร้อมหน้าอ้างอิง.
+    ราก: เดิมโมเดลตอบแค่ SELECT total_credits ("132 หน่วยกิต") ทิ้งครึ่งหลังของคำถาม. ต้องมีทั้งคำถามหน่วยกิต + เกณฑ์/เงื่อนไข + จบ/สำเร็จการศึกษา;
+    ระบุปี/เทอม/วิชา/รหัส/หมวด/กลุ่ม/หลักสูตรอื่น = None (ไม่ใช่ยอดทั้งหลักสูตร). ไม่มีหัวข้อใดหัวข้อหนึ่งในเล่ม = None (ไม่เดา)"""
+    if not (_TC_CREDITS.search(question) and _TC_CRITERIA.search(question) and _TC_GRAD.search(question)):
+        return None
+    if _CODE8.search(question) or _PROGRAM_TOKEN.search(question):
+        return None
+    if re.search(r"ปี\s*\d|ชั้นปี|เทอม|ภาค(?:การศึกษา)?\s*\d|หมวด|กลุ่ม|วิชา", re.sub(r"ทุก(?:เทอม|ภาค(?:การศึกษา)?|ปี)", "", question)):
+        return None
+    if _named_courses(conn, question, strict=False):
+        return None
+    try:
+        total = conn.execute("SELECT total_credits FROM program LIMIT 1").fetchone()
+        secs = {r["topic"]: dict(r) for r in conn.execute(
+            "SELECT topic, body, pdf_page, printed_page FROM book_section WHERE topic IN ('หน่วยกิตตลอดหลักสูตร', 'เกณฑ์สำเร็จการศึกษา')")}
+    except sqlite3.OperationalError:
+        return None
+    if not total or total[0] is None or set(secs) != {"หน่วยกิตตลอดหลักสูตร", "เกณฑ์สำเร็จการศึกษา"}:
+        return None
+    criteria = _clean_book_body(secs["เกณฑ์สำเร็จการศึกษา"]["body"])
+    rows = [{"topic": "หน่วยกิตตลอดหลักสูตร", "total_credits": total[0],
+             "pdf_page": secs["หน่วยกิตตลอดหลักสูตร"]["pdf_page"], "printed_page": secs["หน่วยกิตตลอดหลักสูตร"]["printed_page"]},
+            {"topic": "เกณฑ์สำเร็จการศึกษา", "body": criteria,
+             "pdf_page": secs["เกณฑ์สำเร็จการศึกษา"]["pdf_page"], "printed_page": secs["เกณฑ์สำเร็จการศึกษา"]["printed_page"]}]
+    return (f"หน่วยกิตรวมตลอดหลักสูตร {total[0]} หน่วยกิต; เกณฑ์การสำเร็จการศึกษา: {criteria}", rows,
+            "SELECT (SELECT total_credits FROM program) AS total_credits, topic, body, pdf_page FROM book_section WHERE topic = 'เกณฑ์สำเร็จการศึกษา'")
+
+
+_ECC_WHICH_COURSE = re.compile(r"วิชา(?:ไหน|อะไร|ใด)|(?:คือ|เป็น)วิชา|วิชาที่")
+_ECC_NOT = re.compile(r"เทอม|ภาคการศึกษา|ภาคเรียน|ปีไหน|ปีใด|ชั่วโมง|รองลงมา|อันดับ|ยกเว้น|บังคับก่อน|เลือก|หมวด|กลุ่ม|เสรี")
+_ECC_LIST_MAX = 8                                 # เสมอกันเกินนี้ (เช่น แผนไม่สหกิจ 3 หน่วยกิตเท่ากันเกือบทุกวิชา) = บอกจำนวน + ตัวอย่าง ไม่ไล่ทั้งหมดในประโยค
+
+
+def _extreme_credit_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาที่มีหน่วยกิตมากที่สุดคือวิชาอะไร" / น้อยที่สุด (ทั้งแผน หรือเฉพาะปีที่ระบุเป็นเลข) → ทุกวิชาที่เสมอกัน.
+    ราก: เดิมโมเดลเขียน SELECT ... ORDER BY MAX(credits) DESC LIMIT 1 ได้วิชาเดียวทั้งที่สหกิจ 2 วิชา 6 หน่วยกิตเท่ากัน. ถามเทอม/ปีไหน (กฎ _extreme_credits_answer),
+    ชั่วโมง, รหัส/ชื่อวิชา, ปีสัมพัทธ์ (ปีสุดท้าย…), ยกเว้น/อันดับ = None"""
+    want_max, want_min = bool(_EXTREME_MAX.search(question)), bool(_EXTREME_MIN.search(question))
+    if want_max == want_min or not re.search(r"หน่วยกิต|เครดิต", question) or not _ECC_WHICH_COURSE.search(question):
+        return None
+    if _ECC_NOT.search(question) or _CODE8.search(question) or _YEAR_WORDS.search(question) or _named_courses(conn, question, strict=False):
+        return None
+    years = _question_years(question)
+    where = f" AND p.year IN ({', '.join(str(y) for y in sorted(years))})" if years else ""
+    sql = f"SELECT DISTINCT c.code, c.name_th, c.credits FROM course c JOIN plan_item p ON p.code = c.code WHERE c.credits IS NOT NULL{where}"
+    try:
+        rows = [dict(r) for r in conn.execute(sql).fetchall()]
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    best = (max if want_max else min)(r["credits"] for r in rows)
+    top = sorted((r for r in rows if r["credits"] == best), key=lambda r: r["code"])
+    scope = f"ปี {', '.join(str(y) for y in sorted(years))}" if years else "แผนการเรียน"
+    word = "มาก" if want_max else "น้อย"
+    if len(top) == 1:
+        text = f"วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope}คือ {top[0]['code']} {top[0]['name_th']} ({best} หน่วยกิต)"
+    elif len(top) <= _ECC_LIST_MAX:
+        text = (f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope} วิชาละ {best} หน่วยกิต: "
+                + "; ".join(f"{r['code']} {r['name_th']}" for r in top))
+    else:
+        text = (f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope}เท่ากัน วิชาละ {best} หน่วยกิต (เช่น "
+                + "; ".join(f"{r['code']} {r['name_th']}" for r in top[:3]) + " ฯลฯ ดูรายการทั้งหมดในข้อมูลดิบ)")
+    return text, top, sql + f" ORDER BY c.credits {'DESC' if want_max else 'ASC'}"
+
+
 # ---- "X มีวิชาบังคับก่อนไหม/หรือเปล่า" (วิชาเดียว) ----
 _HAS_PREREQ_YN = re.compile(r"(?<!ไม่)มี\s*(?:วิชา)?(?:บังคับก่อน|prerequisite)(?:อะไร)?\s*(?:ไหม|หรือไม่|หรือเปล่า|มั้ย|รึเปล่า)|ต้องมีวิชาบังคับก่อน(?:ไหม|หรือไม่|หรือเปล่า|มั้ย)")
 _HAS_PREREQ_TAIL = re.compile(r"มีวิชาบังคับก่อน|prerequisite|มี|วิชา|บังคับก่อน|อะไร|ไหม|หรือไม่|หรือเปล่า|รึเปล่า|มั้ย|หรือ|เปล่า|ต้อง|ครับ|ค่ะ|คะ|นะ|ของ|การ")
@@ -3699,6 +3772,8 @@ def _free_elective_when_answer(conn: sqlite3.Connection, question: str) -> tuple
         rows = [dict(r) for r in conn.execute(sql).fetchall()]
     except sqlite3.OperationalError:
         return None
+    if not rows:                         # แผนไม่มีช่อง "วิชาเลือกเสรี N" (เช่น IT สหกิจ) = ไม่พบ; เดิมคืน None ให้โมเดลเดา (ได้เทอมหน่วยกิตมากสุดที่ผิด)
+        return _NOT_FOUND                # ไม่ใช้โน้ตหมวดใน plan_item: เทียบเล่ม IT แล้ว 06016426/27 เป็นกลุ่มเลือกของ IT ไม่ใช่เลือกเสรี
     if slot_no:
         rows = [r for r in rows if re.search(rf"เลือกเสรี\s*{slot_no.group(1)}(?!\d)", r["slot"])]
     if not rows:
@@ -3986,7 +4061,13 @@ def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
     """ข้อความที่ทางลัด/โมเดลเห็น: ตัดชื่อหลักสูตรและชื่อแผน (สหกิจ/ไม่สหกิจ) ของแผนตัวเอง, ตัดรหัสที่ซ้ำชื่อวิชา, แปลงภาคต้น/ปลาย
     (result["question"] ยังเป็นข้อความเดิมของผู้ใช้)"""
     q = _strip_own_plan_phrase(conn, _strip_own_program_token(conn, _normalise_number_words(conn, _normalise_thai_digits(question))))
-    return _expand_course_acronyms(conn, _normalise_credit_words(_normalise_semester_words(_drop_redundant_codes(conn, q))))
+    return _expand_course_acronyms(conn, _normalise_prereq_words(_normalise_credit_words(_normalise_semester_words(_drop_redundant_codes(conn, q)))))
+
+
+def _normalise_prereq_words(question: str) -> str:
+    """"ต้องผ่านเงื่อนไขอะไรก่อน" = "ต้องผ่านวิชาอะไรก่อน" (วิชาบังคับก่อน) — กฎวิชาบังคับก่อนดักแต่คำว่า วิชา; ถามด้วยคำว่า เงื่อนไข เคยตกไปให้โมเดล → "ไม่พบ".
+    แก้เฉพาะรูป "ผ่านเงื่อนไข(อะไร|ใด)ก่อน"; "เงื่อนไขการรับสมัคร" ฯลฯ ไม่แตะ"""
+    return re.sub(r"ผ่านเงื่อนไข(อะไร|ใด)ก่อน", r"ผ่านวิชา\1ก่อน", question)
 
 
 def _normalise_credit_words(question: str) -> str:
@@ -5965,6 +6046,34 @@ def _most_prerequisites_answer(conn: sqlite3.Connection, question: str) -> tuple
 _COOP_WHEN_Q = re.compile(r"สหกิจ.*(?:ปี|เทอม|ภาค)(?:ไหน|อะไร)|(?:ปี|เทอม|ภาค)(?:ไหน|อะไร).*สหกิจ|^\s*(?:แผนนี้|หลักสูตรนี้)?มี(?:การ)?สหกิจ(?:ศึกษา)?\s*(?:ไหม|หรือไม่|มั้ย)|^\s*สหกิจ(?:ศึกษา)?\s*(?:มี|เรียน)?\s*กี่หน่วยกิต")
 
 
+_COOP_PREREQ_Q = re.compile(r"สหกิจ.{0,30}(?:ต้องผ่าน.{0,12}ก่อน|ผ่าน.{0,6}ก่อน|วิชาบังคับก่อน|บังคับก่อน)|(?:ต้องผ่าน.{0,12}ก่อน|วิชาบังคับก่อน).{0,30}สหกิจ")
+
+
+def _coop_prerequisite_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาสหกิจศึกษาต้องผ่านวิชาอะไรก่อน" (ชื่อกว้าง ไม่ระบุรหัส/ชื่อเต็ม) → วิชาบังคับก่อนของทุกวิชาสหกิจในแผน ตามตาราง prerequisite/prerequisite_status.
+    ราก: ชื่อเต็มของ DSBA/AIT ยาว ("สหกิจศึกษาทางวิทยาการข้อมูล…") จึงจับชื่อเดียวไม่ได้ ตกไปให้โมเดล → "ไม่พบ"/ระบบแปลงคำถามไม่ได้.
+    มีรหัสวิชาหรือชื่อเต็มในคำถาม = None (กฎวิชาเดียวทำ); แผนไม่มีวิชาสหกิจ = None (กฎสหกิจในแผนไม่สหกิจทำ)"""
+    if not _COOP_PREREQ_Q.search(question) or _CODE8.search(question) or re.search(r"ปี\s*\d|เทอม|ภาค(?:การศึกษา)?\s*\d", question):
+        return None
+    from course_overview import prerequisite_lookup
+    try:
+        codes = [r[0] for r in conn.execute(
+            "SELECT DISTINCT c.code FROM course c JOIN plan_item p ON p.code = c.code WHERE c.name_th LIKE 'สหกิจศึกษา%' ORDER BY c.code")]
+    except sqlite3.OperationalError:
+        return None
+    if not codes:
+        return None
+    parts, rows, sqls = [], [], []
+    for code in codes:
+        got = prerequisite_lookup(conn, f"วิชาบังคับก่อนของ {code}", prerequisite_status)
+        if not got:
+            return None
+        parts.append(got[0])
+        rows.extend(got[1])
+        sqls.append(got[2])
+    return "\n".join(parts), rows, "; ".join(sqls)
+
+
 def _coop_on_plan_without_coop_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """ถามสหกิจในแผนไม่สหกิจ: บอกว่าแผนนี้ไม่มีสหกิจ แล้วตอบตามแผนสหกิจของหลักสูตรเดียวกัน (ไม่ให้ตกไปโมเดล/ไม่พบ)"""
     if not _COOP_WHEN_Q.search(question) or _requested_plan(question) or _own_plan(conn) != "no_coop":
@@ -6000,9 +6109,9 @@ _SHORTCUTS = (
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
-    _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _two_year_credits_answer, _summer_term_answer, _unknown_course_answer,
+    _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _two_year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
-    _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
+    _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
 
