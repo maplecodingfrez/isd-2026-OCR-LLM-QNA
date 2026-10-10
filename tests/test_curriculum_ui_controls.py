@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(not (STATIC / "i18n.js").exists(), reason="stati
 NEW_KEYS = [
     "btn.clear", "examples.summary", "recent.title", "recent.aria", "tools.summary", "ask.help",
     "search.about", "prereq.about", "withdraw.about", "drawer.summary", "drawer.sql", "drawer.rows",
-    "hint.toFocus", "link.btn", "link.done", "err.network.dev", "notfound.note",
+    "hint.toFocus", "copy.textBtn", "copy.textLive", "err.network.dev", "notfound.note",
 ]
 
 
@@ -87,10 +87,12 @@ def test_citation_block_comes_after_the_answer_and_before_the_copy_buttons():
     assert order == sorted(order)
 
 
-def test_answer_footer_has_copy_result_and_copy_link_buttons():
+def test_answer_footer_has_copy_answer_and_copy_json_buttons_but_no_copy_link_button():
     html = read("index.html")
     footer = html[html.index('class="answer-footer"'):html.index("</div>", html.index('class="answer-footer"'))]
-    assert 'id="copy-button"' in footer and 'id="link-copy-button"' in footer and 'data-i18n="link.btn"' in footer
+    assert 'id="copy-text-button"' in footer and 'data-i18n="copy.textBtn"' in footer      # ข้อความล้วน: คำตอบ + หน้าอ้างอิง
+    assert 'id="copy-button"' in footer and 'data-i18n="copy.btn"' in footer                # JSON
+    assert 'link-copy-button' not in html and 'copyLink' not in read("app.js")               # ปุ่มคัดลอกลิงก์ถูกลบ (URL ?plan=&q= ยังใช้เปิดคำถามได้)
 
 
 def test_slash_hint_is_marked_as_keyboard_only():
@@ -192,11 +194,11 @@ def test_share_link_reads_plan_and_question_and_writes_them_after_a_good_answer(
     assert "new URLSearchParams({ plan: program || \"\", q: question })" in js
 
 
-def test_copy_link_falls_back_to_the_selected_text_box():
+def test_copy_answer_falls_back_to_the_selected_text_box():
     js = read("app.js")
-    body = js[js.index("async function copyLink()"):js.index("async function copyLink()") + 1300]
-    assert "window.location.href" in body and "navigator.clipboard.writeText" in body and "legacyCopy(text)" in body
-    assert '$("copy-fallback")' in body and 'link.done' in body
+    body = js[js.index("async function copyAnswerText()"):js.index("async function copyAnswerText()") + 1500]
+    assert "buildCopyText(lastResult)" in body and "navigator.clipboard.writeText" in body and "legacyCopy(text)" in body
+    assert '$("copy-fallback")' in body and 'copy.fallbackAriaText' in body and 'copy.textLive' in body
 
 
 def test_opening_a_search_result_opens_the_folded_tools():
