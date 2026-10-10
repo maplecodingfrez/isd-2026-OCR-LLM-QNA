@@ -1,23 +1,7 @@
 # isd-2026-OCR-LLM-QNA
 > ระบบถาม-ตอบเล่มหลักสูตร (AIT / BIT / DSBA / IT) — พิมพ์คำถามภาษาไทย ได้คำตอบพร้อมหน้าอ้างอิงในเล่ม
 
-## โครงสร้างโฟลเดอร์
-
-```text
-.
-├── lab10_fastapi/curriculum_app/   # แอปที่รัน: FastAPI (main.py) + หน้าเว็บ (static/)
-├── Lab7B_Lab8B_ocr_system/
-│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
-│   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
-│       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
-│       ├── lab7b_output/           # ผล OCR + ผลประเมิน
-│       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
-├── Lab9_evaluation/                # ชุดคำถามทอง + รายงาน metric
-├── docs/                           # wireframe, รายงาน
-└── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
-```
-
-### งาน Lab 11 (Front-End) อยู่ที่ไหน
+## งาน Lab 11 (Front-End) อยู่ที่ไหน
 
 | งานที่ส่ง | ที่อยู่ในรีโป |
 |---|---|
@@ -27,17 +11,31 @@
 
 ใช้งานได้ทันทีหลัง clone: ฐานข้อมูล 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมี PDF หรือไฟล์ `.env`
 
-## สิ่งที่ต้องมี
-- Python 3.10+ และ Git
-- [Ollama](https://ollama.com) + โมเดล `qwen3:4b` (ดิสก์ ~3 GB, ไม่ต้องใช้ GPU)
-- อินเทอร์เน็ตเฉพาะตอนติดตั้งและดึงโมเดลครั้งแรก
+## 0. เตรียมเครื่อง (ครั้งเดียวต่อเครื่อง ข้ามได้ถ้ามีครบแล้ว)
+
+เริ่มจากเครื่องที่ยังไม่มีอะไรเลย (ตัวอย่างนี้ใช้ Windows และ PowerShell) ต้องต่ออินเทอร์เน็ตตอนติดตั้งและดึงโมเดลครั้งแรกเท่านั้น หลังจากนั้นใช้งานแบบออฟไลน์ได้
+
+1. ติดตั้ง **Python 3.10 ขึ้นไป** จาก <https://www.python.org/downloads/> ตอนติดตั้งต้องติ๊ก "Add python.exe to PATH"
+2. ติดตั้ง **Git** จาก <https://git-scm.com/downloads>
+3. ติดตั้ง **Ollama** จาก <https://ollama.com/download> (ใช้ CPU ได้ ไม่ต้องมี GPU)
+4. ปิดแล้วเปิดเทอร์มินัลใหม่ (กด Start พิมพ์ `PowerShell` แล้วเปิด) เพื่อให้เครื่องรู้จักคำสั่งที่เพิ่งติดตั้ง จากนั้นเช็กว่าได้เวอร์ชันทั้งสามตัว:
+   ```powershell
+   python --version
+   git --version
+   ollama --version
+   ```
+   ถ้าตัวไหนขึ้นว่าไม่รู้จักคำสั่ง ให้ปิดเทอร์มินัลแล้วเปิดใหม่อีกครั้ง หรือติดตั้งตัวนั้นใหม่
+
+ใช้พื้นที่ดิสก์ประมาณ 3 GB สำหรับโมเดล `qwen3:4b` (ดึงในข้อ 1.1)
 
 ## 1. รันระบบ
 
 **สรุป:** ติดตั้งครั้งแรกทำข้อ 1.1 ครั้งเดียว หลังจากนั้นทุกครั้งใช้ 3 คำสั่งในข้อ 1.2 (`ollama serve` → เปิด venv → `uvicorn`) แล้วเปิด <http://127.0.0.1:8000/>
 
-### 1.1 ติดตั้ง (ครั้งเดียวต่อเครื่อง)
+### 1.1 ติดตั้งโปรเจกต์ (ครั้งเดียวต่อเครื่อง)
+เปิด PowerShell แล้วเลือกที่เก็บโปรเจกต์ (ตัวอย่างนี้ใช้ Documents) คำสั่ง `git clone` จะสร้างโฟลเดอร์ `isd-2026-OCR-LLM-QNA` ให้เอง
 ```powershell
+cd $HOME\Documents                # macOS/Linux: cd ~/Documents
 git clone https://github.com/maplecodingfrez/isd-2026-OCR-LLM-QNA.git
 cd isd-2026-OCR-LLM-QNA
 python -m venv .venv
@@ -45,10 +43,15 @@ python -m venv .venv
 pip install -r lab10_fastapi/curriculum_app/requirements.txt
 ollama pull qwen3:4b
 ```
+เมื่อ venv ทำงานจะมี `(.venv)` นำหน้าบรรทัดคำสั่ง · `pip install` ใช้เวลาประมาณ 1–2 นาที · `ollama pull` ดาวน์โหลด ~3 GB ครั้งเดียว
+
 > Windows ฟ้อง execution policy ดูวิธีแก้ในหัวข้อ "แก้ปัญหา"
 
 ### 1.2 เปิดใช้งาน (ทุกครั้งที่เปิดเครื่องใหม่)
-ใช้เทอร์มินัล 2 หน้าต่าง เปิดที่โฟลเดอร์โปรเจกต์ทั้งคู่ (PowerShell หรือเทอร์มินัลใน VSCode: Terminal > New Terminal)
+ใช้เทอร์มินัล 2 หน้าต่าง (PowerShell หรือเทอร์มินัลใน VSCode: Terminal > New Terminal) ทั้งสองหน้าต่างต้องอยู่ที่โฟลเดอร์โปรเจกต์ ถ้าเพิ่งเปิดเทอร์มินัลใหม่ให้เข้าโฟลเดอร์ก่อน:
+```powershell
+cd $HOME\Documents\isd-2026-OCR-LLM-QNA
+```
 
 **เทอร์มินัล 1: เปิด Ollama** (เปิดค้างไว้ ข้ามได้ถ้าแอป Ollama เปิดอยู่ในถาดระบบแล้ว)
 ```powershell
@@ -60,7 +63,7 @@ ollama serve
 .venv\Scripts\Activate.ps1
 python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
 ```
-รอจนขึ้น `Application startup complete` (ครั้งแรกโมเดลโหลดช้า) · หยุดด้วย `Ctrl+C`
+รอจนขึ้น `Application startup complete` (ครั้งแรกโมเดลโหลดช้า) แล้วเปิดเบราว์เซอร์ไปที่ <http://127.0.0.1:8000/> · หยุดด้วย `Ctrl+C`
 
 ### 1.3 อ่านเล่มหลักสูตร PDF เข้าระบบ (ทำเมื่อมีเล่มใหม่/แก้เล่ม)
 ข้ามได้ถ้าใช้เล่มเดิม 7 แผน เพราะ `curriculum.db` อยู่ใน repo แล้ว ถ้าต้องสร้างฐานข้อมูลจาก PDF เอง ทำตามลำดับนี้ (เปิด `ollama serve` และเปิด venv ไว้ก่อน)
@@ -137,6 +140,22 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 | `Activate.ps1` ฟ้อง execution policy | รัน `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` แล้วลองใหม่ |
 
 > ถ้าไม่เปิด Ollama ระบบตอบได้เฉพาะคำถามที่มีกฎตายตัว (ราว 30–45%) ที่เหลือจะแจ้งว่าเชื่อมต่อไม่ได้
+
+## โครงสร้างโฟลเดอร์
+
+```text
+.
+├── lab10_fastapi/curriculum_app/   # แอปที่รัน: FastAPI (main.py) + หน้าเว็บ (static/)
+├── Lab7B_Lab8B_ocr_system/
+│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
+│   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
+│       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
+│       ├── lab7b_output/           # ผล OCR + ผลประเมิน
+│       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
+├── Lab9_evaluation/                # ชุดคำถามทอง + รายงาน metric
+├── docs/                           # wireframe, รายงาน
+└── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
+```
 
 ## เอกสารเพิ่มเติม
 - ไฟล์ส่งงานบน Google Drive: [โฟลเดอร์หลัก](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) · PDF หลักสูตร (`data/input/`) · สไลด์นำเสนอ `.pdf` (`slides/`) · คลิปเดโม (`demo-video/`)
