@@ -3970,9 +3970,10 @@ def test_course_code_prefix_does_not_ignore_question_scope(question):
     ("36 AS lab_h", ("ปฏิบัติ 36 ชั่วโมง",), ("บรรยาย", "ศึกษาด้วยตนเอง")),
 ])
 def test_multirow_answer_fallback_labels_hours_without_inventing_missing_values(monkeypatch, columns, expected, absent):
-    sql = (f"SELECT '06016481' AS code, 'สหกิจศึกษา' AS name_th, {columns} "
+    one_row = "FROM course WHERE code = (SELECT MIN(code) FROM course)"        # SQL จำลองต้องอ่านตารางจริง (ด่าน "SQL ไม่อ่านตารางเลย = ไม่ใช่คำถามหลักสูตร")
+    sql = (f"SELECT '06016481' AS code, 'สหกิจศึกษา' AS name_th, {columns} {one_row} "
            f"UNION ALL SELECT '06016482', 'สหกิจศึกษาต่างประเทศ', " +
-           ", ".join(part.split(" AS ")[0] for part in columns.split(", ")))
+           ", ".join(part.split(" AS ")[0] for part in columns.split(", ")) + f" {one_row}")
     replies = iter((json.dumps({"sql": sql}), json.dumps({"answer": ""})))
     monkeypatch.setattr(m, "ollama_generate", lambda *a, **k: next(replies))
     monkeypatch.setattr(m, "_SHORTCUTS", ())

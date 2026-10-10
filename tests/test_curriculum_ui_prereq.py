@@ -84,7 +84,7 @@ def test_empty_answers_drop_the_copy_button_and_the_empty_citation_heading():
     js = APP_JS.read_text(encoding="utf-8")
     i18n = I18N_JS.read_text(encoding="utf-8")
     assert '.querySelector(".citation-box").hidden = !hasCitations' in js
-    assert "var noAnswer = noRealAnswer(data)" in js and '.querySelector(".answer-footer").hidden = noAnswer' in js   # not "rows are empty": rule answers have no rows
+    assert "var noAnswer = noRealAnswer(data)" in js and '.querySelector(".answer-footer").hidden = !copyVis.text' in js and '$("copy-button").hidden = !copyVis.json' in js   # not "rows are empty": rule answers have no rows
     assert '"answer.hintGeneric"' in i18n and "answer.hintGeneric" in js        # the year/term hint only for year/term questions
 
 
