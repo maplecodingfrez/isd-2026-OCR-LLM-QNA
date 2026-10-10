@@ -1119,7 +1119,8 @@
     });
     $("answer-hint").hidden = !isEmptyResult(data);       // ผลว่าง: แนะนำให้ระบุปีหรือเทอมให้ชัดขึ้น
     var noAnswer = noRealAnswer(data);
-    $("answer-hint").hidden = !noAnswer;                  // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
+    var hasReason = /แผนนี้มี(?:ปี|เทอม)|คุณหมายถึง/.test(String(data.answer || ""));   // คำตอบบอกสาเหตุ/ทางแก้เองแล้ว (ปี-เทอมนอกแผน, สะกดผิด) ไม่ต้องมีคำใบ้ทั่วไปซ้อน
+    $("answer-hint").hidden = !noAnswer || hasReason;     // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
     $("answer-box").classList.toggle("is-notfound", noAnswer);   // "ไม่พบ" เป็นคำตอบที่ถูกต้อง: หน้าตาสงบ ไม่ใช่คำเตือน
     $("notfound-note").hidden = !noAnswer;
     var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
