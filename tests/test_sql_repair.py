@@ -153,6 +153,7 @@ def _fake_ollama(prompts):
 def test_citation_tables_stay_out_of_llm_prompts(monkeypatch):
     prompts: list[str] = []
     monkeypatch.setattr(lab8b, "ollama_generate", _fake_ollama(prompts))
+    monkeypatch.setattr(lab8b, "_SHORTCUTS", ())          # ต้องไปถึงโมเดลเสมอ (ทางลัด "รหัสวิชา X กี่หน่วยกิต" ตอบเองได้แล้ว จึงไม่มี prompt ให้ตรวจ)
     lab8b.ask(_citation_db(), "รหัสวิชา 06016401 มีกี่หน่วยกิต", verbose=False)
     assert prompts and not any("course_page" in p or "term_page" in p for p in prompts)
 
