@@ -2632,11 +2632,10 @@ def _extreme_credit_course_answer(conn: sqlite3.Connection, question: str) -> tu
     if len(top) == 1:
         text = f"วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope}คือ {top[0]['code']} {top[0]['name_th']} ({best} หน่วยกิต)"
     elif len(top) <= _ECC_LIST_MAX:
-        text = (f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope} วิชาละ {best} หน่วยกิต: "
+        text = (f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope} วิชาละ {best} หน่วยกิต:\n"      # หัวอยู่บรรทัดแรก รายวิชาบรรทัดถัดไป = หน้าเว็บวาดเป็นการ์ดวิชา
                 + "; ".join(f"{r['code']} {r['name_th']}" for r in top))
-    else:
-        text = (f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope}เท่ากัน วิชาละ {best} หน่วยกิต (เช่น "
-                + "; ".join(f"{r['code']} {r['name_th']}" for r in top[:3]) + " ฯลฯ ดูรายการทั้งหมดในข้อมูลดิบ)")
+    else:                                                                                        # เสมอกันเยอะ (แผนไม่สหกิจ 3 หน่วยกิตเกือบทุกวิชา): บอกจำนวน รายชื่ออยู่ในข้อมูลดิบ ไม่ยัดตัวอย่างในประโยค
+        text = f"มี {len(top)} วิชาที่มีหน่วยกิต{word}ที่สุดใน{scope}เท่ากัน วิชาละ {best} หน่วยกิต (รายชื่อทั้งหมดอยู่ในข้อมูลดิบของคำตอบ)"
     return text, top, sql + f" ORDER BY c.credits {'DESC' if want_max else 'ASC'}"
 
 
