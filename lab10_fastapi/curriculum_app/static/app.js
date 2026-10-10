@@ -231,6 +231,13 @@
     };
   }
 
+  // คำถามที่พูดถึงปี/เทอมของแผน (ใช้เลือกคำใบ้ "ลองระบุปีหรือเทอมให้ชัดขึ้น"); คำถามเรื่องค่าเล่าเรียน ("ค่าเทอม", tuition) ไม่ใช่เทอมของแผน
+  function isYearTermQuestion(question) {
+    var q = typeof question === "string" ? question : "";
+    if (/ค่า(?:เทอม|ภาค|ปี|เล่าเรียน|ธรรมเนียม|ใช้จ่าย)|tuition/i.test(q)) return false;
+    return /ปี|เทอม|ภาค|year|semester|\bterm\b/i.test(q);
+  }
+
   // ข้อความล้วนสำหรับวางลงไฟล์ text: คำตอบ + หน้าอ้างอิง (ไม่มีคำถาม/JSON) ใช้กับทั้งผลตอบ API และ payload ของ buildCopyPayload
   function buildCopyText(data) {
     var cite = data && typeof data.citation_text === "string" ? data.citation_text.trim() : "";
@@ -641,7 +648,8 @@
     electiveGroups: electiveGroups,
     isEmptyResult: isEmptyResult,
     buildCopyPayload: buildCopyPayload,
-    buildCopyText: buildCopyText
+    buildCopyText: buildCopyText,
+    isYearTermQuestion: isYearTermQuestion
   };
 
   // รันใน Node (ไม่มี document) = export ให้เทสต์แล้วจบ ไม่แตะ DOM
@@ -1130,7 +1138,7 @@
     $("answer-hint").hidden = !noAnswer || hasReason;     // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
     $("answer-box").classList.toggle("is-notfound", noAnswer);   // "ไม่พบ" เป็นคำตอบที่ถูกต้อง: หน้าตาสงบ ไม่ใช่คำเตือน
     $("notfound-note").hidden = !noAnswer;
-    var yearTermQuestion = /ปี|เทอม|ภาค|year|semester|term/i.test(data.question || "");   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
+    var yearTermQuestion = isYearTermQuestion(data.question);   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
     $("answer-hint").textContent = t(yearTermQuestion ? "answer.hint" : "answer.hintGeneric");
     // กล่องแหล่งอ้างอิงด้านล่างเหลือไว้เฉพาะกรณีมีแค่ข้อความอ้างอิง (ไม่มีเลขหน้า); เลขหน้าอยู่ในแถวตราด้านบนแล้ว
     var hasCitations = items.length === 0 && typeof data.citation_text === "string" && data.citation_text !== "";
