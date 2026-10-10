@@ -1,6 +1,7 @@
 """Course display metadata from existing SQLite values, without guessing hours."""
 
 import re
+import sqlite3
 
 
 def add_course_display(conn, rows):
@@ -22,9 +23,37 @@ def add_course_display(conn, rows):
             row.setdefault("credits_display", f"{row['credits']} ({hours[0]}-{hours[1]}-{hours[2]})")
 
 
+_PAREN_NAME = re.compile(r"(?<!\d)(\d{8})(\s*)\(([^()/]+)\)")
+
+
+def _add_english_to_parenthesized_names(conn, result):
+    """Model-route answers can read "<code> (<Thai name>)" with no English name (the row only carries `requires`).
+    Append the book's English name when, and only when, the parenthesized text equals that code's Thai name exactly."""
+    answer = result.get("answer")
+    if not answer or result.get("error"):
+        return
+    names = {}
+
+    def replace(match):
+        code, space, inner = match.groups()
+        if code not in names:
+            try:
+                row = conn.execute("SELECT name_th, name_en FROM course WHERE code = ?", (code,)).fetchone()
+            except sqlite3.Error:
+                row = None
+            names[code] = (row[0], row[1]) if row else (None, None)
+        name_th, name_en = names[code]
+        if not name_th or not name_en or " ".join(inner.split()) != " ".join(name_th.split()):
+            return match.group(0)
+        return f"{code}{space}({inner.strip()} / {name_en})"
+
+    result["answer"] = _PAREN_NAME.sub(replace, answer)
+
+
 def format_course_answer(conn, result):
     """Enrich course-list answers only; keep totals, explanations and routing intact."""
-    rows = [row for row in result.get("rows", [])
+    _add_english_to_parenthesized_names(conn, result)
+    rows =[row for row in result.get("rows", [])
             if row.get("code")
             and (row.get("name_th") or row.get("course_name_th"))]
     if not rows or not result.get("answer") or result.get("error"):
