@@ -59,7 +59,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 **เพิ่มที่ต้องมี:** [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) + ข้อมูลภาษา `tha` และ `eng` · `ollama pull scb10x/typhoon-ocr1.5-3b` (อ่านภาพหน้าแผน) · `pip install -r requirements.txt` (ที่ root)
 
-1. วาง PDF ที่ `data/input/<หลักสูตร>_curriculum.pdf` (`ait` `bit` `dsba` `it`) · ไฟล์ PDF ไม่ได้อยู่ใน git
+1. วาง PDF ที่ `data/input/<หลักสูตร>_curriculum.pdf` (`ait` `bit` `dsba` `it`) · ไฟล์ PDF ไม่ได้อยู่ใน git ดาวน์โหลดจาก [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I)
 2. OCR ทั้งเล่มด้วย **Tesseract เท่านั้น** (ใส่ `--engine tesseract` เสมอ ค่าเริ่มต้นของ CLI คือ `ensemble` ซึ่งจะได้ผลต่างจากที่ระบบนี้ปรับกฎไว้) บางหน้า/บางจุดอาจอ่านเพี้ยน ขั้นหลังมีกฎซ่อมให้แล้ว (ใช้ตอบเรื่องวิชาบังคับก่อน คำอธิบายวิชา เกณฑ์จบ และหน้าอ้างอิง):
    ```powershell
    $env:PYTHONPATH="src"
@@ -118,6 +118,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 > ถ้าไม่เปิด Ollama ระบบตอบได้เฉพาะคำถามที่มีกฎตายตัว (ราว 30–45%) ที่เหลือจะแจ้งว่าเชื่อมต่อไม่ได้
 
 ## เอกสารเพิ่มเติม
+- ไฟล์ส่งงานบน Google Drive: [โฟลเดอร์หลัก](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) · PDF หลักสูตร (`data/input/`) · สไลด์นำเสนอ `.pdf` (`slides/`) · คลิปเดโม (`demo-video/`)
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
 - เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
 - ความแม่นยำ: ชุดคำถามอิสระ + Master Test Suite ราว 75–79% กับสำนวนที่ไม่เคยเห็น
