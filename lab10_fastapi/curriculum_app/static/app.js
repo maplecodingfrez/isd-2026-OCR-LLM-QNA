@@ -189,6 +189,12 @@
     return text === "" || (isEmptyResult(data) && text.indexOf("ไม่พบข้อมูลนี้ในเล่มหลักสูตร") !== -1);
   }
 
+  // ปุ่มคัดลอกในแถวคำตอบ: ปุ่มข้อความ (คำตอบ + หน้าอ้างอิง) แสดงเสมอ — วัน Challenge ต้อง copy "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ลงไฟล์ได้เหมือนข้ออื่น;
+  // ปุ่ม JSON ซ่อนเมื่อไม่มีคำตอบจริง (ไม่มีข้อมูลให้ส่งต่อ)
+  function copyButtonsVisible(data) {
+    return { text: true, json: !noRealAnswer(data) };
+  }
+
   function electiveGroups(data) {
     var rows = data && Array.isArray(data.rows) ? data.rows : [];
     if (!rows.length || !rows.every(function (row) {
@@ -649,7 +655,8 @@
     isEmptyResult: isEmptyResult,
     buildCopyPayload: buildCopyPayload,
     buildCopyText: buildCopyText,
-    isYearTermQuestion: isYearTermQuestion
+    isYearTermQuestion: isYearTermQuestion,
+    copyButtonsVisible: copyButtonsVisible
   };
 
   // รันใน Node (ไม่มี document) = export ให้เทสต์แล้วจบ ไม่แตะ DOM
@@ -1143,7 +1150,10 @@
     // กล่องแหล่งอ้างอิงด้านล่างเหลือไว้เฉพาะกรณีมีแค่ข้อความอ้างอิง (ไม่มีเลขหน้า); เลขหน้าอยู่ในแถวตราด้านบนแล้ว
     var hasCitations = items.length === 0 && typeof data.citation_text === "string" && data.citation_text !== "";
     $("answer-box").querySelector(".citation-box").hidden = !hasCitations;          // ไม่มีหน้าอ้างอิง = ไม่โชว์หัวข้อเปล่า ๆ
-    $("answer-box").querySelector(".answer-footer").hidden = noAnswer;   // ไม่มีคำตอบ = ไม่ต้องมีปุ่มคัดลอก
+    var copyVis = copyButtonsVisible(data);
+    $("answer-box").querySelector(".answer-footer").hidden = !copyVis.text;     // ปุ่มข้อความแสดงเสมอ (รวมคำตอบ "ไม่พบ")
+    $("copy-text-button").hidden = !copyVis.text;
+    $("copy-button").hidden = !copyVis.json;                                  // JSON: ซ่อนเมื่อไม่มีคำตอบจริง
     $("answer-cite").textContent = !items.length && typeof data.citation_text === "string" ? data.citation_text : "";
     var select = $("program");
     $("answer-source").textContent = select.value && select.selectedOptions[0]
