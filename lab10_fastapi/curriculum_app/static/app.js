@@ -1200,8 +1200,6 @@
     $("copy-text-button").classList.remove("is-copied");
     $("copy-button").textContent = t("copy.btn");
     $("copy-button").classList.remove("is-copied");
-    $("link-copy-button").textContent = t("link.btn");
-    $("link-copy-button").classList.remove("is-copied");
     $("copy-fallback").hidden = true;
     $("copy-hint").hidden = true;
   }
@@ -1278,32 +1276,6 @@
     box.hidden = false;
     $("copy-hint").hidden = false;
     $("live-status").textContent = t("copy.hint");
-    box.focus();
-    box.select();
-  }
-
-  // คัดลอกลิงก์ของคำถามนี้ (ที่อยู่หน้าเว็บมี ?plan=…&q=… อยู่แล้วหลังถามสำเร็จ)
-  var linkTimer = null;
-  async function copyLink() {
-    var text = window.location.href;
-    var ok = false;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); ok = true; }
-    } catch (e) { ok = false; }
-    if (!ok) ok = legacyCopy(text);
-    var button = $("link-copy-button");
-    if (ok) {
-      button.textContent = t("link.done");
-      button.classList.add("is-copied");
-      $("live-status").textContent = t("link.done");
-      clearTimeout(linkTimer);
-      linkTimer = setTimeout(function () { button.textContent = t("link.btn"); button.classList.remove("is-copied"); }, 2000);
-      return;
-    }
-    var box = $("copy-fallback");        // คัดลอกอัตโนมัติไม่ได้: โชว์ลิงก์ในกล่องที่เลือกไว้ให้
-    box.value = text;
-    box.hidden = false;
-    $("copy-hint").hidden = false;
     box.focus();
     box.select();
   }
@@ -1772,7 +1744,6 @@
   // ---------- ผูกเหตุการณ์ ----------
   $("ask-form").addEventListener("submit", function (event) { event.preventDefault(); runAsk(); });
   $("clear-button").addEventListener("click", clearAsk);
-  $("link-copy-button").addEventListener("click", copyLink);
   document.addEventListener("keydown", function (event) {      // "/" = ไปที่ช่องคำถาม (ไม่แย่งตอนกำลังพิมพ์ในช่องอื่น)
     var tag = event.target && event.target.tagName;
     if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;

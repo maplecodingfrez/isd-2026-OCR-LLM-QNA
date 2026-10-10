@@ -92,8 +92,6 @@
     "copy.fallbackAriaText": ["คำตอบและหน้าอ้างอิงในรูปข้อความสำหรับคัดลอก", "Answer and page references as plain text for copying"],
     "copy.btn": ["คัดลอกเป็น JSON", "Copy as JSON"],
     "copy.done": ["คัดลอกแล้ว", "Copied"],
-    "link.btn": ["คัดลอกลิงก์", "Copy link"],
-    "link.done": ["คัดลอกลิงก์แล้ว", "Link copied"],
     "copy.live": ["คัดลอกผลแล้ว", "Result copied"],
     "copy.hint": ["คัดลอกอัตโนมัติไม่ได้ กด Ctrl+C เพื่อคัดลอกเอง", "Automatic copy failed. Press Ctrl+C to copy manually."],
     "copy.fallbackAria": ["ผลลัพธ์ในรูป JSON สำหรับคัดลอก", "Result as JSON for copying"],
