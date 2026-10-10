@@ -58,6 +58,8 @@ def _ref(text: str, phrase: str = "") -> str:
     cut = _STOP.search(phrase)
     if cut:
         phrase = phrase[:cut.start()]
+    # "Database taken in BIT co-op plan" -> "Database": ท้ายประโยคบอกว่าอยู่หลักสูตร/แผนไหน ไม่ใช่ส่วนของชื่อวิชา (ชื่อหลักสูตรที่เลือกถูกตัดออกจากคำถามภาษาไทยอยู่แล้ว)
+    phrase = re.sub(r"\s+(?:taken |taught |offered |studied )?in (?:the )?(?:(?:DSBA|AIT|BIT|IT)\s+)?(?:(?:no|non|without)[ -]?)?co-?op(?:\s+(?:plan|program|programme|curriculum))?\s*$", "", phrase, flags=re.I)
     return phrase.strip()
 
 

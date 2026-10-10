@@ -161,7 +161,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 - ไฟล์ส่งงานบน Google Drive: [โฟลเดอร์หลัก](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) · PDF หลักสูตร (`data/input/`) · สไลด์นำเสนอ `.pdf` (`slides/`) · คลิปเดโม (`demo-video/`)
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
 - เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
-- ความแม่นยำ: ชุดคำถามอิสระ + Master Test Suite ราว 75–79% กับสำนวนที่ไม่เคยเห็น
+- ความแม่นยำ: ชุดคำถามอิสระ 140 ข้อ (ผู้เขียนไม่เห็นโค้ด/เฉลย วัด 10 ต.ค. 2026 เฉลยด้วยมือ) ถูกเต็ม 83.6% · ถูกหรือปฏิเสธอย่างปลอดภัย 90.7% · ถามนอกเล่ม 24/24 ปฏิเสธถูก — ข้อจำกัด: ทีมตัดสินเอง, ชุดนี้เห็นชื่อวิชาจริง จึงง่ายกว่าข้อสอบจริง, ยังผิด 13 ข้อ (รายละเอียดใน `lab10_fastapi/README.md`)
 
 ## สมาชิก
 - นายวีร์กฤต โอวาทสาร 67070168

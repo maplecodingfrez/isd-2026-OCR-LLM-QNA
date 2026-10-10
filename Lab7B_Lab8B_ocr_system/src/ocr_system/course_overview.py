@@ -159,8 +159,11 @@ def _course_in_text(conn, question: str) -> tuple[str | None, bool]:
         return (codes[0], True) if len(codes) == 1 and codes[0] in known else (None, False)
     text = _norm(question)
     hits = [(len(_norm(n)), code) for code, names in known.items() for n in names if _norm(n) and len(_norm(n)) >= 4 and _norm(n) in text]
-    if not hits:
-        return None, False
+    if not hits:                                                 # ชื่อภาษาพูด/ตัวย่อที่ชี้วิชาเดียวในแผน ("Data Structures", "SAD") — ชุดเดียวกับที่ทางลัดชื่อวิชาอื่นยอมรับ (_named_courses)
+        import course_names
+        plan = [{"code": c, "name_th": n[0], "name_en": n[1]} for c, n in known.items()]
+        got = course_names.colloquial_courses(question, plan) or course_names.acronym_courses(question, plan)
+        return (got[0][0], True) if len(got) == 1 else (None, False)
     best = max(length for length, _ in hits)
     top = {code for length, code in hits if length == best}
     # a longer name that contains a shorter one ("แคลคูลัส 2" inside a sentence) wins; two different longest names = not one course
