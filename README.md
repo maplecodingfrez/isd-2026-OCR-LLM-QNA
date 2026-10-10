@@ -17,6 +17,14 @@
 └── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
 ```
 
+### งาน Lab 11 (Front-End) อยู่ที่ไหน
+
+| งานที่ส่ง | ที่อยู่ในรีโป |
+|---|---|
+| Wireframe | [`docs/wireframes/curriculum_app.png`](docs/wireframes/curriculum_app.png) (ต้นฉบับ [Figma](https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa)) |
+| API contract | [`lab10_fastapi/README.md`](lab10_fastapi/README.md) หัวข้อ 13 |
+| `index.html`, `style.css`, `app.js` | [`lab10_fastapi/curriculum_app/static/`](lab10_fastapi/curriculum_app/static/) |
+
 ใช้งานได้ทันทีหลัง clone: ฐานข้อมูล 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมี PDF หรือไฟล์ `.env`
 
 ## สิ่งที่ต้องมี
