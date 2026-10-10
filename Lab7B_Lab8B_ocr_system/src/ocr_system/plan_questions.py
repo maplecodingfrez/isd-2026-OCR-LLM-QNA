@@ -62,7 +62,7 @@ def _credits_filter(conn, text: str):
 
 
 # ---- 2. "ปี 2 มีกี่วิชา" / "ปี 2 เทอม 1 เรียนกี่วิชา" ----
-_TERM_COUNT = re.compile(r"^ปี(\d)(?:เทอม(\d))?(?:มี|เรียน)(?:ทั้งหมด)?กี่วิชา$")
+_TERM_COUNT = re.compile(r"^ปี(\d)(?:ทั้งปี)?(?:เทอม(\d))?(?:มี|เรียน)(?:ทั้งปี)?(?:ทั้งหมด)?กี่วิชา$")
 
 
 _TERM_COUNT_ALT = re.compile(r"^(?:มี)?กี่วิชา(?:ใน)?ปี(\d)(?:เทอม(\d))?$")
@@ -82,6 +82,20 @@ def _term_count(conn, text: str):
     if not rows:
         return f"ไม่พบรายวิชาของ{label}ในแผนนี้", [], sql
     return f"{label} มี {len(rows)} วิชา (นับทุกช่องในแผน รวมช่องวิชาเลือก)", rows, sql
+
+
+_PROGRAM_COUNT = re.compile(r"^(?:ทั้ง)?(?:หลักสูตร|แผน)(?:นี้)?(?:ทั้งหมด)?(?:มี|เรียน)(?:ทั้งหมด)?กี่วิชา$|^(?:มี)?กี่วิชา(?:ใน)?(?:ทั้ง)?(?:หลักสูตร|แผน)(?:นี้)?$")
+
+
+def _program_count(conn, text: str):
+    """"ทั้งหลักสูตรมีกี่วิชา" → จำนวนวิชาที่แผนวางไว้ทั้งหมด (นับแบบเดียวกับ "ปี N มีกี่วิชา")"""
+    if not _PROGRAM_COUNT.match(_squeeze(text)):
+        return None
+    rows = [dict(r) for r in conn.execute("SELECT DISTINCT code, name_th FROM v_plan ORDER BY code")]
+    sql = "SELECT DISTINCT code, name_th FROM v_plan"
+    if not rows:
+        return "ไม่พบรายวิชาในแผนนี้", [], sql
+    return f"หลักสูตรนี้มี {len(rows)} วิชา (นับทุกช่องในแผน รวมช่องวิชาเลือก)", rows, sql
 
 
 # ---- 3. "เทอมไหนมีวิชามากที่สุด" / "ปีไหนมีวิชาเยอะที่สุด" ----
@@ -349,7 +363,7 @@ def plan_question_answer(conn, question: str, status_fn=None):
     if not text:
         return None
     try:
-        for handler in (_credits_filter, _term_count, _busiest_term, _term_extreme_credits, _pair_prerequisite, _no_follow_ups, _has_coop):
+        for handler in (_credits_filter, _term_count, _program_count, _busiest_term, _term_extreme_credits, _pair_prerequisite, _no_follow_ups, _has_coop):
             answer = handler(conn, text)
             if answer:
                 return answer

@@ -4062,6 +4062,62 @@ def _year_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
         f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full WHERE year = {year} GROUP BY year"
 
 
+_KW_COUNT_Q = re.compile(
+    r"^(?:มี)?(?:วิชา(?:ที่)?(?:ชื่อ)?(?:มี)?(?:คำว่า)?)?\s*(?P<kw>[A-Za-z\u0e00-\u0e7f][A-Za-z\u0e00-\u0e7f ]*?)\s*"
+    r"(?:ที่ต้องเรียน|ต้องเรียน|ที่มี|มี|เรียน)?\s*(?:ทั้งหมด)?\s*(?:กี่วิชา|กี่รายวิชา)$")
+_KW_GENERIC = {"วิชา", "รายวิชา", "หลักสูตร", "แผน", "ทั้งหมด", "บังคับ", "เลือก", "เลือกเสรี", "วิชาบังคับ", "วิชาเลือก", "วิชาเลือกเสรี", "ในแผน"}
+
+
+def _name_keyword_count_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ภาษาอังกฤษต้องเรียนกี่วิชา" / "มีวิชาที่ชื่อมีคำว่าข้อมูลกี่วิชา" → นับวิชาในแผนที่ชื่อ (ไทยหรืออังกฤษ) มีคำนั้น ด้วย SQL
+    (ราก: ให้โมเดลนับเองได้ 50 วิชา = ทั้งตาราง course; จริง 2). ต้องเป็นคำถามนับล้วน ๆ; มีเลข/ปี/เทอม/รหัส/ชื่อวิชาเต็ม/คำหมวดกว้าง = None"""
+    q = _VAGUE_TAIL.sub("", question.strip())
+    mt = _KW_COUNT_Q.match(q)
+    if not mt or _CODE8.search(q) or re.search(r"\d|ปี|เทอม|ภาค|หน่วยกิต|ชั่วโมง", q):
+        return None
+    kw = re.sub(r"\s+", " ", mt.group("kw")).strip()
+    if kw in _KW_GENERIC or re.search(r"เลือก|กลุ่ม|บังคับ|หมวด", kw) or len(kw.replace(" ", "")) < 3 or _named_courses(conn, kw, strict=False):
+        return None
+    needle = kw.casefold().replace(" ", "")
+    try:
+        rows = [dict(r) for r in conn.execute("SELECT DISTINCT v.code AS code, c.name_th AS name_th, c.name_en AS name_en, c.credits AS credits "
+                                             "FROM v_plan v JOIN course c ON c.code = v.code ORDER BY v.code")]
+    except sqlite3.OperationalError:
+        return None
+    hits = [r for r in rows if needle in (r["name_th"] or "").casefold().replace(" ", "") or needle in (r["name_en"] or "").casefold().replace(" ", "")]
+    if not hits:
+        return None
+    listing = "; ".join(f"{h['code']} {h['name_th']}" for h in hits[:15]) + (f" และอีก {len(hits) - 15} วิชา" if len(hits) > 15 else "")
+    safe = kw.replace("'", "''")
+    return (f"วิชาในแผนที่ชื่อมีคำว่า \"{kw}\" มี {len(hits)} วิชา: {listing}", hits,
+            f"SELECT DISTINCT v.code, c.name_th, c.name_en, c.credits FROM v_plan v JOIN course c ON c.code = v.code "
+            f"WHERE c.name_th LIKE '%{safe}%' OR c.name_en LIKE '%{safe}%'")
+
+
+def _elective_credit_overview_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"เรียนจบต้องมีวิชาเลือกกี่หน่วยกิต" (วิชาเลือกกว้าง ๆ ไม่ระบุกลุ่ม/ปี) → เล่มไม่มียอดก้อนเดียว แต่แยกเป็นหลายกลุ่ม: แสดงทุกกลุ่มที่ชื่อมี "เลือก"
+    พร้อมหน่วยกิตจากตาราง credit_structure แทนให้โมเดลบวกเอง (ราก: ได้ 258 หน่วยกิตทั้งที่หลักสูตรรวม 132 / บางครั้งแต่ง view ที่ไม่มีอยู่จริง);
+    ระบุกลุ่ม/เสรี/หมวด/ปี/เทอม/รหัส/ชื่อวิชา = None (ทางเดิม ตอบเจาะจงอยู่แล้ว)"""
+    if not re.search(r"วิชาเลือก(?=$|\s|ทั้งหมด|กี่|ต้อง|มี|ใน|ที่|ของ)", question) or not re.search(r"กี่หน่วยกิต|หน่วยกิตเท่า", question):
+        return None                                       # "วิชาเลือก" ต้องเป็นประเภทล้วน ๆ (มีชื่อกลุ่มต่อท้าย เช่น "วิชาเลือกการตลาดดิจิทัล" = ทางเดิม)
+    if re.search(r"เสรี|กลุ่ม|หมวด|ปี|เทอม|ภาค|ชั้น", question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question):
+        return None
+    if _named_courses(conn, question, strict=False):
+        return None
+    try:
+        nodes = [dict(r) for r in conn.execute(
+            "SELECT name_th, level, credits, pdf_page, printed_page FROM credit_structure "
+            "WHERE name_th LIKE '%เลือก%' AND name_th NOT LIKE '%ทางเลือก%' ORDER BY id")]
+    except sqlite3.OperationalError:
+        return None
+    if not nodes:
+        return None
+    listing = "; ".join(f"{n['name_th']} {n['credits']} หน่วยกิต" for n in nodes)
+    text = (f"เล่มหลักสูตรไม่มียอด \"วิชาเลือก\" รวมก้อนเดียว แต่แบ่งเป็นกลุ่มต่าง ๆ ได้แก่ {listing} "
+            "ถามเจาะจงกลุ่มได้ เช่น \"วิชาเลือกเสรีกี่หน่วยกิต\"")
+    return text, nodes, "SELECT name_th, level, credits FROM credit_structure WHERE name_th LIKE '%เลือก%' AND name_th NOT LIKE '%ทางเลือก%'"
+
+
 _CLARIFY_MARK = "คำถามยังไม่ชัดเจน"
 _VAGUE_TAIL = re.compile(r"(?:\s|ครับ|ค่ะ|คะ|นะ|หน่อย|ด้วย|เหรอ|หรอ|[?？!,.。])+$")
 _VAGUE_CREDIT = re.compile(r"(?:มี|ต้องเรียน|เรียน)?(?:กี่หน่วยกิต|หน่วยกิตกี่|หน่วยกิตเท่า(?:ไร|ไหร่)|หน่วยกิต)")
@@ -5571,6 +5627,15 @@ _KIND_LIST_ASK = re.compile(r"อะไรบ้าง|มีอะไร|วิ
 _KIND_COUNT_ASK = re.compile(r"กี่วิชา|กี่รายวิชา|กี่ตัว|มีกี่")
 _KIND_WHOLE_PROGRAM = re.compile(r"ทั้งหลักสูตร|ตลอดหลักสูตร|ทั้งแผน|ในหลักสูตร(?:นี้)?")      # นับทั้งแผน (ไม่ระบุปี): ตอบได้เฉพาะ "กี่วิชา" ไม่ใช่รายชื่อ
 _KIND_LIST_NOT = re.compile(r"ก่อน|ไหม|หรือ|มาก|น้อย|ที่สุด|สูงสุด|ต่ำสุด|หน่วยกิต|ชั่วโมง|เฉลี่ย|รวม|เปรียบเทียบ|ต่างกัน|ถ้า")
+_PLAIN_KIND = re.compile(r"วิชา(?:เฉพาะ)?(?:เลือกเสรี|เลือก|บังคับ)(?=$|\s|มี|ทั้งหมด|กี่|ใน|ที่|อยู่|ต้อง|ของ)")
+
+
+def _whole_program_kind_count(question: str) -> bool:
+    """"มีวิชาบังคับกี่วิชา" / "วิชาเลือกทั้งหมดกี่วิชา" / "หลักสูตรนี้มีวิชาเลือกกี่วิชา" = นับทั้งแผน (ไม่มีปี/เทอม/ชื่อกลุ่ม);
+    คำว่าวิชาเลือก/บังคับต้องเป็นประเภทล้วน ๆ — มีชื่อกลุ่มต่อท้าย ("วิชาเลือกการตลาดดิจิทัล") หรือคำว่า กลุ่ม/หมวด = ไม่ใช่ (ทางลัดกลุ่มวิชาเลือกตอบ)"""
+    return bool(_PLAIN_KIND.search(question)) and not re.search(r"กลุ่ม|หมวด", question) and not _TERM_WORD_Q.search(question)
+
+
 _KIND_CATEGORY = re.compile(r"หมวด(?:วิชา)?(เฉพาะ|ศึกษาทั่วไป|เลือกเสรี)")      # กรองหมวดเฉพาะเมื่อพูดว่า "หมวด…" (หมวดในหมายเหตุของแผนบางเล่มอ่านผิด เช่น BIT วิชาเฉพาะบางตัวเป็น "ศึกษาทั่วไป" จึงไม่ถือ "วิชาเฉพาะ" เป็นตัวกรอง)
 
 
@@ -5605,7 +5670,7 @@ def _term_kind_list_one(conn: sqlite3.Connection, question: str, _kind: str | No
     q = question.replace("ปีสุดท้าย", f"ปี {last_year}" if last_year else "ปีสุดท้าย").replace("ปีแรก", "ปี 1")
     q = re.sub(r"(?:เทอม|ภาค(?:การศึกษา)?)แรก", "เทอม 1", q)
     y, s = _term_numbers(q)
-    whole = not y and count_q and bool(_KIND_WHOLE_PROGRAM.search(question))
+    whole = not y and count_q and (bool(_KIND_WHOLE_PROGRAM.search(question)) or _whole_program_kind_count(question))   # ประเภทล้วน ๆ ไม่มีปี/เทอม = ทั้งแผน (เดิมหลุดไปให้โมเดลเดา: "มีวิชาบังคับกี่วิชา" -> 6)
     if (not y and not whole) or _named_courses(conn, question, strict=False):
         return None
     kind = _kind or mt.group(1)
@@ -5653,7 +5718,7 @@ def _kind_count_undecided_answer(conn: sqlite3.Connection, question: str) -> tup
         return None
     q = question.replace("ปีสุดท้าย", "ปี 9").replace("ปีแรก", "ปี 1")
     year, _sem = _term_numbers(q)
-    if not year and not _KIND_WHOLE_PROGRAM.search(question):
+    if not year and not _KIND_WHOLE_PROGRAM.search(question) and not _whole_program_kind_count(question):
         return None
     if _named_courses(conn, question, strict=False) or _term_kind_list_answer(conn, question) is not None:
         return None
@@ -5794,10 +5859,10 @@ _SHORTCUTS = (
     _other_program_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
-    _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
+    _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _two_year_credits_answer, _summer_term_answer, _unknown_course_answer,
-    _catalog_course_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _free_elective_when_answer, _year_successor_answer,
+    _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
@@ -5839,6 +5904,56 @@ def _ungrounded_literal(conn: sqlite3.Connection, sql: str) -> str | None:
 _TERM_WORD_Q = re.compile(r"ปี|เทอม|ภาค|ชั้น|year|semester|term|summer|ฤดูร้อน", re.I)
 _SQL_TERM_FILTER = re.compile(
     r"\b(?:year|semester)\s*(?:[<>]=?|=)\s*\d|\b(?:year|semester)\s+(?:IN\s*\(\s*\d|BETWEEN\s+\d)", re.I)
+
+
+_ASK_CREDITS = re.compile(r"หน่วยกิต|เครดิต")
+_ASK_COUNT = re.compile(r"กี่วิชา|กี่รายวิชา|กี่ตัว|จำนวนวิชา|มีกี่")
+
+
+def _implausible_number(conn: sqlite3.Connection, question: str, rows: list[dict]) -> str | None:
+    """ตัวเลขค่าเดียวที่โมเดลคำนวณมา แต่เป็นไปไม่ได้ → เหตุผล (ไทย) ให้ปฏิเสธแทนตอบมั่นใจ (qwen3:4b ไม่เก่งคำนวณ: "วิชาเลือก 258 หน่วยกิต");
+    ตัดสินเฉพาะแถวเดียวคอลัมน์เดียวที่เป็นตัวเลข และคำถามถามหน่วยกิต/จำนวนวิชา: ติดลบ, ทศนิยม, หน่วยกิตเกินหลักสูตรรวม, จำนวนวิชาเกินจำนวนวิชาทั้งหมดที่มี"""
+    if len(rows) != 1 or len(rows[0]) != 1:
+        return None
+    value = next(iter(rows[0].values()))
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    asks_credits, asks_count = bool(_ASK_CREDITS.search(question)), bool(_ASK_COUNT.search(question))
+    if not (asks_credits or asks_count):
+        return None
+    if value < 0:
+        return f"ตัวเลขที่คำนวณได้ ({value}) ติดลบ ซึ่งเป็นไปไม่ได้"
+    if value != int(value):
+        return f"ตัวเลขที่คำนวณได้ ({value}) ไม่ใช่จำนวนเต็ม"
+    try:
+        if asks_credits:
+            total = conn.execute("SELECT MAX(total_credits) FROM program").fetchone()[0]
+            if total and value > total:
+                return f"ตัวเลขที่คำนวณได้ ({int(value)} หน่วยกิต) มากกว่าหน่วยกิตรวมของหลักสูตร ({total} หน่วยกิต)"
+        elif asks_count:
+            bound = max(conn.execute("SELECT COUNT(*) FROM course").fetchone()[0],
+                        conn.execute("SELECT COUNT(*) FROM plan_item").fetchone()[0] + conn.execute("SELECT COUNT(*) FROM plan_slot").fetchone()[0])
+            if bound and value > bound:
+                return f"ตัวเลขที่คำนวณได้ ({int(value)} วิชา) มากกว่าจำนวนวิชาทั้งหมดที่มีในเล่ม ({bound} วิชา)"
+    except sqlite3.OperationalError:
+        return None
+    return None
+
+
+_CREDIT_SUM_SQL = re.compile(r"SUM\s*\(\s*(?:\w+\.)?credits\s*\)", re.I)
+
+
+def _single_credit_text(question: str, sql: str | None, rows: list[dict]) -> str | None:
+    """หน่วยกิตค่าเดียว (SUM(credits) / คอลัมน์ credits) → "N หน่วยกิต" เรนเดอร์จากโค้ด ไม่ผ่านข้อความของโมเดล
+    (ราก: qwen3:4b เคยเขียนหน่วยเป็น "12 ครั้ง"); ไม่ใช่หน่วยกิตค่าเดียว = None (ใช้โมเดลเรียบเรียงตามเดิม)"""
+    if len(rows) != 1 or len(rows[0]) != 1 or not _ASK_CREDITS.search(question):
+        return None
+    (key, value), = rows[0].items()
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    if "credit" in str(key).lower() or _CREDIT_SUM_SQL.search(sql or ""):
+        return f"{value} หน่วยกิต"
+    return None
 
 
 def _invented_term_filter(question: str, sql: str | None) -> bool:
@@ -5961,31 +6076,39 @@ def ask(conn: sqlite3.Connection, question: str,
     if result["rows"] and _invented_term_filter(question, result["sql"]):    # โมเดลเดาปี/เทอมที่ผู้ใช้ไม่ได้ถาม — ไม่ตอบยอดของเทอมที่แต่งขึ้น
         result["sql_rejected"], result["sql"], result["rows"] = result["sql"], _NOT_FOUND[2], []
 
+    rejected_why = _implausible_number(conn, question, result["rows"]) if result["rows"] else None
+    if rejected_why:                                      # ตัวเลขที่โมเดลคำนวณเป็นไปไม่ได้ — ไม่ตอบแทนเดา (บอกเหตุผล)
+        result["sql_rejected"], result["sql"], result["rows"] = result["sql"], _NOT_FOUND[2], []
+
     # ปฏิเสธที่จะเดา เมื่อไม่มีข้อมูล — จุดนี้สำคัญกว่าที่คิด
     if not result["rows"]:
-        result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร"
+        result["answer"] = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" + (f": {rejected_why} ระบบจึงไม่ตอบตัวเลขนี้ ลองถามให้เจาะจงขึ้น เช่น ระบุปี/เทอม" if rejected_why else "")
         if _ungrounded_literal(conn, result["sql"] or ""):     # SQL ที่โมเดลแต่งค่าเอง (ไม่มีใน DB) — โชว์ SQL มาตรฐานของ "ไม่พบ" แทน (ผลเดิม ไม่เปลี่ยนคำตอบ)
             result["sql_rejected"], result["sql"] = result["sql"], _NOT_FOUND[2]
         return result
 
     result["answer_type"] = "hybrid"
-    raw_answer = ollama_generate(
-        ANSWER_PROMPT.format(
-            question=question,
-            rows=json.dumps(result["rows"][:40], ensure_ascii=False)),
-        fmt={
-            "type": "object",
-            "properties": {"answer": {"type": "string"}},
-            "required": ["answer"],
-            "additionalProperties": False,
-        }, num_ctx=4096, num_predict=256).strip()
-    result["answer_model_output"] = raw_answer
-    parsed_answer = parse_json_loose(raw_answer)
-    result["answer"] = (
-        str(parsed_answer.get("answer", "")).strip()
-        if isinstance(parsed_answer, dict) else raw_answer)
-    result["answer"] = re.sub(
-        r"<think>.*?</think>", "", result["answer"], flags=re.S).strip()
+    single_credit = _single_credit_text(question, result["sql"], result["rows"])
+    if single_credit:                                     # หน่วยกิตค่าเดียว: เรนเดอร์จากโค้ด ไม่ให้โมเดลเขียนหน่วยเอง ("12 ครั้ง")
+        result["answer"] = single_credit
+    else:
+        raw_answer = ollama_generate(
+            ANSWER_PROMPT.format(
+                question=question,
+                rows=json.dumps(result["rows"][:40], ensure_ascii=False)),
+            fmt={
+                "type": "object",
+                "properties": {"answer": {"type": "string"}},
+                "required": ["answer"],
+                "additionalProperties": False,
+            }, num_ctx=4096, num_predict=256).strip()
+        result["answer_model_output"] = raw_answer
+        parsed_answer = parse_json_loose(raw_answer)
+        result["answer"] = (
+            str(parsed_answer.get("answer", "")).strip()
+            if isinstance(parsed_answer, dict) else raw_answer)
+        result["answer"] = re.sub(
+            r"<think>.*?</think>", "", result["answer"], flags=re.S).strip()
 
     # ตัวกันเชิงกำหนดแน่สำหรับคำตอบหลายค่า — qwen3:4b มักคัดลอกรหัสวิชา/ตัวเลข
     # หลายตัวในสตริงเดียวผิด (เช่น "06066303" -> "0606630 03", สลับหลัก, เว้นวรรคเกิน)
