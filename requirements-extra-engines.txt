@@ -1,0 +1,11 @@
+# เอนจิน OCR เสริม — ไม่จำเป็นสำหรับการใช้งานปกติ (ระบบนี้ล็อกใช้ Tesseract อย่างเดียว) ติดตั้ง: pip install -r requirements-extra-engines.txt
+# ใหญ่ (หลาย GB) และอาจติดตั้งไม่ได้บน Python บางเวอร์ชัน (paddlepaddle ล้มบน Python 3.14)
+
+# PaddleOCR (--engine paddle และส่วนหนึ่งของ --engine ensemble): src/ocr_system/engines/paddle_engine.py
+paddleocr
+paddlepaddle
+
+# TrOCR (--engine trocr): src/ocr_system/engines/trocr_engine.py
+transformers
+torch
+torchvision

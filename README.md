@@ -61,11 +61,11 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 - [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) + ข้อมูลภาษา `tha` และ `eng` (เช็กด้วย `tesseract --list-langs`)
 - [Poppler](https://github.com/oschwartz10612/poppler-windows/releases) (ใช้แปลงหน้า PDF เป็นภาพ) แตก zip แล้วเพิ่มโฟลเดอร์ `Libraryin` เข้า PATH เช็กด้วย `pdftoppm -v` (macOS: `brew install poppler`, Linux: `apt install poppler-utils`)
 - `ollama pull scb10x/typhoon-ocr1.5-3b` (อ่านภาพหน้าแผน)
-- แพ็กเกจ Python สำหรับขั้น OCR (ติดตั้งใน venv เดิม ใช้เวลา ~2 นาที):
+- แพ็กเกจ Python สำหรับขั้น OCR (ติดตั้งใน venv เดิม ใช้เวลา ~1–2 นาที):
   ```powershell
-  pip install opencv-python pillow numpy pandas pdf2image pytesseract jiwer python-Levenshtein rapidfuzz pydantic PyYAML rich pythainlp requests pymupdf
+  pip install -r requirements.txt
   ```
-  ไม่ต้องใช้ `pip install -r requirements.txt` ทั้งไฟล์: ขั้น Tesseract ไม่ต้องใช้ `paddleocr` `paddlepaddle` `torch` `transformers` และ `paddlepaddle` ไม่มีให้ติดตั้งบน Python 3.14 (ที่ทดสอบ: ติดตั้งทั้งไฟล์จะล้มด้วย `No matching distribution found for paddlepaddle`)
+  ไฟล์นี้มีเฉพาะแพ็กเกจที่ใช้จริง พร้อมคอมเมนต์ว่าแต่ละตัวใช้ทำอะไร ส่วนเอนจินเสริม (`paddleocr` `paddlepaddle` `torch` `transformers`) แยกไว้ที่ `requirements-extra-engines.txt` ไม่ต้องติดตั้ง เพราะระบบนี้ใช้ Tesseract อย่างเดียว (และ `paddlepaddle` ติดตั้งไม่ได้บน Python 3.14)
 
 1. วาง PDF ที่ `data/input/<หลักสูตร>_curriculum.pdf` (`ait` `bit` `dsba` `it`) · ไฟล์ PDF ไม่ได้อยู่ใน git ดาวน์โหลดจาก [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I)
 2. OCR ทั้งเล่มด้วย **Tesseract เท่านั้น** (ใส่ `--engine tesseract` เสมอ ค่าเริ่มต้นของ CLI คือ `ensemble` ซึ่งจะได้ผลต่างจากที่ระบบนี้ปรับกฎไว้) บางหน้า/บางจุดอาจอ่านเพี้ยน ขั้นหลังมีกฎซ่อมให้แล้ว (ใช้ตอบเรื่องวิชาบังคับก่อน คำอธิบายวิชา เกณฑ์จบ และหน้าอ้างอิง):

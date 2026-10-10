@@ -1,25 +1,39 @@
-opencv-python
-pillow
-numpy
-pandas
-pdf2image
-pytesseract
-paddleocr
-paddlepaddle
-transformers
-torch
-torchvision
-jiwer
-python-Levenshtein
-rapidfuzz
-pydantic
-PyYAML
-rich
-pythainlp
-requests
-pytest
-fastapi
-python-multipart
-python-dotenv
-pymupdf
-httpx2
+# แพ็กเกจสำหรับ OCR ทั้งเล่ม (Tesseract), Lab 7B/8B และตัวประเมินผล — ติดตั้ง: pip install -r requirements.txt
+# แอปเว็บ (lab10_fastapi) ใช้ไฟล์ของมันเอง: lab10_fastapi/curriculum_app/requirements.txt
+# เอนจินเสริม (PaddleOCR / TrOCR / ensemble) อยู่ที่ requirements-extra-engines.txt — ไม่จำเป็นสำหรับการใช้งานปกติ
+# ต้องมีโปรแกรมนอก Python ด้วย: Tesseract (+ ภาษา tha, eng) และ Poppler — ดู README ข้อ 1.3
+
+# --- อ่านหน้า PDF / ภาพ ---
+opencv-python     # cv2: ปรับภาพก่อน OCR (ขาวดำ, แก้เอียง) และตัดภาพ
+pillow            # PIL: เปิด/ย่อ/บันทึกภาพ, ส่งภาพให้โมเดลอ่านภาพ
+numpy             # อาร์เรย์ภาพ (ใช้ร่วมกับ opencv)
+pdf2image         # แปลงหน้า PDF เป็นภาพ (ต้องมี Poppler)
+pymupdf           # fitz: อ่าน PDF โดยตรง (ข้อความ/หน้า) ใน Lab 7B และตัวสกัดแคตตาล็อก
+pdfplumber        # Lab 7B: ดึงข้อความจาก PDF และใช้ตอนเช็กความพร้อม (--check)
+
+# --- OCR ---
+pytesseract       # เรียก Tesseract (เอนจินหลักที่ใช้ อ่านไทย+อังกฤษ)
+
+# --- ประเมินผล / ภาษาไทย ---
+jiwer             # คำนวณ CER/WER ของ OCR (src/ocr_system/evaluation.py)
+python-Levenshtein  # ระยะแก้ไขตัวอักษร (evaluation.py)
+pythainlp         # ตัดคำไทยสำหรับคำนวณ WER (Lab7B_Lab8B_ocr_system/src/lab7_metrics.py)
+
+# --- โครงสร้างข้อมูล / เครื่องมือ ---
+pydantic          # กำหนดและตรวจรูปแบบข้อมูล (schemas) ของ OCR API และ Lab 8B
+requests          # เรียก Ollama (Typhoon-OCR, qwen3) ผ่าน HTTP
+rich              # แสดงผลสีในเทอร์มินัลของ CLI (python -m ocr_system.cli)
+
+# --- OCR API (src/ocr_system/api) — แอปเว็บถามตอบใช้ requirements ของ lab10 แทน ---
+fastapi           # เว็บเฟรมเวิร์กของ OCR API
+python-multipart  # ให้ FastAPI รับไฟล์อัปโหลด (UploadFile)
+python-dotenv     # อ่านค่าตั้งจากไฟล์ .env (lab10_fastapi/curriculum_app/config.py)
+
+# --- ไม่พบการ import ในโค้ดปัจจุบัน (ตรวจเมื่อ 2026-10-10) — ไม่ได้ติดตั้งแล้ว ถ้าจะใช้ค่อยเพิ่ม ---
+# pandas      (ไม่มีการ import)
+# PyYAML      (ไม่มีการ import)
+# rapidfuzz   (กล่าวถึงในคอมเมนต์ของ lab7_metrics.py เท่านั้น)
+#
+# --- ใช้เฉพาะตอนรันเทสต์ (เทสต์อยู่ใน branch dev/tests) ---
+# pytest
+# httpx2      (ให้ FastAPI TestClient)
