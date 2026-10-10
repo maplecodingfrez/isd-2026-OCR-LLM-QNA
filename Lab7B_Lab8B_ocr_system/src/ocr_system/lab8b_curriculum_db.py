@@ -3540,6 +3540,7 @@ def _program_fact_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
 _ATTR_YEAR = re.compile(r"ปีไหน|ชั้นปีไหน|ปีใด|ชั้นปีใด|ปีที่เท่าไร|ปีที่เท่าไหร่|ปีอะไร")
 _ATTR_SEM = re.compile(r"เทอมไหน|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|เทอมใด|ภาคเรียนที่เท่าไร|เทอมที่เท่าไร|เทอมอะไร")
 _ATTR_WHEN = re.compile(r"เรียนตอนไหน|เรียนเมื่อไร|เรียนเมื่อไหร่")             # "เรียนตอนไหน" = ปีไหน + เทอมไหน
+_CODE_LABEL = re.compile(r"(?:รหัสวิชา|รหัส)\s*(?=\d{8})")
 _ATTR_NOT = re.compile(r"ปี\s*\d|ชั้นปีที่\s*\d|เทอม\s*\d|ภาค\S*\s*\d|รวม|ทั้งหมด|กี่วิชา|หมวด|ชั่วโมง|ก่อน|รหัส|ชื่อ|อะไรบ้าง|วิชาไหนบ้าง|วิชา(?:อะไร|ใด)")
 
 
@@ -3549,7 +3550,8 @@ def _course_attr_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     want_credits = "หน่วยกิต" in question
     when = bool(_ATTR_WHEN.search(question))
     want_year, want_sem = bool(_ATTR_YEAR.search(question)) or when, bool(_ATTR_SEM.search(question)) or when
-    if not (want_credits or want_year or want_sem) or _ATTR_NOT.search(question) or _RELATIONAL_NOT.search(question):
+    labelled = _CODE_LABEL.sub("", question)    # "รหัสวิชา 06026200" = ป้ายกำกับรหัสที่ให้มาแล้ว ไม่ใช่ถามรหัส
+    if not (want_credits or want_year or want_sem) or _ATTR_NOT.search(labelled) or _RELATIONAL_NOT.search(question):
         return None
     codes = list(dict.fromkeys(_CODE8.findall(question)))
     if len(codes) > 1:
@@ -3953,16 +3955,43 @@ def _strip_own_plan_phrase(conn: sqlite3.Connection, question: str) -> str:
     return re.sub(r" {2,}", " ", out).strip()
 
 
+_THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
+_SPOKEN_DIGITS = {"หนึ่ง": 1, "สอง": 2, "สาม": 3, "สี่": 4, "ห้า": 5}
+_SPOKEN_WORD = "|".join(_SPOKEN_DIGITS)
+_SPOKEN_AFTER_TERM_WORD = re.compile(rf"(ชั้นปี|ภาคเรียน|ภาคการศึกษา|เทอม|ภาค|ปี)(ที่)?\s*({_SPOKEN_WORD})(?![\u0e00-\u0e7f])")
+
+
+def _normalise_thai_digits(question: str) -> str:
+    """เลขไทย ๐-๙ → 0-9 ("แคลคูลัส ๑", "ปี ๓ เทอม ๑") — ราก: ไม่มีกฎรู้จักเลขไทย จึงตอบ "ไม่พบ" """
+    return question.translate(_THAI_DIGITS)
+
+
+def _normalise_number_words(conn: sqlite3.Connection, question: str) -> str:
+    """เลขคำพูด (หนึ่ง สอง สาม สี่ ห้า) → ตัวเลข เฉพาะ 2 ตำแหน่งที่ชัด: (ก) ตามหลังคำนำ ปี/ชั้นปี/เทอม/ภาค ("ปีสอง เทอมหนึ่ง")
+    (ข) ต่อท้ายชื่อวิชาที่ลงท้ายด้วยเลขจริงในฐานข้อมูล ("แคลคูลัสหนึ่ง" = "แคลคูลัส 1");
+    คำอื่น ("ไก่สองตัว", "ทั้งสองวิชา", "สามารถ") ไม่แตะ — คำถามทั่วไปต้องไม่ถูกดึงเข้าหลักสูตร"""
+    out = _SPOKEN_AFTER_TERM_WORD.sub(lambda m_: f"{m_.group(1)}{m_.group(2) or ''} {_SPOKEN_DIGITS[m_.group(3)]}", question)
+    try:
+        names = [r[0] for r in conn.execute("SELECT name_th FROM course UNION SELECT name_en FROM course")]
+    except sqlite3.Error:
+        return out
+    stems = {mt.group(1).strip() for n in names if n for mt in [re.match(r"^(.{3,}?)\s+\d{1,2}$", n)] if mt}
+    for stem in sorted(stems, key=len, reverse=True):
+        rx = re.compile(rf"({re.escape(stem)})\s*({_SPOKEN_WORD})(?![\u0e00-\u0e7f])", re.I)
+        out = rx.sub(lambda m_: f"{m_.group(1)} {_SPOKEN_DIGITS[m_.group(2)]}", out)
+    return out
+
+
 def _prepare_question(conn: sqlite3.Connection, question: str) -> str:
     """ข้อความที่ทางลัด/โมเดลเห็น: ตัดชื่อหลักสูตรและชื่อแผน (สหกิจ/ไม่สหกิจ) ของแผนตัวเอง, ตัดรหัสที่ซ้ำชื่อวิชา, แปลงภาคต้น/ปลาย
     (result["question"] ยังเป็นข้อความเดิมของผู้ใช้)"""
-    q = _strip_own_plan_phrase(conn, _strip_own_program_token(conn, question))
+    q = _strip_own_plan_phrase(conn, _strip_own_program_token(conn, _normalise_number_words(conn, _normalise_thai_digits(question))))
     return _expand_course_acronyms(conn, _normalise_credit_words(_normalise_semester_words(_drop_redundant_codes(conn, q))))
 
 
 def _normalise_credit_words(question: str) -> str:
     """"เครดิต" = "หน่วยกิต" (กฎ/ทางลัดทั้งหมดดักแต่ "หน่วยกิต"; ถามด้วย "เครดิต" แล้วหลุดไปโมเดลจนตอบ "12 ครั้ง")"""
-    return question.replace("เครดิต", "หน่วยกิต")
+    return re.sub(r"(?<![A-Za-z])credits?(?![A-Za-z])", "หน่วยกิต", question.replace("เครดิต", "หน่วยกิต"), flags=re.I)   # + "CREDITS" อังกฤษ
 
 
 def _expand_course_acronyms(conn: sqlite3.Connection, question: str) -> str:
@@ -4283,6 +4312,45 @@ def _unnamed_course_reference_answer(conn: sqlite3.Connection, question: str) ->
             "ลองถาม เช่น \"<ชื่อวิชา> ต้องเรียนวิชาอะไรมาก่อน\" หรือ \"<รหัสวิชา> กี่หน่วยกิต\"", [], "SELECT NULL WHERE 0")
 
 
+_STEM_NUM = re.compile(r"([A-Za-z\u0e00-\u0e7f][A-Za-z\u0e00-\u0e7f ]*?)\s*(\d{1,2})(?!\d)")
+
+
+def _numbered_stem_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ชื่อวิชาพิมพ์แค่ส่วนต้น + เลขลำดับ ("โครงงาน 1" ทั้งที่ชื่อจริง "โครงงานวิทยาการข้อมูล… 1") → "ไม่พบ" + "คุณหมายถึง…" (ไม่ตอบแทนเอง);
+    ต้องเป็นคำถามถามค่าของวิชา (หน่วยกิต/ปี/เทอม/รหัส), ส่วนต้นยาว ≥ 5 ตัว, เลขตรงกับเลขท้ายชื่อจริง, ไม่ใช่ชื่อเต็มที่มีอยู่แล้ว;
+    คำนำปี/เทอม/ภาค และชื่อสั้น ("ภาษา 1") = None"""
+    if not _TYPO_ASK.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question) or _named_courses(conn, question):
+        return None
+    try:
+        courses = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        in_plan = {r[0] for r in conn.execute("SELECT DISTINCT code FROM plan_item")}
+    except sqlite3.Error:
+        return None
+    for mt in _STEM_NUM.finditer(question):
+        typed, num = re.sub(r"^(?:รายวิชา|วิชา)\s*", "", mt.group(1).strip()), mt.group(2)
+        key = re.sub(r"\s+", "", typed).casefold()
+        if len(key) < 5 or re.match(r"^(?:ปี|เทอม|ภาค|ชั้น|ปีที่|ในปี)", typed):
+            continue
+        hits = {}
+        for code, th, en in courses:
+            for name in (th, en):
+                base = re.match(r"^(.*?)\s+(\d{1,2})$", name.strip())
+                if not base or base.group(2) != num:
+                    continue
+                bkey = re.sub(r"\s+", "", base.group(1)).casefold()
+                if bkey.startswith(key) and bkey != key:
+                    hits[code] = (th, en)
+        if not hits:
+            continue
+        ordered = sorted(hits, key=lambda c: (c not in in_plan, c))[:5]
+        shown = "; ".join(f"{c} {hits[c][0]} / {hits[c][1]}".rstrip(" /") for c in ordered)
+        text = (f"{_NOT_FOUND_TEXT}: ไม่พบวิชา \"{typed} {num}\" คุณหมายถึง " + (shown + " หรือไม่" if len(ordered) == 1 else f"วิชาใดวิชาหนึ่งต่อไปนี้: {shown}") +
+                " ถ้าใช่ ลองถามใหม่ด้วยชื่อเต็มหรือรหัสวิชา 8 หลัก")
+        return text, [{"code": c, "name_th": hits[c][0], "name_en": hits[c][1], "near_match": True} for c in ordered], \
+            "SELECT code, name_th, name_en FROM course WHERE code IN (" + ", ".join(f"'{c}'" for c in ordered) + ")"
+    return None
+
+
 _TYPO_ASK = re.compile(r"หน่วยกิต|ปีไหน|เทอมไหน|ภาคไหน|ปีอะไร|รหัส|ชั่วโมง")
 _TYPO_PHRASE = re.compile(r"[A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*)*(?:\s+\d+)?")
 
@@ -4325,6 +4393,7 @@ def _typo_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
 
 
 _TWO_YEAR_DIFF = re.compile(r"ต่างกัน|แตกต่างกัน|ต่างกี่|ห่างกัน")
+_TWO_YEAR_CMP = re.compile(r"มากกว่า|น้อยกว่า|สูงกว่า|ต่ำกว่า|เยอะกว่า")
 _TWO_YEAR_SUM = re.compile(r"รวม")
 
 
@@ -4332,12 +4401,14 @@ def _two_year_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[s
     """หน่วยกิตของ "สองปี" ("ปี 1 กับปี 2 ต่างกันกี่หน่วยกิต", "หน่วยกิตรวมปี 1 กับปี 2") = คำนวณจากยอดปีตามเล่ม (v_semester_credits_full);
     ราก: โมเดลเขียน SQL เลขคณิตเองไม่นิ่ง (ลืม SUM → ได้แค่เทอมแรกของแต่ละปี, ลบกลับด้านได้ติดลบ). ต้องมีสองปีต่างกัน + "หน่วยกิต" +
     คำว่า ต่างกัน หรือ รวม; มีเทอม/ภาค/วิชา/รหัส/ชื่อวิชา = None"""
-    if "หน่วยกิต" not in question or _YEAR_TOTAL_NOT.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question.replace("ต่างกัน", "")):
+    cmp_word = _TWO_YEAR_CMP.search(question)
+    probe = _TWO_YEAR_CMP.sub("", question)                      # "มากกว่า" มีคำว่า "มาก" ซึ่ง _YEAR_TOTAL_NOT ปฏิเสธ — ตัดคำเทียบออกก่อนตรวจ
+    if "หน่วยกิต" not in question or _YEAR_TOTAL_NOT.search(probe) or _CODE8.search(question) or _RELATIONAL_NOT.search(probe.replace("ต่างกัน", "")):
         return None
-    diff, total = bool(_TWO_YEAR_DIFF.search(question)), bool(_TWO_YEAR_SUM.search(question))
-    if diff == total:                                           # ไม่ถามอะไรเลย หรือถามสองอย่างปนกัน = ทางเดิม
+    diff, total, cmp_ = bool(_TWO_YEAR_DIFF.search(question)), bool(_TWO_YEAR_SUM.search(question)), bool(cmp_word)
+    if (diff + total + cmp_) != 1:                              # ไม่ถามอะไรเลย หรือถามหลายอย่างปนกัน = ทางเดิม
         return None
-    digits = re.findall(r"ปี(?:ที่)?\s*(\d)", question)
+    digits = re.findall(r"ปี(?:ที่)?\s*(\d)(?!\d)", question)    # "ปี 2569" (พ.ศ.) ไม่นับเป็นชั้นปี
     if len(digits) != 2 or digits[0] == digits[1] or _named_courses(conn, question, strict=False):
         return None
     a, b = int(digits[0]), int(digits[1])
@@ -4349,6 +4420,12 @@ def _two_year_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[s
         return None
     rows = [{"year": y, "credits": totals[y]} for y in (a, b)]
     shown = f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full WHERE year IN ({a}, {b}) GROUP BY year"
+    if cmp_:
+        base = f"ปี {a} เรียน {totals[a]} หน่วยกิต ปี {b} เรียน {totals[b]} หน่วยกิต "
+        if totals[a] == totals[b]:
+            return base + "เท่ากัน (ต่างกัน 0 หน่วยกิต)", rows, shown
+        word = "มากกว่า" if totals[a] > totals[b] else "น้อยกว่า"       # ตอบตามทิศทางจริง ไม่ปฏิเสธเพราะผลติดลบ (ผู้ถามอาจเข้าใจทิศทางผิด)
+        return base + f"ปี {a} {word}ปี {b} อยู่ {abs(totals[a] - totals[b])} หน่วยกิต", rows, shown
     if total:
         return f"ปี {a} กับปี {b} รวม {totals[a] + totals[b]} หน่วยกิต (ปี {a} {totals[a]} หน่วยกิต + ปี {b} {totals[b]} หน่วยกิต)", rows, shown
     gap = abs(totals[a] - totals[b])
@@ -5924,7 +6001,7 @@ _SHORTCUTS = (
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _two_year_credits_answer, _summer_term_answer, _unknown_course_answer,
-    _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _free_elective_when_answer, _year_successor_answer,
+    _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
