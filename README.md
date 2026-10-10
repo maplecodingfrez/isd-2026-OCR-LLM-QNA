@@ -152,7 +152,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 │       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
 │       ├── lab7b_output/           # ผล OCR + ผลประเมิน
 │       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
-├── Lab9_evaluation/                # ชุดคำถามทอง + รายงาน metric
+├── Lab9_evaluation/                # ชุด Gold Questions + รายงาน metric
 ├── docs/                           # wireframe, รายงาน
 └── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
 ```
