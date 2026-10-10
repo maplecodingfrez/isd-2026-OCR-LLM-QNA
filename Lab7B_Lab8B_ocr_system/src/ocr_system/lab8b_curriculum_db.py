@@ -4062,6 +4062,150 @@ def _year_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
         f"SELECT year, SUM(credits) AS credits FROM main.v_semester_credits_full WHERE year = {year} GROUP BY year"
 
 
+_CLARIFY_MARK = "คำถามยังไม่ชัดเจน"
+_VAGUE_TAIL = re.compile(r"(?:\s|ครับ|ค่ะ|คะ|นะ|หน่อย|ด้วย|เหรอ|หรอ|[?？!,.。])+$")
+_VAGUE_CREDIT = re.compile(r"(?:มี|ต้องเรียน|เรียน)?(?:กี่หน่วยกิต|หน่วยกิตกี่|หน่วยกิตเท่า(?:ไร|ไหร่)|หน่วยกิต)")
+_VAGUE_YEAR = re.compile(r"(?:ชั้น)?ปี(?:ที่)?\s*(\d)")
+_VAGUE_SEM = re.compile(r"(?:เทอม|ภาค(?:เรียน|การศึกษา)?)(?:ที่)?\s*(\d)")
+_VAGUE_GENERIC = re.compile(r"โปรแกรม|หลักสูตร|แผน(?:การเรียน|การศึกษา)?|รายวิชา|วิชา|ข้อมูล")
+_VAGUE_NAME = re.compile(r"[A-Za-z฀-๿][A-Za-z฀-๿ ]{2,}")        # ตัวอักษรไทย/อังกฤษล้วน ไม่มีเลข/เครื่องหมาย
+
+
+def _vague_question_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """คำถามที่ไม่ระบุหัวข้อ ("กี่หน่วยกิต", "ปี 1", "เทอม 2", "โปรแกรม", ชื่อวิชาแค่บางส่วนที่ตรงหลายวิชา) → ถามกลับพร้อมตัวอย่าง ไม่เดา
+    (ราก: ไม่มีกฎดัก โมเดลจึงเดาแล้วตอบมั่นใจ เช่น "กี่หน่วยกิต" → 132, "ปี 1" → 18, "Calculus" → แคลคูลัส 2 วิชาเดียว);
+    ต้องเป็นทั้งคำถามเปล่า ๆ เท่านั้น — มีหัวข้ออื่นปนอยู่ = None (ทางเดิม)"""
+    q = _VAGUE_TAIL.sub("", question.strip())
+    if not q:
+        return None
+    ask_back = f"{_CLARIFY_MARK}: "
+    if _VAGUE_CREDIT.fullmatch(q):
+        return (ask_back + "ต้องการทราบหน่วยกิตของอะไร ลองถาม เช่น \"หลักสูตรนี้กี่หน่วยกิต\", \"ปี 1 รวมกี่หน่วยกิต\", "
+                "\"ปี 1 เทอม 1 รวมกี่หน่วยกิต\" หรือ \"<ชื่อวิชา> กี่หน่วยกิต\"", [], "SELECT NULL WHERE 0")
+    year, sem = _VAGUE_YEAR.fullmatch(q), _VAGUE_SEM.fullmatch(q)
+    if year:
+        y = year.group(1)
+        return (ask_back + f"ต้องการทราบอะไรเกี่ยวกับปี {y} ลองถาม เช่น \"ปี {y} รวมกี่หน่วยกิต\" หรือ \"ปี {y} เทอม 1 เรียนอะไรบ้าง\"",
+                [], "SELECT NULL WHERE 0")
+    if sem:
+        s = sem.group(1)
+        return (ask_back + f"เทอม {s} ของปีไหน ลองถาม เช่น \"ปี 1 เทอม {s} เรียนอะไรบ้าง\" หรือ \"ปี 2 เทอม {s} รวมกี่หน่วยกิต\"",
+                [], "SELECT NULL WHERE 0")
+    if _VAGUE_GENERIC.fullmatch(q):
+        return (ask_back + "ต้องการทราบอะไรเกี่ยวกับหลักสูตร ลองถาม เช่น \"หลักสูตรนี้กี่หน่วยกิต\", \"ปี 1 เทอม 1 เรียนอะไรบ้าง\" "
+                "หรือ \"<ชื่อวิชา> ต้องเรียนวิชาอะไรมาก่อน\"", [], "SELECT NULL WHERE 0")
+    if not _VAGUE_NAME.fullmatch(q) or _CODE8.search(q):
+        return None
+    key = _name_key(q)
+    if len(key) < 3:
+        return None
+    try:
+        courses = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, name_th, name_en FROM course ORDER BY code")]
+    except sqlite3.OperationalError:
+        return None
+    hits = []
+    for code, th, en in courses:
+        keys = [_name_key(th), _name_key(en)]
+        if key in keys:                                          # ชื่อเต็มเป๊ะ = ภาพรวมวิชา (ทางเดิม ไม่ใช่คำถามคลุมเครือ)
+            return None
+        if any(key in k for k in keys if k):
+            hits.append({"code": code, "name_th": th, "name_en": en})
+    if not hits:
+        return None
+    shown = hits[:8]
+    listing = ", ".join(f"{h['code']} {h['name_th']}" for h in shown) + (f" และอีก {len(hits) - 8} วิชา" if len(hits) > 8 else "")
+    return (ask_back + f"\"{q}\" ตรงกับ {len(hits)} วิชา: {listing} ลองถาม เช่น \"{shown[0]['name_th']} กี่หน่วยกิต\" หรือระบุรหัสวิชา 8 หลัก",
+            shown, f"SELECT code, name_th, name_en FROM course WHERE name_th LIKE '%{q}%' OR name_en LIKE '%{q}%'")
+
+
+_YEAR_NUMS = re.compile(r"(?:ชั้น)?ปี(?:ที่)?\s*(\d{1,2})(?!\d)")                    # "ปี 2564" (พ.ศ.) ไม่นับเป็นชั้นปี
+_SEM_NUMS = re.compile(r"(?:เทอม|ภาค(?:เรียน|การศึกษา)?)(?:ที่)?\s*(\d{1,2})(?!\d)")
+
+
+def _out_of_plan_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ปี/เทอมที่แผนไม่มี ("ปี 5 เทอม 1", "ปี 1 เทอม 4") → "ไม่พบ" + บอกว่าแผนนี้มีปี/เทอมช่วงไหน (เดิมตอบ "ไม่พบ" เฉย ๆ แล้วคำใบ้บอกให้ระบุปี/เทอม
+    ทั้งที่ระบุแล้ว); ปี/เทอมอยู่ในแผน, ไม่ถามเรื่องการเรียน, มีรหัสวิชา = None"""
+    if not re.search(r"เรียน|วิชา|หน่วยกิต|ลง", question) or _CODE8.search(question):
+        return None
+    years, sems = [int(x) for x in _YEAR_NUMS.findall(question)], [int(x) for x in _SEM_NUMS.findall(question)]
+    if not years and not sems:
+        return None
+    try:
+        plan_year, plan_sem = conn.execute("SELECT MAX(year), MAX(semester) FROM plan_item").fetchone()
+        declared = conn.execute("SELECT MAX(years) FROM program").fetchone()[0]
+    except sqlite3.OperationalError:
+        return None
+    max_year = max(plan_year or 0, declared or 0)             # จำนวนปีที่เล่มประกาศ (program.years) เป็นหลัก — แผนที่โหลดไม่ครบห้ามทำให้ปีจริงถูกปฏิเสธ
+    max_sem = max(plan_sem or 0, 2)                           # อย่างน้อย 2 เทอม (ภาคฤดูร้อนมีกฎของตัวเองแล้ว)
+    if not max_year:
+        return None
+    bad_years, bad_sems = [y for y in years if y < 1 or y > max_year], [s for s in sems if s < 1 or s > max_sem]
+    if not bad_years and not bad_sems:
+        return None
+    parts = []
+    if bad_years:
+        parts.append(f"แผนนี้มีปี 1–{max_year} เท่านั้น (ไม่มีปี {', '.join(str(y) for y in dict.fromkeys(bad_years))})")
+    if bad_sems:
+        parts.append(f"แผนนี้มีเทอม 1–{max_sem} เท่านั้น (ไม่มีเทอม {', '.join(str(s) for s in dict.fromkeys(bad_sems))})")
+    return f"{_NOT_FOUND_TEXT}: " + " และ ".join(parts), [], "SELECT NULL WHERE 0"
+
+
+_UNNAMED_REF = re.compile(r"^วิชา(?:นี้|นั้น|ดังกล่าว|ที่ถามไป|เมื่อกี้|เมื่อสักครู่)")                    # ขึ้นต้นประโยค = ยังไม่เคยระบุวิชา
+_UNNAMED_REF_ATTR = re.compile(r"ก่อน|หน่วยกิต|ปีไหน|เทอมไหน|ภาคไหน|รหัส|ต้องผ่าน|ชั่วโมง|ต่อ")
+_UNNAMED_REF_NOT = re.compile(r"ถ้า|หาก|แล้ว|กับ|และ|สอง|หรือ")
+
+
+def _unnamed_course_reference_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชานี้ต้องเรียนก่อนไหม" โดยไม่ระบุวิชา (ระบบไม่จำคำถามก่อนหน้า) → ถามกลับว่าวิชาไหน; มีรหัส/ชื่อวิชาในประโยค = None"""
+    q = _VAGUE_TAIL.sub("", question.strip())
+    if (not _UNNAMED_REF.match(q) or len(q) > 30 or not _UNNAMED_REF_ATTR.search(q) or _UNNAMED_REF_NOT.search(q)
+            or _CODE8.search(q) or _named_courses(conn, q, strict=False)):
+        return None                                      # ประโยคยาว/มีเงื่อนไข/ชี้กลับวิชาที่ระบุแล้ว = ทางเดิม
+    return (f"{_CLARIFY_MARK}: วิชาไหน ระบบไม่จำคำถามก่อนหน้า กรุณาระบุชื่อหรือรหัสวิชา 8 หลักในประโยคเดียวกัน "
+            "ลองถาม เช่น \"<ชื่อวิชา> ต้องเรียนวิชาอะไรมาก่อน\" หรือ \"<รหัสวิชา> กี่หน่วยกิต\"", [], "SELECT NULL WHERE 0")
+
+
+_TYPO_ASK = re.compile(r"หน่วยกิต|ปีไหน|เทอมไหน|ภาคไหน|ปีอะไร|รหัส|ชั่วโมง")
+_TYPO_PHRASE = re.compile(r"[A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*)*(?:\s+\d+)?")
+
+
+def _typo_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ชื่อวิชาอังกฤษสะกดผิดนิดเดียว ("Calcuus 1", "Discrete Mathmatics") → "ไม่พบ" + "คุณหมายถึง ... หรือไม่" ไม่ตอบแทนเอง;
+    ต้องเหมือนชื่อจริงมาก (>= 0.85) เลขท้ายตรงกัน มีวิชาเดียวที่ใกล้ที่สุด; ชื่อตรง/เป็นส่วนของชื่อจริง/มีรหัส/ถามเชิงความสัมพันธ์ = None"""
+    if not _TYPO_ASK.search(question) or _CODE8.search(question) or _RELATIONAL_NOT.search(question) or _named_courses(conn, question):
+        return None
+    phrases = _TYPO_PHRASE.findall(question)
+    if not phrases:
+        return None
+    typed = max(phrases, key=len).strip()
+    mt = re.fullmatch(r"(.*?)(?:\s+(\d+))?", typed)
+    letters, number = re.sub(r"\s+", " ", mt.group(1)).casefold(), mt.group(2)
+    if len(letters.replace(" ", "")) < 6:
+        return None
+    import difflib
+    try:
+        courses = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT code, name_th, name_en FROM course WHERE name_en IS NOT NULL AND name_en != ''")]
+    except sqlite3.OperationalError:
+        return None
+    scored = []
+    for code, th, en in courses:
+        mn = re.fullmatch(r"(.*?)(?:\s+(\d+))?", re.sub(r"\s+", " ", en.strip()))
+        name_letters, name_number = mn.group(1).casefold(), mn.group(2)
+        if number != name_number or letters in name_letters or name_letters in letters:      # ชื่อจริงอยู่ในประโยคแล้ว (มีคำต่อท้าย เช่น "... lecture") = ไม่ใช่สะกดผิด
+            continue
+        ratio = difflib.SequenceMatcher(None, letters, name_letters).ratio()
+        if ratio >= 0.85:
+            scored.append((ratio, code, th, en))
+    if not scored:
+        return None
+    scored.sort(reverse=True)
+    if len(scored) > 1 and scored[1][0] > scored[0][0] - 0.03:               # ใกล้เคียงหลายวิชาพอ ๆ กัน = ไม่เดา
+        return None
+    _, code, th, en = scored[0]
+    return (f"{_NOT_FOUND_TEXT}: ไม่พบวิชา \"{typed}\" คุณหมายถึง {code} {th} / {en} หรือไม่ ถ้าใช่ ลองถามใหม่ด้วยชื่อเต็มหรือรหัสวิชา 8 หลัก",
+            [{"code": code, "name_th": th, "name_en": en, "near_match": True}], f"SELECT code, name_th, name_en FROM course WHERE code = '{code}'")
+
+
 _TWO_YEAR_DIFF = re.compile(r"ต่างกัน|แตกต่างกัน|ต่างกี่|ห่างกัน")
 _TWO_YEAR_SUM = re.compile(r"รวม")
 
@@ -5647,13 +5791,13 @@ def _course_prerequisite_lookup_answer(conn: sqlite3.Connection, question: str) 
 
 
 _SHORTCUTS = (
-    _other_program_answer, _withdrawal_answer, _planning_unsupported_answer,
+    _other_program_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _two_year_credits_answer, _summer_term_answer, _unknown_course_answer,
-    _catalog_course_answer, _credit_structure_answer, _near_course_answer, _free_elective_when_answer, _year_successor_answer,
+    _catalog_course_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
 )
 
