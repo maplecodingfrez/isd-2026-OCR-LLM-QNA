@@ -237,7 +237,7 @@ textarea#question {
 }
 textarea#question::placeholder { color: var(--muted); }
 .omnibox-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; }
-.omnibox-hint { font-size: 15px; color: var(--muted); }
+.omnibox-hint { font-size: 15px; color: var(--muted); min-width: 0; }        /* หดได้ (ตัดบรรทัด) เมื่อจอแคบ — ปุ่มไม่ถูกบีบ */
 .kbd { font-family: var(--font-mono); font-size: 13px; padding: 1px 6px; border: 1px solid var(--field-line); border-radius: 6px; }
 #ask-button, .inline-form button[type="submit"], .answer-footer button, .state-error > button {
   min-height: 44px; padding: 6px 22px; border: 2px solid var(--accent); border-radius: var(--radius-md);
@@ -545,7 +545,8 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .examples-drawer > summary { color: var(--muted); }
 .examples-drawer .recent-wrap { margin-top: 12px; }
 .examples.recent { --pill-bg: var(--line); --pill-fg: var(--text); min-height: 0; margin-top: 4px; }
-.omnibox-buttons { display: flex; align-items: center; gap: 8px; }
+.omnibox-buttons { display: flex; align-items: center; gap: 8px; flex: none; }
+#ask-button, #clear-button { white-space: nowrap; }      /* ที่ 320px ป้าย "ถาม"/"ล้าง" เคยแตกเป็นแนวตั้ง (สูง 90px) */
 #clear-button { min-height: 44px; padding: 6px 16px; border: 2px solid var(--line); border-radius: var(--radius-md); background: transparent; color: var(--accent); font-size: 15px; font-weight: 600; }
 #clear-button:hover { background: var(--surface-hover); }
 
