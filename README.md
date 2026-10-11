@@ -1,4 +1,4 @@
-<h1 align="center">isd-2026-OCR-LLM-QNA</h1>
+<h1 align="center">Curriculum QnA</h1>
 
 <p align="center">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white">
