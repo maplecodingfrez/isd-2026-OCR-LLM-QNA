@@ -12,7 +12,7 @@
 ## ลิงก์ส่งงาน
 | รายการ | ลิงก์ |
 |---|---|
-| วิดีโอเดโม (เปิดเครื่องใหม่ → รันแอป พร้อมเสียงบรรยาย) | <https://youtu.be/pTQHqkEWWkY> |
+| วิดีโอเดโม (เปิดเครื่องใหม่ → รันแอป พร้อมเสียงบรรยาย) | <https://youtu.be/t5icHbWh_cU> |
 | สไลด์นำเสนอ (PDF) | [Google Drive: `slides`](https://drive.google.com/drive/folders/1VXsBvQ5II3ez17NG4_0gEYZaglmeoueX) |
 | PDF เล่มหลักสูตร (`curriculum.pdf` ของ 4 หลักสูตร) | [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I) |
 | โฟลเดอร์ส่งงานทั้งหมด | [Google Drive](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) |
