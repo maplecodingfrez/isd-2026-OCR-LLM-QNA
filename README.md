@@ -1,4 +1,9 @@
 # isd-2026-OCR-LLM-QNA
+![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Ollama qwen3:4b](https://img.shields.io/badge/Ollama-qwen3%3A4b-000000?logo=ollama&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+
 > ระบบถาม-ตอบเล่มหลักสูตร (AIT / BIT / DSBA / IT) — พิมพ์คำถามภาษาไทย ได้คำตอบพร้อมหน้าอ้างอิงในเล่ม
 
 ## ลิงก์ส่งงาน
@@ -9,6 +14,8 @@
 | PDF เล่มหลักสูตร (`curriculum.pdf` ของ 4 หลักสูตร) | [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I) |
 | โฟลเดอร์ส่งงานทั้งหมด | [Google Drive](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) |
 
+
+![ตัวอย่างการใช้งาน: พิมพ์คำถาม Calculus 1 กี่หน่วยกิต แล้วได้คำตอบพร้อมหน้าอ้างอิง](docs/screenshots/demo.gif)
 
 ![หน้าจอแอป](docs/screenshots/app.jpg)
 
