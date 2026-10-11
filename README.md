@@ -18,16 +18,6 @@
 3. **เลือกทางตอบ:** ถ้าตรงกฎตายตัว (เช่น หน่วยกิต วิชาบังคับก่อน ปี/เทอม) ตอบจากฐานข้อมูลทันทีโดยไม่เรียกโมเดล ถ้าไม่ตรงกฎ โมเดล `qwen3:4b` (Ollama) แปลงคำถามเป็น SQL
 4. **ตอบอย่างปลอดภัย:** รันได้เฉพาะ SELECT บนฐานข้อมูลแบบอ่านอย่างเดียว ไม่มีข้อมูลก็ตอบว่า "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ไม่เดา · คำตอบแนบหน้าอ้างอิง (หน้าที่พิมพ์ + หน้า PDF) และ SQL ที่ใช้
 
-## งาน Lab 11 (Front-End) อยู่ที่ไหน
-
-| งานที่ส่ง | ที่อยู่ในรีโป |
-|---|---|
-| Wireframe | [`docs/wireframes/curriculum_app.png`](docs/wireframes/curriculum_app.png) (ต้นฉบับ [Figma](https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa)) |
-| API contract | [`lab10_fastapi/README.md`](lab10_fastapi/README.md) หัวข้อ 13 |
-| `index.html`, `style.css`, `app.js` | [`lab10_fastapi/curriculum_app/static/`](lab10_fastapi/curriculum_app/static/) |
-
-ใช้งานได้ทันทีหลัง clone หรือดาวน์โหลด ZIP: ฐานข้อมูล 7 แผนและหน้าเว็บอยู่ใน repo แล้ว ไม่ต้องมี PDF หรือไฟล์ `.env`
-
 ## 0. เตรียมเครื่อง (ครั้งเดียวต่อเครื่อง ข้ามได้ถ้ามีครบแล้ว)
 
 เริ่มจากเครื่องที่ยังไม่มีอะไรเลย (ตัวอย่างนี้ใช้ Windows และ PowerShell) ต้องต่ออินเทอร์เน็ตตอนติดตั้งและดึงโมเดลครั้งแรกเท่านั้น หลังจากนั้นใช้งานแบบออฟไลน์ได้
@@ -243,6 +233,14 @@ print(r.json()["answer"])
 - ไฟล์ส่งงาน (วิดีโอเดโม, สไลด์ PDF, PDF เล่มหลักสูตร): ดูตาราง "ลิงก์ส่งงาน" ด้านบนสุด
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
 - เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
+
+## งานส่วน Front-End (Lab 11) อยู่ที่ไหน
+
+| งานที่ส่ง | ที่อยู่ในรีโป |
+|---|---|
+| Wireframe | [`docs/wireframes/curriculum_app.png`](docs/wireframes/curriculum_app.png) (ต้นฉบับ [Figma](https://www.figma.com/design/u3nW7UBo6zoQ2UHUzAVgBa)) |
+| API contract | [`lab10_fastapi/README.md`](lab10_fastapi/README.md) หัวข้อ 13 |
+| `index.html`, `style.css`, `app.js` | [`lab10_fastapi/curriculum_app/static/`](lab10_fastapi/curriculum_app/static/) |
 
 ## ความแม่นยำ
 วัดด้วยชุดคำถามอิสระ 140 ข้อ (ผู้เขียนคำถามไม่เห็นโค้ดและเฉลย วัดเมื่อ 10 ต.ค. 2026 เฉลยด้วยมือ)
