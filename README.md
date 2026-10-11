@@ -1,6 +1,15 @@
 # isd-2026-OCR-LLM-QNA
 > ระบบถาม-ตอบเล่มหลักสูตร (AIT / BIT / DSBA / IT) — พิมพ์คำถามภาษาไทย ได้คำตอบพร้อมหน้าอ้างอิงในเล่ม
 
+## ลิงก์ส่งงาน
+| รายการ | ลิงก์ |
+|---|---|
+| วิดีโอเดโม (เปิดเครื่องใหม่ → รันแอป พร้อมเสียงบรรยาย) | <https://youtu.be/pTQHqkEWWkY> |
+| สไลด์นำเสนอ (PDF) | [Google Drive: `slides`](https://drive.google.com/drive/folders/1VXsBvQ5II3ez17NG4_0gEYZaglmeoueX) |
+| PDF เล่มหลักสูตร (`curriculum.pdf` ของ 4 หลักสูตร) | [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I) |
+| โฟลเดอร์ส่งงานทั้งหมด | [Google Drive](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) |
+
+
 ![หน้าจอแอป](docs/screenshots/app.jpg)
 
 ## ระบบทำงานอย่างไร
@@ -231,7 +240,7 @@ print(r.json()["answer"])
 ```
 
 ## เอกสารเพิ่มเติม
-- ไฟล์ส่งงานบน Google Drive: [โฟลเดอร์หลัก](https://drive.google.com/drive/folders/1mhhxO0R8MMXIJNS68DoQGWU53jR4lau-) · PDF หลักสูตร (`data/input/`) · สไลด์นำเสนอ `.pdf` (`slides/`) · คลิปเดโม (`demo-video/`)
+- ไฟล์ส่งงาน (วิดีโอเดโม, สไลด์ PDF, PDF เล่มหลักสูตร): ดูตาราง "ลิงก์ส่งงาน" ด้านบนสุด
 - API / สถาปัตยกรรม / ส่งคำถามเป็นชุด (`ask-batch`) / ข้อจำกัดที่รู้อยู่: [`lab10_fastapi/README.md`](lab10_fastapi/README.md)
 - เทสต์: อยู่ใน branch `dev/tests` (`git checkout dev/tests`)
 
