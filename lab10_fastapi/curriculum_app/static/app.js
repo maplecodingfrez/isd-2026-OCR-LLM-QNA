@@ -1349,7 +1349,8 @@
     [names.secondary, own.credits ? own.credits + " " + t("credits.unit") : "",
       own.hours ? t("hours.fmt", { l: own.hours[0], p: own.hours[1], s: own.hours[2] }) : ""].filter(Boolean).forEach(function (part, i) {
       if (i) metaBox.appendChild(document.createTextNode(" · "));
-      metaBox.appendChild(el("span", { className: "meta-part", text: part }));     // แต่ละส่วนไม่ตัดบรรทัดกลางคำ
+      // หน่วยกิต/ชั่วโมงไม่ตัดบรรทัดกลางคำ แต่ชื่อวิชา (ยาวได้) ต้องลงบรรทัดใหม่ได้
+      metaBox.appendChild(el("span", { className: "meta-part" + (part === names.secondary ? " meta-name" : ""), text: part }));
     });
     fillCourseList($("prereq-required"), data.prerequisites_required,
       data.prerequisite_status === "not_in_plan" ? t("prereq.notInPlan") : prerequisiteEmptyText(data), prereqTag);

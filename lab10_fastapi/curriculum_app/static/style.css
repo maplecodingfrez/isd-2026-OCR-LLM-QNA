@@ -383,6 +383,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 }
 
 .meta-part { white-space: nowrap; }
+.meta-part.meta-name { white-space: normal; overflow-wrap: anywhere; }
 .course-tags { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px; }
 .path-tag, .line-tag { font-size: 15px; font-weight: 600; padding: 1px 9px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--line); color: var(--text); }
 .line-tag { border-color: var(--accent); }
