@@ -202,15 +202,31 @@ print(r.json()["answer"])
 
 ```text
 .
-├── lab10_fastapi/curriculum_app/   # แอปที่รัน: FastAPI (main.py) + หน้าเว็บ (static/)
-├── Lab7B_Lab8B_ocr_system/
+├── README.md                       # คู่มือนี้
+├── requirements.txt                # แพ็กเกจขั้น OCR (ข้อ 1.3) · เอนจินเสริมอยู่ requirements-extra-engines.txt
+├── lab10_fastapi/                  # แอปที่รัน (ส่วนที่ผู้ตรวจต้องใช้)
+│   ├── README.md                   # รายละเอียด API, สถาปัตยกรรม, ข้อจำกัด
+│   └── curriculum_app/
+│       ├── main.py                 # FastAPI: routes ทั้งหมด (/api/...)
+│       ├── config.py               # รายการ 7 แผน + ตั้งค่า (.env.example)
+│       ├── database.py             # เข้าถึงฐานข้อมูล SQLite (ค้นวิชา, บังคับก่อน, ถอนวิชา)
+│       ├── model_service.py        # เรียก Ollama (qwen3:4b)
+│       ├── schemas.py              # รูปแบบ request/response
+│       ├── course_search.py, sample_questions.py
+│       ├── requirements.txt        # แพ็กเกจสำหรับรันแอป (ข้อ 1.1)
+│       └── static/                 # หน้าเว็บ: index.html, style.css, app.js, i18n.js, fonts/
+├── Lab7B_Lab8B_ocr_system/         # OCR → ฐานข้อมูล (ไม่ต้องรันถ้าใช้ DB ที่มีใน repo)
+│   ├── run_lab8b.py                # สร้างฐานข้อมูลต่อแผน (ข้อ 1.3)
 │   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
 │   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
 │       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
 │       ├── lab7b_output/           # ผล OCR + ผลประเมิน
 │       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
-├── Lab9_evaluation/                # ชุด Gold Questions + รายงาน metric
-├── docs/                           # wireframe, รายงาน
+├── Lab9_evaluation/                # ชุด Gold Questions + ground truth + รายงาน metric (reports/)
+├── docs/
+│   ├── wireframes/                 # wireframe Lab 11
+│   ├── screenshots/                # ภาพหน้าจอแอป
+│   └── reports/                    # รายงาน Lab 10
 └── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
 ```
 
