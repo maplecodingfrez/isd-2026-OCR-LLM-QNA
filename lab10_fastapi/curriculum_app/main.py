@@ -208,6 +208,8 @@ def post_course(course: CourseCreate, program: str | None = Query(default=None))
 # ตอบ 503 ข้อความคงที่ ไม่ส่งข้อความ exception (มี host/port) ออกไปให้ client
 _INFRA_ERRORS = {"ConnectionError", "Timeout", "ReadTimeout", "ConnectTimeout", "HTTPError", "RequestException", "ChunkedEncodingError",
                  "SSLError", "ProxyError", "TooManyRedirects"}
+# ข้อความของ lab8b.guard_sql เมื่อโมเดลเขียนคำสั่งที่ไม่ใช่ SELECT/WITH (เช่น "ลบข้อมูลวิชาทั้งหมด" → DELETE)
+_GUARD_REFUSALS = ("อนุญาตเฉพาะ SELECT หรือ WITH เท่านั้น", "พบคำสั่งที่ไม่อนุญาตใน SQL", "ห้ามมีหลายคำสั่งใน query เดียว")
 
 
 @app.post("/api/ask", response_model=AskResponse)
@@ -234,7 +236,12 @@ def ask(request: AskRequest) -> dict:
             _logger.warning("Model backend error: %s", result["error"])
             raise HTTPException(status_code=503, detail="ติดต่อ Ollama ไม่ได้")
         _logger.warning("Curriculum query failed: %s; SQL=%s", result["error"], result.get("sql"))
-        raise HTTPException(status_code=422, detail="ระบบแปลงคำถามเป็นคำค้นไม่ได้ กรุณาลองถามใหม่ให้เจาะจงขึ้น")
+        # SQL ของโมเดลรันไม่ผ่านสองรอบ = ตอบเป็นคำตอบ (HTTP 200) ไม่ใช่ error: หน้าเว็บมีข้อความให้ copy
+        # guard_sql ปฏิเสธคำสั่งแก้ไข/ลบ = บอกว่าปฏิเสธ; อย่างอื่น = "ไม่พบ" + ให้ถามใหม่ (บางครั้งถามซ้ำแล้วผ่าน)
+        refused = any(m in str(result["error"]) for m in _GUARD_REFUSALS)
+        result.update(answer=("ไม่พบข้อมูลนี้ในเล่มหลักสูตร: ระบบตอบได้เฉพาะการค้นข้อมูลหลักสูตร ไม่แก้ไขหรือลบข้อมูล คำสั่งนี้จึงถูกปฏิเสธ" if refused else
+                              "ไม่พบข้อมูลนี้ในเล่มหลักสูตร: ระบบแปลงคำถามนี้เป็นคำค้นไม่ได้ ลองถามใหม่อีกครั้งหรือถามให้เจาะจงขึ้น"),
+                      rows=[], sql=None, citations=[], citation_text="", answer_type="rule" if refused else "ai")
     result["program"] = request.program
     result["processing_seconds"] = round(time.perf_counter() - started, 4)
     return result
