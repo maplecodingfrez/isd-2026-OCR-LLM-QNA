@@ -33,7 +33,7 @@ TOPICS = (
      r"ระดับคะแนน(?:มี)?(?:อะไรบ้าง|กี่ระดับ)|grading|grade\s+(?:scale|system|criteria|policy|levels?)|how\s+(?:are|is)\s+.{0,20}grad(?:ed|ing)",
      r"(?i)\d{8}|เกียรตินิยม|honou?rs?|จบ|สำเร็จการศึกษา|graduat|รีไทร์|พ้นสภาพ|retire|เฉลี่ย|GPA|GPAX|วิชา(?!การ)\S"),
     ("education_system", "ระบบการจัดการศึกษา",
-     r"(?i)ระบบการจัดการศึกษา|ทวิภาค|ไตรภาค|ระบบ(?:ภาค|เทอม)|(?:ปีหนึ่ง|ปี\s*1|ปีละ|1\s*ปี|หนึ่งปี)(?:การศึกษา)?(?:มี)?(?:กี่|มีกี่)(?:เทอม|ภาค)|"   # "ปีหนึ่ง" arrives as "ปี 1"
+     r"(?i)ระบบการ(?:จัดการ)?ศึกษา|ทวิภาค|ไตรภาค|ระบบ(?:ภาค|เทอม)|(?:ปีหนึ่ง|ปี\s*1|ปีละ|1\s*ปี|หนึ่งปี)(?:การศึกษา)?(?:มี)?(?:กี่|มีกี่)(?:เทอม|ภาค)|"   # "ปีหนึ่ง" arrives as "ปี 1"
      r"กี่(?:เทอม|ภาค(?:การศึกษา)?)(?:ต่อ|ใน)\s*(?:1\s*)?ปี|(?:มี|เปิด)(?:ภาค)?(?:ฤดูร้อน|ซัมเมอร์)\s*(?:ไหม|มั้ย|หรือเปล่า|หรือไม่|ป่าว|ปะ)|"
      r"(?:ภาค)?(?:ฤดูร้อน|ซัมเมอร์)(?:มี|เปิด)?\s*(?:ไหม|มั้ย|หรือเปล่า|หรือไม่|ป่าว|ปะ)|(?:ภาค)?(?:ฤดูร้อน|ซัมเมอร์).{0,10}(?:กี่สัปดาห์|นานเท่า|กี่เดือน)|"
      r"is\s+there\s+(?:a\s+)?summer|summer\s+(?:term|semester|session)|semester\s+system|how\s+many\s+(?:semesters|terms)\s+(?:per|a|in\s+a|each)\s+year",
@@ -57,7 +57,7 @@ TOPICS = (
      r"(?i)\d{8}|(?<!สาขา)วิชา(?!การ)|ภาษาอังกฤษ(?:พื้นฐาน|เพื่อ|สำหรับ)|กี่หน่วยกิต|กี่วิชา|หน่วยกิต|course|credit|toeic|ielts"),
     ("coop_timing", "ช่วงเวลาและการจัดเวลาสหกิจศึกษา",
      r"(?i)สหกิจ(?:ศึกษา)?.{0,20}(?:กี่สัปดาห์|กี่เดือน|กี่วัน|นานเท่า|นานแค่ไหน|นานไหม|ระยะเวลา|ช่วงเวลา|ทำงานกี่วัน|ต่อสัปดาห์)|"
-     r"(?:ระยะเวลา|ช่วงเวลา)(?:ของ|ใน|การ)?(?:ไป|ฝึก)?สหกิจ|co-?op(?:erative)?(?:\s+education|\s+program(?:me)?)?.{0,30}(?:how\s+long|duration|weeks|days\s+a\s+week)|"
+     r"(?:ระยะเวลา|ช่วงเวลา)(?:ของ|ใน|การ)?(?:ไป|ฝึก)?สหกิจ|(?:ไป|ออก|ฝึก)?สหกิจ(?:ศึกษา)?(?:ช่วง|ตอน)(?:ไหน|ใด)|(?:ไป|ออก|ฝึก)สหกิจ(?:ศึกษา)?(?:เมื่อไร|เมื่อไหร่)|co-?op(?:erative)?(?:\s+education|\s+program(?:me)?)?.{0,30}(?:how\s+long|duration|weeks|days\s+a\s+week)|"
      r"how\s+long\s+is\s+(?:the\s+)?co-?op",
      r"(?i)\d{8}|ปีไหน|เทอมไหน|ภาค(?:การศึกษา)?ไหน|กี่หน่วยกิต|หน่วยกิต|วิชา(?!การ)\S|which\s+(?:year|term|semester)"),
 )
@@ -89,8 +89,11 @@ def quote_answer(program_id: str | None, question: str, root: Path = REPO_ROOT) 
     q = quotes.get(hit[0])
     if not q or not q.get("body"):
         return None
-    row = {"topic": hit[0], "heading": q["heading"], "body": q["body"], "pdf_page": q["pdf_page"], "printed_page": q.get("printed_page")}
-    return f"{hit[1]} (ตามเล่มหลักสูตร): {q['body']}", [row]
+    body = q["body"]
+    if hit[0] == "plo":                                            # one outcome per line, in the answer text that gets copied and on the page
+        body = re.sub(r"\s+(?=PLO\s*\d)", "\n", body)
+    row = {"topic": hit[0], "heading": q["heading"], "body": body, "pdf_page": q["pdf_page"], "printed_page": q.get("printed_page")}
+    return f"{hit[1]} (ตามเล่มหลักสูตร): {body}", [row]
 
 
 # ---------------- build from OCR text (offline, run once) ----------------

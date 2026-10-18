@@ -435,7 +435,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-heigh
 .ge-group-n { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
 .ge-label { margin-top: 14px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .ge-section .course-lines { margin-top: 2px; }
-.book-intro { margin-top: 6px; line-height: 1.7; }
+.book-intro { margin-top: 6px; line-height: 1.7; white-space: pre-line; }
 .book-list { list-style: none; display: grid; gap: 6px; margin-top: 10px; }
 .book-list li { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr); gap: 8px; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .book-list li:last-child { border-bottom: 0; padding-bottom: 0; }
