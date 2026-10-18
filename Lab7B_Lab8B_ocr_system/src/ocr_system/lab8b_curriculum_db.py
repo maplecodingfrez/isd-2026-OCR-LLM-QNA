@@ -2113,7 +2113,20 @@ def _is_credit_structure_question(question: str, loose: bool = False) -> bool:
                 and not _CODE8.search(question) and not any(_term_numbers(question)))
 
 
+_MAJOR_REQUIRED = re.compile(r"(?:หมวด)?วิชาเฉพาะ\s*บังคับ")
+
+
 def _credit_structure_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาเฉพาะบังคับมีกี่หน่วยกิต": เล่มไม่มีหมวดชื่อนี้ (โมเดลเคยตอบ 12 = กลุ่มวิชาชีพเฉพาะด้าน) → ตอบหมวดวิชาเฉพาะทั้งหมดพร้อมกลุ่มย่อยและบอกเหตุผล"""
+    if not _MAJOR_REQUIRED.search(question):
+        return _credit_structure_core(conn, question)
+    got = _credit_structure_core(conn, _MAJOR_REQUIRED.sub("หมวดวิชาเฉพาะ", question))
+    if not got:
+        return None
+    return got[0] + " (เล่มไม่ได้แยกหมวด \"วิชาเฉพาะบังคับ\" ไว้ จึงตอบเป็นหมวดวิชาเฉพาะทั้งหมดพร้อมกลุ่มย่อย)", got[1], got[2]
+
+
+def _credit_structure_core(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     asks_group_count = bool(re.search(r"กี่(?:หมู่|กลุ่ม)", question))
     question = question.replace("หมู่", "กลุ่ม")                  # "ศึกษาทั่วไปมีกี่หมู่" = กี่กลุ่มวิชา (เล่มใช้คำว่า กลุ่มวิชา)
     strict = _is_credit_structure_question(question)
@@ -2866,7 +2879,7 @@ def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[st
             found.append((mt.start(), mt.end(), mt.group()))
     found = sorted(set(found))
     codes = list(dict.fromkeys(c for _, _, c in found))
-    if len(codes) < 3:
+    if len(codes) < 2:                                               # สองวิชา: เฉพาะ "ผ่าน A แล้ว ลง B ได้ไหม" (รูปตก/ยังไม่ผ่านมีทางลัดอื่นตอบอยู่แล้ว)
         return None
     t_start, _t_end, target = found[-1]
     if not re.search(r"ลง|เรียน", question[max(0, t_start - 14):t_start]) or target not in req:
@@ -2884,6 +2897,8 @@ def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[st
         elif not (last and re.search(r"(?:กับ|และ|,|แล้ว)\s*$", ctx)):
             return None
         (failed if last == "fail" else passed).add(code)
+    if len(codes) == 2 and (failed or not passed):
+        return None
     names = {c["code"]: c["name_th"] for c in courses}
 
     def nm(c: str) -> str:
@@ -2904,6 +2919,9 @@ def _prereq_scenario_answer(conn: sqlite3.Connection, question: str) -> tuple[st
         return f"ได้ — ผ่านวิชาบังคับก่อนของ {nm(target)} ครบแล้ว ({', '.join(nm(c) for c in sorted(need))})", rows, sql
     if missing & failed:
         return f"ไม่ได้ — {nm(target)} ต้องผ่าน {', '.join(nm(c) for c in sorted(missing))} ก่อน แต่ยังไม่ผ่าน", rows, sql
+    if len(codes) == 2:                                              # ผ่านแล้วแต่ไม่ใช่วิชาบังคับก่อนของวิชาที่จะลง
+        return (f"ยังไม่ได้ — {nm(target)} ต้องผ่าน {', '.join(nm(c) for c in sorted(missing))} ก่อน "
+                f"({', '.join(nm(c) for c in sorted(passed))} ไม่ใช่วิชาบังคับก่อนของ {names.get(target, target)})"), rows, sql
     return None
 
 
@@ -4580,7 +4598,76 @@ def _typo_course_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         return None
     _, code, th, en = scored[0]
     return (f"{_NOT_FOUND_TEXT}: ไม่พบวิชา \"{typed}\" คุณหมายถึง {code} {th} / {en} หรือไม่ ถ้าใช่ ลองถามใหม่ด้วยชื่อเต็มหรือรหัสวิชา 8 หลัก",
-            [{"code": code, "name_th": th, "name_en": en, "near_match": True}], f"SELECT code, name_th, name_en FROM course WHERE code = '{code}'")
+            [{"code": code, "name_th": th, "name_en": en, "near_match": True, "typed": typed}], f"SELECT code, name_th, name_en FROM course WHERE code = '{code}'")
+
+
+_ORDER_Q = re.compile(r"ลำดับ|ก่อนหลัง|อันไหนก่อน|ตัวไหนก่อน|วิชาไหนก่อน|อะไรก่อน")
+
+
+def _course_order_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """สามวิชาขึ้นไป "ต้องเรียนตามลำดับยังไง" → เรียงตามปี/เทอมในแผน + บอกคู่ที่เป็นวิชาบังคับก่อน (สองวิชาใช้ _which_first_answer);
+    มีวิชาที่ไม่อยู่ในแผน/มากกว่า 5 วิชา = None"""
+    if not _ORDER_Q.search(question):
+        return None
+    _citations_module()
+    import course_names
+    try:
+        courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+        req, _alt = _requires_map(conn)
+    except sqlite3.OperationalError:
+        return None
+    known = {c["code"] for c in courses}
+    codes = list(dict.fromkeys([c for _, c in course_names.course_hints(question, courses)] + [m_.group() for m_ in _CODE8.finditer(question) if m_.group() in known]))
+    if not 3 <= len(codes) <= 5:
+        return None
+    terms = _first_terms(conn)
+    if any(c not in terms for c in codes):
+        return None
+    names = {c["code"]: c["name_th"] for c in courses}
+    ordered = sorted(codes, key=lambda c: (terms[c], c))
+    text = "ลำดับตามแผนการเรียน: " + " → ".join(f"{names.get(c, c)} ({c}) {_TERM_LABEL.format(y=terms[c][0], s=terms[c][1])}" for c in ordered)
+    links = [f"{names.get(a, a)} เป็นวิชาบังคับก่อนของ {names.get(b, b)}" for b in ordered for a in ordered if a in req.get(b, set())]
+    if links:
+        text += " (" + "; ".join(links) + ")"
+    rows = [{"code": c, "name_th": names.get(c), "year": terms[c][0], "semester": terms[c][1]} for c in ordered]
+    return text, rows, "SELECT code, year, semester FROM plan_item WHERE code IN (" + ", ".join(f"'{c}'" for c in ordered) + ") ORDER BY year, semester"
+
+
+_THAI_NAME_AFTER = re.compile(r"วิชา\s*([฀-๿]{4,}?)(?:\s*(\d{1,2}))?(?=\s|จะ|ต้อง|กี่|เรียน|มี|อยู่|ได้|ไหม|คือ|$)")
+
+
+def _thai_near_name_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ชื่อวิชาไทยที่พิมพ์ไม่ครบ ("โครงสร้างข้อมูล") หรือสะกดผิด ("แคลคุลัส 2") และไม่มีชื่อตรงในฐานข้อมูล → "ไม่พบ" + "คุณหมายถึง ..." (ไม่ตอบแทนเอง);
+    ต้องมีวิชาเดียวในแผนที่ขึ้นต้นด้วยชื่อที่พิมพ์ หรือวิชาเดียวที่คล้ายมาก (>= 0.85) เลขท้ายตรงกัน; มีรหัส/มีชื่อวิชาตรงอยู่แล้ว = None"""
+    if _CODE8.search(question) or _named_courses(conn, question, strict=False):
+        return None
+    mt = _THAI_NAME_AFTER.search(question)
+    if not mt:
+        return None
+    typed, number = mt.group(1), mt.group(2)
+    if typed in ("อะไร", "ไหน", "บังคับก่อน", "เลือก", "เลือกเสรี") or len(typed) < 5:
+        return None
+    import difflib
+    try:
+        rows = [(r[0], r[1] or "", r[2] or "") for r in conn.execute("SELECT DISTINCT c.code, c.name_th, c.name_en FROM v_plan v JOIN course c ON c.code = v.code")]
+    except sqlite3.OperationalError:
+        return None
+
+    def split(name: str) -> tuple[str, str | None]:
+        m_ = re.fullmatch(r"(.*?)(?:\s*(\d{1,2}))?", re.sub(r"\s+", "", name))
+        return m_.group(1), m_.group(2)
+    prefix = [r for r in rows if split(r[1])[0].startswith(typed) and split(r[1])[0] != typed and (number is None or split(r[1])[1] == number)]
+    if len(prefix) == 1:
+        hit = prefix[0]
+    else:
+        scored = sorted(((difflib.SequenceMatcher(None, typed, split(th)[0]).ratio(), code, th, en) for code, th, en in rows if split(th)[1] == number), reverse=True)
+        if not scored or scored[0][0] < 0.85 or (len(scored) > 1 and scored[1][0] > scored[0][0] - 0.03):
+            return None
+        hit = scored[0][1:]
+    code, th, en = hit
+    shown = typed + (f" {number}" if number else "")
+    return (f"{_NOT_FOUND_TEXT}: ไม่พบวิชา \"{shown}\" คุณหมายถึง {code} {th} / {en} หรือไม่ ถ้าใช่ ลองถามใหม่ด้วยชื่อเต็มหรือรหัสวิชา 8 หลัก",
+            [{"code": code, "name_th": th, "name_en": en, "near_match": True, "typed": shown}], f"SELECT code, name_th, name_en FROM course WHERE code = '{code}'")
 
 
 _TWO_YEAR_DIFF = re.compile(r"ต่างกัน|แตกต่างกัน|ต่างกี่|ห่างกัน")
@@ -5894,7 +5981,7 @@ def _other_program_answer(conn: sqlite3.Connection, question: str) -> tuple[str,
 
 
 # ---- ใช่/ไม่ใช่เรื่องวิชาบังคับก่อน: "สอบตก X จะเรียน Y ได้ไหม" / "เรียน Y ก่อน X ได้ไหม" — ตอบ "ไม่ได้" ได้เมื่อ X เป็นวิชาบังคับก่อนของ Y แน่ ๆ เท่านั้น ----
-_YESNO = re.compile(r"ได้ไหม|ได้หรือไม่|ได้หรือเปล่า|ได้มั้ย|ได้รึเปล่า")
+_YESNO = re.compile(r"ได้(?:เลย)?(?:ไหม|หรือไม่|หรือเปล่า|มั้ย|รึเปล่า)")
 _FAIL_WORD = re.compile(
     r"สอบตก|ยังไม่ผ่าน|ไม่ผ่าน|ตก|(?<!ไม่)(?:ได้|ติด)\s*(?:เกรด\s*)?F(?![A-Za-z0-9+\-])", re.I)
 
@@ -6544,14 +6631,14 @@ def _single_edition_answer(conn: sqlite3.Connection, question: str) -> tuple[str
 
 _SHORTCUTS = (
     _other_program_answer, _name_keyword_term_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
-    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
+    _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _course_order_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
     _code_lookup_answer, _english_plan_prefix_answer, _code_family_answer, _course_code_prefix_answer, _code_and_credits_answer, _course_hours_answer, _extreme_hours_answer, _program_fact_answer, _coop_place_answer, _course_attr_answer, _course_program_answer,
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer, _book_quote_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer, _book_quote_answer, _thai_near_name_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
