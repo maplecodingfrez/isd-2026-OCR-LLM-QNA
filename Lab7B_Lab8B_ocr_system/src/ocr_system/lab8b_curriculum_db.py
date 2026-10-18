@@ -69,6 +69,9 @@ OLLAMA_URL = os.environ.get("LAB8_OLLAMA_URL", "http://127.0.0.1:11434")
 MODEL_TEXT = os.environ.get("LAB8_MODEL_TEXT", "qwen3:4b")
 # ให้ Ollama ค้างโมเดลไว้ในหน่วยความจำ (ค่าเริ่มต้นของ Ollama คือ 5 นาทีแล้วปล่อย → คำถามถัดไปช้าตอนโหลดใหม่)
 KEEP_ALIVE = os.environ.get("LAB8_KEEP_ALIVE", "30m")
+# เพดานเวลาต่อการเรียกโมเดลใน ask() (คำถามจากหน้าเว็บ): Ollama ค้าง = API ตอบ 503 ภายใน 2 นาที ไม่ค้าง 10 นาที; เผื่อ cold start ที่วัดได้ ~18 วินาที
+# งานสกัดข้อมูลทั้งเล่ม (extract) ยังใช้ค่าเริ่มต้นของ ollama_generate (600 วินาที)
+ASK_TIMEOUT = int(os.environ.get("LAB8_ASK_TIMEOUT", "120"))
 
 MAX_REPAIR_ROUNDS = 3      # จำนวนครั้งสูงสุดที่ยอมให้ LLM แก้ JSON ของตัวเอง
 SQL_ROW_LIMIT = 200        # กันไม่ให้ query เผลอดึงทั้งตารางมาใส่ prompt
@@ -6458,6 +6461,20 @@ def _two_course_same_term_answer(conn: sqlite3.Connection, question: str) -> tup
     return text, rows, f"SELECT code, year, semester FROM plan_item WHERE code IN ('{codes[0]}', '{codes[1]}')"
 
 
+def _book_quote_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """คำถามเชิงเนื้อหาที่ไม่อยู่ใน DB (PLO, เงื่อนไขวิชาเลือกเสรี, เกณฑ์เกรด, ระบบการศึกษา, เปิดภาค, เทียบโอน, ภาษา, ช่วงสหกิจ)
+    = ยกข้อความเล่มพร้อมหน้าจาก runs/<BOOK>/book_quotes.json (book_quotes.py) ไม่ให้โมเดลแต่ง; ไม่ตรงหัวข้อ = None"""
+    import book_quotes
+    try:
+        pid = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()[0]
+    except (sqlite3.Error, TypeError):
+        return None
+    got = book_quotes.quote_answer(pid, question, REPO_ROOT)
+    if not got:
+        return None
+    return got[0], got[1], ""
+
+
 _EDITION_Q = re.compile(r"(?:หลักสูตร|ฉบับ|เล่ม)\s*(?:เก่า|เดิม|ก่อนหน้า|ปรับปรุง|เวอร์ชัน)|เวอร์ชัน\s*(?:เก่า|ใหม่|ก่อน)|\bversion\b|"
                         r"(?:2|สอง)\s*ปริญญา|ทวิปริญญา|double\s*degree|dual\s*degree", re.I)
 
@@ -6488,7 +6505,7 @@ _SHORTCUTS = (
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer, _book_quote_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
@@ -6661,7 +6678,7 @@ def ask(conn: sqlite3.Connection, question: str,
             break
     if open_slot:
         result["answer"], result["rows"], result["sql"] = open_slot
-        result["answer_type"] = "ocr" if shortcut.__name__ == "_book_section_answer" else ("database" if result["rows"] else "rule")
+        result["answer_type"] = "ocr" if shortcut.__name__ in ("_book_section_answer", "_book_quote_answer") else ("database" if result["rows"] else "rule")
         _attach_citations(conn, result)
         return result
     result["answer_type"] = "ai"
@@ -6680,7 +6697,7 @@ def ask(conn: sqlite3.Connection, question: str,
     for attempt in range(2):
         try:
             raw_sql = ollama_generate(
-                prompt + '\nตอบเป็น JSON รูปแบบ {"sql": "SELECT ..."} เท่านั้น',
+                prompt + '\nตอบเป็น JSON รูปแบบ {"sql": "SELECT ..."} เท่านั้น', timeout=ASK_TIMEOUT,
                 fmt={
                     "type": "object",
                     "properties": {"sql": {"type": "string"}},
@@ -6750,7 +6767,7 @@ def ask(conn: sqlite3.Connection, question: str,
                 "properties": {"answer": {"type": "string"}},
                 "required": ["answer"],
                 "additionalProperties": False,
-            }, num_ctx=4096, num_predict=256).strip()
+            }, num_ctx=4096, num_predict=256, timeout=ASK_TIMEOUT).strip()
         result["answer_model_output"] = raw_answer
         parsed_answer = parse_json_loose(raw_answer)
         result["answer"] = (
