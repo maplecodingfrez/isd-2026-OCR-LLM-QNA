@@ -6623,6 +6623,26 @@ def _invented_term_filter(question: str, sql: str | None) -> bool:
     return bool(sql and _SQL_TERM_FILTER.search(sql) and not _TERM_WORD_Q.search(question))
 
 
+# คำสั่งเขียนข้อมูล ("ลบข้อมูลวิชาทั้งหมด", "แก้หน่วยกิต... เป็น 4", "DELETE FROM course") = ปฏิเสธด้วยกฎทุกครั้ง
+# เดิมขึ้นกับโมเดล: บางรอบเขียน DELETE แล้ว guard_sql ปฏิเสธ บางรอบตอบ "ไม่พบ" หรือทางลัดตอบข้อมูลวิชาแทน; คำถามที่มีคำถาม ("ได้ไหม", "ยังไง") ไม่นับ
+_WRITE_VERB_TH = re.compile(r"^\s*(?:ช่วย|กรุณา|ขอ|อยากให้)?\s*(?:ลบ|แก้ไข|แก้|เปลี่ยน|อัปเดต|อัพเดต|อัพเดท|เพิ่ม|ใส่|บันทึก|เขียนทับ)\s*"
+                            r"(?:ข้อมูล|หน่วยกิต|วิชา|รายวิชา|ชื่อ|รหัส|ตาราง|แผน|เกรด)")
+_WRITE_SQL = re.compile(r"^\s*(?:DELETE|UPDATE|INSERT|DROP|ALTER|TRUNCATE|REPLACE|CREATE)\b", re.I)
+_WRITE_VERB_EN = re.compile(r"^\s*(?:please\s+)?(?:delete|remove|update|change|modify|insert|add|drop|edit|rename)\s+(?:all\s+|the\s+|a\s+|this\s+|that\s+)?"
+                            r"(?:courses?|credits?|data|records?|tables?|names?|subjects?|rows?|plans?)\b", re.I)
+_WRITE_ASKS = re.compile(r"ได้ไหม|ได้มั้ย|ได้หรือไม่|ได้หรือเปล่า|ไหม|มั้ย|หรือไม่|หรือเปล่า|ยังไง|อย่างไร|ทำไง|\?")
+_WRITE_REFUSAL = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร: ระบบตอบได้เฉพาะการค้นข้อมูลหลักสูตร ไม่แก้ไขหรือลบข้อมูล คำสั่งนี้จึงถูกปฏิเสธ"
+
+
+def _write_request_answer(question: str) -> str | None:
+    """ข้อความปฏิเสธเมื่อคำถามเป็นคำสั่งเขียนข้อมูล (ไทย/อังกฤษ/SQL); คำถามทั่วไป = None"""
+    if _WRITE_SQL.search(question):
+        return _WRITE_REFUSAL
+    if (_WRITE_VERB_TH.search(question) or _WRITE_VERB_EN.search(question)) and not _WRITE_ASKS.search(question):
+        return _WRITE_REFUSAL
+    return None
+
+
 def ask(conn: sqlite3.Connection, question: str,
         verbose: bool = True) -> dict:
     """
@@ -6632,9 +6652,13 @@ def ask(conn: sqlite3.Connection, question: str,
     ถ้ารันไม่ผ่าน จะให้โมเดลลองใหม่หนึ่งครั้งพร้อมข้อความ error
     แล้วถ้ายังไม่ผ่านอีก ให้ยอมแพ้ ไม่เดาคำตอบ
     """
+    refusal = _write_request_answer(question)
+    if refusal:
+        return {"question": question, "sql": None, "rows": [], "answer": refusal, "error": None, "sql_model_output": None,
+                "answer_model_output": None, "citations": [], "citation_text": "", "slot_aware_credits": False, "answer_type": "rule"}
     from english_questions import english_to_thai
     from informal_questions import informal_to_thai
-    thai_form = english_to_thai(question) or informal_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
+    thai_form =english_to_thai(question) or informal_to_thai(question)                   # คำถามอังกฤษที่รู้จัก = ถามด้วยประโยคไทยที่ทางลัดตอบได้อยู่แล้ว (ตอบเหมือนกันทั้งสองภาษา ไม่ต้องพึ่งโมเดล)
     if thai_form:
         routed = ask(conn, thai_form, verbose=verbose)
         routed["question"] = question                       # เก็บข้อความเดิมของผู้ใช้
