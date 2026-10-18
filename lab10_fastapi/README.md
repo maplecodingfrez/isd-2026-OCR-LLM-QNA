@@ -24,7 +24,7 @@ lab10_fastapi/
 └── README.md
 ```
 
-สามารถก็อปเฉพาะโฟลเดอร์ application ได้ แต่ต้องมีโฟลเดอร์ `src/ocr_system` ที่เก็บ Lab 8 อยู่ในโปรเจกต์เดียวกัน
+สามารถก็อปเฉพาะโฟลเดอร์ application ได้ แต่ต้องมีโฟลเดอร์ `Lab7B_Lab8B_ocr_system/src/ocr_system` ที่เก็บ Lab 8 อยู่ในโปรเจกต์เดียวกัน · ขั้นตอนติดตั้งและเปิดใช้งานที่ใช้จริงอยู่ใน `README.md` ที่รากโปรเจกต์ (ข้อ 1)
 
 ## 2. สิ่งที่ต้องมีก่อนเริ่ม
 
@@ -47,7 +47,7 @@ OCR ใหม่ทั้งหมด (ช้า ต้องมี `scb10x/typh
 
 ## 3. เปิดโปรเจกต์และ Terminal
 
-เปิดโฟลเดอร์ `ocr_system` ใน VS Code แล้วเลือก:
+เปิดโฟลเดอร์โปรเจกต์ (`isd-2026-OCR-LLM-QNA` หรือ `isd-2026-OCR-LLM-QNA-main` ถ้าดาวน์โหลด ZIP) ใน VS Code แล้วเลือก:
 
 ```text
 Terminal > New Terminal
@@ -94,9 +94,9 @@ python -m pip install -r lab10_fastapi/curriculum_app/requirements.txt
 python -c "import fastapi, uvicorn; print('Lab 10 packages OK')"
 ```
 
-## 6. เตรียมไฟล์ `.env`
+## 6. เตรียมไฟล์ `.env` (ไม่บังคับ)
 
-ห้ามใส่รหัสผ่านหรือ config จริงลง source code และห้าม commit `.env`
+ไม่สร้าง `.env` ก็รันได้ เพราะทุกค่ามีค่าเริ่มต้นใน `config.py` แล้ว สร้างเมื่อต้องการเปลี่ยนค่าเท่านั้น ห้ามใส่รหัสผ่านหรือ config จริงลง source code และห้าม commit `.env`
 
 ### Windows PowerShell
 
@@ -132,8 +132,9 @@ ollama list
 
 ```bash
 ollama pull qwen3:4b
-ollama pull scb10x/typhoon-ocr1.5-3b
 ```
+
+`scb10x/typhoon-ocr1.5-3b` (~3.2 GB) ใช้เฉพาะตอนอ่านเล่ม PDF ใหม่ (README หลัก ข้อ 1.3) แอปถาม-ตอบไม่ต้องใช้
 
 ทดสอบ:
 
@@ -435,7 +436,7 @@ error ของ FastAPI เป็น JSON `{"detail": ...}` โดย `detail` �
 | สถานะ | เมื่อไร | สิ่งที่เห็น |
 |---|---|---|
 | Idle | ยังไม่ได้ส่ง | คำแนะนำ + ตัวอย่างที่กดได้ |
-| Loading | รอ backend (Qwen ใช้ 10–60 วินาที) | ข้อความบอกเวลาที่ใช้ + ปุ่ม/ช่องกรอกถูกปิดกันกดซ้ำ |
+| Loading | รอ backend (Qwen ราว 1–5 วินาที คำถามแรกหลังเปิดเครื่องราว 20 วินาที) | ข้อความบอกเวลาที่ใช้ + ปุ่ม/ช่องกรอกถูกปิดกันกดซ้ำ |
 | Success | ได้ 200 | คำตอบ + แท็บเลขหน้าอ้างอิง + ปุ่มคัดลอกคำตอบ / คัดลอกเป็น JSON (แผงถาม) / รายการวิชา (แผงตรวจวิชา) |
 | Error | ตามตารางข้างบน | title + action + ปุ่มลองอีกครั้ง + รายละเอียดจากเซิร์ฟเวอร์ (พับไว้) |
 

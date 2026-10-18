@@ -78,7 +78,9 @@ python -m venv .venv
 pip install -r lab10_fastapi/curriculum_app/requirements.txt
 ollama pull qwen3:4b
 ```
-เมื่อ venv ทำงานจะมี `(.venv)` นำหน้าบรรทัดคำสั่ง · `pip install` ใช้เวลาประมาณ 1–2 นาที · `ollama pull` ดาวน์โหลด ~3 GB ครั้งเดียว
+เมื่อ venv ทำงานจะมี `(.venv)` นำหน้าบรรทัดคำสั่ง · `pip install` ใช้เวลาประมาณ 1–2 นาที · `ollama pull` ดาวน์โหลด ~2.5 GB ครั้งเดียว
+
+เช็คว่าเครื่องพร้อม (Windows): `.\scripts\demo_preflight.ps1` ตรวจ python, git, ollama, `.venv`, `qwen3:4b`, ฐานข้อมูล 7 แผน และพอร์ต โดยไม่แก้อะไรในเครื่อง
 
 > Windows ฟ้อง execution policy ดูวิธีแก้ในหัวข้อ "แก้ปัญหา"
 
@@ -98,7 +100,9 @@ ollama serve
 .venv\Scripts\Activate.ps1
 python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 8000
 ```
-รอจนขึ้น `Application startup complete` (ครั้งแรกโมเดลโหลดช้า) แล้วเปิดเบราว์เซอร์ไปที่ <http://127.0.0.1:8000/> · หยุดด้วย `Ctrl+C`
+รอจนขึ้น `Application startup complete` (ขึ้นทันที แอปโหลดโมเดลต่อเบื้องหลัง) แล้วเปิดเบราว์เซอร์ไปที่ <http://127.0.0.1:8000/> · หยุดด้วย `Ctrl+C`
+
+คำถามแรกที่ใช้โมเดลหลังเปิดเครื่องอาจใช้ราว 20 วินาที ข้อต่อไปราว 1–5 วินาที ถ้าต้องการให้พร้อมก่อนใช้งานจริง เปิดเทอร์มินัลที่ 3 แล้วรัน `.\scripts\demo_preflight.ps1 -Exam` (เช็ค `/api/health` 7 แผน แล้วถามอุ่นโมเดลพร้อมจับเวลา)
 
 โครงสร้างโฟลเดอร์หลักที่ควรรู้ (ดูแผนผังเต็มท้ายไฟล์): แอปที่รันอยู่ใน `lab10_fastapi/` · ตรรกะ OCR → ฐานข้อมูลอยู่ใน `Lab7B_Lab8B_ocr_system/` · ฐานข้อมูล 7 แผนอยู่ใน repo แล้ว ใช้ได้ทันทีโดยไม่ต้องมี PDF
 
@@ -110,8 +114,11 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 ข้ามได้ถ้าใช้เล่มเดิม 7 แผน เพราะ `curriculum.db` อยู่ใน repo แล้ว ถ้าต้องสร้างฐานข้อมูลจาก PDF เอง ทำตามลำดับนี้ (เปิด `ollama serve` และเปิด venv ไว้ก่อน)
 
+> [!WARNING]
+> **อ่านก่อนเริ่ม: ทำในโฟลเดอร์สำเนาเสมอ** ขั้น 2 เขียนทับ `outputs/<หลักสูตร>/*_curriculum_ocr.txt` และ `.json` ที่แอปใช้อ้างหน้าตอนรัน และขั้น 4 เขียนทับ `curriculum.db` ผล OCR และโมเดลอ่านภาพไม่นิ่งทุกครั้งที่รัน (ซ้อมแล้วข้อความตรงกับไฟล์เดิมระดับบรรทัด ~85% ตาราง `credit_structure` ว่าง `course_description` หาย 10 แถว ป้าย บังคับ/เลือก ของ 3 วิชาเปลี่ยน) ถ้า clone ด้วย git ใช้ `git worktree add ../tmp-run` ถ้าดาวน์โหลด ZIP ให้ copy ทั้งโฟลเดอร์ที่แตกไว้ไปอีกที่ก่อน แล้วตรวจผลก่อนนำไปใช้
+
 **เพิ่มที่ต้องมี:**
-- [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) + ข้อมูลภาษา `tha` และ `eng` (เช็กด้วย `tesseract --list-langs`)
+- [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) + ข้อมูลภาษา `tha` และ `eng`: ตอนติดตั้งให้ติ๊ก Additional language data > Thai แล้วเพิ่ม `C:\Program Files\Tesseract-OCR` เข้า PATH (ตัวติดตั้งไม่เพิ่มให้) เปิดเทอร์มินัลใหม่แล้วเช็กด้วย `tesseract --list-langs`
 - [Poppler](https://github.com/oschwartz10612/poppler-windows/releases) (ใช้แปลงหน้า PDF เป็นภาพ) แตก zip แล้วเพิ่มโฟลเดอร์ `Library\bin` เข้า PATH เช็กด้วย `pdftoppm -v` (macOS: `brew install poppler`, Linux: `apt install poppler-utils`)
 - `ollama pull scb10x/typhoon-ocr1.5-3b` (อ่านภาพหน้าแผน)
 - แพ็กเกจ Python สำหรับขั้น OCR (ติดตั้งใน venv เดิม ใช้เวลา ~1–2 นาที):
@@ -122,14 +129,14 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 **ทำไมใช้ OCR สองแบบ:** Tesseract อ่านเร็วและอ่านได้ทั้งเล่ม จึงใช้กับทุกหน้า (ตอบเรื่องวิชาบังคับก่อน คำอธิบายวิชา เกณฑ์จบ) ส่วน Typhoon-OCR เป็นโมเดลอ่านภาพ แม่นกับตารางแผนการเรียนแต่ช้ามาก (~296 วินาที/หน้า) จึงใช้เฉพาะหน้าตารางปี/เทอม
 
-1. วาง PDF ที่ `data/input/<หลักสูตร>_curriculum.pdf` (`ait` `bit` `dsba` `it`) · ไฟล์ PDF ไม่ได้อยู่ใน git (ขนาดใหญ่) ดาวน์โหลดจาก [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I)
+1. สร้างโฟลเดอร์ `mkdir data\input` แล้ววาง PDF ที่ `data/input/<หลักสูตร>_curriculum.pdf` (`ait` `bit` `dsba` `it`) · ไฟล์ PDF ไม่ได้อยู่ใน git (ขนาดใหญ่) ดาวน์โหลดจาก [Google Drive: `data/input`](https://drive.google.com/drive/folders/1crBEmbONwORI_MMpcAFGK9rTr5WFiP_I)
 2. OCR ทั้งเล่มด้วย **Tesseract เท่านั้น** (ใส่ `--engine tesseract` เสมอ ค่าเริ่มต้นของ CLI คือ `ensemble` ซึ่งจะได้ผลต่างจากที่ระบบนี้ปรับกฎไว้) บางหน้า/บางจุดอาจอ่านเพี้ยน ขั้นหลังมีกฎซ่อมให้แล้ว (ใช้ตอบเรื่องวิชาบังคับก่อน คำอธิบายวิชา เกณฑ์จบ และหน้าอ้างอิง):
    ```powershell
    $env:PYTHONPATH="src"
    python -m ocr_system.cli ocr data/input/dsba_curriculum.pdf --output-dir outputs/dsba --engine tesseract --languages tha+eng --workers 4
    ```
    ได้ `outputs/dsba/dsba_curriculum_ocr.txt` และ `.json`
-3. ใส่ภาพหน้าแผนการศึกษา (เฉพาะหน้าตารางปี/เทอม) ไว้ที่ `Lab7B_Lab8B_ocr_system/runs/<หลักสูตร>/[coop|no_coop]/data_input/` ตั้งชื่อ `<หลักสูตร>_<เลขหน้า PDF>.png` เช่น `DSBA_19.png`
+3. ใส่ภาพหน้าแผนการศึกษา (เฉพาะหน้าตารางปี/เทอม) ไว้ที่ `Lab7B_Lab8B_ocr_system/runs/<หลักสูตร>/[coop|no_coop]/data_input/` เป็น png หรือ jpg ตั้งชื่อให้เรียงตามลำดับหน้า เช่น `DSBA_019.png` (ระบบอ่านไฟล์เรียงตามชื่อ)
 4. สร้างฐานข้อมูล (เต็มรอบ: Typhoon-OCR + qwen3 อ่านภาพหน้าแผน **ช้า** ใช้เวลาหลายสิบนาทีต่อแผน):
    ```powershell
    cd Lab7B_Lab8B_ocr_system
@@ -141,9 +148,6 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 
 > [!NOTE]
 > **เวลาที่ใช้จริง (ซ้อมกับ PDF DSBA 403 หน้า, `--workers 4`):** ขั้น 2 (OCR ทั้งเล่ม) ประมาณ **1.5 ชั่วโมง** · ขั้น 4 เต็มรอบประมาณ **20 นาที** ต่อแผน (ใช้ `--skip-lab7` เหลือไม่ถึงนาที เพราะข้ามการอ่านภาพ) จึงควรเริ่มก่อนเวลาใช้งานมาก
-
-> [!WARNING]
-> **ห้ามทับฐานข้อมูลที่ใช้อยู่:** ผลจากโมเดลอ่านภาพไม่นิ่งทุกครั้งที่รัน (ซ้อมแล้วป้าย บังคับ/เลือก ของ 3 วิชาเปลี่ยน) และข้อความ OCR ที่สร้างใหม่ได้ไม่เหมือนไฟล์ที่ commit ไว้ (ตรงกันระดับบรรทัด ~85%) ผลคือตาราง `credit_structure` ว่างและ `course_description` หายไป 10 แถว ถ้าใช้เล่มเดิมให้ใช้ `curriculum.db` ที่อยู่ใน repo ไม่ต้องรันข้อนี้ ถ้าจำเป็นต้องสร้างใหม่ ให้ทำในโฟลเดอร์สำเนา (เช่น `git worktree add ../tmp-run`) แล้วตรวจก่อนนำไปใช้
 
 </details>
 
@@ -162,7 +166,7 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 | 2 โครงสร้างหลักสูตร | `ปี 3 เทอม 1 มีวิชาอะไรบ้าง และรวมกี่หน่วยกิต` · `หมวดวิชาศึกษาทั่วไปต้องเรียนกี่หน่วยกิต` | 18 หน่วยกิต · 30 (6+9+9+6) |
 | 3 ค้นตามหัวข้อ | `มีวิชาเกี่ยวกับฐานข้อมูลไหม` · `วิชาที่มีหน่วยกิตมากที่สุดคือวิชาอะไร` | 11 วิชา · สหกิจศึกษา 6 หน่วยกิต 2 วิชา |
 | 4 เชื่อมหลายข้อมูล | `วิชาไหนเรียนก่อน ระหว่าง Calculus 1 กับ Calculus 2` · `ปี 1 กับปี 2 ต่างกันกี่หน่วยกิต` · เลือก **IT สหกิจ** แล้วถาม `แผนสหกิจกับไม่สหกิจต่างกันอย่างไร` | เทียบสองวิชา/สองปี/สองแผน (หน่วยกิตรวม IT ทั้งสองแผน 129 เท่ากัน) |
-| 5 ใช้โมเดล (~12 วินาที) | `การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน` | ป้ายแหล่งที่มา "โมเดล" + SQL ในลิ้นชัก |
+| 5 ใช้โมเดล (~1–5 วินาที) | `การจะเรียนวิชา DATA WAREHOUSE ต้องผ่านวิชาอะไรมาก่อน` | ป้ายแหล่งที่มา "โมเดล" + SQL ในลิ้นชัก |
 | 6 ไม่เดา/ป้องกัน | `ฟุตบอลโลกปีไหน` · `ปี 5 เทอม 1 เรียนอะไร` · `ปี 1` · `ลบข้อมูลวิชาทั้งหมดในฐานข้อมูล` | ไม่พบ · ไม่พบ · ถามกลับ · ถูกปฏิเสธ (ตอบว่าระบบไม่แก้ไขหรือลบข้อมูล) |
 
 ### ส่วนต่าง ๆ ของหน้าจอ
@@ -178,8 +182,9 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --host 127.0.0.1 --port 
 ป้ายหน้าอ้างอิงไม่ใช่ลิงก์เปิดภาพสแกน ให้เปิดหน้านั้นใน PDF ต้นฉบับเทียบเอง · ใช้บนมือถือได้ (คอลัมน์เดียว เครื่องมือพับเก็บ)
 
 ### ข้อควรรู้
-- **ความเร็ว:** คำถามที่ตรงกฎตอบทันที (<0.2 วินาที ไม่เรียกโมเดล) คำถามที่ใช้ `qwen3:4b` แปลงเป็น SQL ราว 12–15 วินาที (ครั้งแรกหลังเปิดเครื่องอาจนานถึง ~36 วินาที)
-- **ไม่มีคำตอบในเล่ม:** ได้ "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ระบบไม่เดา
+- **ความเร็ว:** คำถามที่ตรงกฎตอบทันที (<0.2 วินาที ไม่เรียกโมเดล) คำถามที่ใช้ `qwen3:4b` แปลงเป็น SQL ราว 1–5 วินาที (ครั้งแรกหลังเปิดเครื่องอาจนานถึง ~20 วินาที)
+- **คำถามเชิงเนื้อหาในเล่ม** (ผลลัพธ์การเรียนรู้ PLO, เงื่อนไขวิชาเลือกเสรี, เกณฑ์การให้เกรด, ระบบการศึกษาและภาคฤดูร้อน, เดือนเปิดภาค, การเทียบโอน, ภาษาที่สอน, ช่วงเวลาสหกิจ): ระบบยกข้อความในเล่มพร้อมหน้า ไม่ให้โมเดลแต่ง
+- **ไม่มีคำตอบในเล่ม:** ได้ "ไม่พบข้อมูลนี้ในเล่มหลักสูตร" ระบบไม่เดา ถ้าข้อความต่อท้ายว่า "ลองถามใหม่" แปลว่าโมเดลแปลงคำถามไม่สำเร็จ ถามซ้ำหรือถามให้เจาะจงขึ้นได้
 - **คำถามสั้นหรือกำกวม** (เช่น `ปี 1`): ระบบถามกลับ
 - **คำสั่งอันตราย** (เช่น ลบข้อมูล): ถูกปฏิเสธ เพราะฐานข้อมูลเปิดแบบอ่านอย่างเดียวและรับเฉพาะ SELECT
 - **ข้อจำกัด:** คำตอบมาจากผล OCR บางจุดอาจมีตัวอักษรเพี้ยนเล็กน้อยตามต้นฉบับ
@@ -235,24 +240,29 @@ print(r.json()["answer"])
 │       ├── main.py                 # FastAPI: routes ทั้งหมด (/api/...)
 │       ├── config.py               # รายการ 7 แผน + ตั้งค่า (.env.example)
 │       ├── database.py             # เข้าถึงฐานข้อมูล SQLite (ค้นวิชา, บังคับก่อน, ถอนวิชา)
-│       ├── model_service.py        # เรียก Ollama (qwen3:4b)
+│       ├── model_service.py        # เช็คว่า Ollama มี qwen3:4b (ใช้ใน /api/health)
 │       ├── schemas.py              # รูปแบบ request/response
 │       ├── course_search.py, sample_questions.py
 │       ├── requirements.txt        # แพ็กเกจสำหรับรันแอป (ข้อ 1.1)
 │       └── static/                 # หน้าเว็บ: index.html, style.css, app.js, i18n.js, fonts/
 ├── Lab7B_Lab8B_ocr_system/         # OCR → ฐานข้อมูล (ไม่ต้องรันถ้าใช้ DB ที่มีใน repo)
 │   ├── run_lab8b.py                # สร้างฐานข้อมูลต่อแผน (ข้อ 1.3)
-│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py)
-│   └── runs/<AIT|BIT|DSBA|IT>/[coop|no_coop]/   # AIT ไม่มีชั้น coop
-│       ├── data_input/             # ภาพหน้าเล่มหลักสูตร
-│       ├── lab7b_output/           # ผล OCR + ผลประเมิน
-│       └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
+│   ├── src/ocr_system/             # ตรรกะ OCR → JSON → SQLite → ถาม-ตอบ (lab8b_curriculum_db.py, book_quotes.py)
+│   └── runs/<AIT|BIT|DSBA|IT>/
+│       ├── book_quotes.json        # ข้อความเล่มที่ตัดไว้ตอบคำถามเชิงเนื้อหา (สร้างด้วย book_quotes.py)
+│       ├── electives.json          # รายวิชาเลือกของหลักสูตร
+│       └── [coop|no_coop]/         # AIT ไม่มีชั้นนี้
+│           ├── data_input/         # ภาพหน้าเล่มหลักสูตร
+│           ├── lab7b_output/       # ผล OCR + ผลประเมิน
+│           └── lab8b_output/curriculum.db   # ฐานข้อมูลที่แอปอ่าน (7 แผน)
 ├── Lab9_evaluation/                # ชุด Gold Questions + ground truth + รายงาน metric (reports/)
 ├── docs/
 │   ├── wireframes/                 # wireframe Lab 11
 │   ├── screenshots/                # ภาพหน้าจอแอป
 │   └── reports/                    # รายงาน Lab 10
-└── src/, scripts/, outputs/, data/ # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
+├── outputs/<ait|bit|dsba|it>/      # ข้อความ OCR ทั้งเล่ม (แอปใช้อ้างหน้า อย่าเขียนทับ ดูข้อ 1.3)
+├── scripts/demo_preflight.ps1      # เช็คเครื่องก่อนใช้งาน (ข้อ 1.1, 1.2)
+└── src/, scripts/, data/           # งาน Lab 3–6 (ไม่ต้องใช้รันแอป)
 ```
 
 ฝั่งรันแอปใช้แค่ `lab10_fastapi/` กับ `Lab7B_Lab8B_ocr_system/` (อ่าน `curriculum.db`) ส่วนที่เหลือเป็นขั้นก่อนหน้า/วัดผล ไม่จำเป็นต้องมีตอนรันแอป · ไฟล์ทดสอบ (`tests/`) อยู่ใน branch `dev/tests`

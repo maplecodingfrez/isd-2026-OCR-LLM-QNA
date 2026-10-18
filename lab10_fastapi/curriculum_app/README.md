@@ -59,8 +59,6 @@ python -m uvicorn lab10_fastapi.curriculum_app.main:app --reload --port 8000
 
 The active page has returned to the pre-chat form interface: curriculum selection, questions, prerequisites, and withdrawal impact. Bilingual names, full credit notation, and elective accordions remain available.
 
-The chat UI, design documents, and compatible backend snapshot are archived outside the repository at `D:/DSBA 3rd Year/Works/archived/curriculum-chat-ui-2026-10-04-225903`. Browser chat history is retained in localStorage but is not displayed by the current UI.
-
 Backend routing, SQLite schema, and existing API endpoints are unchanged by the UI rollback. Additive `answer_type`, `processing_seconds`, and prerequisite `citations` metadata remain available.
 
 ### ขอบเขตผลกระทบการถอน
@@ -127,21 +125,6 @@ Backend routing, SQLite schema, and existing API endpoints are unchanged by the 
 ถ้าคำตอบไม่ตรงตารางด้านบน: ตรวจว่าเลือกแผนถูกและฐานข้อมูลของแผนนั้นพร้อม (`/api/health`) ข้อ 5 พึ่งโมเดล (qwen3:4b) เล็กน้อย จึงอาจช้ากว่าข้ออื่นถ้าโมเดลเพิ่งโหลด
 
 ## คำถามที่พบบ่อย
-
-### หลักฐาน readiness รอบ 2026-10-05
-
-ตัวย่อที่นำจาก `backup_catoz@8bfe8b5` มาใช้กับ resolver เดิม: `ISAD`, `DSA/DSAA/DSDA`, `PSP/PSCP`, `DISCRETE`, `ITF`, `CNI/COMM NET`, `BDS`, `ERP`, `BISAD`, `AIoT`, `NoSQL DB` (15รูปสะกดใหม่). ต้องตรงวิชาเดียวในข้อมูลหลักสูตรที่เลือก; case/context และขอบคำเดิมยังใช้ เช่น `วิชา dsa รหัสอะไร`. `ISD` มีอยู่แล้ว; ยังไม่เพิ่ม `CRM` ที่ไม่พบวิชาตรงในข้อมูลปัจจุบัน และ `NLP` ที่ตรง2วิชา ไม่คัดลอกกฎเลือก exact แทนผลกำกวมหรือ bypass ตัวเล็ก2ตัวอักษร. ทดสอบ105resolver casesใน7DB (61positive/44ไม่มีวิชา) และ79regressionผ่าน
-
-GE66 ใน SQLite หลักของ AIT, DSBA สหกิจ/ไม่สหกิจ และ IT สหกิจ/ไม่สหกิจ (5 แผน) โหลดจากผล image OCR (Tesseract + Typhoon) ที่ตรวจแล้ว 303 วิชา ส่วนฐานข้อมูล BIT ไม่ถูกโหลดใหม่ (คงเดิม) และไม่ได้รับรองว่า OCR ถูกทั้งเล่ม ฉบับ text layer เดิมสำรองไว้ใน `Lab7B_Lab8B_ocr_system/_local_reference/` (วิธีกู้คืนดู `Lab7B_Lab8B_ocr_system/GE66_OCR_DATA.md`) การแก้ source เฉพาะหน้าต้องแยกจากผล pipeline OCR ล้วนในการสาธิต/รายงาน
-
-- Chrome จริงตรวจ idle/loading/success/error, retry, เปลี่ยนแผน, ทิ้งคำตอบเก่าหลังเปลี่ยนแผน และมือถือ 390×844 แล้ว; 8 checks ผ่าน ไม่มี JavaScript exception
-- Gold v2.2 HTTP ผ่าน 210/210 ที่ revision `9be5a5c`, qwen3:4b, ไม่มี error/ข้อเกิน 5s; เป็นผลชุดเดิมที่แก้ oracle จากต้นฉบับ ไม่ใช่คะแนนคำถามใหม่
-- Trace + positive-path tests ครบ 52/52 shortcuts; มีทั้ง SQL ตรง, คำนวณ/กรองใน Python และข้อมูลข้ามแผน/แคตตาล็อก จึงใช้ช่อง SQL เป็นคำค้นอ้างอิง ไม่รับรอง replay ทุกกรณี
-- คำถามใหม่จาก OCR ที่ตรึงก่อนอ่าน runtime ผ่านรอบแรก 16/21; พบ known-none prerequisite และรหัสตัวเลือกสหกิจ 5 ข้อ แก้ guard เดิมพร้อม regression; ไม่เปลี่ยนคำถาม/เฉลยและไม่เรียกคะแนนหลังแก้ว่า unseen
-- หลังแก้ที่ `2c20cab`: คำถามใหม่21/21 และ Gold210/210; master220/220 คงโจทย์เพื่อนครบ ทั้งสอง suite1354pass/3skip ก่อน guard-review รอบท้าย; guard หลายเทอม/หลายเรื่อง RED2→GREEN และ affected991pass/3skip ไม่ตอบเพียงส่วนแรก
-- รอบ Gold/master ที่ซ้อนกันมี7ข้อเกิน5s (Gold4/master3); วัดเฉพาะ7ข้อซ้ำแบบเดี่ยวได้1.657–4.472sทั้งหมด เก็บรอบโหลดเดิมไว้ ไม่รับรองlatency<5sทุกconcurrency/cold start
-- เกณฑ์ Lab11 ที่ตรวจจาก PDF ในเครื่อง: wireframe ที่ `docs/wireframes/curriculum_app.png`, API contract ใน `lab10_fastapi/README.md` หัวข้อ 13 และ HTML/CSS/JS เรียก API จริงพร้อม 4 สถานะ; ยังไม่ใช่การรับรองผล Challenge ของอาจารย์หรือเกณฑ์ใหม่ที่ยังไม่ได้รับ
-- Local live8000 ย้ายไปใช้ verified production worktree ที่ `c0f73e5` แล้ว: healthยืนยัน source/DB, UI3ไฟล์ตรงbyte,7แผน,21คำตอบตรงผลที่ตรวจ ไม่มีข้อเกิน5s; Chromeจริงคลิกerror/loading/successไม่มีexception Checkoutหลักที่dirtyคงเดิมและสำรอง35ไฟล์พร้อมrollbackแล้ว ไม่mergemain
 
 ### เปิดเว็บแล้วขึ้น `ERR_CONNECTION_REFUSED`
 
