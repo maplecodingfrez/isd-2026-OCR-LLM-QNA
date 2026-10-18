@@ -4714,6 +4714,45 @@ def _term_slot_count_answer(conn: sqlite3.Connection, question: str) -> tuple[st
     return f"{label} มีช่องวิชาที่นักศึกษาเลือกเอง {len(slots)} ช่อง: {listing}", slots, sql
 
 
+_ELECTIVE_HOW_MANY_Q = re.compile(r"วิชาเลือก\s*(?:เรียน|ลง|เพิ่ม|เลือก)?\s*ได้(?:อีก)?\s*กี่\s*(?:ตัว|วิชา|รายวิชา)")
+_ELECTIVE_HOW_MANY_NOT = re.compile(r"เสรี|กลุ่ม|หมวด|ศึกษาทั่วไป|ภาษา|หน่วยกิต|ไหม|มั้ย|หรือ")
+
+
+def _elective_slots_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"เพิ่มวิชาเลือกได้กี่ตัว" / "ลงวิชาเลือกได้กี่วิชา" (ทั้งแผน หรือระบุปี/เทอม) → นับช่องที่นักศึกษาเลือกเองจาก plan_slot พร้อมหน่วยกิตรวม
+    (เดิมตกไปโมเดลแล้วตอบ "6 วิชาเลือก" จาก credits_required = 6 ซึ่งเป็นหน่วยกิต ไม่ใช่จำนวนวิชา);
+    เล่มกำหนดวิชาเลือกเป็นช่องละกี่หน่วยกิต ไม่ได้กำหนดจำนวนวิชา จึงบอกไว้ในคำตอบ; ระบุกลุ่ม/หมวด/เสรี/รหัส/ชื่อวิชา = None (ทางเดิม)"""
+    if not _ELECTIVE_HOW_MANY_Q.search(question) or _ELECTIVE_HOW_MANY_NOT.search(question) or _CODE8.search(question):
+        return None
+    if _named_courses(conn, question, strict=False):
+        return None
+    y, s_ = _term_numbers(question)
+    where, args = (("year = ? AND semester = ?", (y, s_)) if s_ else ("year = ?", (y,))) if y else ("1 = 1", ())
+    try:
+        slots = [dict(r) for r in conn.execute(f"SELECT year, semester, name_th, credits FROM plan_slot WHERE {where} ORDER BY year, semester, id", args)]
+        has_term = conn.execute(f"SELECT 1 FROM plan_item WHERE {where} LIMIT 1", args).fetchone() or slots
+    except sqlite3.OperationalError:
+        return None
+    if not has_term:
+        return None
+    try:                                                   # หน้าตารางแผนของแต่ละเทอม → _attach_citations อ้างจาก pdf_page ของแถว
+        pages = {(r[0], r[1]): (r[2], r[3]) for r in conn.execute(
+            "SELECT year, semester, MIN(pdf_page), printed_page FROM term_page GROUP BY year, semester")}
+    except sqlite3.OperationalError:
+        pages = {}
+    for sl in slots:
+        sl["pdf_page"], sl["printed_page"] = pages.get((sl["year"], sl["semester"]), (None, None))
+    label = (_TERM_LABEL.format(y=y, s=s_) if s_ else f"ปี {y}") if y else "ตามแผนการเรียนนี้"
+    sql = "SELECT year, semester, name_th, credits FROM plan_slot" + (f" WHERE year = {y}" + (f" AND semester = {s_}" if s_ else "") if y else "")
+    if not slots:
+        return f"{label} ไม่มีช่องวิชาที่นักศึกษาเลือกเอง", [], sql
+    total = sum(sl["credits"] for sl in slots)
+    listing = "; ".join(f"{sl['name_th']} {sl['credits']} หน่วยกิต" + ("" if s_ else f" ({_TERM_LABEL.format(y=sl['year'], s=sl['semester'])})") for sl in slots)
+    text = (f"{label} มีช่องวิชาที่นักศึกษาเลือกเอง {len(slots)} ช่อง รวม {total} หน่วยกิต "
+            f"(เล่มหลักสูตรกำหนดวิชาเลือกเป็นช่องละกี่หน่วยกิต ไม่ได้กำหนดจำนวนวิชาตายตัว): {listing}")
+    return text, slots, sql
+
+
 _TOGETHER_Q = re.compile(r"พร้อม(?:กัน)?|เทอมเดียวกัน|ภาคเดียวกัน|ควบคู่")
 
 
@@ -6813,7 +6852,7 @@ _SHORTCUTS = (
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer, _book_quote_answer, _thai_near_name_answer, _term_slot_count_answer, _register_together_answer, _two_term_credits_answer, _unlocks_most_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer, _book_quote_answer, _thai_near_name_answer, _term_slot_count_answer, _elective_slots_answer, _register_together_answer, _two_term_credits_answer, _unlocks_most_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
