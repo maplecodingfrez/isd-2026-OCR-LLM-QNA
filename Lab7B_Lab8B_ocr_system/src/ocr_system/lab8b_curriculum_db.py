@@ -4088,7 +4088,9 @@ def _strip_own_plan_phrase(conn: sqlite3.Connection, question: str) -> str:
 _THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
 _SPOKEN_DIGITS = {"หนึ่ง": 1, "สอง": 2, "สาม": 3, "สี่": 4, "ห้า": 5}
 _SPOKEN_WORD = "|".join(_SPOKEN_DIGITS)
-_SPOKEN_AFTER_TERM_WORD = re.compile(rf"(ชั้นปี|ภาคเรียน|ภาคการศึกษา|เทอม|ภาค|ปี)(ที่)?\s*({_SPOKEN_WORD})(?![\u0e00-\u0e7f])")
+# ไทยต่อท้ายได้เฉพาะคำในคำถามที่รู้จัก ("ปีสี่เรียน...", "ปีสองเทอมหนึ่งมี...") — "เทอมหนึ่งร้อน", "สามารถ", "ห้าม" ไม่แปลง
+_SPOKEN_AFTER_TERM_WORD = re.compile(rf"(ชั้นปี|ภาคเรียน|ภาคการศึกษา|เทอม|ภาค|ปี)(ที่)?\s*({_SPOKEN_WORD})"
+                                     r"(?:(?![\u0e00-\u0e7f])|(?=เรียน|มี|ลง|ต้อง|เทอม|ภาค|ปี|รวม|ได้|กี่|วิชา|ทั้ง|ของ|ใน|นี้|จะ|ควร|เป็น|บ้าง|อะไร|หน่วยกิต|ครับ|ค่ะ|คะ|นะ))")
 
 
 def _normalise_thai_digits(question: str) -> str:
@@ -6184,7 +6186,7 @@ def _coop_term_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[
             "SELECT year, semester, credits FROM main.v_semester_credits_full WHERE (year, semester) IN (SELECT p.year, p.semester FROM plan_item p JOIN course c ON c.code = p.code WHERE c.name_th LIKE 'สหกิจศึกษา%')")
 
 
-_REMAIN_ASK = re.compile(r"(?:ขาด|เหลือ|ต้องเรียน|ต้องเก็บ|ต้องลง)?\s*อีก\s*กี่\s*หน่วยกิต|ขาด(?:อยู่)?\s*กี่\s*หน่วยกิต")   # "ผ่านแล้ว 100 หน่วยกิต ขาดอีกกี่"
+_REMAIN_ASK = re.compile(r"(?:ขาด|เหลือ|ต้องเรียน|ต้องเก็บ|ต้องลง|เพิ่ม)?\s*อีก\s*(?:กี่\s*หน่วยกิต|เท่า(?:ไหร่|ไร|ใด))|ขาด(?:อยู่)?\s*กี่\s*หน่วยกิต")   # "ผ่านแล้ว 100 หน่วยกิต ขาดอีกกี่"
 _GRAD_ASK = re.compile(r"จบ\s*(?:ได้\s*)?(?:ไหม|มั้ย|หรือไม่|หรือเปล่า|หรือยัง)|สำเร็จการศึกษา(?:ได้)?\s*(?:ไหม|มั้ย|หรือไม่)|" + _REMAIN_ASK.pattern)
 _GRAD_CREDITS = re.compile(r"(?<!\d)(\d{2,3})\s*หน่วยกิต|หน่วยกิต(?:สะสม)?(?:ได้|อยู่|มา|แล้ว)?\s*(\d{2,3})(?!\d)")
 
@@ -6218,8 +6220,8 @@ def _graduation_credits_answer(conn: sqlite3.Connection, question: str) -> tuple
             "จึงยืนยันจากหน่วยกิตรวมอย่างเดียวไม่ได้"), rows, sql
 
 
-_TERM_HAS_PREREQ_Q = re.compile(r"วิชา(?:ไหน|อะไร|ใด)(?:บ้าง)?\s*(?:ที่)?\s*(?:มี|ต้อง)\s*(?:วิชาบังคับก่อน|prerequisite|"
-                                r"(?:ผ่าน|เรียน)(?:วิชา)?(?:อื่น)?(?:มา)?ก่อน)", re.I)
+_TERM_HAS_PREREQ_Q = re.compile(r"(?:วิชา(?:ไหน|อะไร|ใด)(?:บ้าง)?|มีวิชาที่)\s*(?:ที่)?\s*(?:มี|ต้อง(?:มี)?)\s*(?:วิชาบังคับก่อน|prerequisite|"
+                                r"พื้นฐาน(?:จาก)?(?:วิชา)?(?:อื่น)?(?:มา)?ก่อน|(?:ผ่าน|เรียน)(?:วิชา)?(?:อื่น)?(?:มา)?ก่อน)", re.I)
 _TERM_CREDITS_Q = re.compile(r"กี่หน่วยกิต|หน่วยกิตรวม|รวมกี่")
 
 
@@ -6293,7 +6295,7 @@ def _year_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
     if len(years) != 1 or _TERM_SEM_NUM.search(question):
         return None
     rest = _TERM_YEAR_NUM.sub('', question)
-    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|สรุป|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|ที่|ทุก|ของ|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
+    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|ทั้งปี|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|สรุป|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|ลง|ที่|ทุก|ของ|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
     if re.sub(r'[\s,?？。.!]+', '', rest):
         return None
     y = int(years[0])
@@ -6313,7 +6315,8 @@ def _year_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
     return f"ปี {y} รวมทั้งปี {total} หน่วยกิต ({len(parts)} เทอม) — " + " | ".join(parts), rows, ";\n".join(queries)
 
 
-_SINGLE_PLAN_Q = re.compile(r"มีแผน\s*(?:การเรียน)?\s*(?:ไม่)?\s*สหกิจ(?!ศึกษา)\s*(?:ด้วย)?\s*(?:ไหม|มั้ย|หรือไม่|หรือเปล่า|รึเปล่า|ป่ะ)|มีกี่แผน|แผนการเรียนกี่แผน")
+_SINGLE_PLAN_Q = re.compile(r"มีแผน\s*(?:การเรียน)?\s*(?:ไม่)?\s*สหกิจ(?!ศึกษา)\s*(?:ด้วย)?\s*(?:ไหม|มั้ย|หรือไม่|หรือเปล่า|รึเปล่า|ป่ะ)|มีกี่แผน|แผนการเรียนกี่แผน|"
+                            r"แยก(?:เป็น)?\s*แผน|(?:ให้)?เลือก(?:ไป|ทำ|ลง)\s*สหกิจ")
 
 
 def _single_plan_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
