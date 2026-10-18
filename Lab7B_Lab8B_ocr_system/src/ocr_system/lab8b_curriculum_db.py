@@ -4268,6 +4268,44 @@ def _name_keyword_count_answer(conn: sqlite3.Connection, question: str) -> tuple
             f"WHERE c.name_th LIKE '%{safe}%' OR c.name_en LIKE '%{safe}%'")
 
 
+_KW_TERM_WORD = re.compile(r"คำว่า\s*[\"“']?(?P<kw>[A-Za-z][A-Za-z ]*?|[฀-๿]+?)[\"”']?\s*(?=ในชื่อ|และ|ที่|เรียน|อยู่|ปี|อะไร|มี|บ้าง|$)")
+_KW_TERM_YEAR = re.compile(r"ปี\s*(?:ที่\s*)?([1-8])")
+_KW_TERM_SEM = re.compile(r"(?:เทอม|ภาค(?:การศึกษา|เรียน)?)\s*(?:ที่\s*)?([1-3])")
+
+
+def _name_keyword_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"วิชาที่มีคำว่า DATA ในชื่อและเรียนปี 3 มีอะไรบ้าง" → วิชาในแผนของปี (และเทอม) นั้นที่ชื่อไทยหรืออังกฤษมีคำนั้น
+    (ราก: โมเดลเขียน SQL ไม่ผ่านสองรอบ → "ลองถามใหม่"). ต้องมี "คำว่า" + ปี + ถามรายการ; นับ ("กี่วิชา") / รหัสวิชา = None"""
+    mw, my = _KW_TERM_WORD.search(question), _KW_TERM_YEAR.search(question)
+    if not mw or not my or _CODE8.search(question) or re.search(r"กี่วิชา|กี่รายวิชา|กี่หน่วยกิต", question):
+        return None
+    if not re.search(r"อะไร|บ้าง|มีวิชา|รายการ|ไหนบ้าง", question):
+        return None
+    kw = re.sub(r"\s+", " ", mw.group("kw")).strip()
+    if len(kw.replace(" ", "")) < 2 or kw in _KW_GENERIC:
+        return None
+    year = int(my.group(1))
+    ms = _KW_TERM_SEM.search(question)
+    sem = int(ms.group(1)) if ms else None
+    where, args = "year = ?", [year]
+    if sem:
+        where, args = where + " AND semester = ?", args + [sem]
+    try:
+        rows = [dict(r) for r in conn.execute(f"SELECT DISTINCT year, semester, code, name_th, name_en, credits FROM v_plan WHERE {where} ORDER BY semester, code", args)]
+    except sqlite3.OperationalError:
+        return None
+    needle = kw.casefold().replace(" ", "")
+    hits = [r for r in rows if r["code"] and (needle in (r["name_th"] or "").casefold().replace(" ", "") or needle in (r["name_en"] or "").casefold().replace(" ", ""))]
+    scope = f"ปี {year}" + (f" เทอม {sem}" if sem else "")
+    safe = kw.replace("'", "''")
+    sql = (f"SELECT DISTINCT year, semester, code, name_th, name_en, credits FROM v_plan WHERE {where.replace('?', '{}').format(*args)} "
+           f"AND (name_th LIKE '%{safe}%' OR name_en LIKE '%{safe}%')")
+    if not hits:
+        return f"ไม่มีวิชาในแผน{scope}ที่ชื่อมีคำว่า \"{kw}\"", [], sql
+    listing = "; ".join(f"{h['code']} {h['name_th']} / {h['name_en']} (ปี {h['year']} เทอม {h['semester']})" for h in hits)
+    return f"วิชาในแผน{scope}ที่ชื่อมีคำว่า \"{kw}\" มี {len(hits)} วิชา: {listing}", hits, sql
+
+
 def _elective_credit_overview_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """"เรียนจบต้องมีวิชาเลือกกี่หน่วยกิต" (วิชาเลือกกว้าง ๆ ไม่ระบุกลุ่ม/ปี) → เล่มไม่มียอดก้อนเดียว แต่แยกเป็นหลายกลุ่ม: แสดงทุกกลุ่มที่ชื่อมี "เลือก"
     พร้อมหน่วยกิตจากตาราง credit_structure แทนให้โมเดลบวกเอง (ราก: ได้ 258 หน่วยกิตทั้งที่หลักสูตรรวม 132 / บางครั้งแต่ง view ที่ไม่มีอยู่จริง);
@@ -6497,7 +6535,7 @@ def _single_edition_answer(conn: sqlite3.Connection, question: str) -> tuple[str
 
 
 _SHORTCUTS = (
-    _other_program_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
+    _other_program_answer, _name_keyword_term_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,

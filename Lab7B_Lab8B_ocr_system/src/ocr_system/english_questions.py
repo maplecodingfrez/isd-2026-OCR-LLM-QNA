@@ -85,6 +85,21 @@ def english_to_thai(question: str) -> str | None:
         if ref and ref.casefold() not in _GENERIC:
             return f"ถ้าถอนวิชา {ref} จะกระทบกับอะไร"
 
+    # failing a course: which courses are blocked, and/or which term to retake it
+    m = (_search(r"\bfail(?:ed|ing|s)?\b(?: in)?\s+(.+?)(?:\s+(?:which|what|when|and|then|will|would|how|it)\b.*)?$", t)
+         if _search(r"\bfail(?:ed|ing|s)?\b", t) else None)
+    if m:
+        ref = _ref(t, m.group(1))
+        if not ref or ref.casefold() in _GENERIC:                 # "When can I retake Calculus 1 if I fail it?": the course follows retake
+            again = _search(r"\b(?:retake|repeat)\s+(.+?)(?:\s+(?:if|when|after)\b.*)?$", t)
+            ref = _ref(t, again.group(1)) if again else ""
+        if ref and ref.casefold() not in _GENERIC:
+            asks_when = bool(_search(r"\b(?:retake|repeat|again|when|which (?:term|semester))\b", t))
+            asks_affect = bool(_search(r"\b(?:affect\w*|impact\w*|block\w*|which courses|what courses|happens?)\b", t)) or not asks_when
+            if asks_affect and asks_when:
+                return f"ถ้าสอบตก {ref} จะกระทบวิชาไหน และต้องเรียนใหม่เทอมไหน"
+            return f"ถ้าสอบตก {ref} ต้องเรียนใหม่เทอมไหน" if asks_when else f"ถ้าสอบตก {ref} จะกระทบวิชาไหน"
+
     # follow-up courses
     if _search(r"follow[- ]?up|\b(?:take|taken|come|comes|go|go on) after\b|\bunlocks?\b|\bnext courses?\b", t):
         m = _search(r"\b(?:after|unlocks?)\b\s*(.*)$", t) or _search(r"\bdoes\b\s*(.+?)\s+(?:have|has)\b", t)
