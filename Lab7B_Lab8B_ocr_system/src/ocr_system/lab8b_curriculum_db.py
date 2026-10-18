@@ -1581,13 +1581,13 @@ def _term_numbers(question: str) -> tuple[int | None, int | None]:
 
 def _term_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """A single explicit term list, including slots without counting alternatives twice."""
-    if not re.search(r'อะไรบ้าง|วิชาอะไร|รายชื่อ|วิชาไหน', question):
+    if not re.search(r'อะไรบ้าง|วิชาอะไร|รายชื่อ|วิชาไหน|ลงอะไร|เรียนอะไร', question):
         return None
     years, semesters = _TERM_YEAR_NUM.findall(question), _TERM_SEM_NUM.findall(question)
     if len(years) != 1 or len(semesters) != 1:
         return None
     rest = _TERM_SEM_NUM.sub('', _TERM_YEAR_NUM.sub('', question))
-    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|หน่วยกิต|รวม|จำนวน|กี่|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
+    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|ลงอะไร|เรียนอะไร|หน่วยกิต|รวม|จำนวน|กี่|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|ลง|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
     if re.sub(r'[\s,?？。.!]+', '', rest):
         return None
     y, s = int(years[0]), int(semesters[0])
@@ -6283,7 +6283,7 @@ def _term_prereq_list_answer(conn: sqlite3.Connection, question: str) -> tuple[s
     return text, rows, ";\n".join(queries)
 
 
-_YEAR_LIST_ASK = re.compile(r"อะไรบ้าง|วิชาอะไร|รายชื่อ|วิชาไหน|วิชาทั้งหมด|สรุปวิชา")
+_YEAR_LIST_ASK = re.compile(r"อะไรบ้าง|วิชาอะไร|รายชื่อ|วิชาไหน|วิชาทั้งหมด|สรุปวิชา|ลงอะไร|เรียนอะไร")
 
 
 def _year_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -6295,7 +6295,7 @@ def _year_list_answer(conn: sqlite3.Connection, question: str) -> tuple[str, lis
     if len(years) != 1 or _TERM_SEM_NUM.search(question):
         return None
     rest = _TERM_YEAR_NUM.sub('', question)
-    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|ทั้งปี|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|สรุป|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|ลง|ที่|ทุก|ของ|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
+    rest = re.sub(r'ในแผนการศึกษา|แผนการศึกษา|ชั้น|รายวิชา|ทั้งหมด|ทั้งปี|อะไรบ้าง|วิชาอะไร|วิชาไหน|รายชื่อ|ลงอะไร|เรียนอะไร|สรุป|วิชา|เรียน|มี|ต้อง|ลงทะเบียน|ลง|ที่|ทุก|ของ|และ|บ้าง|ใน|ครับ|ค่ะ|คะ|นะ', '', rest)
     if re.sub(r'[\s,?？。.!]+', '', rest):
         return None
     y = int(years[0])
@@ -6342,6 +6342,75 @@ def _single_plan_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return text, [{"program_id": pid, "year": y, "semester": s, "code": c, "name_th": n} for y, s, c, n in coop], sql
 
 
+_WHEN_TERM_Q = re.compile(r"เทอมไหน|เทอมอะไร|ภาคไหน|ภาคเรียนไหน|ภาคการศึกษาไหน|ปีไหน|เมื่อไหร่|เมื่อไร|ตอนไหน|when", re.I)
+
+
+def _plan_places(conn: sqlite3.Connection, code: str) -> list[tuple[int, int]]:
+    return [tuple(r) for r in conn.execute("SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (code,))]
+
+
+def _retake_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ตกวิชา X ต้องเรียนใหม่เทอมไหน" = เทอมของ X ในแผน → ลงใหม่ได้ในเทอมเดียวกันของปีถัดไปตามแผน + วิชาที่ต้องผ่าน X ก่อน (ลงไม่ได้ระหว่างนี้);
+    เดิมตกไปโมเดลซึ่งตอบรหัสวิชาบังคับก่อนแบบมั่นใจผิดคำถาม. ต้องมีคำว่าตก/ไม่ผ่าน + ถามเทอม/เมื่อไร และวิชาเดียวในแผน"""
+    if not _FAIL_WORD.search(question) or not _WHEN_TERM_Q.search(question):
+        return None
+    if any(_term_numbers(question)):
+        return None
+    codes = set(_CODE8.findall(question)) or set(_named_courses(conn, question, strict=False, catalog=False) or {})
+    if len(codes) != 1:
+        return None
+    code = next(iter(codes))
+    places = _plan_places(conn, code)
+    if not places:
+        return None
+    names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course")}
+    where = ", ".join(_TERM_LABEL.format(y=y, s=s) for y, s in places)
+    if len(places) == 1:
+        y, s = places[0]
+        text = (f"{code} {names.get(code, '')} อยู่ในแผนที่ {where} เทอมเดียว ถ้าตก ตามแผนจะลงเรียนใหม่ได้ในเทอม {s} ของปีการศึกษาถัดไป "
+                "(เล่มหลักสูตรไม่ได้ระบุการเปิดสอนนอกเทอมในแผน ต้องตรวจตารางเปิดสอนของสถาบัน)")
+    else:
+        text = (f"{code} {names.get(code, '')} อยู่ในแผนที่ {where} ถ้าตก ลงเรียนใหม่ได้ในเทอมถัดไปที่มีวิชานี้ในแผน "
+                "(ต้องตรวจตารางเปิดสอนของสถาบัน)")
+    deps = [r[0] for r in conn.execute("SELECT DISTINCT code FROM prerequisite WHERE requires = ? AND kind = 'pre' ORDER BY code", (code,))]
+    if deps:
+        def dep_label(c: str) -> str:
+            at = _plan_places(conn, c)
+            return f"{c} {names.get(c, '')}".strip() + (f" ({', '.join(_TERM_LABEL.format(y=y, s=s) for y, s in at)})" if at else "")
+        text += "; ระหว่างนี้วิชาที่ต้องผ่านวิชานี้ก่อนจะยังลงไม่ได้: " + ", ".join(dep_label(c) for c in deps)
+    rows = [{"code": code, "name_th": names.get(code), "year": y, "semester": s} for y, s in places]
+    return text, rows, f"SELECT DISTINCT year, semester FROM plan_item WHERE code = '{code}';\nSELECT code FROM prerequisite WHERE requires = '{code}' AND kind = 'pre'"
+
+
+_SAME_TERM_Q = re.compile(r"(?:เทอม|ภาคเรียน|ภาคการศึกษา|ภาค)\s*เดียวกัน")
+_ASK_YN = re.compile(r"ไหม|มั้ย|หรือไม่|หรือเปล่า|รึเปล่า|ป่ะ|\?")
+
+
+def _two_course_same_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"A กับ B เรียนเทอมเดียวกันไหม" = เทียบเทอมของสองวิชาในแผน (ใช่/ไม่ใช่ + เทอมของแต่ละวิชา); ไม่ใช่สองวิชาในแผนพอดี = None"""
+    if not _SAME_TERM_Q.search(question) or not _ASK_YN.search(question) or re.search(r"ได้ไหม|ได้หรือไม่|ได้มั้ย", question):
+        return None
+    import course_names
+    courses = [{"code": r[0], "name_th": r[1], "name_en": r[2]} for r in conn.execute("SELECT code, name_th, name_en FROM course")]
+    codes = list(dict.fromkeys(list(_CODE8.findall(question)) + [c for _, c in course_names.course_hints(question, courses)]))
+    if len(codes) != 2:
+        return None
+    places = {c: _plan_places(conn, c) for c in codes}
+    if not all(places.values()):
+        return None
+    names = {c["code"]: c["name_th"] for c in courses}
+    shared = sorted(set(places[codes[0]]) & set(places[codes[1]]))
+
+    def where(c: str) -> str:
+        return ", ".join(_TERM_LABEL.format(y=y, s=s) for y, s in places[c])
+    if shared:
+        text = f"ใช่ — {codes[0]} {names.get(codes[0], '')} กับ {codes[1]} {names.get(codes[1], '')} อยู่ " + ", ".join(_TERM_LABEL.format(y=y, s=s) for y, s in shared) + " เหมือนกัน"
+    else:
+        text = f"ไม่ใช่ — {codes[0]} {names.get(codes[0], '')} อยู่ {where(codes[0])} ส่วน {codes[1]} {names.get(codes[1], '')} อยู่ {where(codes[1])}"
+    rows = [{"code": c, "name_th": names.get(c), "year": y, "semester": s} for c in codes for y, s in places[c]]
+    return text, rows, f"SELECT code, year, semester FROM plan_item WHERE code IN ('{codes[0]}', '{codes[1]}')"
+
+
 _EDITION_Q = re.compile(r"(?:หลักสูตร|ฉบับ|เล่ม)\s*(?:เก่า|เดิม|ก่อนหน้า|ปรับปรุง|เวอร์ชัน)|เวอร์ชัน\s*(?:เก่า|ใหม่|ก่อน)|\bversion\b|"
                         r"(?:2|สอง)\s*ปริญญา|ทวิปริญญา|double\s*degree|dual\s*degree", re.I)
 
@@ -6372,7 +6441,7 @@ _SHORTCUTS = (
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
