@@ -4793,6 +4793,58 @@ def _unlocks_most_answer(conn: sqlite3.Connection, question: str) -> tuple[str, 
     return "; ".join(parts), rows, "SELECT requires, COUNT(DISTINCT code) FROM prerequisite WHERE kind = 'pre' GROUP BY requires ORDER BY 2 DESC"
 
 
+_GRAD_LATE_Q = re.compile(r"จบช้า|จบไม่ทัน|ไม่ทันจบ|เลื่อนจบ|จบล่าช้า|จบไม่ตามกำหนด|ต้องเรียนเกิน\s*4\s*ปี")
+_FAIL_WORD_ANY = re.compile(r"สอบตก|ไม่ผ่าน|ตก")
+
+
+def _graduate_late_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ถ้าตกวิชา X จะจบช้าไหม" → ตอบเหมือน "ถ้าสอบตก X จะกระทบวิชาไหน และต้องเรียนใหม่เทอมไหน" แล้วบอกว่าเล่มไม่ได้ระบุเรื่องจบช้าโดยตรง"""
+    if not _GRAD_LATE_Q.search(question) or not _FAIL_WORD_ANY.search(question):
+        return None
+    probe = _GRAD_LATE_Q.sub("กระทบวิชาไหน และต้องเรียนใหม่เทอมไหน", question)
+    probe = re.sub(r"(?:จะ)?(?:ทำให้)?\s*(?=กระทบวิชาไหน)", "จะ", probe)
+    probe = re.sub(r"(?<=เทอมไหน)\s*(?:ไหม|มั้ย|หรือเปล่า|หรือไม่|ไม่|รึเปล่า)\s*$", "", probe)
+    got = _unlock_answer(conn, probe)
+    if not got:
+        return None
+    note = (" — เรื่องจะจบช้าหรือไม่ เล่มหลักสูตรไม่ได้ระบุโดยตรง ขึ้นกับว่าลงเรียนใหม่ได้ทันในเทอมที่เปิดสอน "
+            "และวิชาที่ได้รับผลกระทบต้องเลื่อนออกไปหรือไม่")
+    return got[0] + note, got[1], got[2]
+
+
+_REVISION_Q = re.compile(r"ปรับปรุง(?:หลักสูตร)?\s*(?:ปี|เมื่อ|ล่าสุด|พ\.?\s*ศ|ครั้งล่าสุด)|หลักสูตร(?:นี้)?\s*(?:เป็น)?\s*(?:ฉบับ)?\s*(?:ปี|พ\.?\s*ศ\.?)\s*(?:ไหน|อะไร|ใด)|"
+                         r"ฉบับปี(?:ไหน|อะไร|ใด)|ใช้หลักสูตรปี|(?:revised|revision|updated)\s+(?:in\s+)?(?:which|what)\s+year|which\s+year\s+(?:is|was)\s+(?:the|this)\s+curriculum", re.I)
+_REVISION_NOT = re.compile(r"\d{8}|เรียน|หน่วยกิต|วิชา|เทอม|ลง|หนัก|ปี\s*\d")
+_REVISION_LINE = re.compile(r"หลักสูตร(ปรับปรุง|ใหม่)\s*พ\.\s*ศ\.\s*(\d{4})")
+
+
+def _revision_year_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"หลักสูตรนี้ปรับปรุงปีไหน" → บรรทัด "หลักสูตรปรับปรุง/ใหม่ พ.ศ. ...." แรกของเล่ม (หน้าปก) จาก outputs/<เล่ม>/<เล่ม>_curriculum_ocr.txt"""
+    if not _REVISION_Q.search(question) or _REVISION_NOT.search(question):
+        return None
+    import book_quotes
+    try:
+        pid = conn.execute("SELECT program_id FROM program LIMIT 1").fetchone()[0]
+    except (sqlite3.Error, TypeError):
+        return None
+    book = book_quotes.book_of(pid)
+    if not book:
+        return None
+    path = REPO_ROOT / "outputs" / book.lower() / f"{book.lower()}_curriculum_ocr.txt"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    mt = _REVISION_LINE.search(text)
+    if not mt:
+        return None
+    pages = re.findall(r"--- Page (\d+) ---", text[:mt.start()])
+    pdf_page = int(pages[-1]) if pages else None
+    kind, year = mt.group(1), mt.group(2)
+    answer = f"หลักสูตรนี้เป็นหลักสูตร{kind} พ.ศ. {year} (ตามเล่มหลักสูตร" + (f" หน้า PDF {pdf_page})" if pdf_page else ")")
+    return answer, [{"topic": "revision_year", "heading": "ชื่อหลักสูตร", "body": mt.group(0), "pdf_page": pdf_page, "printed_page": None}], ""
+
+
 _TWO_YEAR_DIFF = re.compile(r"ต่างกัน|แตกต่างกัน|ต่างกี่|ห่างกัน")
 _TWO_YEAR_CMP = re.compile(r"มากกว่า|น้อยกว่า|สูงกว่า|ต่ำกว่า|เยอะกว่า|หนักกว่า")
 _TWO_YEAR_SUM = re.compile(r"รวม")
@@ -6753,7 +6805,7 @@ def _single_edition_answer(conn: sqlite3.Connection, question: str) -> tuple[str
 
 
 _SHORTCUTS = (
-    _other_program_answer, _name_keyword_term_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
+    _other_program_answer, _name_keyword_term_answer, _graduate_late_answer, _revision_year_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _course_order_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
     _prereq_yesno_answer,
     _hours_filter_answer, _prereq_chain_answer, _prereq_term_answer, _term_total_answer, _course_description_answer, _book_section_answer, _elective_catalog_answer, _elective_group_answer, _name_keyword_count_answer,
@@ -6888,12 +6940,17 @@ _WRITE_VERB_EN = re.compile(r"^\s*(?:please\s+)?(?:delete|remove|update|change|m
                             r"(?:courses?|credits?|data|records?|tables?|names?|subjects?|rows?|plans?)\b", re.I)
 _WRITE_ASKS = re.compile(r"ได้ไหม|ได้มั้ย|ได้หรือไม่|ได้หรือเปล่า|ไหม|มั้ย|หรือไม่|หรือเปล่า|ยังไง|อย่างไร|ทำไง|กี่|เท่าไ|อะไร|ไหน|ทำไม|เมื่อไ|\?")
 _WRITE_REFUSAL = "ไม่พบข้อมูลนี้ในเล่มหลักสูตร: ระบบตอบได้เฉพาะการค้นข้อมูลหลักสูตร ไม่แก้ไขหรือลบข้อมูล คำสั่งนี้จึงถูกปฏิเสธ"
+_RAW_SQL = re.compile(r"^\s*(?:SELECT|WITH)\b[\s\S]*\bFROM\b", re.I)
+_RAW_SQL_REFUSAL = ("ไม่พบข้อมูลนี้ในเล่มหลักสูตร: ระบบรับคำถามเป็นประโยค ไม่รันคำสั่ง SQL ที่พิมพ์มาโดยตรง คำสั่งนี้จึงถูกปฏิเสธ "
+                     "ลองถามเป็นประโยค เช่น \"ปี 1 เทอม 1 เรียนอะไรบ้าง\"")
 
 
 def _write_request_answer(question: str) -> str | None:
     """ข้อความปฏิเสธเมื่อคำถามเป็นคำสั่งเขียนข้อมูล (ไทย/อังกฤษ/SQL); คำถามทั่วไป = None"""
     if _WRITE_SQL.search(question):
         return _WRITE_REFUSAL
+    if _RAW_SQL.search(question):
+        return _RAW_SQL_REFUSAL
     if (_WRITE_VERB_TH.search(question) or _WRITE_VERB_EN.search(question)) and not _WRITE_ASKS.search(question):
         return _WRITE_REFUSAL
     return None
