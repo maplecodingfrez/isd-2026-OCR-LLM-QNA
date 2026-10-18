@@ -2703,8 +2703,8 @@ def _has_prereq_yesno_answer(conn: sqlite3.Connection, question: str) -> tuple[s
 
 
 # ---- "A กับ B วิชาไหนเรียนก่อน" — เทียบเทอมแรกที่พบในแผน (+ บอกถ้าเป็นวิชาบังคับก่อนของกัน) ----
-_WHICH_FIRST_Q = re.compile(r"อันไหน(?:ต้อง)?เรียนก่อน|ต้องเรียนก่อนกัน|วิชาไหนเรียนก่อน|วิชาไหนก่อน|อันไหนเรียนก่อน|ตัวไหนเรียนก่อน|เรียนวิชาไหนก่อน|วิชาใดเรียนก่อน|เรียนอะไรก่อน")
-_WHICH_FIRST_TAIL = re.compile(r"อันไหน(?:ต้อง)?เรียนก่อน|ต้องเรียนก่อนกัน|กัน|วิชาไหนเรียนก่อน|วิชาไหนก่อน|อันไหนเรียนก่อน|ตัวไหนเรียนก่อน|เรียนวิชาไหนก่อน|วิชาใดเรียนก่อน|เรียนอะไรก่อน|ระหว่าง|กับ|และ|วิชา|ไหน|เรียน|ก่อน|ครับ|ค่ะ|คะ|นะ")
+_WHICH_FIRST_Q = re.compile(r"อันไหน(?:ต้อง)?เรียนก่อน|ต้องเรียนก่อนกัน|วิชาไหนเรียนก่อน|วิชาไหนก่อน|อันไหนเรียนก่อน|ตัวไหนเรียนก่อน|เรียนวิชาไหนก่อน|วิชาใดเรียนก่อน|เรียนอะไรก่อน|เรียน(?:อัน|ตัว)ไหนก่อน|(?:อัน|ตัว)ไหนก่อน")
+_WHICH_FIRST_TAIL = re.compile(r"อันไหน(?:ต้อง)?เรียนก่อน|ต้องเรียนก่อนกัน|กัน|วิชาไหนเรียนก่อน|วิชาไหนก่อน|อันไหนเรียนก่อน|ตัวไหนเรียนก่อน|เรียนวิชาไหนก่อน|วิชาใดเรียนก่อน|เรียนอะไรก่อน|ระหว่าง|กับ|และ|วิชา|ไหน|เรียน|ก่อน|ต้อง|อัน|ตัว|ครับ|ค่ะ|คะ|นะ")
 
 
 def _which_first_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
@@ -4017,6 +4017,8 @@ def _strip_own_program_token(conn: sqlite3.Connection, question: str) -> str:
         if not plan:
             return " " + pre
         kind = "no_coop" if mt.group("neg") else "coop"
+        if kind == "coop" and not mt.string[:mt.start()].strip() and _COOP_SUBJECT_REST.match(mt.string[mt.end():].lstrip()):   # "BIT สหกิจอยู่ปีไหน" (ขึ้นต้นประโยค): สหกิจคือสิ่งที่ถาม ไม่ใช่ชื่อแผน; "วิชา X ของ BIT สหกิจ อยู่เทอมไหน" = ชื่อแผน
+            return " " + pre + plan.strip() + " "
         return " " if (kind == own_plan and not both_plans) else " " + pre + plan.strip() + " "
     out = re.sub(rf"(?P<pre>(?:(?:ใน|ของ)?แผน\s*)?)(?:ของ|ใน)?\s*(?<![A-Za-z]){re.escape(mine.upper())}(?![A-Za-z])(?P<plan>\s*(?P<neg>ไม่\s*)?สหกิจ(?!ศึกษา))?", drop, question)
     return re.sub(r" {2,}", " ", out).strip() if out != question else question
@@ -4084,12 +4086,18 @@ def _requested_plan_for(conn: sqlite3.Connection, question: str) -> str | None:
     return "no_coop" if next(iter(found))[1] else "coop"
 
 
+_COOP_SUBJECT_REST = re.compile(r"(?:อยู่|ไป|ต้องไป|ออก|ฝึก|เริ่ม|ช่วง|ตอน|เมื่อ|นาน|ทำงาน|กี่สัปดาห์|กี่เดือน)")
+
+
 def _strip_own_plan_phrase(conn: sqlite3.Connection, question: str) -> str:
     own = _own_plan(conn)
     if own is None or _requested_plan(question) != own or _NO_COOP_INSTEAD_Q.search(question):      # "ไม่ทำสหกิจต้องเรียนอะไรแทน" ถามถึงสหกิจ ไม่ใช่ชื่อแผน
         return question
     out = (_COOP_PLAN_PHRASE if own == "coop" else _NOCOOP_PLAN_PHRASE).sub(" ", question)
-    return re.sub(r" {2,}", " ", out).strip()
+    out = re.sub(r" {2,}", " ", out).strip()
+    if own == "coop" and _COOP_SUBJECT_REST.match(out):                # "BIT สหกิจอยู่ปีไหน": สหกิจคือสิ่งที่ถาม ไม่ใช่ชื่อแผน (ตัดแล้วเหลือ "อยู่ปีไหน")
+        return question
+    return out
 
 
 _THAI_DIGITS = str.maketrans("๐๑๒๓๔๕๖๗๘๙", "0123456789")
@@ -6232,7 +6240,7 @@ def _coop_term_credits_answer(conn: sqlite3.Connection, question: str) -> tuple[
 
 
 _REMAIN_ASK = re.compile(r"(?:ขาด|เหลือ|ต้องเรียน|ต้องเก็บ|ต้องลง|เพิ่ม)?\s*อีก\s*(?:กี่\s*หน่วยกิต|เท่า(?:ไหร่|ไร|ใด))|ขาด(?:อยู่)?\s*กี่\s*หน่วยกิต")   # "ผ่านแล้ว 100 หน่วยกิต ขาดอีกกี่"
-_GRAD_ASK = re.compile(r"จบ\s*(?:ได้\s*)?(?:ไหม|มั้ย|หรือไม่|หรือเปล่า|หรือยัง)|สำเร็จการศึกษา(?:ได้)?\s*(?:ไหม|มั้ย|หรือไม่)|" + _REMAIN_ASK.pattern)
+_GRAD_ASK = re.compile(r"จบ\s*(?:ได้\s*)?(?:เลย\s*)?(?:ไหม|มั้ย|หรือไม่|หรือเปล่า|หรือยัง)|สำเร็จการศึกษา(?:ได้)?\s*(?:ไหม|มั้ย|หรือไม่)|" + _REMAIN_ASK.pattern)
 _GRAD_CREDITS = re.compile(r"(?<!\d)(\d{2,3})\s*หน่วยกิต|หน่วยกิต(?:สะสม)?(?:ได้|อยู่|มา|แล้ว)?\s*(\d{2,3})(?!\d)")
 
 
