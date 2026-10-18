@@ -34,6 +34,7 @@ import argparse
 import csv
 import io
 import json
+import logging
 import os
 import re
 import sqlite3
@@ -45,6 +46,8 @@ from pathlib import Path
 from typing import Any
 
 from query_limits import execute_bounded_rows, QueryBudgetExceeded, QueryRowLimitExceeded
+
+_logger = logging.getLogger(__name__)
 
 if sys.platform == "win32":
     if hasattr(sys.stdout, "reconfigure"):
@@ -6336,6 +6339,27 @@ def _single_plan_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     return text, [{"program_id": pid, "year": y, "semester": s, "code": c, "name_th": n} for y, s, c, n in coop], sql
 
 
+_EDITION_Q = re.compile(r"(?:หลักสูตร|ฉบับ|เล่ม)\s*(?:เก่า|เดิม|ก่อนหน้า|ปรับปรุง|เวอร์ชัน)|เวอร์ชัน\s*(?:เก่า|ใหม่|ก่อน)|\bversion\b|"
+                        r"(?:2|สอง)\s*ปริญญา|ทวิปริญญา|double\s*degree|dual\s*degree", re.I)
+
+
+def _single_edition_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """ถามถึงฉบับเก่า/ฉบับปรับปรุง/เวอร์ชัน/หลักสูตร 2 ปริญญา = ระบบมีเล่มฉบับเดียวต่อหลักสูตร (ตาราง program ไม่มีปีหรือฉบับ) บอกตรง ๆ;
+    เดิมตกไปโมเดลซึ่งตอบ "ไม่มีเลย (0 รายการ)" จาก SQL `WHERE degree = '2'` ที่ไม่มีความหมาย"""
+    if not _EDITION_Q.search(question):
+        return None
+    sql = "SELECT program_id, name_th FROM program"
+    try:
+        row = conn.execute(sql + " LIMIT 1").fetchone()
+    except sqlite3.OperationalError:
+        return None
+    if not row:
+        return None
+    label = row[1] or row[0] or ""                         # ชื่อหลักสูตร (program_id เช่น DSBA-no-coop เป็นชื่อภายใน)
+    return (f"{_NOT_FOUND_TEXT}: ระบบมีเล่มหลักสูตรฉบับเดียวของหลักสูตรนี้ ({label}) ไม่มีข้อมูลเล่มฉบับเก่า ฉบับปรับปรุงอื่น "
+            "หรือหลักสูตร 2 ปริญญา จึงเทียบหรือตอบเรื่องนี้ไม่ได้"), [], sql
+
+
 _SHORTCUTS = (
     _other_program_answer, _two_year_credits_answer, _graduation_credits_answer, _coop_term_credits_answer, _vague_question_answer, _out_of_plan_term_answer, _unnamed_course_reference_answer, _concept_definition_answer, _term_credit_threshold_answer, _withdrawal_answer, _planning_unsupported_answer,
     _open_slot_answer, _term_choices_answer, _term_list_answer, _term_kind_list_answer, _kind_count_undecided_answer, _prereq_register_answer, _prereq_scenario_answer, _has_prereq_yesno_answer, _which_first_answer, _unlock_answer, _most_prerequisites_answer, _courses_with_prereq_answer, _name_prefix_list_answer, _plan_check_answer, _other_plan_diff_answer, _ge_category_answer, _extreme_credits_answer, _no_prereq_answer, _prereq_pair_count_answer, _prereq_ambiguity_answer, _compare_courses_answer,
@@ -6345,7 +6369,7 @@ _SHORTCUTS = (
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
@@ -6511,7 +6535,8 @@ def ask(conn: sqlite3.Connection, question: str,
     for shortcut in _SHORTCUTS:
         try:
             open_slot = shortcut(conn, question)
-        except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล)
+        except Exception:                                 # ทางลัดพัง (ข้อมูล DB ไม่ครบ ฯลฯ) = ห้ามให้หลุดเป็น HTTP 500 → ใช้ทางเดิม (โมเดล) แต่ต้องเห็นใน log
+            _logger.warning("Shortcut %s failed for question %r", shortcut.__name__, question, exc_info=True)
             open_slot = None
         if open_slot:
             break

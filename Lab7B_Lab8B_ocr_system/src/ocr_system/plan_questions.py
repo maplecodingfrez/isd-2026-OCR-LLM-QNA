@@ -10,7 +10,6 @@ plan_question_answer(conn, question) -> (answer, rows, sql) | None
 
 import re
 
-NOT_RELATED = None
 _TAIL = re.compile(r"(?:ครับ|ค่ะ|คะ|นะ)$")
 _MAX_LISTED = 20
 
@@ -293,10 +292,6 @@ def _no_follow_ups(conn, text: str):
 # ---- 8. co-op: "มีสหกิจไหม" and "สหกิจกี่หน่วยกิต" (also any name fragment + กี่หน่วยกิต) ----
 _HAS_COOP = re.compile(rf"^(?:แผนนี้|หลักสูตรนี้)?มี(?:ตัวเลือก)?(?:ให้เลือก)?(?:การ)?สหกิจ(?:ศึกษา)?(?:ให้เลือก)?{_YN}$")
 _CREDITS_OF = re.compile(r"^(?:วิชา)?(?P<frag>[^\d]{3,40}?)(?:มี|เรียน)?กี่หน่วยกิต$")
-
-
-def _coop_courses(conn) -> list[dict]:
-    return [c for c in _plan_courses(conn) if "สหกิจ" in (c["name_th"] or "")]
 
 
 def _has_coop(conn, text: str):

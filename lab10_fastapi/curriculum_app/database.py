@@ -68,17 +68,6 @@ class CurriculumDatabase:
         finally:
             conn.close()
 
-    def query_from_model(self, sql: str) -> tuple[str, list[dict]]:
-        """Use Lab 8B's SQL guard and read-only connection directly."""
-        self._require_db()
-        safe_sql = self.lab8b.guard_sql(sql)
-        conn = self.lab8b.open_db(self.path, readonly=True)
-        try:
-            rows = self.lab8b.execute_bounded_rows(conn, safe_sql, row_limit=self.max_rows)
-            return safe_sql, rows
-        finally:
-            conn.close()
-
     def get_course_prerequisites(self, code: str) -> dict | None:
         """Fetch prerequisite dependencies and unlocked courses for a given course code."""
         self._require_db()
@@ -182,14 +171,4 @@ class CurriculumDatabase:
                     "note": "แสดงความสัมพันธ์ที่พบในหลักสูตร หากถอนแล้วยังไม่เคยผ่านวิชานี้ ตัวต่ออาจได้รับผลกระทบ; เงื่อนไขทางเลือกหรือเรียนร่วมกันและวิชาที่ผ่านแล้วอาจทำให้ผลต่างออกไป ไม่ใช่ผลอนุมัติลงทะเบียน"}
         finally:
             conn.close()
-
-
-SQL_SCHEMA_CONTEXT = """
-program(program_id, name_th, name_en, degree, total_credits, years)
-course(code, name_th, name_en, credits, lecture_h, lab_h, self_h, description_th)
-plan_item(id, program_id, year, semester, code, credits, alt_group, note)
-prerequisite(code, requires, kind)
-v_plan(id, year, semester, code, name_th, name_en, credits, alt_group, note)
-v_semester_credits(year, semester, credits, n_courses)
-""".strip()
 
