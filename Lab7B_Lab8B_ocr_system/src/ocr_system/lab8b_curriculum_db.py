@@ -2931,7 +2931,7 @@ def _name_prefix_list_answer(conn: sqlite3.Connection, question: str) -> tuple[s
 
 
 # ---- ลูกโซ่วิชาบังคับก่อนทุกชั้น โดยไม่ต้องถามปี/เทอม ("ไล่ให้ดูตั้งแต่ต้น", "ต้องวางแผนลงวิชาอะไรไว้ก่อน") ----
-_CHAIN_Q = re.compile(r"ตั้งแต่ต้น|ตั้งแต่ปีแรก|ไล่(?:ให้ดู|ดู|ให้)|chain|ทั้งสาย|ย้อนไป|ลูกโซ่|ตลอดสาย|วางแผน.{0,45}ก่อน", re.I)
+_CHAIN_Q = re.compile(r"ตั้งแต่ต้น|ตั้งแต่ปีแรก|ไล่(?:ให้ดู|ดู|ให้)|chain|ทั้งสาย|ย้อนไป|ลูกโซ่|ตลอดสาย|วางแผน.{0,45}ก่อน|ทางอ้อม|ทุกชั้น|indirect", re.I)
 _CHAIN_PREREQ = re.compile(r"ต้องผ่าน|ผ่านอะไร|ผ่านวิชา|บังคับก่อน|prerequisite|มาก่อน|ไว้ก่อน|ลงวิชาอะไร|ต้องลง", re.I)
 
 
@@ -3140,6 +3140,10 @@ def _unlock_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[d
             + ("; ".join(nm(c) for c in direct) if direct else "ไม่มีวิชาที่ต้องใช้วิชานี้เป็นวิชาบังคับก่อน"))
     if indirect:
         head += "; และวิชาที่ตามมาเป็นลูกโซ่: " + "; ".join(nm(c) for c in indirect)
+    if act_name == "สอบตก" and _WHEN_TERM_Q.search(question):          # "... และต้องเลื่อนไปเรียนเทอมไหน" (เดิมตอบแค่ครึ่งแรก)
+        notes = [s for s in (_retake_sentence(conn, c, names.get(c, "")) for c in given) if s]
+        if notes:
+            head += "; ต้องลงเรียนใหม่: " + "; ".join(notes)
     rows = [{"code": c, "name_th": names.get(c), "effect": "ลงไม่ได้"} for c in direct] + [{"code": c, "name_th": names.get(c), "effect": "ตามมาเป็นลูกโซ่"} for c in indirect]
     return head, rows, in_sql
 
@@ -4079,7 +4083,7 @@ def _requested_plan_for(conn: sqlite3.Connection, question: str) -> str | None:
 
 def _strip_own_plan_phrase(conn: sqlite3.Connection, question: str) -> str:
     own = _own_plan(conn)
-    if own is None or _requested_plan(question) != own:
+    if own is None or _requested_plan(question) != own or _NO_COOP_INSTEAD_Q.search(question):      # "ไม่ทำสหกิจต้องเรียนอะไรแทน" ถามถึงสหกิจ ไม่ใช่ชื่อแผน
         return question
     out = (_COOP_PLAN_PHRASE if own == "coop" else _NOCOOP_PLAN_PHRASE).sub(" ", question)
     return re.sub(r" {2,}", " ", out).strip()
@@ -6349,6 +6353,18 @@ def _plan_places(conn: sqlite3.Connection, code: str) -> list[tuple[int, int]]:
     return [tuple(r) for r in conn.execute("SELECT DISTINCT year, semester FROM plan_item WHERE code = ? ORDER BY year, semester", (code,))]
 
 
+def _retake_sentence(conn: sqlite3.Connection, code: str, name: str) -> str | None:
+    """"X อยู่ในแผนที่ ปี Y เทอม S ... ลงเรียนใหม่ได้เทอม S ของปีถัดไป" จากเทอมของวิชาในแผน; ไม่อยู่ในแผน = None"""
+    places = _plan_places(conn, code)
+    if not places:
+        return None
+    where = ", ".join(_TERM_LABEL.format(y=y, s=s) for y, s in places)
+    if len(places) == 1:
+        return (f"{code} {name} อยู่ในแผนที่ {where} เทอมเดียว ถ้าตก ตามแผนจะลงเรียนใหม่ได้ในเทอม {places[0][1]} ของปีการศึกษาถัดไป "
+                "(เล่มหลักสูตรไม่ได้ระบุการเปิดสอนนอกเทอมในแผน ต้องตรวจตารางเปิดสอนของสถาบัน)")
+    return f"{code} {name} อยู่ในแผนที่ {where} ถ้าตก ลงเรียนใหม่ได้ในเทอมถัดไปที่มีวิชานี้ในแผน (ต้องตรวจตารางเปิดสอนของสถาบัน)"
+
+
 def _retake_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
     """"ตกวิชา X ต้องเรียนใหม่เทอมไหน" = เทอมของ X ในแผน → ลงใหม่ได้ในเทอมเดียวกันของปีถัดไปตามแผน + วิชาที่ต้องผ่าน X ก่อน (ลงไม่ได้ระหว่างนี้);
     เดิมตกไปโมเดลซึ่งตอบรหัสวิชาบังคับก่อนแบบมั่นใจผิดคำถาม. ต้องมีคำว่าตก/ไม่ผ่าน + ถามเทอม/เมื่อไร และวิชาเดียวในแผน"""
@@ -6364,14 +6380,7 @@ def _retake_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
     if not places:
         return None
     names = {r[0]: r[1] for r in conn.execute("SELECT code, name_th FROM course")}
-    where = ", ".join(_TERM_LABEL.format(y=y, s=s) for y, s in places)
-    if len(places) == 1:
-        y, s = places[0]
-        text = (f"{code} {names.get(code, '')} อยู่ในแผนที่ {where} เทอมเดียว ถ้าตก ตามแผนจะลงเรียนใหม่ได้ในเทอม {s} ของปีการศึกษาถัดไป "
-                "(เล่มหลักสูตรไม่ได้ระบุการเปิดสอนนอกเทอมในแผน ต้องตรวจตารางเปิดสอนของสถาบัน)")
-    else:
-        text = (f"{code} {names.get(code, '')} อยู่ในแผนที่ {where} ถ้าตก ลงเรียนใหม่ได้ในเทอมถัดไปที่มีวิชานี้ในแผน "
-                "(ต้องตรวจตารางเปิดสอนของสถาบัน)")
+    text = _retake_sentence(conn, code, names.get(code, ""))
     deps = [r[0] for r in conn.execute("SELECT DISTINCT code FROM prerequisite WHERE requires = ? AND kind = 'pre' ORDER BY code", (code,))]
     if deps:
         def dep_label(c: str) -> str:
@@ -6380,6 +6389,44 @@ def _retake_term_answer(conn: sqlite3.Connection, question: str) -> tuple[str, l
         text += "; ระหว่างนี้วิชาที่ต้องผ่านวิชานี้ก่อนจะยังลงไม่ได้: " + ", ".join(dep_label(c) for c in deps)
     rows = [{"code": code, "name_th": names.get(code), "year": y, "semester": s} for y, s in places]
     return text, rows, f"SELECT DISTINCT year, semester FROM plan_item WHERE code = '{code}';\nSELECT code FROM prerequisite WHERE requires = '{code}' AND kind = 'pre'"
+
+
+# ต้องมีกริยา (ไป/ทำ/เลือก/ลง/เข้า): "ไม่สหกิจปี 4 เทอม 2 เรียนอะไร" ใช้ ไม่สหกิจ เป็นชื่อแผน ไม่ได้ถามว่าเรียนอะไรแทนสหกิจ
+_NO_COOP_INSTEAD_Q = re.compile(r"ไม่\s*(?:ได้)?\s*(?:ไป|ทำ|เลือก|ลง|เข้า)\s*สหกิจ(?:ศึกษา)?.{0,30}?(?:แทน|เรียนอะไร|ลงอะไร|วิชาอะไร)")
+
+
+def _no_coop_instead_answer(conn: sqlite3.Connection, question: str) -> tuple[str, list[dict], str] | None:
+    """"ถ้าไม่ไปสหกิจต้องเรียนอะไรแทน" = เทอมที่แผนสหกิจไปสหกิจศึกษา เทียบกับเทอมเดียวกันของแผนไม่สหกิจ (รายการจาก _term_list_answer);
+    เดิมตกไปโมเดลแล้วตอบไม่พบ. หลักสูตรที่ไม่มีแผนคู่ (AIT) = None"""
+    if not _NO_COOP_INSTEAD_Q.search(question):
+        return None
+    where = _sibling_plan_db(conn)
+    if not where or where[1] is None:
+        return None
+    mine, sib = where
+    sql = ("SELECT DISTINCT p.year, p.semester, c.code, c.name_th FROM plan_item p JOIN course c ON c.code = p.code "
+           "WHERE c.name_th LIKE 'สหกิจศึกษา%' ORDER BY p.year, p.semester, c.code")
+    other = open_db(sib, readonly=True)
+    try:
+        coop_c, plain_c = (conn, other) if mine == "coop" else (other, conn)
+        coop_rows = [tuple(r) for r in coop_c.execute(sql)]
+        if not coop_rows:
+            return None
+        parts, rows, queries = [], [], [sql]
+        for y, s in sorted({(r[0], r[1]) for r in coop_rows}):
+            label = _TERM_LABEL.format(y=y, s=s)
+            coop_names = ", ".join(f"{c} {n}" for yy, ss, c, n in coop_rows if (yy, ss) == (y, s))
+            got = _term_list_answer(plain_c, f"ปี {y} เทอม {s} มีวิชาอะไรบ้าง")
+            if not got:
+                return None
+            parts.append(f"แผนสหกิจ {label} ไปสหกิจศึกษา ({coop_names}) ถ้าไม่ไปสหกิจ (แผนไม่สหกิจ) {label} เรียนแทน: " + got[0].removeprefix(f"{label}: "))
+            rows += got[1]
+            queries.append(got[2])
+    finally:
+        other.close()
+    text = (" | ".join(parts) + " (เทียบเฉพาะเทอมที่แผนสหกิจไปสหกิจ เทอมอื่นของสองแผนอาจจัดวิชาต่างกัน "
+            "ถามเพิ่มได้ว่า \"แผนสหกิจกับไม่สหกิจต่างกันอย่างไร\")")
+    return text, rows, ";\n".join(queries)
 
 
 _SAME_TERM_Q = re.compile(r"(?:เทอม|ภาคเรียน|ภาคการศึกษา|ภาค)\s*เดียวกัน")
@@ -6441,7 +6488,7 @@ _SHORTCUTS = (
     _multi_course_answer, _same_term_answer, _course_kind_answer, _year_credits_answer, _total_and_criteria_answer, _extreme_credit_course_answer, _summer_term_answer, _unknown_course_answer,
     _catalog_course_answer, _elective_credit_overview_answer, _credit_structure_answer, _near_course_answer, _typo_course_answer, _numbered_stem_answer, _free_elective_when_answer, _year_successor_answer,
     _course_prerequisite_lookup_answer, _coop_prerequisite_answer, _plan_question_answer, _partial_name_term_answer, _coop_on_plan_without_coop_answer,
-    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
+    _term_prereq_list_answer, _year_list_answer, _single_plan_answer, _single_edition_answer, _retake_term_answer, _two_course_same_term_answer, _no_coop_instead_answer,      # ท้ายสุด: แทนเฉพาะคำถามที่เดิมตกไปโมเดล (ไม่แย่งคำถามที่ทางลัดเดิมตอบอยู่)
 )
 
 
