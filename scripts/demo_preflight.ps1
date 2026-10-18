@@ -6,7 +6,7 @@
                                            # with one model-path question and re-asks it to time a warm answer
  File is saved as UTF-8 with BOM so Windows PowerShell 5.1 reads the Thai questions correctly.
 #>
-param([switch]$Exam)
+param([switch]$Exam, [int]$Port = 8000)                  # -Port: the uvicorn port if not 8000
 
 $ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
@@ -25,12 +25,12 @@ if ($Exam) {
     $color = @{ PASS = 'Green'; FAIL = 'Red'; WARN = 'Yellow' }[$status]
     Write-Host ("[{0}] {1}: {2}" -f $status, $name, $detail) -ForegroundColor $color
   }
-  $api = 'http://127.0.0.1:8000'
+  $api = "http://127.0.0.1:$Port"
 
   # 1) code on this machine = main on GitHub (compare with ls-remote, never a hard-coded hash)
   $head = (git rev-parse HEAD 2>$null)
   if (-not $head) {
-    Rec 'FAIL' 'git HEAD' 'not a git checkout (ZIP download?): cannot prove the code matches GitHub'
+    Rec 'WARN' 'git HEAD' 'not a git checkout (ZIP download): cannot compare with GitHub main, so download the latest ZIP'
   } else {
     $branch = (git rev-parse --abbrev-ref HEAD 2>$null)
     $remote = ((git ls-remote origin refs/heads/main 2>$null) -split '\s+')[0]
@@ -65,7 +65,7 @@ if ($Exam) {
     if ($h.status -eq 'ok') { Rec 'PASS' '/api/health' ("status=ok, model={0}" -f $h.model) }
     else { Rec 'FAIL' '/api/health' ("status={0}, database_ready={1}, ollama_ready={2}" -f $h.status, $h.database_ready, $h.ollama_ready) }
   } catch {
-    Rec 'FAIL' '/api/health' 'server not reachable on :8000: start uvicorn (README 1.2)'
+    Rec 'FAIL' '/api/health' "server not reachable on :${Port}: start uvicorn (README 1.2), or pass -Port if it uses another port"
   }
 
   if ($serverUp) {
@@ -105,7 +105,7 @@ if ($Exam) {
   $nFail = @($rows | Where-Object { $_.Status -eq 'FAIL' }).Count
   $nWarn = @($rows | Where-Object { $_.Status -eq 'WARN' }).Count
   if ($nFail -gt 0) { Write-Host "$nFail FAIL, $nWarn WARN: fix before the exam starts." -ForegroundColor Red; exit 1 }
-  Write-Host "All checks passed ($nWarn WARN). Model is warm: open http://127.0.0.1:8000/" -ForegroundColor Green
+  Write-Host "All checks passed ($nWarn WARN). Model is warm: open $api/" -ForegroundColor Green
   exit 0
 }
 
@@ -125,9 +125,9 @@ if (Test-Path $man) { Ok "qwen3:4b is pulled" } else { Bad "qwen3:4b not pulled 
 $dbs = Get-ChildItem -Recurse -Filter curriculum.db Lab7B_Lab8B_ocr_system\runs -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch '_archive' }
 if ($dbs.Count -ge 7) { Ok "$($dbs.Count) curriculum.db found (7 plans)" } else { Bad "expected 7 curriculum.db, found $($dbs.Count)" }
 
-foreach ($port in 8000, 11434) {
-  $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
-  if ($c) { Warn "port $port is in use by PID $($c[0].OwningProcess) (fine if it is your uvicorn/ollama; otherwise stop it first)" } else { Ok "port $port free" }
+foreach ($p in $Port, 11434) {                          # not $port: PowerShell names are case-insensitive, it would overwrite -Port
+  $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue
+  if ($c) { Warn "port $p is in use by PID $($c[0].OwningProcess) (fine if it is your uvicorn/ollama; otherwise stop it first)" } else { Ok "port $p free" }
 }
 
 if ($script:fail -gt 0) { Write-Host "`n$($script:fail) problem(s). Fix before starting the app." -ForegroundColor Red; exit 1 }
