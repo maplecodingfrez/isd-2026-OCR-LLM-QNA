@@ -258,6 +258,17 @@
     return answerText(data) + (cite ? "\n\n" + cite : "");
   }
 
+  // คำตอบ "คุณหมายถึง ... หรือไม่" (rows[0].near_match + typed): คำถามเดิมที่แทนชื่อที่พิมพ์ผิดด้วยรหัสวิชาที่แนะนำ ใช้กับปุ่ม "ใช่ ถามใหม่";
+  // ไม่ใช่คำตอบแบบนี้ / หาชื่อที่พิมพ์ในคำถามไม่เจอ = "" (ไม่มีปุ่ม)
+  function retryQuestion(question, data) {
+    var row = data && Array.isArray(data.rows) && data.rows.length === 1 ? data.rows[0] : null;
+    if (!row || !row.near_match || !row.typed || !row.code || typeof question !== "string") return "";
+    var parts = String(row.typed).trim().split(/\s+/).map(function (p) { return p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
+    var pattern = new RegExp(parts.join("\\s*"), "i");
+    if (!pattern.test(question)) return "";
+    return question.replace(pattern, " " + row.code + " ").replace(/\s{2,}/g, " ").trim();
+  }
+
   var TIMEOUT_MS = 180000;   // เพดานรอของหน้าเว็บเอง (backend ไม่มีเพดานเท่ากัน: Ollama รอได้ถึง 600 วินาทีต่อครั้ง)
 
   // จุดเดียวที่คุยกับเครือข่าย: ทุกความล้มเหลวกลายเป็น ApiError ที่ describeError อธิบายได้
@@ -664,6 +675,7 @@
     isEmptyResult: isEmptyResult,
     buildCopyPayload: buildCopyPayload,
     buildCopyText: buildCopyText,
+    retryQuestion: retryQuestion,
     isYearTermQuestion: isYearTermQuestion,
     copyButtonsVisible: copyButtonsVisible
   };
@@ -1152,6 +1164,11 @@
     var noAnswer = noRealAnswer(data);
     var hasReason = /แผนนี้มี(?:ปี|เทอม)|คุณหมายถึง|ถูกปฏิเสธ|ฉบับเดียว/.test(String(data.answer || ""));   // คำตอบบอกสาเหตุ/ทางแก้เองแล้ว (ปี-เทอมนอกแผน, สะกดผิด, ปฏิเสธคำสั่งเขียนข้อมูล, มีเล่มฉบับเดียว) ไม่ต้องมีคำใบ้ทั่วไปซ้อน
     $("answer-hint").hidden = !noAnswer || hasReason;     // ...แต่คำตอบแบบกฎที่ไม่มีแถวเป็นคำตอบจริง: ไม่ต้องแนะนำ
+    var retry = retryQuestion(data.question, data);       // "คุณหมายถึง ... หรือไม่": ปุ่มเดียวถามคำถามเดิมด้วยรหัสวิชาที่แนะนำ ไม่ต้องพิมพ์ใหม่
+    if (retry) {
+      answer.appendChild(el("p", { className: "retry-row" }, [el("button", { className: "overview-chip",
+        text: t("answer.retry", { code: data.rows[0].code, name: data.rows[0].name_th || "" }), attrs: { type: "button", "data-retry-question": retry } })]));
+    }
     $("answer-box").classList.toggle("is-notfound", noAnswer);   // "ไม่พบ" เป็นคำตอบที่ถูกต้อง: หน้าตาสงบ ไม่ใช่คำเตือน
     $("notfound-note").hidden = !noAnswer;
     var yearTermQuestion = isYearTermQuestion(data.question);   // คำแนะนำปี/เทอมใช้เฉพาะคำถามที่พูดถึงปี/เทอม
@@ -1788,6 +1805,12 @@
   });
   $("ask-retry").addEventListener("click", runAsk);
   $("answer-text").addEventListener("click", function (event) {
+    var again = event.target.closest("[data-retry-question]");
+    if (again) {
+      $("question").value = again.dataset.retryQuestion;
+      runAsk();
+      return;
+    }
     var chip = event.target.closest("[data-overview-code]");
     if (!chip) return;
     var code = chip.dataset.overviewCode;

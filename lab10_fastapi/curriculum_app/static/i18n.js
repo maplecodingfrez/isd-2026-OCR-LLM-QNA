@@ -78,6 +78,7 @@
     "answer.tag": ["คำตอบ", "Answer"],
     "answer.source": ["ตอบจาก {name}", "Answered from {name}"],
     "answer.sourceDefault": ["ตอบจากหลักสูตรที่เซิร์ฟเวอร์ตั้งไว้", "Answered from the server's default program"],
+    "answer.retry": ["ใช่ ถามใหม่ด้วย {code} {name}", "Yes, ask again with {code} {name}"],
     "answer.hintGeneric": ["ลองใช้รหัสวิชา 8 หลัก หรือค้นชื่อวิชาในแท็บ “ค้นหารายวิชา”", "Try an 8-digit course code, or look the course up in the “Find courses” tab"],
     "dash.more": ["…และอีก {n} รายวิชา · ค้นได้จากแท็บ “ค้นหารายวิชา”", "…and {n} more · find them in the “Find courses” tab"],
     "notfound.note": ["ระบบตอบเฉพาะที่มีอยู่ในเล่ม จึงไม่เดาคำตอบให้", "The system only answers from what is in the book, so it does not guess."],
